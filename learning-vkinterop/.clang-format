@@ -1,0 +1,7 @@
+---
+Language: Cpp
+Standard: Cpp11
+BasedOnStyle: WebKit
+DerivePointerAlignment: false
+PointerAlignment: Right
+...
