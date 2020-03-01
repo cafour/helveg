@@ -13,6 +13,7 @@ ExternalProject_Add(glfw_DOWNLOAD
         -DGLFW_BUILD_TESTS="OFF"
         -DGLFW_BUILD_EXAMPLES="OFF")
 add_library(glfw STATIC IMPORTED GLOBAL)
+file(MAKE_DIRECTORY ${glfw_DIR}/include)
 set_target_properties(glfw PROPERTIES
     IMPORTED_LOCATION ${glfw_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}glfw3${CMAKE_STATIC_LIBRARY_SUFFIX}
     INTERFACE_INCLUDE_DIRECTORIES ${glfw_DIR}/include)
@@ -25,4 +26,5 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 add_library(vknative SHARED vkinterop.cpp)
 set_target_properties(vknative PROPERTIES PUBLIC_HEADER vkinterop.hpp)
+add_dependencies(vknative glfw)
 target_link_libraries(vknative glfw)
