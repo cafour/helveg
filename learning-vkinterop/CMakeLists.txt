@@ -24,7 +24,9 @@ set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-add_library(vknative SHARED vkinterop.cpp)
-set_target_properties(vknative PROPERTIES PUBLIC_HEADER vkinterop.hpp)
-add_dependencies(vknative glfw)
-target_link_libraries(vknative glfw)
+add_executable(embed embed.cpp)
+
+add_library(vki SHARED vkinterop.cpp)
+set_target_properties(vki PROPERTIES PUBLIC_HEADER vkinterop.hpp)
+add_dependencies(vki glfw embed)
+target_link_libraries(vki glfw)
