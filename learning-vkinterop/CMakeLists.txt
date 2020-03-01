@@ -26,7 +26,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 add_executable(embed embed.cpp)
 
-add_library(vki SHARED vkinterop.cpp)
-set_target_properties(vki PROPERTIES PUBLIC_HEADER vkinterop.hpp)
+add_library(vki SHARED vki.cpp)
+set_target_properties(vki PROPERTIES PUBLIC_HEADER vki.hpp)
 add_dependencies(vki glfw embed)
 target_link_libraries(vki glfw)

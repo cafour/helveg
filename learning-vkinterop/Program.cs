@@ -5,7 +5,7 @@ namespace VkInterop
 {
     public class Program
     {
-        [DllImport("vknative")]
+        [DllImport("vki")]
         public static extern int calculateValue();
 
         public static void Main(string[] args)
