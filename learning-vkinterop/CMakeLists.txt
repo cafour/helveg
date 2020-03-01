@@ -26,7 +26,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 add_executable(embed embed.cpp)
 
-add_library(vki SHARED vki.cpp)
+add_library(vki SHARED vki.cpp ext.cpp sample.cpp shaders.cpp wrapper.cpp)
 set_target_properties(vki PROPERTIES PUBLIC_HEADER vki.hpp)
-add_dependencies(vki glfw embed)
+add_dependencies(vki glfw embed shaders)
 target_link_libraries(vki glfw)
