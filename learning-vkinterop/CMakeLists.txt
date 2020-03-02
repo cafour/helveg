@@ -18,6 +18,8 @@ set_target_properties(glfw PROPERTIES
     IMPORTED_LOCATION ${glfw_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}glfw3${CMAKE_STATIC_LIBRARY_SUFFIX}
     INTERFACE_INCLUDE_DIRECTORIES ${glfw_DIR}/include)
 
+find_package(Vulkan REQUIRED)
+
 set(CMAKE_C_VISIBILITY_PRESET hidden)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
@@ -56,3 +58,5 @@ add_library(vki SHARED vki.cpp ext.cpp sample.cpp wrapper.cpp generated/shader.f
 set_target_properties(vki PROPERTIES PUBLIC_HEADER vki.hpp)
 add_dependencies(vki glfw)
 target_link_libraries(vki glfw)
+target_include_directories(vki PRIVATE ${Vulkan_INCLUDE_DIRS})
+target_include_directories(vki PRIVATE ${CMAKE_SOURCE_DIR})
