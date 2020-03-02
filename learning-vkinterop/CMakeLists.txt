@@ -26,7 +26,33 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 add_executable(embed embed.cpp)
 
-add_library(vki SHARED vki.cpp ext.cpp sample.cpp shaders.cpp wrapper.cpp)
+file(MAKE_DIRECTORY ${CMAKE_SOURCE_DIR}/generated)
+function(add_embedded_shader INPUT_GLSL OUTPUT_CPP SHADER_NAME)
+    get_filename_component(_SPV ${INPUT_GLSL} NAME)
+    set(_SPV generated/${_SPV}.spv)
+    add_custom_command(
+        OUTPUT ${_SPV}
+        COMMAND glslc ${INPUT_GLSL} -o ${_SPV}
+        MAIN_DEPENDENCY ${INPUT_GLSL}
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    )
+    add_custom_command(
+        OUTPUT ${OUTPUT_CPP}
+        COMMAND embed ${_SPV} ${OUTPUT_CPP} ${SHADER_NAME}
+        MAIN_DEPENDENCY ${_SPV}
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        DEPENDS embed
+    )
+endfunction()
+
+add_embedded_shader(${CMAKE_SOURCE_DIR}/shaders/shader.frag
+    ${CMAKE_SOURCE_DIR}/generated/shader.frag.cpp
+    VERTEX_SHADER)
+add_embedded_shader(${CMAKE_SOURCE_DIR}/shaders/shader.vert
+    ${CMAKE_SOURCE_DIR}/generated/shader.vert.cpp
+    FRAGMENT_SHADER)
+
+add_library(vki SHARED vki.cpp ext.cpp sample.cpp wrapper.cpp generated/shader.frag.cpp generated/shader.vert.cpp)
 set_target_properties(vki PROPERTIES PUBLIC_HEADER vki.hpp)
-add_dependencies(vki glfw embed shaders)
+add_dependencies(vki glfw)
 target_link_libraries(vki glfw)
