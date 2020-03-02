@@ -1,5 +1,4 @@
 #include "sample.hpp"
-#include "ext.hpp"
 #include "shaders.hpp"
 
 #include <set>
@@ -90,7 +89,7 @@ VkInstance Sample::createInstance()
         throw std::runtime_error("failed to create an instance");
     }
 
-    loadExtFunctions(instance);
+    // loadExtFunctions(instance);
     return instance;
 }
 
@@ -493,7 +492,7 @@ std::vector<VkCommandBuffer> Sample::createCommandBuffers(VkDevice device,
     VkCommandBufferAllocateInfo allocateInfo = {};
     allocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocateInfo.commandPool = commandPool;
-    allocateInfo.commandBufferCount = framebuffers.size();
+    allocateInfo.commandBufferCount = static_cast<uint32_t>(framebuffers.size());
     allocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 
     std::vector<VkCommandBuffer> commandBuffers(framebuffers.size());

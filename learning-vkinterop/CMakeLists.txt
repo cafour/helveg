@@ -9,16 +9,21 @@ ExternalProject_Add(glfw_DOWNLOAD
     URL_HASH SHA1=c3eea7eb56b1f316da3d18a907d6fd370cfa8d5d
     INSTALL_DIR ${glfw_DIR}
     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${glfw_DIR}
-        -DGLFW_BUILD_DOCS="OFF"
-        -DGLFW_BUILD_TESTS="OFF"
-        -DGLFW_BUILD_EXAMPLES="OFF")
+        -DGLFW_BUILD_DOCS=OFF
+        -DGLFW_BUILD_TESTS=OFF
+        -DGLFW_BUILD_EXAMPLES=OFF
+        -DGLFW_VULKAN_STATIC=ON)
 add_library(glfw STATIC IMPORTED GLOBAL)
 file(MAKE_DIRECTORY ${glfw_DIR}/include)
 set_target_properties(glfw PROPERTIES
     IMPORTED_LOCATION ${glfw_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}glfw3${CMAKE_STATIC_LIBRARY_SUFFIX}
     INTERFACE_INCLUDE_DIRECTORIES ${glfw_DIR}/include)
 
-find_package(Vulkan REQUIRED)
+include(FetchContent)
+FetchContent_Declare(volk_DOWNLOAD
+    GIT_REPOSITORY https://github.com/zeux/volk
+)
+FetchContent_MakeAvailable(volk_DOWNLOAD)
 
 set(CMAKE_C_VISIBILITY_PRESET hidden)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
@@ -54,9 +59,9 @@ add_embedded_shader(${CMAKE_SOURCE_DIR}/shaders/shader.vert
     ${CMAKE_SOURCE_DIR}/generated/shader.vert.cpp
     FRAGMENT_SHADER)
 
-add_library(vki SHARED vki.cpp ext.cpp sample.cpp wrapper.cpp generated/shader.frag.cpp generated/shader.vert.cpp)
+add_library(vki SHARED vki.cpp sample.cpp wrapper.cpp generated/shader.frag.cpp generated/shader.vert.cpp)
 set_target_properties(vki PROPERTIES PUBLIC_HEADER vki.hpp)
 add_dependencies(vki glfw)
-target_link_libraries(vki glfw)
+target_link_libraries(vki PRIVATE glfw volk)
 target_include_directories(vki PRIVATE ${Vulkan_INCLUDE_DIRS})
 target_include_directories(vki PRIVATE ${CMAKE_SOURCE_DIR})

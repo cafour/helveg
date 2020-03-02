@@ -1,5 +1,4 @@
 #include "wrapper.hpp"
-#include "ext.hpp"
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
@@ -196,7 +195,7 @@ vk::Instance::Instance(const std::string &appName, bool isDebug)
 
     vk::ensure(vkCreateInstance(&createInfo, nullptr, &_instance), "vkCreateInstance");
 
-    loadExtFunctions(_instance);
+    // loadExtFunctions(_instance);
 }
 
 vk::Instance::~Instance()

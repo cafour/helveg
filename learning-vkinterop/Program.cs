@@ -6,11 +6,11 @@ namespace VkInterop
     public class Program
     {
         [DllImport("vki")]
-        public static extern int calculateValue();
+        public static extern int helloTriangle();
 
         public static void Main(string[] args)
         {
-            var value = calculateValue();
+            var value = helloTriangle();
             Console.WriteLine(value);
         }
     }
