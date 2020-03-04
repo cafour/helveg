@@ -52,10 +52,10 @@ endfunction()
 
 add_embedded_shader(${CMAKE_SOURCE_DIR}/shaders/shader.frag
     ${CMAKE_SOURCE_DIR}/generated/shader.frag.cpp
-    VERTEX_SHADER)
+    FRAGMENT_SHADER)
 add_embedded_shader(${CMAKE_SOURCE_DIR}/shaders/shader.vert
     ${CMAKE_SOURCE_DIR}/generated/shader.vert.cpp
-    FRAGMENT_SHADER)
+    VERTEX_SHADER)
 
 add_library(vki SHARED vki.cpp sample.cpp wrapper.cpp generated/shader.frag.cpp generated/shader.vert.cpp)
 set_target_properties(vki PROPERTIES PUBLIC_HEADER vki.hpp)

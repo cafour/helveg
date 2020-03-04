@@ -1,11 +1,12 @@
 #include "wrapper.hpp"
 
-#include <volk.h>
 #include <GLFW/glfw3.h>
+#include <volk.h>
 
 #include <algorithm>
 #include <cstring>
 #include <iostream>
+#include <fstream>
 #include <sstream>
 #include <stdexcept>
 
@@ -92,6 +93,37 @@ void vk::ensure(VkResult result, const std::string &where)
     std::string message = ss.str();
     throw std::runtime_error(message);
 }
+
+VkShaderModule vk::loadShader(VkDevice device, const uint32_t *code, size_t size)
+{
+    VkShaderModuleCreateInfo createInfo = {};
+    createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    createInfo.codeSize = size;
+    createInfo.pCode = code;
+
+    VkShaderModule shader;
+    if (vkCreateShaderModule(device, &createInfo, nullptr, &shader) != VK_SUCCESS) {
+        throw std::runtime_error("failed to compile a shader");
+    }
+    return shader;
+}
+
+VkShaderModule vk::loadShader(VkDevice device, const std::string &path)
+{
+    std::ifstream file(path, std::ios::ate | std::ios::binary);
+    if (!file.is_open()) {
+        throw std::runtime_error("failed to open a file");
+    }
+
+    size_t size = (size_t)file.tellg();
+    file.seekg(0);
+    std::vector<char> buffer(size);
+    file.read(buffer.data(), size);
+    file.close();
+
+    return loadShader(device, reinterpret_cast<const uint32_t *>(buffer.data()), size);
+}
+
 bool checkValidationLayers(const std::vector<const char *> &layers)
 {
     uint32_t layerCount = 0;

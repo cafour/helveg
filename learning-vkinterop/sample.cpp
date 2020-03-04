@@ -270,20 +270,6 @@ std::vector<VkImageView> Sample::createSwapchainViews(VkDevice device,
     return views;
 }
 
-VkShaderModule Sample::createShaderModule(VkDevice device, const uint32_t *code, size_t size)
-{
-    VkShaderModuleCreateInfo createInfo = {};
-    createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-    createInfo.codeSize = size;
-    createInfo.pCode = code;
-
-    VkShaderModule shader;
-    if (vkCreateShaderModule(device, &createInfo, nullptr, &shader) != VK_SUCCESS) {
-        throw std::runtime_error("failed to compile a shader");
-    }
-    return shader;
-}
-
 VkRenderPass Sample::createRenderPass(VkDevice device, VkFormat swapchainFormat)
 {
     VkAttachmentDescription colorAttachment = {};
@@ -347,8 +333,10 @@ VkPipeline Sample::createPipeline(VkDevice device,
     VkRenderPass renderPass,
     VkPipelineLayout layout)
 {
-    VkShaderModule vertexShader = createShaderModule(device, VERTEX_SHADER, VERTEX_SHADER_LENGTH);
-    VkShaderModule fragmentShader = createShaderModule(device, FRAGMENT_SHADER, FRAGMENT_SHADER_LENGTH);
+    VkShaderModule vertexShader = vk::loadShader(device, VERTEX_SHADER, VERTEX_SHADER_LENGTH);
+    VkShaderModule fragmentShader = vk::loadShader(device, FRAGMENT_SHADER, FRAGMENT_SHADER_LENGTH);
+    // VkShaderModule vertexShader = vk::loadShader(device, "C:\\dev\\rtx\\learning-vkinterop\\generated\\shader.vert.spv");
+    // VkShaderModule fragmentShader = vk::loadShader(device, "C:\\dev\\rtx\\learning-vkinterop\\generated\\shader.frag.spv");
 
     VkPipelineShaderStageCreateInfo vertexStageInfo = {};
     vertexStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;

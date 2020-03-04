@@ -31,6 +31,8 @@ bool checkDeviceExtensions(VkPhysicalDevice device, const std::vector<const char
 namespace vk {
 
 void ensure(VkResult result, const std::string &where);
+VkShaderModule loadShader(VkDevice device, const uint32_t *code, size_t size);
+VkShaderModule loadShader(VkDevice device, const std::string& path);
 
 class Instance {
 private:

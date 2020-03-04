@@ -248,7 +248,6 @@ private:
     static std::vector<VkImageView> createSwapchainViews(VkDevice device,
         const std::vector<VkImage> &swapchainImages,
         VkFormat format);
-    static VkShaderModule createShaderModule(VkDevice device, const uint32_t *code, size_t size);
     static VkRenderPass createRenderPass(VkDevice device, VkFormat swapchainFormat);
     static VkPipelineLayout createPipelineLayout(VkDevice device);
     static VkPipeline createPipeline(VkDevice device,
