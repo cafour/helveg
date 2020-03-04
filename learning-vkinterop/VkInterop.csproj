@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="build/*.so;build/*.dll"
+    <Content Include="build/*vki.*"
              CopyToOutputDirectory="always"
              Link="%(FileName)%(Extension)" />
   </ItemGroup>

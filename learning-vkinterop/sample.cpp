@@ -90,6 +90,7 @@ VkInstance Sample::createInstance()
     }
 
     // loadExtFunctions(instance);
+    volkLoadInstance(instance);
     return instance;
 }
 

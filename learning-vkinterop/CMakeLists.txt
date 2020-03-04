@@ -2,28 +2,26 @@ cmake_minimum_required(VERSION 3.10)
 
 project(vulkan-interop)
 
-include(ExternalProject)
-set(glfw_DIR ${CMAKE_SOURCE_DIR}/external/glfw)
-ExternalProject_Add(glfw_DOWNLOAD
-    URL https://github.com/glfw/glfw/archive/3.3.2.tar.gz
-    URL_HASH SHA1=c3eea7eb56b1f316da3d18a907d6fd370cfa8d5d
-    INSTALL_DIR ${glfw_DIR}
-    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${glfw_DIR}
-        -DGLFW_BUILD_DOCS=OFF
-        -DGLFW_BUILD_TESTS=OFF
-        -DGLFW_BUILD_EXAMPLES=OFF
-        -DGLFW_VULKAN_STATIC=ON)
-add_library(glfw STATIC IMPORTED GLOBAL)
-file(MAKE_DIRECTORY ${glfw_DIR}/include)
-set_target_properties(glfw PROPERTIES
-    IMPORTED_LOCATION ${glfw_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}glfw3${CMAKE_STATIC_LIBRARY_SUFFIX}
-    INTERFACE_INCLUDE_DIRECTORIES ${glfw_DIR}/include)
-
 include(FetchContent)
-FetchContent_Declare(volk_DOWNLOAD
+FetchContent_Declare(volk_FETCH
     GIT_REPOSITORY https://github.com/zeux/volk
 )
-FetchContent_MakeAvailable(volk_DOWNLOAD)
+FetchContent_MakeAvailable(volk_FETCH)
+if(WIN32)
+    target_compile_definitions(volk INTERFACE VK_USE_PLATFORM_WIN32_KHR)
+else()
+    target_compile_definitions(volk INTERFACE VK_USE_PLATFORM_XCB_KHR)
+endif()
+
+FetchContent_Declare(glfw_FETCH
+    URL https://github.com/glfw/glfw/archive/3.3.2.tar.gz
+    URL_HASH SHA1=c3eea7eb56b1f316da3d18a907d6fd370cfa8d5d)
+FetchContent_MakeAvailable(glfw_FETCH)
+option(GLFW_BUILD_DOCS OFF)
+option(GLFW_BUILD_TESTS OFF)
+option(GLFW_BUILD_EXAMPLES OFF)
+option(GLFW_INSTALL OFF)
+option(GLFW_VULKAN_STATIC ON)
 
 set(CMAKE_C_VISIBILITY_PRESET hidden)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)

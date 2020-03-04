@@ -2,8 +2,12 @@
 #include "sample.hpp"
 
 #include <cstdlib>
+#include <volk.h>
 
 int helloTriangle() {
+    if (volkInitialize() != VK_SUCCESS) {
+        return EXIT_FAILURE;
+    }
     try {
         Sample app(1280, 720);
         app.run();
