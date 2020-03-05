@@ -25,21 +25,4 @@ struct SwapchainDetails {
 QueueIndices getQueueIndices(VkPhysicalDevice device, VkSurfaceKHR surface);
 SwapchainDetails getSwapchainDetails(VkPhysicalDevice device, VkSurfaceKHR surface);
 
-bool checkValidationLayers(const std::vector<const char *> &layers);
-bool checkDeviceExtensions(VkPhysicalDevice device, const std::vector<const char *> &extensions);
 
-namespace vk {
-
-void ensure(VkResult result, const std::string &where);
-VkShaderModule loadShader(VkDevice device, const uint32_t *code, size_t size);
-VkShaderModule loadShader(VkDevice device, const std::string& path);
-
-class Instance {
-private:
-    VkInstance _instance;
-
-public:
-    Instance(const std::string &appName, bool isDebug = false);
-    ~Instance();
-};
-}

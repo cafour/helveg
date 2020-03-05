@@ -10,13 +10,17 @@ set(VKU_SOURCES
     vku.hpp
     base.hpp
     shader.hpp
+    instance.hpp
+    physical_device.hpp
 
     # sources
     base.cpp
-    shader.cpp)
+    shader.cpp
+    instance.cpp
+    physical_device.cpp)
 
 set(PROJECT_FILES
     ${VKU_SOURCES})
 
 add_library(${PROJECT_NAME} STATIC ${PROJECT_FILES})
-target_link_libraries(${PROJECT_NAME} volk)
+target_link_libraries(${PROJECT_NAME} volk glfw)
