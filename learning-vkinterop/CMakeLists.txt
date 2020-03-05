@@ -57,9 +57,11 @@ add_embedded_shader(${CMAKE_SOURCE_DIR}/shaders/shader.vert
     ${CMAKE_SOURCE_DIR}/generated/shader.vert.cpp
     VERTEX_SHADER)
 
+add_subdirectory(vku)
+
 add_library(vki SHARED vki.cpp sample.cpp wrapper.cpp generated/shader.frag.cpp generated/shader.vert.cpp)
 set_target_properties(vki PROPERTIES PUBLIC_HEADER vki.hpp)
 add_dependencies(vki glfw)
-target_link_libraries(vki PRIVATE glfw volk)
+target_link_libraries(vki PRIVATE glfw vku)
 target_include_directories(vki PRIVATE ${Vulkan_INCLUDE_DIRS})
 target_include_directories(vki PRIVATE ${CMAKE_SOURCE_DIR})
