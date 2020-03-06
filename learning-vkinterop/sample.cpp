@@ -1,7 +1,7 @@
 #include "sample.hpp"
 #include "shaders.hpp"
 
-VkCommandPool Sample::createCommandPool(VkDevice device, QueueIndices &indices)
+VkCommandPool Sample::createCommandPool(vku::Device &device, vku::QueueIndices &indices)
 {
     VkCommandPoolCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -14,12 +14,12 @@ VkCommandPool Sample::createCommandPool(VkDevice device, QueueIndices &indices)
     return commandPool;
 }
 
-std::vector<VkCommandBuffer> Sample::createCommandBuffers(VkDevice device,
+std::vector<VkCommandBuffer> Sample::createCommandBuffers(vku::Device &device,
     VkCommandPool commandPool,
-    VkRenderPass renderPass,
+    vku::RenderPass &renderPass,
     std::vector<VkFramebuffer> &framebuffers,
     VkExtent2D extent,
-    VkPipeline pipeline)
+    vku::Pipeline &pipeline)
 {
     VkCommandBufferAllocateInfo allocateInfo = {};
     allocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;

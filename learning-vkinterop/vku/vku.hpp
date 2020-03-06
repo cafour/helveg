@@ -11,3 +11,4 @@
 #include "swapchain.hpp"
 #include "render_pass.hpp"
 #include "pipeline.hpp"
+#include "capabilities.hpp"

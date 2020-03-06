@@ -14,7 +14,7 @@ vku::Swapchain::Swapchain(RenderPass &renderPass)
 
     auto &window = _renderPass.device().physicalDevice().surface().window();
     auto surfaceFormat = details.pickFormat();
-    auto extent = details.pickExtent(window.width(), window.height());;
+    _extent = details.pickExtent(window.width(), window.height());
 
     VkSwapchainCreateInfoKHR createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
@@ -22,7 +22,7 @@ vku::Swapchain::Swapchain(RenderPass &renderPass)
     createInfo.minImageCount = imageCount;
     createInfo.imageFormat = surfaceFormat.format;
     createInfo.imageColorSpace = surfaceFormat.colorSpace;
-    createInfo.imageExtent = extent;
+    createInfo.imageExtent = _extent;
     createInfo.imageArrayLayers = 1;
     createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
@@ -71,8 +71,8 @@ vku::Swapchain::Swapchain(RenderPass &renderPass)
         createInfo.renderPass = renderPass;
         createInfo.attachmentCount = 1;
         createInfo.pAttachments = &_imageViews[i];
-        createInfo.width = extent.width;
-        createInfo.height = extent.height;
+        createInfo.width = _extent.width;
+        createInfo.height = _extent.height;
         createInfo.layers = 1;
 
         ENSURE(vkCreateFramebuffer, _renderPass.device(), &createInfo, nullptr, &_framebuffers[i]);
@@ -81,6 +81,9 @@ vku::Swapchain::Swapchain(RenderPass &renderPass)
 
 vku::Swapchain::~Swapchain()
 {
+    for (auto framebuffer : _framebuffers) {
+        vkDestroyFramebuffer(_renderPass.device(), framebuffer, nullptr);
+    }
     for (auto view : _imageViews) {
         vkDestroyImageView(_renderPass.device(), view, nullptr);
     }

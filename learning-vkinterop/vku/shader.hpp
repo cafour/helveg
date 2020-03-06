@@ -1,22 +1,23 @@
 #pragma once
 
+#include <string>
 #include <volk.h>
 
-#include <string>
+#include "device.hpp"
 
 namespace vku {
 
 class Shader {
 private:
-    VkDevice _device;
     VkShaderModule _raw;
+    Device &_device;
 
 public:
-    Shader(VkDevice device, const uint32_t *code, size_t size);
-    Shader(VkDevice device, const char *filename);
+    Shader(Device &device, const uint32_t *code, size_t size);
+    Shader(Device &device, const char *filename);
     ~Shader();
 
-    VkDevice device() { return _device; }
+    Device &device() { return _device; }
 
     operator VkShaderModule() { return _raw; };
 };

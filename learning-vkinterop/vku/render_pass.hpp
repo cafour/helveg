@@ -13,7 +13,7 @@ private:
 
 public:
     RenderPass(Device &device);
-    ~RenderPass();
+    ~RenderPass() { vkDestroyRenderPass(_device, _raw, nullptr); }
 
     operator VkRenderPass() { return _raw; }
 

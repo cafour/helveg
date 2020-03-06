@@ -3,28 +3,25 @@
 
 vku::Pipeline::Pipeline(
     RenderPass &renderPass,
-    Shader &vertexShader,
-    Shader &fragmentShader)
+    Shader &&vertexShader,
+    Shader &&fragmentShader)
     : _renderPass(renderPass)
-    , _vertexShader(vertexShader)
-    , _fragmentShader(fragmentShader)
 {
     VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 
-    VkPipelineLayout pipelineLayout;
-    ENSURE(vkCreatePipelineLayout, _renderPass.device(), &pipelineLayoutInfo, nullptr, &pipelineLayout);
+    ENSURE(vkCreatePipelineLayout, _renderPass.device(), &pipelineLayoutInfo, nullptr, &_layout);
 
     VkPipelineShaderStageCreateInfo vertexStageInfo = {};
     vertexStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     vertexStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
-    vertexStageInfo.module = _vertexShader;
+    vertexStageInfo.module = vertexShader;
     vertexStageInfo.pName = "main";
 
     VkPipelineShaderStageCreateInfo fragmentStageInfo = {};
     fragmentStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     fragmentStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-    fragmentStageInfo.module = _fragmentShader;
+    fragmentStageInfo.module = fragmentShader;
     fragmentStageInfo.pName = "main";
 
     VkPipelineShaderStageCreateInfo shaderStages[] = { vertexStageInfo, fragmentStageInfo };
@@ -100,7 +97,7 @@ vku::Pipeline::Pipeline(
     pipelineInfo.pRasterizationState = &rasterizer;
     pipelineInfo.pMultisampleState = &multisampling;
     pipelineInfo.pColorBlendState = &colorBlending;
-    pipelineInfo.layout = pipelineLayout;
+    pipelineInfo.layout = _layout;
     pipelineInfo.renderPass = renderPass;
     pipelineInfo.subpass = 0;
 

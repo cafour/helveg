@@ -59,7 +59,7 @@ add_embedded_shader(${CMAKE_SOURCE_DIR}/shaders/shader.vert
 
 add_subdirectory(vku)
 
-add_library(vki SHARED vki.cpp sample.cpp wrapper.cpp generated/shader.frag.cpp generated/shader.vert.cpp)
+add_library(vki SHARED vki.cpp sample.cpp generated/shader.frag.cpp generated/shader.vert.cpp)
 set_target_properties(vki PROPERTIES PUBLIC_HEADER vki.hpp)
 add_dependencies(vki glfw)
 target_link_libraries(vki PRIVATE glfw vku)

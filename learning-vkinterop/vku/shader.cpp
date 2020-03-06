@@ -3,8 +3,9 @@
 
 #include <fstream>
 #include <vector>
+#include <stdexcept>
 
-vku::Shader::Shader(VkDevice device, const uint32_t *code, size_t size)
+vku::Shader::Shader(Device &device, const uint32_t *code, size_t size)
     : _device(device)
 {
     VkShaderModuleCreateInfo createInfo = {};
@@ -15,7 +16,8 @@ vku::Shader::Shader(VkDevice device, const uint32_t *code, size_t size)
     ENSURE(vkCreateShaderModule, device, &createInfo, nullptr, &_raw);
 }
 
-vku::Shader::Shader(VkDevice device, const char *filename)
+vku::Shader::Shader(Device &device, const char *filename)
+    : _device(device)
 {
     std::ifstream file(filename, std::ios::ate | std::ios::binary);
     if (!file.is_open()) {

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "shaders.hpp"
 #include "vku.hpp"
 
 #include <algorithm>
@@ -22,11 +23,9 @@ private:
     vku::Surface _surface;
     vku::PhysicalDevice _physicalDevice;
     vku::Device _device;
-    vku::Swapchain _swapchain;
     vku::RenderPass _renderPass;
-    VkPipelineLayout _pipelineLayout;
-    VkPipeline _pipeline;
-    std::vector<VkFramebuffer> _swapchainFramebuffers;
+    vku::Swapchain _swapchain;
+    vku::Pipeline _pipeline;
     VkCommandPool _commandPool;
     VkQueue _graphicsQueue;
     VkQueue _presentQueue;
@@ -38,40 +37,37 @@ private:
 
     const static size_t INFLIGHT_COUNT = 2;
 
+    static void onResize(vku::Window &window, void *userData)
+    {
+        auto sample = reinterpret_cast<Sample *>(userData);
+        sample->resized = true;
+    }
+
 public:
     bool resized = false;
 
     Sample(int width, int height)
-        : _width(width)
-        , _height(height)
-        , _window(createWindow(width, height))
-        , _instance(createInstance())
-        , _debugMessenger(createMessenger(_instance))
-        , _surface(createSurface(_instance, _window))
-        , _physicalDevice(createPhysicalDevice(_instance, _surface, _indices, _swapchainDetails))
-        , _device(createDevice(_physicalDevice, _indices))
-        , _surfaceFormat(_swapchainDetails.pickFormat())
-        , _swapchainFormat(_surfaceFormat.format)
-        , _swapchainExtent(chooseExtent())
-        , _swapchain(createSwapchain(_device, _surface, _indices, _swapchainDetails, _width,
-              _height, _swapchainFormat, _swapchainExtent, _swapchainImages))
-        , _swapchainViews(createSwapchainViews(_device, _swapchainImages, _swapchainFormat))
-        , _renderPass(createRenderPass(_device, _swapchainFormat))
-        , _pipelineLayout(createPipelineLayout(_device))
-        , _pipeline(createPipeline(_device, _swapchainExtent, _renderPass, _pipelineLayout))
-        , _swapchainFramebuffers(createSwapchainFramebuffers(_device, _swapchainViews, _renderPass,
-              _width, _height))
-        , _commandPool(createCommandPool(_device, _indices))
+        : _window(width, height, "Vulkan", &onResize, this)
+        , _instance("Sample", ENABLE_VALIDATION)
+        , _surface(_instance, _window)
+        , _physicalDevice(_instance, _surface)
+        , _device(_physicalDevice)
+        , _renderPass(_device)
+        , _swapchain(_renderPass)
+        , _pipeline(_renderPass,
+              vku::Shader(_device, VERTEX_SHADER, VERTEX_SHADER_LENGTH),
+              vku::Shader(_device, FRAGMENT_SHADER, FRAGMENT_SHADER_LENGTH))
+        , _commandPool(createCommandPool(_device, _physicalDevice.queueIndices()))
         , _commandBuffers(createCommandBuffers(_device, _commandPool, _renderPass,
-              _swapchainFramebuffers, _swapchainExtent, _pipeline))
+              _swapchain.framebuffers(), _swapchain.extent(), _pipeline))
         , _imageAvailable(createSemaphores(_device, INFLIGHT_COUNT))
         , _renderFinished(createSemaphores(_device, INFLIGHT_COUNT))
         , _inflightFences(createFences(_device, INFLIGHT_COUNT))
-        , _imagesInflight(_swapchainImages.size(), VK_NULL_HANDLE)
+        , _imagesInflight(_swapchain.images().size(), VK_NULL_HANDLE)
     {
         glfwSetWindowUserPointer(_window, this);
-        vkGetDeviceQueue(_device, _indices.graphics, 0, &_graphicsQueue);
-        vkGetDeviceQueue(_device, _indices.present, 0, &_presentQueue);
+        vkGetDeviceQueue(_device, _physicalDevice.queueIndices().graphics, 0, &_graphicsQueue);
+        vkGetDeviceQueue(_device, _physicalDevice.queueIndices().present, 0, &_presentQueue);
     }
 
     ~Sample()
@@ -82,13 +78,7 @@ public:
             vkDestroyFence(_device, _inflightFences[i], nullptr);
         }
         vkDestroyCommandPool(_device, _commandPool, nullptr);
-        destroySwapchain();
-        vkDestroyDevice(_device, nullptr);
-        vkDestroySurfaceKHR(_instance, _surface, nullptr);
-        vkDestroyDebugUtilsMessengerEXT(_instance, _debugMessenger, nullptr);
-        vkDestroyInstance(_instance, nullptr);
-        glfwDestroyWindow(_window);
-        glfwTerminate();
+        vkFreeCommandBuffers(_device, _commandPool, static_cast<uint32_t>(_commandBuffers.size()), _commandBuffers.data());
     }
 
     void run()
@@ -137,7 +127,8 @@ public:
             presentInfo.waitSemaphoreCount = 1;
             presentInfo.pWaitSemaphores = signalSemaphores;
             presentInfo.swapchainCount = 1;
-            presentInfo.pSwapchains = &_swapchain;
+            VkSwapchainKHR swapchain = _swapchain;
+            presentInfo.pSwapchains = &swapchain;
             presentInfo.pImageIndices = &imageIndex;
             result = vkQueuePresentKHR(_presentQueue, &presentInfo);
             if (result == VK_ERROR_OUT_OF_DATE_KHR) {
@@ -153,21 +144,6 @@ public:
         vkDeviceWaitIdle(_device);
     }
 
-    void destroySwapchain()
-    {
-        for (auto framebuffer : _swapchainFramebuffers) {
-            vkDestroyFramebuffer(_device, framebuffer, nullptr);
-        }
-        vkFreeCommandBuffers(_device, _commandPool, static_cast<uint32_t>(_commandBuffers.size()), _commandBuffers.data());
-        vkDestroyPipeline(_device, _pipeline, nullptr);
-        vkDestroyPipelineLayout(_device, _pipelineLayout, nullptr);
-        vkDestroyRenderPass(_device, _renderPass, nullptr);
-        for (auto view : _swapchainViews) {
-            vkDestroyImageView(_device, view, nullptr);
-        }
-        vkDestroySwapchainKHR(_device, _swapchain, nullptr);
-    }
-
     void recreateSwapchain()
     {
         int width = 0, height = 0;
@@ -177,27 +153,15 @@ public:
             glfwWaitEvents();
         }
         vkDeviceWaitIdle(_device);
-        destroySwapchain();
-
-        _swapchainDetails = getSwapchainDetails(_physicalDevice, _surface);
-        _swapchainExtent = chooseExtent();
-        _width = _swapchainExtent.width;
-        _height = _swapchainExtent.height;
-        _swapchain = createSwapchain(_device, _surface, _indices, _swapchainDetails,
-            _width, _height, _swapchainFormat, _swapchainExtent, _swapchainImages);
-        _swapchainViews = createSwapchainViews(_device, _swapchainImages, _swapchainFormat);
-        _renderPass = createRenderPass(_device, _swapchainFormat);
-        _pipelineLayout = createPipelineLayout(_device);
-        _pipeline = createPipeline(_device, _swapchainExtent, _renderPass, _pipelineLayout);
-        _swapchainFramebuffers = createSwapchainFramebuffers(_device, _swapchainViews, _renderPass, _width, _height);
-        _commandBuffers = createCommandBuffers(_device, _commandPool, _renderPass, _swapchainFramebuffers,
-            _swapchainExtent, _pipeline);
+        _swapchain = vku::Swapchain(_renderPass);
+        _commandBuffers = createCommandBuffers(_device, _commandPool, _renderPass, _swapchain.framebuffers(),
+            _swapchain.extent(), _pipeline);
     }
 
     VkExtent2D chooseExtent()
     {
-        if (_swapchainDetails.capabilities.currentExtent.width != UINT32_MAX) {
-            return _swapchainDetails.capabilities.currentExtent;
+        if (_physicalDevice.swapchainDetails().capabilities.currentExtent.width != UINT32_MAX) {
+            return _physicalDevice.swapchainDetails().capabilities.currentExtent;
         }
         int width;
         int height;
@@ -206,45 +170,14 @@ public:
     }
 
 private:
-    static GLFWwindow *createWindow(int width, int height);
-    static VkInstance createInstance();
-    static VkDebugUtilsMessengerEXT createMessenger(VkInstance instance);
-    static VkSurfaceKHR createSurface(VkInstance instance, GLFWwindow *window);
-    static VkPhysicalDevice createPhysicalDevice(VkInstance instance,
-        VkSurfaceKHR surface,
-        QueueIndices &indices,
-        SwapchainDetails &details);
-    static VkDevice createDevice(VkPhysicalDevice physicalDevice, QueueIndices indices);
-    static VkSwapchainKHR createSwapchain(VkDevice device,
-        VkSurfaceKHR surface,
-        QueueIndices &indices,
-        SwapchainDetails &details,
-        uint32_t width,
-        uint32_t height,
-        VkFormat format,
-        VkExtent2D extent,
-        std::vector<VkImage> &swapchainImages);
-    static std::vector<VkImageView> createSwapchainViews(VkDevice device,
-        const std::vector<VkImage> &swapchainImages,
-        VkFormat format);
-    static VkRenderPass createRenderPass(VkDevice device, VkFormat swapchainFormat);
-    static VkPipelineLayout createPipelineLayout(VkDevice device);
-    static VkPipeline createPipeline(VkDevice device,
-        VkExtent2D swapchainExtent,
-        VkRenderPass renderPass,
-        VkPipelineLayout layout);
-    static std::vector<VkFramebuffer> createSwapchainFramebuffers(VkDevice device,
-        const std::vector<VkImageView> &swapchainViews,
-        VkRenderPass renderPass,
-        uint32_t width,
-        uint32_t height);
-    static VkCommandPool createCommandPool(VkDevice device, QueueIndices &indices);
-    static std::vector<VkCommandBuffer> createCommandBuffers(VkDevice device,
+    static VkCommandPool createCommandPool(vku::Device &device, vku::QueueIndices &indices);
+    static std::vector<VkCommandBuffer> createCommandBuffers(
+        vku::Device &device,
         VkCommandPool commandPool,
-        VkRenderPass renderPass,
+        vku::RenderPass &renderPass,
         std::vector<VkFramebuffer> &framebuffers,
         VkExtent2D extent,
-        VkPipeline pipeline);
+        vku::Pipeline &pipeline);
     static std::vector<VkSemaphore> createSemaphores(VkDevice device, size_t count);
     static std::vector<VkFence> createFences(VkDevice device, size_t count);
 };

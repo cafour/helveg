@@ -10,18 +10,18 @@ namespace vku {
 class Pipeline {
 private:
     VkPipeline _raw;
+    VkPipelineLayout _layout;
     RenderPass &_renderPass;
-    Shader &_vertexShader;
-    Shader &_fragmentShader;
 
 public:
-    Pipeline(RenderPass &renderPass, Shader &vertexShader, Shader &fragmentShader);
-    ~Pipeline();
+    Pipeline(RenderPass &renderPass, Shader &&vertexShader, Shader &&fragmentShader);
+    ~Pipeline() {
+        vkDestroyPipelineLayout(_renderPass.device(), _layout, nullptr);
+        vkDestroyPipeline(_renderPass.device(), _raw, nullptr);
+    }
 
     operator VkPipeline() { return _raw; }
 
     RenderPass &renderPass() { return _renderPass; }
-    Shader &vertexShader() { return _vertexShader; }
-    Shader &fragmentShader() {return _fragmentShader; }
 };
 }
