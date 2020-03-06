@@ -31,7 +31,13 @@ static VkDebugUtilsMessengerCreateInfoEXT getMessengerCreateInfo()
     return createInfo;
 }
 
-vku::Instance::Instance(const char *name, bool validate)
+vku::Instance::Instance(
+    const char *name,
+    bool useDebugMessenger,
+    const char **layers,
+    size_t layerCount,
+    const char **extensions,
+    size_t extensionCount)
 {
     VkApplicationInfo appInfo = {};
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -43,35 +49,53 @@ vku::Instance::Instance(const char *name, bool validate)
     VkInstanceCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     createInfo.pApplicationInfo = &appInfo;
-    createInfo.enabledLayerCount = 0;
+
+    for (size_t i = 0; i < layerCount; ++i) {
+        auto &layerName = _layers.emplace_back(layers[i]);
+        _layerPtrs.push_back(layerName.c_str());
+    }
 
     uint32_t glfwExtensionCount = 0;
     const char **glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-    std::vector<const char *> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
-
-    VkDebugUtilsMessengerCreateInfoEXT messengerCreateInfo;
-    const char *validationLayer = "VK_LAYER_KHRONOS_validation";
-    if (validate) {
-        ensureLayers(&validationLayer, 1);
-
-        // create a messenger for calls to vkCreateInstance and vkDestroyInstance
-        messengerCreateInfo = getMessengerCreateInfo();
-
-        createInfo.enabledLayerCount = 1;
-        createInfo.ppEnabledLayerNames = &validationLayer;
-        createInfo.pNext = &messengerCreateInfo;
-
-        extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+    for (size_t i = 0; i < glfwExtensionCount; ++i) {
+        auto &extensionName = _extensions.emplace_back(glfwExtensions[i]);
+        _extensionPtrs.push_back(extensionName.c_str());
     }
 
-    createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
-    createInfo.ppEnabledExtensionNames = extensions.data();
+    for (size_t i = 0; i < extensionCount; ++i) {
+        auto &extensionName = _extensions.emplace_back(extensions[i]);
+        _extensionPtrs.push_back(extensionName.c_str());
+    }
+
+    VkDebugUtilsMessengerCreateInfoEXT messengerCreateInfo;
+    if (useDebugMessenger) {
+        _extensionPtrs.push_back(_extensions.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME).c_str());
+        _layerPtrs.push_back(_layers.emplace_back("VK_LAYER_KHRONOS_validation").c_str());
+        // create a messenger for calls to vkCreateInstance and vkDestroyInstance
+        messengerCreateInfo = getMessengerCreateInfo();
+        createInfo.pNext = &messengerCreateInfo;
+    }
+
+    ensureLayers(_layerPtrs.data(), _layerPtrs.size());
+    createInfo.enabledLayerCount = static_cast<uint32_t>(_layerPtrs.size());
+    createInfo.ppEnabledLayerNames = _layerPtrs.data();
+
+    createInfo.enabledExtensionCount = static_cast<uint32_t>(_extensionPtrs.size());
+    createInfo.ppEnabledExtensionNames = _extensionPtrs.data();
 
     ENSURE(vkCreateInstance, &createInfo, nullptr, &_raw);
     volkLoadInstance(_raw);
 
-    if (validate) {
+    if (useDebugMessenger) {
         // create another messenger for all other calls
         ENSURE(vkCreateDebugUtilsMessengerEXT, _raw, &messengerCreateInfo, nullptr, &_messenger);
     }
+}
+
+vku::Instance::~Instance()
+{
+    if (_messenger) {
+        vkDestroyDebugUtilsMessengerEXT(_raw, _messenger, nullptr);
+    }
+    vkDestroyInstance(_raw, nullptr);
 }

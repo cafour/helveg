@@ -7,3 +7,4 @@
 #include "physical_device.hpp"
 #include "instance.hpp"
 #include "shader.hpp"
+#include "device.hpp"

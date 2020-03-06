@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vku/vku.hpp"
+#include "vku.hpp"
 
 #include <algorithm>
 #include <functional>
@@ -19,12 +19,9 @@ class Sample {
 private:
     vku::Window _window;
     vku::Instance _instance;
-    VkDebugUtilsMessengerEXT _debugMessenger;
-    VkSurfaceKHR _surface;
-    QueueIndices _indices;
-    SwapchainDetails _swapchainDetails;
-    VkPhysicalDevice _physicalDevice;
-    VkDevice _device;
+    vku::Surface _surface;
+    vku::PhysicalDevice _physicalDevice;
+    vku::Device _device;
     VkSurfaceFormatKHR _surfaceFormat;
     VkFormat _swapchainFormat = VK_FORMAT_UNDEFINED;
     VkExtent2D _swapchainExtent;

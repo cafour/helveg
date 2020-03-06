@@ -14,6 +14,8 @@ set(VKU_SOURCES
     physical_device.hpp
     window.hpp
     surface.hpp
+    capabilities.hpp
+    device.hpp
 
     # sources
     base.cpp
@@ -21,7 +23,10 @@ set(VKU_SOURCES
     instance.cpp
     physical_device.cpp
     window.cpp
-    surface.cpp)
+    surface.cpp
+    capabilities.cpp
+    device.cpp)
 
 add_library(${PROJECT_NAME} STATIC ${VKU_SOURCES})
 target_link_libraries(${PROJECT_NAME} volk glfw)
+target_include_directories(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
