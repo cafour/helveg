@@ -13,6 +13,9 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
     const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
     void *pUserData)
 {
+    (void)messageSeverity;
+    (void)messageType;
+    (void)pUserData;
     std::cerr << pCallbackData->pMessageIdName << ": " << pCallbackData->pMessage << std::endl;
     return VK_FALSE;
 }
@@ -51,29 +54,35 @@ vku::Instance::Instance(
     createInfo.pApplicationInfo = &appInfo;
 
     for (size_t i = 0; i < layerCount; ++i) {
-        auto &layerName = _layers.emplace_back(layers[i]);
-        _layerPtrs.push_back(layerName.c_str());
+        _layers.emplace_back(layers[i]);
     }
 
     uint32_t glfwExtensionCount = 0;
     const char **glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
     for (size_t i = 0; i < glfwExtensionCount; ++i) {
-        auto &extensionName = _extensions.emplace_back(glfwExtensions[i]);
-        _extensionPtrs.push_back(extensionName.c_str());
+        _extensions.emplace_back(glfwExtensions[i]);
     }
 
     for (size_t i = 0; i < extensionCount; ++i) {
-        auto &extensionName = _extensions.emplace_back(extensions[i]);
-        _extensionPtrs.push_back(extensionName.c_str());
+        _extensions.emplace_back(extensions[i]);
     }
 
     VkDebugUtilsMessengerCreateInfoEXT messengerCreateInfo;
     if (useDebugMessenger) {
-        _extensionPtrs.push_back(_extensions.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME).c_str());
-        _layerPtrs.push_back(_layers.emplace_back("VK_LAYER_KHRONOS_validation").c_str());
+        _extensions.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+        _layers.emplace_back("VK_LAYER_KHRONOS_validation");
         // create a messenger for calls to vkCreateInstance and vkDestroyInstance
         messengerCreateInfo = getMessengerCreateInfo();
         createInfo.pNext = &messengerCreateInfo;
+    }
+
+    _layerPtrs.resize(_layers.size());
+    for (size_t i = 0; i < _layers.size(); ++i) {
+        _layerPtrs[i] = _layers[i].c_str();
+    }
+    _extensionPtrs.resize(_extensions.size());
+    for (size_t i = 0; i < _extensions.size(); ++i) {
+        _extensionPtrs[i] = _extensions[i].c_str();
     }
 
     ensureLayers(_layerPtrs.data(), _layerPtrs.size());

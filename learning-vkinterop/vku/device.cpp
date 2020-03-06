@@ -26,7 +26,11 @@ vku::Device::Device(
     }
 
     for (size_t i = 0; i < extensionCount; ++i) {
-        _extensionPtrs.push_back(_extensions.emplace_back(extensions[i]).c_str());
+        _extensions.emplace_back(extensions[i]);
+    }
+    _extensionPtrs.resize(_extensions.size());
+    for (size_t i = 0; i < _extensions.size(); ++i) {
+        _extensionPtrs[i] = _extensions[i].c_str();
     }
 
     VkPhysicalDeviceFeatures features = {};
