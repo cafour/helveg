@@ -1,9 +1,6 @@
 #pragma once
 
-#include "wrapper.hpp"
-
-#include <volk.h>
-#include <GLFW/glfw3.h>
+#include "vku/vku.hpp"
 
 #include <algorithm>
 #include <functional>
@@ -13,25 +10,15 @@
 #include <vector>
 
 #ifdef NDEBUG
-const bool ENABLE_VALIDATION_LAYERS = false;
+const bool ENABLE_VALIDATION = false;
 #else
-const bool ENABLE_VALIDATION_LAYERS = true;
+const bool ENABLE_VALIDATION = true;
 #endif
-
-const std::vector<const char *> VALIDATION_LAYERS = {
-    "VK_LAYER_KHRONOS_validation",
-};
-
-const std::vector<const char *> DEVICE_EXTENSIONS = {
-    VK_KHR_SWAPCHAIN_EXTENSION_NAME
-};
 
 class Sample {
 private:
-    int _width;
-    int _height;
-    GLFWwindow *_window;
-    VkInstance _instance;
+    vku::Window _window;
+    vku::Instance _instance;
     VkDebugUtilsMessengerEXT _debugMessenger;
     VkSurfaceKHR _surface;
     QueueIndices _indices;

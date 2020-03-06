@@ -3,115 +3,11 @@
 
 #include <set>
 
-static std::vector<const char *> getRequiredExtensions()
-{
-    uint32_t glfwExtensionCount = 0;
-    const char **glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-    std::vector<const char *> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
-    if (ENABLE_VALIDATION_LAYERS) {
-        extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-    }
-    return extensions;
-}
-
-static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
-    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-    VkDebugUtilsMessageTypeFlagsEXT messageType,
-    const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
-    void *pUserData)
-{
-    std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
-    return VK_FALSE;
-}
-
-static VkDebugUtilsMessengerCreateInfoEXT getMessengerCreateInfo()
-{
-    VkDebugUtilsMessengerCreateInfoEXT createInfo = {};
-    createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-    createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT
-        | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT
-        | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-    createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT
-        | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT
-        | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-    createInfo.pfnUserCallback = debugCallback;
-    return createInfo;
-}
-
-static void framebufferResizeCallback(GLFWwindow *window, int width, int height)
-{
-    auto app = reinterpret_cast<Sample *>(glfwGetWindowUserPointer(window));
-    app->resized = true;
-}
-
-GLFWwindow *Sample::createWindow(int width, int height)
-{
-    glfwInit();
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    auto window = glfwCreateWindow(width, height, "Vulkan", nullptr, nullptr);
-    glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
-    return window;
-}
-
-VkInstance Sample::createInstance()
-{
-    if (ENABLE_VALIDATION_LAYERS && !checkValidationLayers(VALIDATION_LAYERS)) {
-        throw std::runtime_error("validation layers are not available");
-    }
-
-    VkApplicationInfo appInfo = {};
-    appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-    appInfo.pApplicationName = "Hello Triangle";
-    appInfo.applicationVersion = VK_MAKE_VERSION(0, 0, 0);
-    appInfo.pEngineName = "No Engine";
-    appInfo.engineVersion = VK_MAKE_VERSION(0, 0, 0);
-    appInfo.apiVersion = VK_API_VERSION_1_1;
-
-    VkInstanceCreateInfo createInfo = {};
-    createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-    createInfo.pApplicationInfo = &appInfo;
-    VkDebugUtilsMessengerCreateInfoEXT messengerCreateInfo;
-    if (ENABLE_VALIDATION_LAYERS) {
-        createInfo.enabledLayerCount = static_cast<uint32_t>(VALIDATION_LAYERS.size());
-        createInfo.ppEnabledLayerNames = VALIDATION_LAYERS.data();
-        messengerCreateInfo = getMessengerCreateInfo();
-        createInfo.pNext = &messengerCreateInfo;
-    } else {
-        createInfo.enabledLayerCount = 0;
-    }
-
-    auto extensions = getRequiredExtensions();
-    createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
-    createInfo.ppEnabledExtensionNames = extensions.data();
-
-    VkInstance instance;
-    if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
-        throw std::runtime_error("failed to create an instance");
-    }
-
-    // loadExtFunctions(instance);
-    volkLoadInstance(instance);
-    return instance;
-}
-
-VkDebugUtilsMessengerEXT Sample::createMessenger(VkInstance instance)
-{
-    if (!ENABLE_VALIDATION_LAYERS)
-        return VK_NULL_HANDLE;
-    VkDebugUtilsMessengerCreateInfoEXT createInfo = getMessengerCreateInfo();
-    VkDebugUtilsMessengerEXT messenger;
-    if (vkCreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &messenger) != VK_SUCCESS) {
-        throw std::runtime_error("failed to create a debug messenger");
-    }
-    return messenger;
-}
 
 VkSurfaceKHR Sample::createSurface(VkInstance instance, GLFWwindow *window)
 {
     VkSurfaceKHR surface;
-    if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS) {
-        throw new std::runtime_error("failed to create a window surface");
-    }
+    
     return surface;
 }
 

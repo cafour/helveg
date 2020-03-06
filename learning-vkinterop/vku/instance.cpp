@@ -54,6 +54,7 @@ vku::Instance::Instance(const char *name, bool validate)
     if (validate) {
         ensureLayers(&validationLayer, 1);
 
+        // create a messenger for calls to vkCreateInstance and vkDestroyInstance
         messengerCreateInfo = getMessengerCreateInfo();
 
         createInfo.enabledLayerCount = 1;
@@ -67,9 +68,10 @@ vku::Instance::Instance(const char *name, bool validate)
     createInfo.ppEnabledExtensionNames = extensions.data();
 
     ENSURE(vkCreateInstance, &createInfo, nullptr, &_raw);
-}
+    volkLoadInstance(_raw);
 
-vku::Instance::~Instance()
-{
-    vkDestroyInstance(_raw, nullptr);
+    if (validate) {
+        // create another messenger for all other calls
+        ENSURE(vkCreateDebugUtilsMessengerEXT, _raw, &messengerCreateInfo, nullptr, &_messenger);
+    }
 }
