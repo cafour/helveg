@@ -23,8 +23,7 @@ private:
     vku::PhysicalDevice _physicalDevice;
     vku::Device _device;
     vku::Swapchain _swapchain;
-    std::vector<VkImageView> _swapchainViews;
-    VkRenderPass _renderPass;
+    vku::RenderPass _renderPass;
     VkPipelineLayout _pipelineLayout;
     VkPipeline _pipeline;
     std::vector<VkFramebuffer> _swapchainFramebuffers;

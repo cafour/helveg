@@ -63,3 +63,11 @@ vku::Swapchain::Swapchain(Device &device)
         ENSURE(vkCreateImageView, _device, &viewInfo, nullptr, &_swapchainImageViews[i]);
     }
 }
+
+vku::Swapchain::~Swapchain()
+{
+    for (auto view : _swapchainImageViews) {
+        vkDestroyImageView(_device, view, nullptr);
+    }
+    vkDestroySwapchainKHR(_device, _raw, nullptr);
+}
