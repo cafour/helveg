@@ -16,6 +16,7 @@ set(VKU_SOURCES
     surface.hpp
     capabilities.hpp
     device.hpp
+    swapchain.hpp
 
     # sources
     base.cpp
@@ -25,7 +26,8 @@ set(VKU_SOURCES
     window.cpp
     surface.cpp
     capabilities.cpp
-    device.cpp)
+    device.cpp
+    swapchain.cpp)
 
 add_library(${PROJECT_NAME} STATIC ${VKU_SOURCES})
 target_link_libraries(${PROJECT_NAME} volk glfw)

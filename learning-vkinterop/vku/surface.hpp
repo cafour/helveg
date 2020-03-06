@@ -17,5 +17,8 @@ public:
     ~Surface() { vkDestroySurfaceKHR(_instance, _raw, nullptr); }
 
     operator VkSurfaceKHR() { return _raw; }
+
+    Instance &instance() { return _instance; }
+    Window &window() { return _window; }
 };
 }

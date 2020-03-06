@@ -22,11 +22,7 @@ private:
     vku::Surface _surface;
     vku::PhysicalDevice _physicalDevice;
     vku::Device _device;
-    VkSurfaceFormatKHR _surfaceFormat;
-    VkFormat _swapchainFormat = VK_FORMAT_UNDEFINED;
-    VkExtent2D _swapchainExtent;
-    std::vector<VkImage> _swapchainImages;
-    VkSwapchainKHR _swapchain;
+    vku::Swapchain _swapchain;
     std::vector<VkImageView> _swapchainViews;
     VkRenderPass _renderPass;
     VkPipelineLayout _pipelineLayout;

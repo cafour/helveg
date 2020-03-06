@@ -13,7 +13,7 @@ private:
     GLFWwindow *_raw;
     int _width;
     int _height;
-    void (*_onResize)(void *userData, int width, int height);
+    void (*_onResize)(Window &window, void *userData);
     void *_userData;
 
     static void resizeCallback(GLFWwindow *glfwWindow, int width, int height);
@@ -23,7 +23,7 @@ public:
         int width,
         int height,
         const char *title,
-        void (*onResize)(void *userData, int width, int height) = nullptr,
+        void (*onResize)(Window &window, void *userData) = nullptr,
         void *userData = nullptr);
 
     ~Window();
