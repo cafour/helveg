@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <algorithm>
+#include <cstring>
 
 bool vku::PhysicalDevice::hasExtensions(VkPhysicalDevice device, const char **extensions, size_t length)
 {

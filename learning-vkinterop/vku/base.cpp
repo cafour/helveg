@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <sstream>
 #include <vector>
+#include <cstring>
 
 void vku::ensure(VkResult result, const char *where)
 {
