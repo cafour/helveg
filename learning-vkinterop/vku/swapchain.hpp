@@ -12,6 +12,7 @@ private:
     VkSwapchainKHR _raw;
     Device &_device;
     std::vector<VkImage> _swapchainImages;
+    std::vector<VkImageView> _swapchainImageViews;
 
 public:
     Swapchain(Device &device);
