@@ -1,6 +1,6 @@
 #pragma once
 
-#include "device.hpp"
+#include "render_pass.hpp"
 
 #include <vector>
 #include <volk.h>
@@ -10,16 +10,17 @@ namespace vku {
 class Swapchain {
 private:
     VkSwapchainKHR _raw;
-    Device &_device;
-    std::vector<VkImage> _swapchainImages;
-    std::vector<VkImageView> _swapchainImageViews;
+    RenderPass &_renderPass;
+    std::vector<VkImage> _images;
+    std::vector<VkImageView> _imageViews;
+    std::vector<VkFramebuffer> _framebuffers;
 
 public:
-    Swapchain(Device &device);
+    Swapchain(RenderPass &renderPass);
     ~Swapchain();
 
     operator VkSwapchainKHR() { return _raw; }
 
-    Device &device() { return _device; }
+    RenderPass &renderPass() { return _renderPass; }
 };
 }

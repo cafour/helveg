@@ -18,6 +18,7 @@ set(VKU_SOURCES
     device.hpp
     swapchain.hpp
     render_pass.hpp
+    pipeline.hpp
 
     # sources
     base.cpp
@@ -29,7 +30,8 @@ set(VKU_SOURCES
     capabilities.cpp
     device.cpp
     swapchain.cpp
-    render_pass.cpp)
+    render_pass.cpp
+    pipeline.cpp)
 
 add_library(${PROJECT_NAME} STATIC ${VKU_SOURCES})
 target_link_libraries(${PROJECT_NAME} volk glfw)

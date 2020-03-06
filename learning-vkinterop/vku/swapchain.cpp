@@ -1,27 +1,28 @@
 #include "swapchain.hpp"
 #include "base.hpp"
 
-vku::Swapchain::Swapchain(Device &device)
-    : _device(device)
+vku::Swapchain::Swapchain(RenderPass &renderPass)
+    : _renderPass(renderPass)
 {
-    auto &details = _device.physicalDevice().swapchainDetails();
-    auto &indices = _device.physicalDevice().queueIndices();
+    auto &details = _renderPass.device().physicalDevice().swapchainDetails();
+    auto &indices = _renderPass.device().physicalDevice().queueIndices();
 
     uint32_t imageCount = details.capabilities.minImageCount + 1;
     if (details.capabilities.maxImageCount > 0 && imageCount > details.capabilities.maxImageCount) {
         imageCount = details.capabilities.maxImageCount;
     }
 
-    auto &window = _device.physicalDevice().surface().window();
+    auto &window = _renderPass.device().physicalDevice().surface().window();
     auto surfaceFormat = details.pickFormat();
+    auto extent = details.pickExtent(window.width(), window.height());;
 
     VkSwapchainCreateInfoKHR createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-    createInfo.surface = _device.physicalDevice().surface();
+    createInfo.surface = _renderPass.device().physicalDevice().surface();
     createInfo.minImageCount = imageCount;
     createInfo.imageFormat = surfaceFormat.format;
     createInfo.imageColorSpace = surfaceFormat.colorSpace;
-    createInfo.imageExtent = details.pickExtent(window.width(), window.height());
+    createInfo.imageExtent = extent;
     createInfo.imageArrayLayers = 1;
     createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
@@ -39,16 +40,16 @@ vku::Swapchain::Swapchain(Device &device)
     createInfo.clipped = VK_TRUE;
     createInfo.oldSwapchain = nullptr;
 
-    ENSURE(vkCreateSwapchainKHR, _device, &createInfo, nullptr, &_raw);
-    ENSURE(vkGetSwapchainImagesKHR, _device, _raw, &imageCount, nullptr);
-    _swapchainImages.resize(imageCount);
-    ENSURE(vkGetSwapchainImagesKHR, _device, _raw, &imageCount, _swapchainImages.data());
+    ENSURE(vkCreateSwapchainKHR, _renderPass.device(), &createInfo, nullptr, &_raw);
+    ENSURE(vkGetSwapchainImagesKHR, _renderPass.device(), _raw, &imageCount, nullptr);
+    _images.resize(imageCount);
+    ENSURE(vkGetSwapchainImagesKHR, _renderPass.device(), _raw, &imageCount, _images.data());
 
-    _swapchainImageViews.resize(imageCount);
+    _imageViews.resize(imageCount);
     for (size_t i = 0; i < imageCount; i++) {
         VkImageViewCreateInfo viewInfo = {};
         viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-        viewInfo.image = _swapchainImages[i];
+        viewInfo.image = _images[i];
         viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
         viewInfo.format = surfaceFormat.format;
         viewInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
@@ -60,14 +61,28 @@ vku::Swapchain::Swapchain(Device &device)
         viewInfo.subresourceRange.levelCount = 1;
         viewInfo.subresourceRange.baseArrayLayer = 0;
         viewInfo.subresourceRange.layerCount = 1;
-        ENSURE(vkCreateImageView, _device, &viewInfo, nullptr, &_swapchainImageViews[i]);
+        ENSURE(vkCreateImageView, _renderPass.device(), &viewInfo, nullptr, &_imageViews[i]);
+    }
+
+    _framebuffers.resize(imageCount);
+    for (size_t i = 0; i < imageCount; ++i) {
+        VkFramebufferCreateInfo createInfo = {};
+        createInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        createInfo.renderPass = renderPass;
+        createInfo.attachmentCount = 1;
+        createInfo.pAttachments = &_imageViews[i];
+        createInfo.width = extent.width;
+        createInfo.height = extent.height;
+        createInfo.layers = 1;
+
+        ENSURE(vkCreateFramebuffer, _renderPass.device(), &createInfo, nullptr, &_framebuffers[i]);
     }
 }
 
 vku::Swapchain::~Swapchain()
 {
-    for (auto view : _swapchainImageViews) {
-        vkDestroyImageView(_device, view, nullptr);
+    for (auto view : _imageViews) {
+        vkDestroyImageView(_renderPass.device(), view, nullptr);
     }
-    vkDestroySwapchainKHR(_device, _raw, nullptr);
+    vkDestroySwapchainKHR(_renderPass.device(), _raw, nullptr);
 }
