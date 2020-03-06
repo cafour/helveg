@@ -32,7 +32,7 @@ VkExtent2D vku::SwapchainDetails::pickExtent(uint32_t width, uint32_t height)
     };
 }
 
-vku::QueueIndices getQueueIndices(VkPhysicalDevice device, VkSurfaceKHR surface)
+vku::QueueIndices vku::getQueueIndices(VkPhysicalDevice device, VkSurfaceKHR surface)
 {
     uint32_t queueFamilyCount = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
@@ -52,7 +52,7 @@ vku::QueueIndices getQueueIndices(VkPhysicalDevice device, VkSurfaceKHR surface)
     return indices;
 }
 
-vku::SwapchainDetails getSwapchainDetails(VkPhysicalDevice device, VkSurfaceKHR surface)
+vku::SwapchainDetails vku::getSwapchainDetails(VkPhysicalDevice device, VkSurfaceKHR surface)
 {
     vku::SwapchainDetails details;
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
