@@ -39,6 +39,7 @@ private:
 
     static void onResize(vku::Window &window, void *userData)
     {
+        (void)window;
         auto sample = reinterpret_cast<Sample *>(userData);
         sample->resized = true;
     }

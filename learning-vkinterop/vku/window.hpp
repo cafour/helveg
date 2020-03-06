@@ -9,7 +9,7 @@
 namespace vku {
 class Window {
 private:
-    static size_t _count;
+    static size_t count;
     GLFWwindow *_raw;
     int _width;
     int _height;

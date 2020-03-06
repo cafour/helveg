@@ -9,7 +9,7 @@ struct QueueIndices {
     uint32_t graphics = -1;
     uint32_t present = -1;
 
-    bool isComplete() { return graphics != -1 && present != -1; }
+    bool isComplete() { return graphics != -1u && present != -1u; }
 };
 
 struct SwapchainDetails {
