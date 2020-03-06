@@ -6,7 +6,7 @@
 
 vku::Device::Device(
     PhysicalDevice &physicalDevice,
-    const char **extensions,
+    const char *const *extensions,
     size_t extensionCount)
     : _physicalDevice(physicalDevice)
 {

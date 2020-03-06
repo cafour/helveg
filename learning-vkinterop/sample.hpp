@@ -16,6 +16,10 @@ const bool ENABLE_VALIDATION = false;
 const bool ENABLE_VALIDATION = true;
 #endif
 
+const std::vector<const char *> DEVICE_EXTENSIONS = {
+    VK_KHR_SWAPCHAIN_EXTENSION_NAME
+};
+
 class Sample {
 private:
     vku::Window _window;
@@ -52,7 +56,7 @@ public:
         , _instance("Sample", ENABLE_VALIDATION)
         , _surface(_instance, _window)
         , _physicalDevice(_instance, _surface)
-        , _device(_physicalDevice)
+        , _device(_physicalDevice, DEVICE_EXTENSIONS.data(), DEVICE_EXTENSIONS.size())
         , _renderPass(_device)
         , _swapchain(_renderPass)
         , _pipeline(_renderPass,

@@ -70,3 +70,6 @@ if(WIN32)
 else()
     target_compile_options(vki PRIVATE -Wall -Wextra -pedantic)
 endif()
+
+add_executable(hello hello.cpp)
+target_link_libraries(hello vki)

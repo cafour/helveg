@@ -4,8 +4,8 @@
 
 #include <volk.h>
 
-#include <vector>
 #include <string>
+#include <vector>
 
 namespace vku {
 
@@ -19,7 +19,7 @@ private:
 public:
     Device(
         PhysicalDevice &physicalDevice,
-        const char **extensions = nullptr,
+        const char *const *extensions = nullptr,
         size_t extensionCount = 0);
     ~Device() { vkDestroyDevice(_raw, nullptr); }
 

@@ -68,7 +68,7 @@ vku::Swapchain::Swapchain(RenderPass &renderPass)
     for (size_t i = 0; i < imageCount; ++i) {
         VkFramebufferCreateInfo createInfo = {};
         createInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-        createInfo.renderPass = renderPass;
+        createInfo.renderPass = _renderPass;
         createInfo.attachmentCount = 1;
         createInfo.pAttachments = &_imageViews[i];
         createInfo.width = _extent.width;
