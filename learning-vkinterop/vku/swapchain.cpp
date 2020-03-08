@@ -4,21 +4,21 @@
 vku::Swapchain::Swapchain(RenderPass &renderPass)
     : _renderPass(renderPass)
 {
-    auto &details = _renderPass.device().physicalDevice().swapchainDetails();
-    auto &indices = _renderPass.device().physicalDevice().queueIndices();
+    auto &details = renderPass.device().physicalDevice().swapchainDetails();
+    auto &indices = renderPass.device().physicalDevice().queueIndices();
 
     uint32_t imageCount = details.capabilities.minImageCount + 1;
     if (details.capabilities.maxImageCount > 0 && imageCount > details.capabilities.maxImageCount) {
         imageCount = details.capabilities.maxImageCount;
     }
 
-    auto &window = _renderPass.device().physicalDevice().surface().window();
+    auto &window = renderPass.device().physicalDevice().surface().window();
     auto surfaceFormat = details.pickFormat();
     _extent = details.pickExtent(window.width(), window.height());
 
     VkSwapchainCreateInfoKHR createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-    createInfo.surface = _renderPass.device().physicalDevice().surface();
+    createInfo.surface = renderPass.device().physicalDevice().surface();
     createInfo.minImageCount = imageCount;
     createInfo.imageFormat = surfaceFormat.format;
     createInfo.imageColorSpace = surfaceFormat.colorSpace;
@@ -40,10 +40,10 @@ vku::Swapchain::Swapchain(RenderPass &renderPass)
     createInfo.clipped = VK_TRUE;
     createInfo.oldSwapchain = nullptr;
 
-    ENSURE(vkCreateSwapchainKHR, _renderPass.device(), &createInfo, nullptr, &_raw);
-    ENSURE(vkGetSwapchainImagesKHR, _renderPass.device(), _raw, &imageCount, nullptr);
+    ENSURE(vkCreateSwapchainKHR, renderPass.device(), &createInfo, nullptr, &_raw);
+    ENSURE(vkGetSwapchainImagesKHR, renderPass.device(), _raw, &imageCount, nullptr);
     _images.resize(imageCount);
-    ENSURE(vkGetSwapchainImagesKHR, _renderPass.device(), _raw, &imageCount, _images.data());
+    ENSURE(vkGetSwapchainImagesKHR, renderPass.device(), _raw, &imageCount, _images.data());
 
     _imageViews.resize(imageCount);
     for (size_t i = 0; i < imageCount; i++) {
@@ -61,31 +61,31 @@ vku::Swapchain::Swapchain(RenderPass &renderPass)
         viewInfo.subresourceRange.levelCount = 1;
         viewInfo.subresourceRange.baseArrayLayer = 0;
         viewInfo.subresourceRange.layerCount = 1;
-        ENSURE(vkCreateImageView, _renderPass.device(), &viewInfo, nullptr, &_imageViews[i]);
+        ENSURE(vkCreateImageView, renderPass.device(), &viewInfo, nullptr, &_imageViews[i]);
     }
 
     _framebuffers.resize(imageCount);
     for (size_t i = 0; i < imageCount; ++i) {
         VkFramebufferCreateInfo createInfo = {};
         createInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-        createInfo.renderPass = _renderPass;
+        createInfo.renderPass = renderPass;
         createInfo.attachmentCount = 1;
         createInfo.pAttachments = &_imageViews[i];
         createInfo.width = _extent.width;
         createInfo.height = _extent.height;
         createInfo.layers = 1;
 
-        ENSURE(vkCreateFramebuffer, _renderPass.device(), &createInfo, nullptr, &_framebuffers[i]);
+        ENSURE(vkCreateFramebuffer, renderPass.device(), &createInfo, nullptr, &_framebuffers[i]);
     }
 }
 
 vku::Swapchain::~Swapchain()
 {
     for (auto framebuffer : _framebuffers) {
-        vkDestroyFramebuffer(_renderPass.device(), framebuffer, nullptr);
+        vkDestroyFramebuffer(renderPass().device(), framebuffer, nullptr);
     }
     for (auto view : _imageViews) {
-        vkDestroyImageView(_renderPass.device(), view, nullptr);
+        vkDestroyImageView(renderPass().device(), view, nullptr);
     }
-    vkDestroySwapchainKHR(_renderPass.device(), _raw, nullptr);
+    vkDestroySwapchainKHR(renderPass().device(), _raw, nullptr);
 }

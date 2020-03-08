@@ -3,6 +3,7 @@
 #include "render_pass.hpp"
 
 #include <vector>
+#include <functional>
 #include <volk.h>
 
 namespace vku {
@@ -10,7 +11,7 @@ namespace vku {
 class Swapchain {
 private:
     VkSwapchainKHR _raw;
-    RenderPass &_renderPass;
+    std::reference_wrapper<RenderPass> _renderPass;
     std::vector<VkImage> _images;
     std::vector<VkImageView> _imageViews;
     std::vector<VkFramebuffer> _framebuffers;
@@ -38,7 +39,13 @@ public:
     }
     Swapchain &operator=(Swapchain &&other) noexcept
     {
-        return *this = Swapchain(other);
+        std::swap(_raw, other._raw);
+        std::swap(_renderPass, other._renderPass);
+        std::swap(_images, other._images);
+        std::swap(_imageViews, other._imageViews);
+        std::swap(_framebuffers, other._framebuffers);
+        std::swap(_extent, other._extent);
+        return *this;
     }
 
     operator VkSwapchainKHR() { return _raw; }
