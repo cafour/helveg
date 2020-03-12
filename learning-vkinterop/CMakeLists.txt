@@ -73,3 +73,7 @@ endif()
 
 add_executable(hello hello.cpp)
 target_link_libraries(hello vki)
+
+add_custom_target(VkInterop
+    ALL dotnet build ${CMAKE_SOURCE_DIR} -o ${CMAKE_BINARY_DIR}
+    DEPENDS vki)
