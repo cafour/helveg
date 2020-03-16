@@ -2,7 +2,9 @@
 
 #include <volk.h>
 
-#define ENSURE(vkFunc, ...) vku::ensure(vkFunc(__VA_ARGS__), #vkFunc)
+
+#define _TOSTR(what) #what
+#define ENSURE(vkInvocation) vku::ensure(vkInvocation, __FILE__ ":" _TOSTR(__LINE__) #vkInvocation)
 
 namespace vku {
 

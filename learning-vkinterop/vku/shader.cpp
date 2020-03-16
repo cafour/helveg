@@ -13,7 +13,7 @@ vku::Shader::Shader(Device &device, const uint32_t *code, size_t size)
     createInfo.codeSize = size;
     createInfo.pCode = code;
 
-    ENSURE(vkCreateShaderModule, device, &createInfo, nullptr, &_raw);
+    ENSURE(vkCreateShaderModule(device, &createInfo, nullptr, &_raw));
 }
 
 vku::Shader::Shader(Device &device, const char *filename)

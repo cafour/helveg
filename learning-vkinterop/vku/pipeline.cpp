@@ -10,7 +10,7 @@ vku::Pipeline::Pipeline(
     VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 
-    ENSURE(vkCreatePipelineLayout, _renderPass.device(), &pipelineLayoutInfo, nullptr, &_layout);
+    ENSURE(vkCreatePipelineLayout(_renderPass.device(), &pipelineLayoutInfo, nullptr, &_layout));
 
     VkPipelineShaderStageCreateInfo vertexStageInfo = {};
     vertexStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -101,5 +101,5 @@ vku::Pipeline::Pipeline(
     pipelineInfo.renderPass = renderPass;
     pipelineInfo.subpass = 0;
 
-    ENSURE(vkCreateGraphicsPipelines, _renderPass.device(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &_raw);
+    ENSURE(vkCreateGraphicsPipelines(_renderPass.device(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &_raw));
 }

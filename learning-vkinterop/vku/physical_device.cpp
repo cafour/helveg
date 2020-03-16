@@ -36,13 +36,13 @@ vku::PhysicalDevice::PhysicalDevice(
     , _surface(surface)
 {
     uint32_t deviceCount = 0;
-    ENSURE(vkEnumeratePhysicalDevices, instance, &deviceCount, nullptr);
+    ENSURE(vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr));
     if (deviceCount == 0) {
         throw std::runtime_error("failed to find any GPU with Vulkan support");
     }
 
     std::vector<VkPhysicalDevice> devices(deviceCount);
-    ENSURE(vkEnumeratePhysicalDevices, instance, &deviceCount, devices.data());
+    ENSURE(vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data()));
 
     VkPhysicalDevice chosen = VK_NULL_HANDLE;
     for (auto device : devices) {

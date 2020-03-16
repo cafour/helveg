@@ -40,10 +40,10 @@ vku::Swapchain::Swapchain(RenderPass &renderPass)
     createInfo.clipped = VK_TRUE;
     createInfo.oldSwapchain = nullptr;
 
-    ENSURE(vkCreateSwapchainKHR, renderPass.device(), &createInfo, nullptr, &_raw);
-    ENSURE(vkGetSwapchainImagesKHR, renderPass.device(), _raw, &imageCount, nullptr);
+    ENSURE(vkCreateSwapchainKHR(renderPass.device(), &createInfo, nullptr, &_raw));
+    ENSURE(vkGetSwapchainImagesKHR(renderPass.device(), _raw, &imageCount, nullptr));
     _images.resize(imageCount);
-    ENSURE(vkGetSwapchainImagesKHR, renderPass.device(), _raw, &imageCount, _images.data());
+    ENSURE(vkGetSwapchainImagesKHR(renderPass.device(), _raw, &imageCount, _images.data()));
 
     _imageViews.resize(imageCount);
     for (size_t i = 0; i < imageCount; i++) {
@@ -61,7 +61,7 @@ vku::Swapchain::Swapchain(RenderPass &renderPass)
         viewInfo.subresourceRange.levelCount = 1;
         viewInfo.subresourceRange.baseArrayLayer = 0;
         viewInfo.subresourceRange.layerCount = 1;
-        ENSURE(vkCreateImageView, renderPass.device(), &viewInfo, nullptr, &_imageViews[i]);
+        ENSURE(vkCreateImageView(renderPass.device(), &viewInfo, nullptr, &_imageViews[i]));
     }
 
     _framebuffers.resize(imageCount);
@@ -75,7 +75,7 @@ vku::Swapchain::Swapchain(RenderPass &renderPass)
         createInfo.height = _extent.height;
         createInfo.layers = 1;
 
-        ENSURE(vkCreateFramebuffer, renderPass.device(), &createInfo, nullptr, &_framebuffers[i]);
+        ENSURE(vkCreateFramebuffer(renderPass.device(), &createInfo, nullptr, &_framebuffers[i]));
     }
 }
 

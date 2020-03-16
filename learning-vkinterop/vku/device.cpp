@@ -45,5 +45,5 @@ vku::Device::Device(
     createInfo.enabledLayerCount = static_cast<uint32_t>(_physicalDevice.instance().layers().size());
     createInfo.ppEnabledLayerNames = _physicalDevice.instance().layers().data();
 
-    ENSURE(vkCreateDevice, physicalDevice, &createInfo, nullptr, &_raw);
+    ENSURE(vkCreateDevice(physicalDevice, &createInfo, nullptr, &_raw));
 }

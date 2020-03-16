@@ -43,5 +43,5 @@ vku::RenderPass::RenderPass(Device &device)
     createInfo.dependencyCount = 1;
     createInfo.pDependencies = &dependency;
 
-    ENSURE(vkCreateRenderPass, _device, &createInfo, nullptr, &_raw);
+    ENSURE(vkCreateRenderPass(_device, &createInfo, nullptr, &_raw));
 }

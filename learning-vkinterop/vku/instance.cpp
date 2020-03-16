@@ -92,12 +92,12 @@ vku::Instance::Instance(
     createInfo.enabledExtensionCount = static_cast<uint32_t>(_extensionPtrs.size());
     createInfo.ppEnabledExtensionNames = _extensionPtrs.data();
 
-    ENSURE(vkCreateInstance, &createInfo, nullptr, &_raw);
+    ENSURE(vkCreateInstance(&createInfo, nullptr, &_raw));
     volkLoadInstance(_raw);
 
     if (useDebugMessenger) {
         // create another messenger for all other calls
-        ENSURE(vkCreateDebugUtilsMessengerEXT, _raw, &messengerCreateInfo, nullptr, &_messenger);
+        ENSURE(vkCreateDebugUtilsMessengerEXT(_raw, &messengerCreateInfo, nullptr, &_messenger));
     }
 }
 
