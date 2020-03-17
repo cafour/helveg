@@ -32,8 +32,20 @@ void Sample::recordCommands()
         renderPassInfo.clearValueCount = 1;
         renderPassInfo.pClearValues = &clearColor;
 
+        VkExtent2D extent = _swapchain.extent();
+
+        VkViewport viewport = {};
+        viewport.width = extent.width;
+        viewport.height = extent.height;
+        viewport.maxDepth = 1.0f;
+
+        VkRect2D scissor = {};
+        scissor.extent = extent;
+
         vkCmdBeginRenderPass(_commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
         vkCmdBindPipeline(_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, _pipeline);
+        vkCmdSetViewport(_commandBuffers[i], 0, 1, &viewport);
+        vkCmdSetScissor(_commandBuffers[i], 0, 1, &scissor);
         vkCmdDraw(_commandBuffers[i], 3, 1, 0, 0);
         vkCmdEndRenderPass(_commandBuffers[i]);
 
@@ -51,6 +63,7 @@ void Sample::step()
         _swapchain.rebuild();
         vkFreeCommandBuffers(_device, _commandPool, _commandBuffers.size(), _commandBuffers.data());
         recordCommands();
+        return;
     } else if (result != VK_SUCCESS) {
         ENSURE(vkQueueWaitIdle(_queue));
         return;

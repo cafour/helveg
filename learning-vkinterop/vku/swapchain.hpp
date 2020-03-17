@@ -22,8 +22,9 @@ private:
     std::vector<VkImage> _images;
     std::vector<VkImageView> _imageViews;
     std::vector<VkFramebuffer> _framebuffers;
+    std::vector<VkSemaphore> _acquireSemaphores;
+    std::vector<VkSemaphore> _releaseSemaphores;
     std::vector<VkSemaphore> _recycledSemaphores;
-    std::vector<VkSemaphore> _semaphores;
     std::vector<VkFence> _fences;
     VkExtent2D _extent;
     uint32_t _imageCount;
@@ -34,15 +35,7 @@ public:
     Swapchain(RenderPass &renderPass);
     ~Swapchain();
     Swapchain(const Swapchain &other) = delete;
-    Swapchain(Swapchain &&other) noexcept
-        : _raw(other._raw)
-        , _renderPass(other._renderPass)
-        , _images(std::move(other._images))
-        , _imageViews(std::move(other._imageViews))
-        , _framebuffers(std::move(other._framebuffers))
-        , _extent(other._extent)
-    {
-    }
+    Swapchain(Swapchain &&other, bool shouldInitialize = false);
     Swapchain &operator=(const Swapchain &other) = delete;
     Swapchain &operator=(Swapchain &&other) noexcept
     {
@@ -51,6 +44,10 @@ public:
         std::swap(_images, other._images);
         std::swap(_imageViews, other._imageViews);
         std::swap(_framebuffers, other._framebuffers);
+        std::swap(_acquireSemaphores, other._acquireSemaphores);
+        std::swap(_releaseSemaphores, other._releaseSemaphores);
+        std::swap(_recycledSemaphores, other._recycledSemaphores);
+        std::swap(_fences, other._fences);
         std::swap(_extent, other._extent);
         return *this;
     }

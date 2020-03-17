@@ -3,9 +3,10 @@
 #include <volk.h>
 
 
-#define _TOSTR(what) #what
-#define LOG(vkInvocation) vku::log(vkInvocation, __FILE__ ":" _TOSTR(__LINE__) #vkInvocation)
-#define ENSURE(vkInvocation) vku::ensure(vkInvocation, __FILE__ ":" _TOSTR(__LINE__) #vkInvocation)
+#define _STR(what) #what
+#define _TOSTR(what) _STR(what)
+#define LOG(vkInvocation) vku::log(vkInvocation, __FILE__ ":" _TOSTR(__LINE__) ": " #vkInvocation)
+#define ENSURE(vkInvocation) vku::ensure(vkInvocation, __FILE__ ":" _TOSTR(__LINE__) ": " #vkInvocation)
 
 namespace vku {
 

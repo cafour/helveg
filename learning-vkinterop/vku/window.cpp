@@ -34,6 +34,7 @@ vku::Window::Window(
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     _raw = glfwCreateWindow(width, height, title, nullptr, nullptr);
     glfwSetFramebufferSizeCallback(_raw, resizeCallback);
+    glfwSetWindowUserPointer(_raw, this);
 }
 
 vku::Window::~Window()

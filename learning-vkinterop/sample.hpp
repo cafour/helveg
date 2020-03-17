@@ -54,11 +54,10 @@ public:
         , _device(_physicalDevice, DEVICE_EXTENSIONS.data(), DEVICE_EXTENSIONS.size())
         , _renderPass(_device)
         , _swapchain(_renderPass)
-        , _pipeline(_swapchain,
+        , _pipeline(_renderPass,
               vku::Shader(_device, VERTEX_SHADER, VERTEX_SHADER_LENGTH),
               vku::Shader(_device, FRAGMENT_SHADER, FRAGMENT_SHADER_LENGTH))
         , _commandPool(_device)
-        , _commandBuffers()
     {
         vkGetDeviceQueue(_device, _physicalDevice.queueIndex(), 0, &_queue);
         recordCommands();

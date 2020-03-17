@@ -9,7 +9,6 @@ vku::CommandPool::CommandPool(vku::Device &device)
     createInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     createInfo.queueFamilyIndex = device.physicalDevice().queueIndex();
 
-    VkCommandPool commandPool;
     ENSURE(vkCreateCommandPool(device, &createInfo, nullptr, &_raw));
 }
 
