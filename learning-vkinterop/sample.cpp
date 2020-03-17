@@ -1,98 +1,91 @@
 #include "sample.hpp"
 #include "shaders.hpp"
 
-VkCommandPool Sample::createCommandPool(vku::Device &device, vku::QueueIndices &indices)
-{
-    VkCommandPoolCreateInfo createInfo = {};
-    createInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-    createInfo.queueFamilyIndex = indices.graphics;
 
-    VkCommandPool commandPool;
-    if (vkCreateCommandPool(device, &createInfo, nullptr, &commandPool) != VK_SUCCESS) {
-        throw std::runtime_error("failed to create a command pool");
-    }
-    return commandPool;
-}
-
-std::vector<VkCommandBuffer> Sample::createCommandBuffers(vku::Device &device,
-    VkCommandPool commandPool,
-    vku::RenderPass &renderPass,
-    std::vector<VkFramebuffer> &framebuffers,
-    VkExtent2D extent,
-    vku::Pipeline &pipeline)
+void Sample::recordCommands()
 {
+    _commandBuffers.clear();
+    _commandBuffers.resize(_swapchain.imageCount(), VK_NULL_HANDLE);
+
     VkCommandBufferAllocateInfo allocateInfo = {};
     allocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    allocateInfo.commandPool = commandPool;
-    allocateInfo.commandBufferCount = static_cast<uint32_t>(framebuffers.size());
+    allocateInfo.commandPool = _commandPool;
+    allocateInfo.commandBufferCount = static_cast<uint32_t>(_commandBuffers.size());
     allocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 
-    std::vector<VkCommandBuffer> commandBuffers(framebuffers.size());
-    if (vkAllocateCommandBuffers(device, &allocateInfo, commandBuffers.data()) != VK_SUCCESS) {
-        throw std::runtime_error("failed to allocate command buffers");
-    }
+    ENSURE(vkAllocateCommandBuffers(_device, &allocateInfo, _commandBuffers.data()));
 
-    for (size_t i = 0; i < commandBuffers.size(); ++i) {
+    for (size_t i = 0; i < _commandBuffers.size(); ++i) {
         VkCommandBufferBeginInfo beginInfo = {};
         beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
-        if (vkBeginCommandBuffer(commandBuffers[i], &beginInfo) != VK_SUCCESS) {
-            throw std::runtime_error("failed to begin command buffer recording");
-        }
+        ENSURE(vkBeginCommandBuffer(_commandBuffers[i], &beginInfo));
 
         VkRenderPassBeginInfo renderPassInfo = {};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        renderPassInfo.renderPass = renderPass;
-        renderPassInfo.framebuffer = framebuffers[i];
+        renderPassInfo.renderPass = _renderPass;
+        renderPassInfo.framebuffer = _swapchain.framebuffers()[i];
         renderPassInfo.renderArea.offset = { 0, 0 };
-        renderPassInfo.renderArea.extent = extent;
+        renderPassInfo.renderArea.extent = _swapchain.extent();
 
         VkClearValue clearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
         renderPassInfo.clearValueCount = 1;
         renderPassInfo.pClearValues = &clearColor;
 
-        vkCmdBeginRenderPass(commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-        vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
-        vkCmdDraw(commandBuffers[i], 3, 1, 0, 0);
-        vkCmdEndRenderPass(commandBuffers[i]);
+        vkCmdBeginRenderPass(_commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+        vkCmdBindPipeline(_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, _pipeline);
+        vkCmdDraw(_commandBuffers[i], 3, 1, 0, 0);
+        vkCmdEndRenderPass(_commandBuffers[i]);
 
-        if (vkEndCommandBuffer(commandBuffers[i]) != VK_SUCCESS) {
-            throw std::runtime_error("failed to end command buffer recording");
-        }
+        ENSURE(vkEndCommandBuffer(_commandBuffers[i]));
     }
-
-    return commandBuffers;
 }
 
-std::vector<VkSemaphore> Sample::createSemaphores(VkDevice device, size_t count)
+void Sample::step()
 {
-    std::vector<VkSemaphore> semaphores(count);
-    for (size_t i = 0; i < count; ++i) {
-        VkSemaphoreCreateInfo semaphoreInfo = {};
-        semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-
-        VkSemaphore semaphore;
-        if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &semaphore) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create a semaphore");
-        }
-        semaphores[i] = semaphore;
+    // acquire a frame
+    vku::SwapchainFrame frame;
+    VkResult result = _swapchain.acquire(frame);
+    if (result == VK_SUBOPTIMAL_KHR || result == VK_ERROR_OUT_OF_DATE_KHR) {
+        vkDeviceWaitIdle(_device);
+        _swapchain.rebuild();
+        vkFreeCommandBuffers(_device, _commandPool, _commandBuffers.size(), _commandBuffers.data());
+        recordCommands();
+    } else if (result != VK_SUCCESS) {
+        ENSURE(vkQueueWaitIdle(_queue));
+        return;
     }
-    return semaphores;
+
+    // submit rendering work
+    VkPipelineStageFlags waitStage { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+
+    VkSubmitInfo submitInfo = {};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &_commandBuffers[frame.index];
+    submitInfo.waitSemaphoreCount = 1;
+    submitInfo.pWaitSemaphores = &frame.acquireSemaphore;
+    submitInfo.pWaitDstStageMask = &waitStage;
+    submitInfo.signalSemaphoreCount = 1;
+    submitInfo.pSignalSemaphores = &frame.releaseSemaphore;
+    ENSURE(vkQueueSubmit(_queue, 1, &submitInfo, frame.fence));
+
+    VkPresentInfoKHR presentInfo {};
+    presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    presentInfo.swapchainCount = 1;
+    presentInfo.pSwapchains = _swapchain.raw();
+    presentInfo.pImageIndices = &frame.index;
+    presentInfo.waitSemaphoreCount = 1;
+    presentInfo.pWaitSemaphores = &frame.releaseSemaphore;
+    LOG(vkQueuePresentKHR(_queue, &presentInfo));
 }
 
-std::vector<VkFence> Sample::createFences(VkDevice device, size_t count)
+void Sample::run()
 {
-    std::vector<VkFence> fences(count);
-    for (size_t i = 0; i < count; ++i) {
-        VkFenceCreateInfo createInfo = {};
-        createInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-        createInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-
-        VkFence fence;
-        if (vkCreateFence(device, &createInfo, nullptr, &fence) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create a fence");
-        }
-        fences[i] = fence;
+    while (!glfwWindowShouldClose(_window)) {
+        glfwPollEvents();
+        step();
     }
-    return fences;
+
+    vkDeviceWaitIdle(_device);
 }

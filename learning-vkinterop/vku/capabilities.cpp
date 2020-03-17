@@ -72,3 +72,4 @@ vku::SwapchainDetails vku::getSwapchainDetails(VkPhysicalDevice device, VkSurfac
     }
     return details;
 }
+

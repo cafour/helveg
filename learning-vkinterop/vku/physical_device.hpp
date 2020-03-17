@@ -13,8 +13,7 @@ private:
     VkPhysicalDevice _raw;
     Instance &_instance;
     Surface &_surface;
-    SwapchainDetails _swapchainDetails;
-    QueueIndices _queueIndices;
+    uint32_t _queueIndex = -1;
 
 public:
     PhysicalDevice(
@@ -27,7 +26,8 @@ public:
 
     Instance &instance() { return _instance; }
     Surface &surface() { return _surface; }
-    SwapchainDetails &swapchainDetails() { return _swapchainDetails; }
-    QueueIndices &queueIndices() { return _queueIndices; }
+    uint32_t queueIndex() { return _queueIndex; }
+    VkSurfaceFormatKHR surfaceFormat();
+    VkSurfaceCapabilitiesKHR surfaceCapabilities();
 };
 }

@@ -1,9 +1,18 @@
 #include "base.hpp"
 
 #include <algorithm>
+#include <iostream>
 #include <sstream>
 #include <vector>
 #include <cstring>
+
+void vku::log(VkResult result, const char *where)
+{
+    if (result == VK_SUCCESS) {
+        return;
+    }
+    std::cerr << where << "[" << result << "]" << std::endl;
+}
 
 void vku::ensure(VkResult result, const char *where)
 {

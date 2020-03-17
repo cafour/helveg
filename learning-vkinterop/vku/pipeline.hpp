@@ -2,8 +2,8 @@
 
 #include <volk.h>
 
-#include "render_pass.hpp"
 #include "shader.hpp"
+#include "swapchain.hpp"
 
 namespace vku {
 
@@ -11,17 +11,19 @@ class Pipeline {
 private:
     VkPipeline _raw;
     VkPipelineLayout _layout;
-    RenderPass &_renderPass;
+    Swapchain &_swapchain;
 
 public:
-    Pipeline(RenderPass &renderPass, Shader &&vertexShader, Shader &&fragmentShader);
-    ~Pipeline() {
-        vkDestroyPipelineLayout(_renderPass.device(), _layout, nullptr);
-        vkDestroyPipeline(_renderPass.device(), _raw, nullptr);
+    Pipeline(Swapchain &swapchain, Shader &&vertexShader, Shader &&fragmentShader);
+    ~Pipeline()
+    {
+        vkDestroyPipelineLayout(_swapchain.device(), _layout, nullptr);
+        vkDestroyPipeline(_swapchain.device(), _raw, nullptr);
     }
 
     operator VkPipeline() { return _raw; }
+    VkPipeline raw() { return _raw; }
 
-    RenderPass &renderPass() { return _renderPass; }
+    Swapchain &renderPass() { return _swapchain; }
 };
 }

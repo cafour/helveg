@@ -2,15 +2,15 @@
 #include "base.hpp"
 
 vku::Pipeline::Pipeline(
-    RenderPass &renderPass,
+    Swapchain &swapchain,
     Shader &&vertexShader,
     Shader &&fragmentShader)
-    : _renderPass(renderPass)
+    : _swapchain(swapchain)
 {
     VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 
-    ENSURE(vkCreatePipelineLayout(_renderPass.device(), &pipelineLayoutInfo, nullptr, &_layout));
+    ENSURE(vkCreatePipelineLayout(_swapchain.device(), &pipelineLayoutInfo, nullptr, &_layout));
 
     VkPipelineShaderStageCreateInfo vertexStageInfo = {};
     vertexStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -36,15 +36,13 @@ vku::Pipeline::Pipeline(
     inputAssemblyInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     inputAssemblyInfo.primitiveRestartEnable = VK_FALSE;
 
-    int width = _renderPass.device().physicalDevice().surface().window().width();
-    int height = _renderPass.device().physicalDevice().surface().window().width();
-    auto extent = _renderPass.device().physicalDevice().swapchainDetails().pickExtent(width, height);
+    VkExtent2D extent = swapchain.extent();
 
     VkViewport viewport = {};
     viewport.x = 0.0f;
     viewport.y = 0.0f;
-    viewport.width = static_cast<float>(extent.width);
-    viewport.height = static_cast<float>(extent.height);
+    viewport.width = extent.width;
+    viewport.height = extent.height;
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
 
@@ -98,8 +96,8 @@ vku::Pipeline::Pipeline(
     pipelineInfo.pMultisampleState = &multisampling;
     pipelineInfo.pColorBlendState = &colorBlending;
     pipelineInfo.layout = _layout;
-    pipelineInfo.renderPass = renderPass;
+    pipelineInfo.renderPass = swapchain.renderPass();
     pipelineInfo.subpass = 0;
 
-    ENSURE(vkCreateGraphicsPipelines(_renderPass.device(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &_raw));
+    ENSURE(vkCreateGraphicsPipelines(_swapchain.device(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &_raw));
 }
