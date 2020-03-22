@@ -1,30 +1,26 @@
 #pragma once
 
-#include <stdexcept>
-
 // volk needs to be before glfw
 #include <volk.h>
 #include <GLFW/glfw3.h>
+
+#include <stdexcept>
+#include <string>
 
 namespace vku {
 class Window {
 private:
     static size_t count;
+
     GLFWwindow *_raw;
     int _width;
     int _height;
-    void (*_onResize)(Window &window, void *userData);
-    void *_userData;
-
-    static void resizeCallback(GLFWwindow *glfwWindow, int width, int height);
 
 public:
     Window(
         int width,
         int height,
-        const char *title,
-        void (*onResize)(Window &window, void *userData) = nullptr,
-        void *userData = nullptr);
+        const std::string &title);
 
     ~Window();
 
