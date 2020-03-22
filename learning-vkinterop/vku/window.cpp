@@ -4,19 +4,10 @@
 
 size_t vku::Window::count = 0;
 
-vku::Window::Window(
-    int width,
-    int height,
-    const std::string &title)
-    : _width(width)
-    , _height(height)
+vku::Window::Window(GLFWwindow *raw)
+    : _raw(raw)
 {
-    if (count == 0 && glfwInit() == GLFW_FALSE) {
-        throw std::runtime_error("GLFW failed to initialize");
-    }
     count++;
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    _raw = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
 }
 
 vku::Window::~Window()
@@ -26,4 +17,14 @@ vku::Window::~Window()
     if (count == 0) {
         glfwTerminate();
     }
+}
+
+vku::Window vku::Window::noApi(int width, int height, const std::string &title)
+{
+    if (count == 0 && glfwInit() == GLFW_FALSE) {
+        throw std::runtime_error("GLFW failed to initialize");
+    }
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    auto raw = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
+    return vku::Window(raw);
 }

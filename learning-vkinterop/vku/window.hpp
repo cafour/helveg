@@ -1,10 +1,9 @@
 #pragma once
 
 // volk needs to be before glfw
-#include <volk.h>
 #include <GLFW/glfw3.h>
+#include <volk.h>
 
-#include <stdexcept>
 #include <string>
 
 namespace vku {
@@ -13,20 +12,18 @@ private:
     static size_t count;
 
     GLFWwindow *_raw;
-    int _width;
-    int _height;
 
 public:
-    Window(
-        int width,
-        int height,
-        const std::string &title);
-
+    Window(GLFWwindow *raw);
     ~Window();
+    Window(const Window &other) = delete;
+    Window(Window &&other) = delete;
+    Window &operator=(const Window &other) = delete;
+    Window &operator=(Window &&other) = delete;
 
     operator GLFWwindow *() { return _raw; }
+    GLFWwindow *raw() { return _raw; }
 
-    int width() const { return _width; }
-    int height() const { return _height; }
+    static Window noApi(int width, int height, const std::string &title);
 };
 }
