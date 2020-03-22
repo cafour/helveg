@@ -20,7 +20,7 @@ public:
     Device(const Device &other) = delete;
     Device(Device &&other) noexcept;
     Device &operator=(const Device &other) = delete;
-    Device &operator=(Device &&other);
+    Device &operator=(Device &&other) noexcept;
 
     operator VkDevice() { return _raw; }
     VkDevice raw() { return _raw; }

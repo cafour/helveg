@@ -1,6 +1,8 @@
 #include "render_pass.hpp"
 #include "base.hpp"
 
+#include <utility>
+
 vku::RenderPass::RenderPass(VkDevice device, VkRenderPass raw)
     : _device(device)
     , _raw(raw)
@@ -20,17 +22,17 @@ vku::RenderPass::~RenderPass()
     }
 }
 
-vku::RenderPass::RenderPass(vku::RenderPass &&other)
-    : _device(std::exchange(other._device, VK_NULL_HANDLE))
-    , _raw(std::exchange(other._raw, VK_NULL_HANDLE))
+vku::RenderPass::RenderPass(vku::RenderPass &&other) noexcept
+    : _device(std::exchange(other._device, nullptr))
+    , _raw(std::exchange(other._raw, nullptr))
 {
 }
 
-vku::RenderPass &vku::RenderPass::operator=(vku::RenderPass &&other)
+vku::RenderPass &vku::RenderPass::operator=(vku::RenderPass &&other) noexcept
 {
     if (this != &other) {
-        _device = std::exchange(other._device, VK_NULL_HANDLE);
-        _raw = std::exchange(other._raw, VK_NULL_HANDLE);
+        std::swap(_device, other._device);
+        std::swap(_raw, other._raw);
     }
     return *this;
 }

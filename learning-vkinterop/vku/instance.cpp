@@ -23,15 +23,15 @@ vku::Instance::~Instance()
     }
 }
 
-vku::Instance::Instance(vku::Instance &&other)
-    : _raw(std::exchange(other._raw, VK_NULL_HANDLE))
+vku::Instance::Instance(vku::Instance &&other) noexcept
+    : _raw(std::exchange(other._raw, nullptr))
 {
 }
 
-vku::Instance &vku::Instance::operator=(vku::Instance &&other)
+vku::Instance &vku::Instance::operator=(vku::Instance &&other) noexcept
 {
     if (this != &other) {
-        _raw = std::exchange(other._raw, VK_NULL_HANDLE);
+        std::swap(_raw, other._raw);
     }
     return *this;
 }
@@ -95,4 +95,5 @@ vku::Instance vku::Instance::basic(
     if (messenger) {
         *messenger = vku::DebugMessenger::cerr(instance);
     }
+    return instance;
 }

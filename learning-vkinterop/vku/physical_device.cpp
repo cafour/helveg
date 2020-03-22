@@ -33,7 +33,7 @@ VkPhysicalDevice vku::findDevice(
     VkInstance instance,
     VkSurfaceKHR surface,
     uint32_t *queueIndex,
-    std::vector<const char *> *requiredExtensions = nullptr)
+    const std::vector<const char *> *requiredExtensions)
 {
     uint32_t deviceCount = 0;
     ENSURE(vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr));
@@ -44,7 +44,6 @@ VkPhysicalDevice vku::findDevice(
     std::vector<VkPhysicalDevice> devices(deviceCount);
     ENSURE(vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data()));
 
-    *queueIndex = -1;
     VkPhysicalDevice chosenDevice = VK_NULL_HANDLE;
     for (auto device : devices) {
         if (requiredExtensions && !hasExtensionSupport(device, *requiredExtensions)) {
@@ -61,13 +60,13 @@ VkPhysicalDevice vku::findDevice(
             vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &isPresentSupported);
             if (queueFamilies[0].queueFlags & VK_QUEUE_GRAPHICS_BIT && isPresentSupported) {
                 *queueIndex = i;
+                chosenDevice = device;
                 break;
             }
         }
-        if (*queueIndex < 0) {
-            continue;
+        if (chosenDevice != VK_NULL_HANDLE) {
+            break;
         }
-        chosenDevice = device;
     }
     if (chosenDevice == VK_NULL_HANDLE) {
         throw std::runtime_error("failed to find a suitable physical device");

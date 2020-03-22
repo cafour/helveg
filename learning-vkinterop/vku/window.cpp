@@ -22,15 +22,15 @@ vku::Window::~Window()
     }
 }
 
-vku::Window::Window(vku::Window &&other)
+vku::Window::Window(vku::Window &&other) noexcept
     : _raw(std::exchange(other._raw, nullptr))
 {
 }
 
-vku::Window &vku::Window::operator=(vku::Window &&other)
+vku::Window &vku::Window::operator=(vku::Window &&other) noexcept
 {
     if (this != &other) {
-        _raw = std::exchange(other._raw, nullptr);
+        std::swap(_raw, other._raw);
     }
     return *this;
 }

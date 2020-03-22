@@ -21,15 +21,15 @@ vku::Device::~Device()
     }
 }
 
-vku::Device::Device(vku::Device &&other)
-    : _raw(std::exchange(other._raw, VK_NULL_HANDLE))
+vku::Device::Device(vku::Device &&other) noexcept
+    : _raw(std::exchange(other._raw, nullptr))
 {
 }
 
-vku::Device &vku::Device::operator=(vku::Device &&other)
+vku::Device &vku::Device::operator=(vku::Device &&other) noexcept
 {
     if (this != &other) {
-        _raw = std::exchange(other._raw, VK_NULL_HANDLE);
+        std::swap(_raw, other._raw);
     }
     return *this;
 }

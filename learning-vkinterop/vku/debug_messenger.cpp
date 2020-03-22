@@ -18,20 +18,22 @@ vku::DebugMessenger::DebugMessenger(VkInstance instance, VkDebugUtilsMessengerCr
 
 vku::DebugMessenger::~DebugMessenger()
 {
-    vkDestroyDebugUtilsMessengerEXT(_instance, _raw, nullptr);
+    if (_instance != VK_NULL_HANDLE && _raw != VK_NULL_HANDLE) {
+        vkDestroyDebugUtilsMessengerEXT(_instance, _raw, nullptr);
+    }
 }
 
-vku::DebugMessenger::DebugMessenger(vku::DebugMessenger &&other)
+vku::DebugMessenger::DebugMessenger(vku::DebugMessenger &&other) noexcept
     : _instance(std::exchange(other._instance, nullptr))
     , _raw(std::exchange(other._raw, nullptr))
 {
 }
 
-vku::DebugMessenger &vku::DebugMessenger::operator=(vku::DebugMessenger &&other)
+vku::DebugMessenger &vku::DebugMessenger::operator=(vku::DebugMessenger &&other) noexcept
 {
     if (this != &other) {
-        _instance = std::exchange(other._instance, nullptr);
-        _raw = std::exchange(other._raw, nullptr);
+        std::swap(_instance, other._instance);
+        std::swap(_raw, other._raw);
     }
     return *this;
 }

@@ -17,10 +17,13 @@ set(VKU_SOURCES
     capabilities.hpp
     device.hpp
     swapchain.hpp
+    swapchain_env.hpp
     render_pass.hpp
     pipeline.hpp
     command_pool.hpp
     debug_messenger.hpp
+    image_view.hpp
+    device_objects.hpp
 
     # sources
     base.cpp
@@ -32,10 +35,13 @@ set(VKU_SOURCES
     capabilities.cpp
     device.cpp
     swapchain.cpp
+    swapchain_env.cpp
     render_pass.cpp
     pipeline.cpp
     command_pool.cpp
-    debug_messenger.cpp)
+    debug_messenger.cpp
+    image_view.cpp
+    device_objects.cpp)
 
 add_library(${PROJECT_NAME} STATIC ${VKU_SOURCES})
 target_link_libraries(${PROJECT_NAME} volk glfw)

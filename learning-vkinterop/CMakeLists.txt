@@ -13,15 +13,15 @@ else()
     target_compile_definitions(volk INTERFACE VK_USE_PLATFORM_XCB_KHR)
 endif()
 
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
+set(GLFW_VULKAN_STATIC ON CACHE BOOL "" FORCE)
 FetchContent_Declare(glfw_FETCH
     URL https://github.com/glfw/glfw/archive/3.3.2.tar.gz
     URL_HASH SHA1=c3eea7eb56b1f316da3d18a907d6fd370cfa8d5d)
 FetchContent_MakeAvailable(glfw_FETCH)
-option(GLFW_BUILD_DOCS OFF)
-option(GLFW_BUILD_TESTS OFF)
-option(GLFW_BUILD_EXAMPLES OFF)
-option(GLFW_INSTALL OFF)
-option(GLFW_VULKAN_STATIC ON)
 
 set(CMAKE_C_VISIBILITY_PRESET hidden)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
@@ -59,7 +59,22 @@ add_embedded_shader(${CMAKE_SOURCE_DIR}/shaders/shader.vert
 
 add_subdirectory(vku)
 
-add_library(vki SHARED vki.cpp sample.cpp generated/shader.frag.cpp generated/shader.vert.cpp)
+set (VKI_SOURCES
+    # headers
+    vki.hpp
+    sample.hpp
+    app.hpp
+
+    # sources
+    vki.cpp
+    sample.cpp
+    app.cpp
+    
+    # generated files
+    generated/shader.vert.cpp
+    generated/shader.frag.cpp)
+
+add_library(vki SHARED ${VKI_SOURCES})
 set_target_properties(vki PROPERTIES PUBLIC_HEADER vki.hpp)
 add_dependencies(vki glfw)
 target_link_libraries(vki PRIVATE glfw vku)

@@ -16,17 +16,17 @@ vku::Surface::~Surface()
     }
 }
 
-vku::Surface::Surface(Surface &&other)
-    : _instance(std::exchange(other._instance, VK_NULL_HANDLE))
-    , _raw(std::exchange(other._raw, VK_NULL_HANDLE))
+vku::Surface::Surface(Surface &&other) noexcept
+    : _instance(std::exchange(other._instance, nullptr))
+    , _raw(std::exchange(other._raw, nullptr))
 {
 }
 
-vku::Surface& vku::Surface::operator=(vku::Surface &&other)
+vku::Surface& vku::Surface::operator=(vku::Surface &&other) noexcept
 {
     if (this != &other) {
-        _instance = std::exchange(other._instance, VK_NULL_HANDLE);
-        _raw = std::exchange(other._raw, VK_NULL_HANDLE);
+        std::swap(_instance, other._instance);
+        std::swap(_raw, other._raw);
     }
     return *this;
 }
