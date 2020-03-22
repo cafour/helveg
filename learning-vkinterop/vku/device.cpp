@@ -16,7 +16,9 @@ vku::Device::Device(VkPhysicalDevice physicalDevice, VkDeviceCreateInfo &createI
 
 vku::Device::~Device()
 {
-    vkDestroyDevice(_raw, nullptr);
+    if (_raw != VK_NULL_HANDLE) {
+        vkDestroyDevice(_raw, nullptr);
+    }
 }
 
 vku::Device::Device(vku::Device &&other)

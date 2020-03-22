@@ -18,7 +18,9 @@ vku::Instance::Instance(VkInstanceCreateInfo &createInfo)
 
 vku::Instance::~Instance()
 {
-    vkDestroyInstance(_raw, nullptr);
+    if (_raw != VK_NULL_HANDLE) {
+        vkDestroyInstance(_raw, nullptr);
+    }
 }
 
 vku::Instance::Instance(vku::Instance &&other)

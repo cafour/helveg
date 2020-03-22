@@ -1,13 +1,44 @@
 #include "render_pass.hpp"
 #include "base.hpp"
 
-vku::RenderPass::RenderPass(Device &device)
+vku::RenderPass::RenderPass(VkDevice device, VkRenderPass raw)
+    : _device(device)
+    , _raw(raw)
+{
+}
+
+vku::RenderPass::RenderPass(VkDevice device, VkRenderPassCreateInfo &createInfo)
     : _device(device)
 {
-    auto format = _device.physicalDevice().surfaceFormat();
+    ENSURE(vkCreateRenderPass(_device, &createInfo, nullptr, &_raw));
+}
 
+vku::RenderPass::~RenderPass()
+{
+    if (_device != VK_NULL_HANDLE && _raw != VK_NULL_HANDLE) {
+        vkDestroyRenderPass(_device, _raw, nullptr);
+    }
+}
+
+vku::RenderPass::RenderPass(vku::RenderPass &&other)
+    : _device(std::exchange(other._device, VK_NULL_HANDLE))
+    , _raw(std::exchange(other._raw, VK_NULL_HANDLE))
+{
+}
+
+vku::RenderPass &vku::RenderPass::operator=(vku::RenderPass &&other)
+{
+    if (this != &other) {
+        _device = std::exchange(other._device, VK_NULL_HANDLE);
+        _raw = std::exchange(other._raw, VK_NULL_HANDLE);
+    }
+    return *this;
+}
+
+static vku::RenderPass basic(VkDevice device, VkFormat colorFormat)
+{
     VkAttachmentDescription colorAttachment = {};
-    colorAttachment.format = format.format;
+    colorAttachment.format = colorFormat;
     colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
     colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
     colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -43,5 +74,5 @@ vku::RenderPass::RenderPass(Device &device)
     createInfo.dependencyCount = 1;
     createInfo.pDependencies = &dependency;
 
-    ENSURE(vkCreateRenderPass(_device, &createInfo, nullptr, &_raw));
+    return vku::RenderPass(device, createInfo);
 }

@@ -13,10 +13,12 @@ vku::Window::Window(GLFWwindow *raw)
 
 vku::Window::~Window()
 {
-    glfwDestroyWindow(_raw);
-    count--;
-    if (count == 0) {
-        glfwTerminate();
+    if (_raw) {
+        glfwDestroyWindow(_raw);
+        count--;
+        if (count == 0) {
+            glfwTerminate();
+        }
     }
 }
 
