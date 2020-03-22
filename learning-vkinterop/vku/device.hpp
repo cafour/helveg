@@ -12,19 +12,22 @@ namespace vku {
 class Device {
 private:
     VkDevice _raw;
-    PhysicalDevice &_physicalDevice;
-    std::vector<std::string> _extensions;
-    std::vector<const char *> _extensionPtrs;
 
 public:
-    Device(
-        PhysicalDevice &physicalDevice,
-        const char *const *extensions = nullptr,
-        size_t extensionCount = 0);
-    ~Device() { vkDestroyDevice(_raw, nullptr); }
+    Device(VkDevice raw);
+    Device(VkPhysicalDevice physicalDevice, VkDeviceCreateInfo &createInfo);
+    ~Device();
+    Device(const Device &other) = delete;
+    Device(Device &&other) noexcept;
+    Device &operator=(const Device &other) = delete;
+    Device &operator=(Device &&other);
 
     operator VkDevice() { return _raw; }
+    VkDevice raw() { return _raw; }
 
-    PhysicalDevice &physicalDevice() { return _physicalDevice; }
+    static Device basic(
+        VkPhysicalDevice physicalDevice,
+        uint32_t queueIndex,
+        const std::vector<const char*> *extensions = nullptr);
 };
 }

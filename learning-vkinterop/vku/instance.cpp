@@ -22,14 +22,14 @@ vku::Instance::~Instance()
 }
 
 vku::Instance::Instance(vku::Instance &&other)
-    : _raw(std::exchange(other._raw, nullptr))
+    : _raw(std::exchange(other._raw, VK_NULL_HANDLE))
 {
 }
 
 vku::Instance &vku::Instance::operator=(vku::Instance &&other)
 {
     if (this != &other) {
-        _raw = std::exchange(other._raw, nullptr);
+        _raw = std::exchange(other._raw, VK_NULL_HANDLE);
     }
     return *this;
 }

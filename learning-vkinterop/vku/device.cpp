@@ -1,27 +1,46 @@
 #include "device.hpp"
 #include "base.hpp"
 
-#include <set>
+#include <utility>
 #include <vector>
 
-vku::Device::Device(
-    PhysicalDevice &physicalDevice,
-    const char *const *extensions,
-    size_t extensionCount)
-    : _physicalDevice(physicalDevice)
+vku::Device::Device(VkDevice raw)
+    : _raw(raw)
 {
-    for (size_t i = 0; i < extensionCount; ++i) {
-        _extensions.emplace_back(extensions[i]);
-    }
-    _extensionPtrs.resize(_extensions.size());
-    for (size_t i = 0; i < _extensions.size(); ++i) {
-        _extensionPtrs[i] = _extensions[i].c_str();
-    }
+}
 
+vku::Device::Device(VkPhysicalDevice physicalDevice, VkDeviceCreateInfo &createInfo)
+{
+    ENSURE(vkCreateDevice(physicalDevice, &createInfo, nullptr, &_raw));
+}
+
+vku::Device::~Device()
+{
+    vkDestroyDevice(_raw, nullptr);
+}
+
+vku::Device::Device(vku::Device &&other)
+    : _raw(std::exchange(other._raw, VK_NULL_HANDLE))
+{
+}
+
+vku::Device &vku::Device::operator=(vku::Device &&other)
+{
+    if (this != &other) {
+        _raw = std::exchange(other._raw, VK_NULL_HANDLE);
+    }
+    return *this;
+}
+
+vku::Device vku::Device::basic(
+    VkPhysicalDevice physicalDevice,
+    uint32_t queueIndex,
+    const std::vector<const char *> *extensions)
+{
     float queuePriority = 1.0f;
     VkDeviceQueueCreateInfo queueCreateInfo = {};
     queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    queueCreateInfo.queueFamilyIndex = physicalDevice.queueIndex();
+    queueCreateInfo.queueFamilyIndex = queueIndex;
     queueCreateInfo.queueCount = 1;
     queueCreateInfo.pQueuePriorities = &queuePriority;
 
@@ -32,10 +51,10 @@ vku::Device::Device(
     createInfo.pQueueCreateInfos = &queueCreateInfo;
     createInfo.queueCreateInfoCount = 1;
     createInfo.pEnabledFeatures = &features;
-    createInfo.enabledExtensionCount = static_cast<uint32_t>(_extensionPtrs.size());
-    createInfo.ppEnabledExtensionNames = _extensionPtrs.data();
-    createInfo.enabledLayerCount = static_cast<uint32_t>(_physicalDevice.instance().layers().size());
-    createInfo.ppEnabledLayerNames = _physicalDevice.instance().layers().data();
+    if (extensions) {
+        createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions->size());
+        createInfo.ppEnabledExtensionNames = extensions->data();
+    }
 
-    ENSURE(vkCreateDevice(physicalDevice, &createInfo, nullptr, &_raw));
+    return vku::Device(physicalDevice, createInfo);
 }
