@@ -1,6 +1,7 @@
 #include "window.hpp"
 
 #include <stdexcept>
+#include <utility>
 
 size_t vku::Window::count = 0;
 
@@ -17,6 +18,19 @@ vku::Window::~Window()
     if (count == 0) {
         glfwTerminate();
     }
+}
+
+vku::Window::Window(vku::Window &&other)
+    : _raw(std::exchange(other._raw, nullptr))
+{
+}
+
+vku::Window &vku::Window::operator=(vku::Window &&other)
+{
+    if (this != &other) {
+        _raw = std::exchange(other._raw, nullptr);
+    }
+    return *this;
 }
 
 vku::Window vku::Window::noApi(int width, int height, const std::string &title)

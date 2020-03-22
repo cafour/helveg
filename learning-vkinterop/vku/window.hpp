@@ -17,9 +17,9 @@ public:
     Window(GLFWwindow *raw);
     ~Window();
     Window(const Window &other) = delete;
-    Window(Window &&other) = delete;
+    Window(Window &&other) noexcept;
     Window &operator=(const Window &other) = delete;
-    Window &operator=(Window &&other) = delete;
+    Window &operator=(Window &&other) noexcept;
 
     operator GLFWwindow *() { return _raw; }
     GLFWwindow *raw() { return _raw; }
