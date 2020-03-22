@@ -4,30 +4,22 @@
 #include "instance.hpp"
 #include "surface.hpp"
 
+#include <vector>
 #include <volk.h>
 
 namespace vku {
 
-class PhysicalDevice {
-private:
-    VkPhysicalDevice _raw;
-    Instance &_instance;
-    Surface &_surface;
-    uint32_t _queueIndex = -1;
+bool hasExtensionSupport(
+    VkPhysicalDevice physicalDevice,
+    const std::vector<const char *> &extensions);
 
-public:
-    PhysicalDevice(
-        Instance &instance,
-        Surface &surface,
-        const char **extensions = nullptr,
-        size_t length = 0);
+VkPhysicalDevice findDevice(
+    VkInstance instance,
+    VkSurfaceKHR surface,
+    uint32_t *queueIndex,
+    const std::vector<const char *> *requiredExtensions = nullptr);
 
-    operator VkPhysicalDevice() { return _raw; }
-
-    Instance &instance() { return _instance; }
-    Surface &surface() { return _surface; }
-    uint32_t queueIndex() { return _queueIndex; }
-    VkSurfaceFormatKHR surfaceFormat();
-    VkSurfaceCapabilitiesKHR surfaceCapabilities();
-};
+VkSurfaceFormatKHR findSurfaceFormat(
+    VkPhysicalDevice physicalDevice,
+    VkSurfaceKHR surface);
 }

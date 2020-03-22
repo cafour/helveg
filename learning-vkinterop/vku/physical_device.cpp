@@ -6,16 +6,17 @@
 #include <cstring>
 #include <vector>
 
-static bool hasExtensions(VkPhysicalDevice device, const char **extensions, size_t length)
+bool vku::hasExtensionSupport(
+    VkPhysicalDevice physicalDevice,
+    const std::vector<const char *> &extensions)
 {
     uint32_t extensionCount;
-    vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
+    vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extensionCount, nullptr);
 
     std::vector<VkExtensionProperties> available(extensionCount);
-    vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, available.data());
+    vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extensionCount, available.data());
 
-    for (size_t i = 0; i < length; ++i) {
-        const char *extensionName = extensions[i];
+    for (auto extensionName : extensions) {
         bool containsExtension = std::any_of(available.begin(), available.end(),
             [extensionName](const auto &extension) {
                 return !strcmp(extensionName, extension.extensionName);
@@ -24,16 +25,15 @@ static bool hasExtensions(VkPhysicalDevice device, const char **extensions, size
             return false;
         }
     }
+
     return true;
 }
 
-vku::PhysicalDevice::PhysicalDevice(
-    Instance &instance,
-    Surface &surface,
-    const char **extensions,
-    size_t length)
-    : _instance(instance)
-    , _surface(surface)
+VkPhysicalDevice vku::findDevice(
+    VkInstance instance,
+    VkSurfaceKHR surface,
+    uint32_t *queueIndex,
+    std::vector<const char *> *requiredExtensions = nullptr)
 {
     uint32_t deviceCount = 0;
     ENSURE(vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr));
@@ -44,9 +44,10 @@ vku::PhysicalDevice::PhysicalDevice(
     std::vector<VkPhysicalDevice> devices(deviceCount);
     ENSURE(vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data()));
 
+    *queueIndex = -1;
     VkPhysicalDevice chosenDevice = VK_NULL_HANDLE;
     for (auto device : devices) {
-        if (!hasExtensions(device, extensions, length)) {
+        if (requiredExtensions && !hasExtensionSupport(device, *requiredExtensions)) {
             continue;
         }
 
@@ -54,32 +55,34 @@ vku::PhysicalDevice::PhysicalDevice(
         vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
         std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
         vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
-        vku::QueueIndices indices;
-        for (uint32_t i = 0; i < queueFamilyCount && !indices.isComplete(); ++i) {
+
+        for (uint32_t i = 0; i < queueFamilyCount; ++i) {
             VkBool32 isPresentSupported = false;
             vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &isPresentSupported);
             if (queueFamilies[0].queueFlags & VK_QUEUE_GRAPHICS_BIT && isPresentSupported) {
-                _queueIndex = i;
+                *queueIndex = i;
                 break;
             }
         }
-        if (_queueIndex < 0) {
+        if (*queueIndex < 0) {
             continue;
         }
         chosenDevice = device;
     }
     if (chosenDevice == VK_NULL_HANDLE) {
-        throw std::runtime_error("failed to find a suitable GPU");
+        throw std::runtime_error("failed to find a suitable physical device");
     }
-    _raw = chosenDevice;
+    return chosenDevice;
 }
 
-VkSurfaceFormatKHR vku::PhysicalDevice::surfaceFormat()
+VkSurfaceFormatKHR vku::findSurfaceFormat(
+    VkPhysicalDevice physicalDevice,
+    VkSurfaceKHR surface)
 {
     uint32_t formatCount;
-    vkGetPhysicalDeviceSurfaceFormatsKHR(_raw, surface(), &formatCount, nullptr);
+    vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, nullptr);
     std::vector<VkSurfaceFormatKHR> formats(formatCount);
-    vkGetPhysicalDeviceSurfaceFormatsKHR(_raw, surface(), &formatCount, formats.data());
+    vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, formats.data());
 
     VkSurfaceFormatKHR chosenFormat;
     if (formatCount == 1 && formats[0].format == VK_FORMAT_UNDEFINED) {
@@ -89,7 +92,7 @@ VkSurfaceFormatKHR vku::PhysicalDevice::surfaceFormat()
     }
 
     if (formatCount == 0) {
-        throw std::runtime_error("surface has no formats");
+        throw std::runtime_error("failed to find a suitable surface format as surface has no formats");
     }
 
     chosenFormat.format = VK_FORMAT_UNDEFINED;
@@ -113,11 +116,4 @@ VkSurfaceFormatKHR vku::PhysicalDevice::surfaceFormat()
     }
 
     return chosenFormat;
-}
-
-VkSurfaceCapabilitiesKHR vku::PhysicalDevice::surfaceCapabilities()
-{
-    VkSurfaceCapabilitiesKHR surfaceCaps;
-    ENSURE(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_raw, surface(), &surfaceCaps));
-    return surfaceCaps;
 }
