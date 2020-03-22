@@ -59,6 +59,7 @@ public:
             std::swap(_device, other._device);
             std::swap(_raw, other._raw);
         }
+        return *this;
     }
 
     operator T() { return _raw; }
@@ -66,15 +67,105 @@ public:
     VkDevice device() { return _device; }
 };
 
-class Semaphore : public DeviceObject<VkSemaphore, VkSemaphoreCreateInfo, &vkCreateSemaphore, &vkDestroySemaphore> {
+class Semaphore : public DeviceObject<
+                      VkSemaphore,
+                      VkSemaphoreCreateInfo,
+                      &vkCreateSemaphore,
+                      &vkDestroySemaphore> {
 public:
     using DeviceObject::DeviceObject;
     static Semaphore basic(VkDevice device);
 };
 
-class Fence : public DeviceObject<VkFence, VkFenceCreateInfo, &vkCreateFence, &vkDestroyFence> {
+class Fence : public DeviceObject<
+                  VkFence,
+                  VkFenceCreateInfo,
+                  &vkCreateFence,
+                  &vkDestroyFence> {
 public:
     using DeviceObject::DeviceObject;
     static Fence basic(VkDevice device);
+};
+
+class ImageView : public DeviceObject<
+                      VkImageView,
+                      VkImageViewCreateInfo,
+                      &vkCreateImageView,
+                      &vkDestroyImageView> {
+public:
+    using DeviceObject::DeviceObject;
+    static ImageView basic(VkDevice device, VkImage image, VkFormat format);
+};
+
+class RenderPass : public DeviceObject<
+                       VkRenderPass,
+                       VkRenderPassCreateInfo,
+                       &vkCreateRenderPass,
+                       &vkDestroyRenderPass> {
+public:
+    using DeviceObject::DeviceObject;
+    static vku::RenderPass basic(VkDevice device, VkFormat colorFormat);
+};
+
+class Swapchain : public DeviceObject<
+                      VkSwapchainKHR,
+                      VkSwapchainCreateInfoKHR,
+                      &vkCreateSwapchainKHR,
+                      &vkDestroySwapchainKHR> {
+public:
+    using DeviceObject::DeviceObject;
+    static Swapchain basic(
+        VkDevice device,
+        VkPhysicalDevice physicalDevice,
+        VkSurfaceKHR surface,
+        VkSurfaceCapabilitiesKHR *pSurfaceCapabilities = nullptr,
+        VkSurfaceFormatKHR *pSurfaceFormat = nullptr,
+        VkSwapchainKHR old = VK_NULL_HANDLE);
+};
+
+class CommandPool : public DeviceObject<
+                        VkCommandPool,
+                        VkCommandPoolCreateInfo,
+                        &vkCreateCommandPool,
+                        &vkDestroyCommandPool> {
+public:
+    using DeviceObject::DeviceObject;
+    static CommandPool basic(VkDevice device, uint32_t queueIndex);
+};
+
+class PipelineLayout : public DeviceObject<
+                           VkPipelineLayout,
+                           VkPipelineLayoutCreateInfo,
+                           &vkCreatePipelineLayout,
+                           &vkDestroyPipelineLayout> {
+public:
+    using DeviceObject::DeviceObject;
+    static PipelineLayout basic(VkDevice device);
+};
+
+class ShaderModule : public DeviceObject<
+                         VkShaderModule,
+                         VkShaderModuleCreateInfo,
+                         &vkCreateShaderModule,
+                         &vkDestroyShaderModule> {
+public:
+    using DeviceObject::DeviceObject;
+    static ShaderModule inlined(VkDevice device, const uint32_t *code, size_t length);
+    static ShaderModule fromFile(VkDevice device, const char *filename);
+};
+
+class Framebuffer : public DeviceObject<
+                        VkFramebuffer,
+                        VkFramebufferCreateInfo,
+                        &vkCreateFramebuffer,
+                        &vkDestroyFramebuffer> {
+public:
+    using DeviceObject::DeviceObject;
+    static Framebuffer basic(
+        VkDevice device,
+        VkRenderPass renderPass,
+        VkImageView imageView,
+        uint32_t width,
+        uint32_t height);
 };
 }

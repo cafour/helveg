@@ -8,8 +8,6 @@
 #include "instance.hpp"
 #include "shader.hpp"
 #include "device.hpp"
-#include "swapchain.hpp"
 #include "render_pass.hpp"
 #include "pipeline.hpp"
 #include "capabilities.hpp"
-#include "command_pool.hpp"

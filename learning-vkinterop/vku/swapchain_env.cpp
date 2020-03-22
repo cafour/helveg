@@ -1,174 +1,88 @@
 #include "swapchain_env.hpp"
 #include "base.hpp"
+#include "physical_device.hpp"
 
 #include <vector>
 
-vku::SwapchainEnv::SwapchainEnv(vku::Swapchain &&swapchain, VkRenderPass renderPass)
+vku::SwapchainEnv::SwapchainEnv(vku::Swapchain &&swapchain)
     : _swapchain(std::move(swapchain))
 {
-    auto test = vku::Semaphore::basic(swapchain.device());
+}
+vku::SwapchainEnv vku::SwapchainEnv::basic(
+    VkDevice device,
+    VkPhysicalDevice physicalDevice,
+    VkSurfaceKHR surface,
+    VkRenderPass renderPass,
+    VkSwapchainKHR old)
+{
+    VkSurfaceCapabilitiesKHR capabilities;
+    VkSurfaceFormatKHR format;
+    auto swapchain = vku::Swapchain::basic(device, physicalDevice, surface, &capabilities, &format, old);
+    auto env = vku::SwapchainEnv(std::move(swapchain));
+
     uint32_t imageCount = 0;
-    ENSURE(vkGetSwapchainImagesKHR(_swapchain.device(), _swapchain, &imageCount, nullptr));
+    ENSURE(vkGetSwapchainImagesKHR(device, swapchain, &imageCount, nullptr));
     std::vector<VkImage> images(imageCount, VK_NULL_HANDLE);
-    ENSURE(vkGetSwapchainImagesKHR(_swapchain.device(), _swapchain, &imageCount, images.data()));
+    ENSURE(vkGetSwapchainImagesKHR(device, swapchain, &imageCount, images.data()));
 
-    
+    auto surfaceFormat = vku::findSurfaceFormat(physicalDevice, surface);
+
+    for (size_t i = 0; i < imageCount; ++i) {
+        auto imageView = vku::ImageView::basic(device, images[i], surfaceFormat.format);
+        auto framebuffer = vku::Framebuffer::basic(
+            device,
+            renderPass,
+            imageView,
+            capabilities.currentExtent.width,
+            capabilities.currentExtent.height);
+        env._frames.push_back(vku::SwapchainFrame {
+            static_cast<uint32_t>(i),
+            images[i],
+            std::move(imageView),
+            std::move(framebuffer),
+            vku::Semaphore::basic(device),
+            vku::Semaphore::basic(device),
+            vku::Fence::basic(device) });
+    }
+    return env;
 }
 
-void vku::Swapchain::initialize(Swapchain *old)
+VkResult vku::SwapchainEnv::acquire(vku::SwapchainFrame **frame)
 {
-    _imageViews.resize(_imageCount);
-    for (size_t i = 0; i < _imageCount; i++) {
-        VkImageViewCreateInfo viewInfo = {};
-        viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-        viewInfo.image = _images[i];
-        viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        viewInfo.format = surfaceFormat.format;
-        viewInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-        viewInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-        viewInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-        viewInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-        viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        viewInfo.subresourceRange.baseMipLevel = 0;
-        viewInfo.subresourceRange.levelCount = 1;
-        viewInfo.subresourceRange.baseArrayLayer = 0;
-        viewInfo.subresourceRange.layerCount = 1;
-        ENSURE(vkCreateImageView(device(), &viewInfo, nullptr, &_imageViews[i]));
-    }
-
-    _framebuffers.resize(_imageCount);
-    for (size_t i = 0; i < _imageCount; ++i) {
-        VkFramebufferCreateInfo createInfo = {};
-        createInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-        createInfo.renderPass = renderPass();
-        createInfo.attachmentCount = 1;
-        createInfo.pAttachments = &_imageViews[i];
-        createInfo.width = _extent.width;
-        createInfo.height = _extent.height;
-        createInfo.layers = 1;
-        ENSURE(vkCreateFramebuffer(device(), &createInfo, nullptr, &_framebuffers[i]));
-    }
-
-    _fences.resize(_imageCount);
-    for (size_t i = 0; i < _imageCount; ++i) {
-        VkFenceCreateInfo fenceInfo = {};
-        fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-        fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-        ENSURE(vkCreateFence(device(), &fenceInfo, nullptr, &_fences[i]));
-    }
-
-    _releaseSemaphores.resize(_imageCount);
-    for (size_t i = 0; i < _imageCount; ++i) {
-        VkSemaphoreCreateInfo semaphoreInfo = {};
-        semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-        ENSURE(vkCreateSemaphore(device(), &semaphoreInfo, nullptr, &_releaseSemaphores[i]));
-    }
-
-    _acquireSemaphores.resize(_imageCount);
-}
-
-vku::Swapchain::Swapchain(RenderPass &renderPass)
-    : _renderPass(renderPass)
-{
-    initialize(nullptr);
-}
-
-vku::Swapchain::Swapchain(Swapchain &&other, bool shouldInitialize)
-    : _renderPass(other._renderPass)
-{
-    if (!shouldInitialize) {
-        std::swap(_raw, other._raw);
-        std::swap(_images, other._images);
-        std::swap(_imageViews, other._imageViews);
-        std::swap(_framebuffers, other._framebuffers);
-        std::swap(_releaseSemaphores, other._releaseSemaphores);
-        std::swap(_recycledSemaphores, other._recycledSemaphores);
-        std::swap(_fences, other._fences);
-        std::swap(_extent, other._extent);
-    } else {
-        initialize(&other);
-    }
-}
-
-vku::Swapchain::~Swapchain()
-{
-    for (size_t i = 0; i < _fences.size(); ++i) {
-        if (_fences[i] != VK_NULL_HANDLE) {
-            vkDestroyFence(device(), _fences[i], nullptr);
-            _fences[i] = VK_NULL_HANDLE;
-        }
-    }
-    while (!_recycledSemaphores.empty()) {
-        vkDestroySemaphore(device(), _recycledSemaphores.back(), nullptr);
-        _recycledSemaphores.pop_back();
-    }
-    for (size_t i = 0; i < _acquireSemaphores.size(); ++i) {
-        if (_acquireSemaphores[i] != VK_NULL_HANDLE) {
-            vkDestroySemaphore(device(), _acquireSemaphores[i], nullptr);
-            _acquireSemaphores[i] = VK_NULL_HANDLE;
-        }
-    }
-    for (size_t i = 0; i < _releaseSemaphores.size(); ++i) {
-        if (_releaseSemaphores[i] != VK_NULL_HANDLE) {
-            vkDestroySemaphore(device(), _releaseSemaphores[i], nullptr);
-            _releaseSemaphores[i] = VK_NULL_HANDLE;
-        }
-    }
-    for (auto framebuffer : _framebuffers) {
-        vkDestroyFramebuffer(device(), framebuffer, nullptr);
-    }
-    for (auto view : _imageViews) {
-        vkDestroyImageView(device(), view, nullptr);
-    }
-    vkDestroySwapchainKHR(device(), _raw, nullptr);
-}
-
-VkResult vku::Swapchain::acquire(SwapchainFrame &frame)
-{
-    uint32_t img;
-
-    VkSemaphore acquireSemaphore;
-    if (_recycledSemaphores.empty()) {
-        VkSemaphoreCreateInfo info = {};
-        info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-        ENSURE(vkCreateSemaphore(device(), &info, nullptr, &acquireSemaphore));
-    } else {
-        acquireSemaphore = _recycledSemaphores.back();
+    vku::Semaphore acquireSemaphore = _recycledSemaphores.empty()
+        ? vku::Semaphore::basic(_swapchain.device())
+        : std::move(_recycledSemaphores.back());
+    if (!_recycledSemaphores.empty()) {
         _recycledSemaphores.pop_back();
     }
 
+    uint32_t index;
     VkResult result = vkAcquireNextImageKHR(
-        renderPass().device(),
-        _raw,
+        _swapchain.device(),
+        _swapchain,
         UINT64_MAX,
         acquireSemaphore, // the semaphore is signaled when the swapchain is done reading
         VK_NULL_HANDLE,
-        &img);
+        &index);
     if (result != VK_SUCCESS) {
-        _recycledSemaphores.push_back(acquireSemaphore);
+        _recycledSemaphores.emplace_back(std::move(acquireSemaphore));
         return result;
     }
 
+    auto indexFrame = &_frames[index];
+    indexFrame->index = index;
+
     // wait for the all command buffers to finish executing
-    if (_fences[img] != VK_NULL_HANDLE) {
-        ENSURE(vkWaitForFences(device(), 1, &_fences[img], true, UINT64_MAX));
-        ENSURE(vkResetFences(device(), 1, &_fences[img]));
+    VkFence indexFence = indexFrame->fence;
+    ENSURE(vkWaitForFences(_swapchain.device(), 1, &indexFence, true, UINT64_MAX));
+    ENSURE(vkResetFences(_swapchain.device(), 1, &indexFence));
+
+    _recycledSemaphores.emplace_back(std::move(indexFrame->acquireSemaphore));
+    indexFrame->acquireSemaphore = std::move(acquireSemaphore);
+
+    if (frame) {
+        *frame = indexFrame;
     }
 
-    if (_acquireSemaphores[img] != VK_NULL_HANDLE) {
-        _recycledSemaphores.push_back(_acquireSemaphores[img]);
-    }
-    _acquireSemaphores[img] = acquireSemaphore;
-
-    frame.index = img;
-    frame.acquireSemaphore = acquireSemaphore;
-    frame.releaseSemaphore = _releaseSemaphores[img];
-    frame.fence = _fences[img];
     return VK_SUCCESS;
-}
-
-void vku::Swapchain::rebuild()
-{
-    vkDeviceWaitIdle(device());
-    *this = Swapchain(std::move(*this), true);
 }
