@@ -1,10 +1,39 @@
 #include "surface.hpp"
-
 #include "base.hpp"
 
-vku::Surface::Surface(Instance &instance, Window &window)
+#include <utility>
+
+vku::Surface::Surface(VkInstance instance, VkSurfaceKHR raw)
     : _instance(instance)
-    , _window(window)
+    , _raw(raw)
 {
-    ENSURE(glfwCreateWindowSurface(_instance, _window, nullptr, &_raw));
+}
+
+vku::Surface::~Surface()
+{
+    if (_instance != VK_NULL_HANDLE && _raw != VK_NULL_HANDLE) {
+        vkDestroySurfaceKHR(_instance, _raw, nullptr);
+    }
+}
+
+vku::Surface::Surface(Surface &&other)
+    : _instance(std::exchange(other._instance, VK_NULL_HANDLE))
+    , _raw(std::exchange(other._raw, VK_NULL_HANDLE))
+{
+}
+
+vku::Surface& vku::Surface::operator=(vku::Surface &&other)
+{
+    if (this != &other) {
+        _instance = std::exchange(other._instance, VK_NULL_HANDLE);
+        _raw = std::exchange(other._raw, VK_NULL_HANDLE);
+    }
+    return *this;
+}
+
+vku::Surface vku::Surface::glfw(VkInstance instance, GLFWwindow *window)
+{
+    VkSurfaceKHR raw;
+    ENSURE(glfwCreateWindowSurface(instance, window, nullptr, &raw));
+    return vku::Surface(instance, raw);
 }

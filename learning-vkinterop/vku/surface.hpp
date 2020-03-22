@@ -1,24 +1,27 @@
 #pragma once
 
-#include "window.hpp"
-#include "instance.hpp"
-
+#include <volk.h>
+#include <GLFW/glfw3.h>
 
 namespace vku {
 
 class Surface {
 private:
+    VkInstance _instance;
     VkSurfaceKHR _raw;
-    Instance &_instance;
-    Window &_window;
 
 public:
-    Surface(Instance &instance, Window &window);
-    ~Surface() { vkDestroySurfaceKHR(_instance, _raw, nullptr); }
+    Surface(VkInstance instance, VkSurfaceKHR raw);
+    ~Surface();
+    Surface(const Surface& other) = delete;
+    Surface(Surface &&other) noexcept;
+    Surface &operator=(const Surface &other) = delete;
+    Surface &operator=(Surface &&other) noexcept;
 
     operator VkSurfaceKHR() { return _raw; }
+    VkSurfaceKHR raw() { return _raw; }
+    VkInstance instance() { return _instance; }
 
-    Instance &instance() { return _instance; }
-    Window &window() { return _window; }
+    static Surface glfw(VkInstance instance, GLFWwindow *window);
 };
 }
