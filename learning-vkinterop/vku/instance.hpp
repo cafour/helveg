@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <string>
+#include <optional>
 
 namespace vku {
 
@@ -28,8 +29,9 @@ public:
     static Instance basic(
         const std::string &appName,
         bool usesGlfw = true,
+        bool isDebug = false,
         const std::vector<const char *> *extensions = nullptr,
         const std::vector<const char *> *layers = nullptr,
-        DebugMessenger *messenger = nullptr);
+        std::optional<vku::DebugMessenger> *messenger = nullptr);
 };
 }

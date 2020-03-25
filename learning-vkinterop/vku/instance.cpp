@@ -39,9 +39,10 @@ vku::Instance &vku::Instance::operator=(vku::Instance &&other) noexcept
 vku::Instance vku::Instance::basic(
     const std::string &appName,
     bool usesGlfw,
+    bool isDebug,
     const std::vector<const char *> *extensions,
     const std::vector<const char *> *layers,
-    vku::DebugMessenger *messenger)
+    std::optional<vku::DebugMessenger> *messenger)
 {
     VkApplicationInfo appInfo = {};
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -76,7 +77,7 @@ vku::Instance vku::Instance::basic(
     }
 
     VkDebugUtilsMessengerCreateInfoEXT messengerCreateInfo;
-    if (messenger) {
+    if (isDebug) {
         extensionNames.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
         layerNames.push_back("VK_LAYER_KHRONOS_validation");
         messengerCreateInfo = vku::DebugMessenger::cerrCreateInfo();
@@ -92,7 +93,7 @@ vku::Instance vku::Instance::basic(
     createInfo.ppEnabledExtensionNames = extensionNames.data();
 
     auto instance = vku::Instance(createInfo);
-    if (messenger) {
+    if (isDebug && messenger) {
         *messenger = vku::DebugMessenger::cerr(instance);
     }
     return instance;

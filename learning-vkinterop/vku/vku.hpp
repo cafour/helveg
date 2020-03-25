@@ -1,13 +1,11 @@
 #pragma once
 
 #include "base.hpp"
-
-#include "surface.hpp"
+#include "types.hpp"
 #include "window.hpp"
+#include "standalone.hpp"
+#include "instance_related.hpp"
 #include "physical_device.hpp"
-#include "instance.hpp"
-#include "shader.hpp"
-#include "device.hpp"
-#include "render_pass.hpp"
-#include "pipeline.hpp"
-#include "capabilities.hpp"
+#include "device_related.hpp"
+#include "swapchain_env.hpp"
+#include "app.hpp"

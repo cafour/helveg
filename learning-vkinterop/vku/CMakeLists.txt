@@ -9,29 +9,24 @@ set(VKU_SOURCES
     # headers
     vku.hpp
     base.hpp
-    instance.hpp
-    physical_device.hpp
+    types.hpp
     window.hpp
-    surface.hpp
-    capabilities.hpp
-    device.hpp
+    standalone.hpp
+    instance_related.hpp
+    physical_device.hpp
+    device_related.hpp
     swapchain_env.hpp
-    pipeline.hpp
-    debug_messenger.hpp
-    device_objects.hpp
+    app.hpp
 
     # sources
     base.cpp
-    instance.cpp
-    physical_device.cpp
     window.cpp
-    surface.cpp
-    capabilities.cpp
-    device.cpp
+    standalone.cpp
+    instance_related.cpp
+    physical_device.cpp
+    device_related.cpp
     swapchain_env.cpp
-    pipeline.cpp
-    debug_messenger.cpp
-    device_objects.cpp)
+    app.cpp)
 
 add_library(${PROJECT_NAME} STATIC ${VKU_SOURCES})
 target_link_libraries(${PROJECT_NAME} volk glfw)
