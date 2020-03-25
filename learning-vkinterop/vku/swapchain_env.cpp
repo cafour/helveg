@@ -4,11 +4,7 @@
 
 #include <vector>
 
-vku::SwapchainEnv::SwapchainEnv(vku::Swapchain &&swapchain)
-    : _swapchain(std::move(swapchain))
-{
-}
-vku::SwapchainEnv vku::SwapchainEnv::basic(
+vku::SwapchainEnv::SwapchainEnv(
     VkDevice device,
     VkPhysicalDevice physicalDevice,
     VkSurfaceKHR surface,
@@ -18,24 +14,20 @@ vku::SwapchainEnv vku::SwapchainEnv::basic(
     VkSurfaceCapabilitiesKHR capabilities;
     VkSurfaceFormatKHR format;
     auto swapchain = vku::Swapchain::basic(device, physicalDevice, surface, &capabilities, &format, old);
-    auto env = vku::SwapchainEnv(std::move(swapchain));
-
     uint32_t imageCount = 0;
-    ENSURE(vkGetSwapchainImagesKHR(device, swapchain, &imageCount, nullptr));
+    ENSURE(vkGetSwapchainImagesKHR(device, _swapchain, &imageCount, nullptr));
     std::vector<VkImage> images(imageCount, VK_NULL_HANDLE);
     ENSURE(vkGetSwapchainImagesKHR(device, swapchain, &imageCount, images.data()));
 
-    auto surfaceFormat = vku::findSurfaceFormat(physicalDevice, surface);
-
     for (size_t i = 0; i < imageCount; ++i) {
-        auto imageView = vku::ImageView::basic(device, images[i], surfaceFormat.format);
+        auto imageView = vku::ImageView::basic(device, images[i], format.format);
         auto framebuffer = vku::Framebuffer::basic(
             device,
             renderPass,
             imageView,
             capabilities.currentExtent.width,
             capabilities.currentExtent.height);
-        env._frames.push_back(vku::SwapchainFrame {
+        _frames.push_back(vku::SwapchainFrame {
             static_cast<uint32_t>(i),
             images[i],
             std::move(imageView),
@@ -44,10 +36,9 @@ vku::SwapchainEnv vku::SwapchainEnv::basic(
             vku::Semaphore::basic(device),
             vku::Fence::basic(device) });
     }
-    return env;
 }
 
-VkResult vku::SwapchainEnv::acquire(vku::SwapchainFrame **frame)
+VkResult vku::SwapchainEnv::acquire(vku::SwapchainFrame *&frame)
 {
     vku::Semaphore acquireSemaphore = _recycledSemaphores.empty()
         ? vku::Semaphore::basic(_swapchain.device())
@@ -69,20 +60,16 @@ VkResult vku::SwapchainEnv::acquire(vku::SwapchainFrame **frame)
         return result;
     }
 
-    auto indexFrame = &_frames[index];
-    indexFrame->index = index;
+    frame = &_frames[index];
+    frame->index = index;
 
     // wait for the all command buffers to finish executing
-    VkFence indexFence = indexFrame->fence;
+    VkFence indexFence = frame->fence;
     ENSURE(vkWaitForFences(_swapchain.device(), 1, &indexFence, true, UINT64_MAX));
     ENSURE(vkResetFences(_swapchain.device(), 1, &indexFence));
 
-    _recycledSemaphores.emplace_back(std::move(indexFrame->acquireSemaphore));
-    indexFrame->acquireSemaphore = std::move(acquireSemaphore);
-
-    if (frame) {
-        *frame = indexFrame;
-    }
+    _recycledSemaphores.emplace_back(std::move(frame->acquireSemaphore));
+    frame->acquireSemaphore = std::move(acquireSemaphore);
 
     return VK_SUCCESS;
 }

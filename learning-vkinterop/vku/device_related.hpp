@@ -114,8 +114,12 @@ public:
     {
         ENSURE(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &createInfo, nullptr, &_raw));
     }
-
-    ~GraphicsPipeline() { vkDestroyPipeline(_device, _raw, nullptr); }
+    ~GraphicsPipeline()
+    {
+        vkDestroyPipeline(_device, _raw, nullptr);
+    }
+    GraphicsPipeline(GraphicsPipeline &&other) noexcept = default;
+    GraphicsPipeline &operator=(GraphicsPipeline &&other) noexcept = default;
 
     static GraphicsPipeline basic(VkDevice device,
         VkPipelineLayout pipelineLayout,

@@ -62,11 +62,11 @@ add_subdirectory(vku)
 set (VKI_SOURCES
     # headers
     vki.hpp
-    sample.hpp
+    triangle.hpp
 
     # sources
     vki.cpp
-    sample.cpp
+    triangle.cpp
 
     # generated files
     generated/shader.vert.cpp

@@ -56,6 +56,7 @@ public:
     }
 
     operator T() { return _raw; }
+    operator T *() { return &_raw; }
     T raw() { return _raw; }
 };
 

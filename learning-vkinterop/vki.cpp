@@ -1,5 +1,5 @@
 #include "vki.hpp"
-#include "sample.hpp"
+#include "triangle.hpp"
 
 #include <cstdlib>
 #include <volk.h>
@@ -9,7 +9,7 @@ int helloTriangle() {
         return EXIT_FAILURE;
     }
     try {
-        Sample app(1280, 720);
+        Triangle app(1280, 720);
         app.run();
     } catch (const std::exception& e) {
         std::cerr << e.what() << std::endl;

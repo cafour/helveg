@@ -23,7 +23,10 @@ private:
     VkPhysicalDevice _physicalDevice;
     vku::Device _device;
     vku::RenderPass _renderPass;
-    std::unique_ptr<vku::SwapchainEnv> _swapchainEnv;
+    std::optional<vku::SwapchainEnv> _swapchainEnv;
+    vku::CommandPool _commandPool;
+    std::vector<VkCommandBuffer> _commandBuffers;
+    VkQueue _queue;
 
 #if NDEBUG
     const bool IS_DEBUG = false;
@@ -39,6 +42,23 @@ public:
         const std::vector<const char *> *instanceExtensions = nullptr,
         const std::vector<const char *> *layers = nullptr,
         const std::vector<const char *> *deviceExtensions = nullptr);
+
+    vku::Window &window() { return _window; }
+    vku::Instance &instance() { return _instance; }
+    vku::Surface &surface() { return _surface; }
+    uint32_t queueIndex() { return _queueIndex; }
+    VkPhysicalDevice physicalDevice() { return _physicalDevice; }
+    vku::Device &device() { return _device; }
+    vku::RenderPass &renderPass() { return _renderPass; }
+    vku::SwapchainEnv &swapchainEnv() { return _swapchainEnv.value(); };
+    vku::CommandPool &commandPool() { return _commandPool; }
+    std::vector<VkCommandBuffer> &commandBuffers() { return _commandBuffers; }
+    VkQueue queue() { return _queue; }
+
+    virtual void prepare();
+    virtual void run();
+    virtual void step();
+    virtual void recordCommands(VkCommandBuffer commandBuffer, vku::SwapchainFrame &frame) = 0;
 };
 
 }
