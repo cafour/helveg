@@ -14,6 +14,9 @@ private:
     GLFWwindow *_raw;
 
 public:
+    Window()
+        : _raw(nullptr)
+    {}
     Window(GLFWwindow *raw);
     ~Window();
     Window(const Window &other) = delete;

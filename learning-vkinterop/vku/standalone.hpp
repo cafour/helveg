@@ -11,7 +11,7 @@
 namespace vku {
 class DebugMessenger;
 
-class Instance : StandaloneConstructible<
+class Instance : public StandaloneConstructible<
                      VkInstance,
                      VkInstanceCreateInfo,
                      &vkCreateInstance,

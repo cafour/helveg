@@ -37,7 +37,7 @@ protected:
 
 public:
     Standalone()
-        : _raw(VK_NULL_HANDLE)
+        : Standalone(VK_NULL_HANDLE)
     {}
     Standalone(T raw)
         : _raw(raw)
@@ -81,7 +81,7 @@ public:
         }
     }
     StandaloneConstructible(StandaloneConstructible &&other) noexcept = default;
-    StandaloneConstructible& operator=(StandaloneConstructible &&other) noexcept = default;
+    StandaloneConstructible &operator=(StandaloneConstructible &&other) noexcept = default;
 };
 
 template <typename T>
@@ -90,9 +90,12 @@ protected:
     VkInstance _instance;
 
 public:
-    InstanceRelated(VkInstance Instance, T raw)
+    InstanceRelated()
+        : InstanceRelated(VK_NULL_HANDLE, VK_NULL_HANDLE)
+    {}
+    InstanceRelated(VkInstance instance, T raw)
         : Standalone<T>(raw)
-        , _instance(Instance)
+        , _instance(instance)
     {}
     InstanceRelated(const InstanceRelated &other) = delete;
     InstanceRelated(InstanceRelated &&other) noexcept
@@ -145,6 +148,9 @@ protected:
     VkDevice _device;
 
 public:
+    DeviceRelated()
+        : DeviceRelated(VK_NULL_HANDLE, VK_NULL_HANDLE)
+    {}
     DeviceRelated(VkDevice device, T raw)
         : Standalone<T>(raw)
         , _device(device)
