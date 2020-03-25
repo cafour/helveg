@@ -13,11 +13,12 @@ vku::SwapchainEnv::SwapchainEnv(
 {
     VkSurfaceCapabilitiesKHR capabilities;
     VkSurfaceFormatKHR format;
-    auto swapchain = vku::Swapchain::basic(device, physicalDevice, surface, &capabilities, &format, old);
+    _swapchain = vku::Swapchain::basic(device, physicalDevice, surface, &capabilities, &format, old);
+    _extent = capabilities.currentExtent;
     uint32_t imageCount = 0;
     ENSURE(vkGetSwapchainImagesKHR(device, _swapchain, &imageCount, nullptr));
     std::vector<VkImage> images(imageCount, VK_NULL_HANDLE);
-    ENSURE(vkGetSwapchainImagesKHR(device, swapchain, &imageCount, images.data()));
+    ENSURE(vkGetSwapchainImagesKHR(device, _swapchain, &imageCount, images.data()));
 
     for (size_t i = 0; i < imageCount; ++i) {
         auto imageView = vku::ImageView::basic(device, images[i], format.format);

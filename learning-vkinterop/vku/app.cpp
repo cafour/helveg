@@ -69,7 +69,7 @@ void vku::App::step()
     vku::SwapchainFrame *frame;
     VkResult result = _swapchainEnv->acquire(frame);
     if (result == VK_SUBOPTIMAL_KHR || result == VK_ERROR_OUT_OF_DATE_KHR) {
-        _swapchainEnv.emplace(
+        _swapchainEnv = vku::SwapchainEnv(
             _device,
             _physicalDevice,
             _surface,

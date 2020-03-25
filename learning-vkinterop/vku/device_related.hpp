@@ -116,7 +116,9 @@ public:
     }
     ~GraphicsPipeline()
     {
-        vkDestroyPipeline(_device, _raw, nullptr);
+        if (_device != VK_NULL_HANDLE && _raw != VK_NULL_HANDLE) {
+            vkDestroyPipeline(_device, _raw, nullptr);
+        }
     }
     GraphicsPipeline(GraphicsPipeline &&other) noexcept = default;
     GraphicsPipeline &operator=(GraphicsPipeline &&other) noexcept = default;
