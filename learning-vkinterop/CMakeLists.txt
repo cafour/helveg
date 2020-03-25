@@ -50,6 +50,9 @@ function(add_embedded_shader INPUT_GLSL OUTPUT_CPP SHADER_NAME)
     )
 endfunction()
 
+string(LENGTH "${CMAKE_SOURCE_DIR}/" ROOT_PATH_LENGTH)
+add_compile_definitions(ROOT_PATH_LENGTH=${ROOT_PATH_LENGTH})
+
 add_embedded_shader(${CMAKE_SOURCE_DIR}/shaders/shader.frag
     ${CMAKE_SOURCE_DIR}/generated/shader.frag.cpp
     FRAGMENT_SHADER)
@@ -88,5 +91,5 @@ add_executable(hello hello.cpp)
 target_link_libraries(hello vki)
 
 add_custom_target(VkInterop
-    ALL dotnet build ${CMAKE_SOURCE_DIR} -o ${CMAKE_BINARY_DIR}
-    DEPENDS vki)
+ALL dotnet build ${CMAKE_SOURCE_DIR} -o ${CMAKE_BINARY_DIR}
+DEPENDS vki)
