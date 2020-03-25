@@ -1,6 +1,6 @@
 #pragma once
 
-#include "device_objects.hpp"
+#include "device_related.hpp"
 
 #include <volk.h>
 

@@ -1,6 +1,5 @@
 #include "physical_device.hpp"
 #include "base.hpp"
-#include "capabilities.hpp"
 
 #include <algorithm>
 #include <cstring>

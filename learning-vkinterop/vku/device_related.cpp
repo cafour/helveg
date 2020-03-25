@@ -1,4 +1,4 @@
-#include "device_objects.hpp"
+#include "device_related.hpp"
 #include "physical_device.hpp"
 
 #include <fstream>

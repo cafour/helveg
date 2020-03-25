@@ -63,13 +63,11 @@ set (VKI_SOURCES
     # headers
     vki.hpp
     sample.hpp
-    app.hpp
 
     # sources
     vki.cpp
     sample.cpp
-    app.cpp
-    
+
     # generated files
     generated/shader.vert.cpp
     generated/shader.frag.cpp)

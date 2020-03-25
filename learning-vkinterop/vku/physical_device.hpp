@@ -1,9 +1,5 @@
 #pragma once
 
-#include "capabilities.hpp"
-#include "instance.hpp"
-#include "surface.hpp"
-
 #include <vector>
 #include <volk.h>
 

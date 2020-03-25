@@ -52,6 +52,7 @@ public:
         if (this != &other) {
             std::swap(_raw, other._raw);
         }
+        return *this;
     }
 
     operator T() { return _raw; }
@@ -79,6 +80,8 @@ public:
             (*vkDestroy)(_raw, nullptr);
         }
     }
+    StandaloneConstructible(StandaloneConstructible &&other) noexcept = default;
+    StandaloneConstructible& operator=(StandaloneConstructible &&other) noexcept = default;
 };
 
 template <typename T>
@@ -87,15 +90,26 @@ protected:
     VkInstance _instance;
 
 public:
-    InstanceRelated()
-        : _instance(VK_NULL_HANDLE)
-    {}
-    InstanceRelated(VkInstance instance, T raw)
+    InstanceRelated(VkInstance Instance, T raw)
         : Standalone<T>(raw)
-        , _instance(instance)
+        , _instance(Instance)
     {}
+    InstanceRelated(const InstanceRelated &other) = delete;
+    InstanceRelated(InstanceRelated &&other) noexcept
+        : Standalone<T>(std::move(other))
+        , _instance(std::exchange(other._instance, nullptr))
+    {}
+    InstanceRelated &operator=(const InstanceRelated &other) = delete;
+    InstanceRelated &operator=(InstanceRelated &&other) noexcept
+    {
+        if (this != &other) {
+            std::swap(_instance, other._instance);
+        }
+        Standalone<T>::operator=(std::move(other));
+        return *this;
+    }
 
-    VkInstance instance() { return _instance; }
+    VkInstance Instance() { return _instance; }
 };
 
 template <
@@ -111,10 +125,9 @@ protected:
 public:
     using InstanceRelated<T>::InstanceRelated;
     InstanceConstructible(VkInstance instance, TCreateInfo &createInfo)
+        : InstanceRelated<T>(instance, VK_NULL_HANDLE)
     {
-        T raw;
-        ENSURE((*vkCreate)(instance, &createInfo, nullptr, &raw));
-        InstanceConstructible(instance, raw);
+        ENSURE((*vkCreate)(instance, &createInfo, nullptr, &_raw));
     }
     ~InstanceConstructible()
     {
@@ -122,6 +135,8 @@ public:
             (*vkDestroy)(_instance, _raw, nullptr);
         }
     }
+    InstanceConstructible(InstanceConstructible &&other) noexcept = default;
+    InstanceConstructible &operator=(InstanceConstructible &&other) noexcept = default;
 };
 
 template <typename T>
@@ -134,12 +149,10 @@ public:
         : Standalone<T>(raw)
         , _device(device)
     {}
-    DeviceRelated(const DeviceRelated &other) = delete;
     DeviceRelated(DeviceRelated &&other) noexcept
         : Standalone<T>(std::move(other))
         , _device(std::exchange(other._device, nullptr))
     {}
-    DeviceRelated &operator=(const DeviceRelated &other) = delete;
     DeviceRelated &operator=(DeviceRelated &&other) noexcept
     {
         if (this != &other) {
@@ -175,14 +188,8 @@ public:
             (*vkDestroy)(_device, _raw, nullptr);
         }
     }
-    DeviceConstructible(DeviceConstructible &&other) noexcept
-        : DeviceRelated<T>(std::move(other))
-    {}
-    DeviceConstructible &operator=(DeviceConstructible &&other)
-    {
-        DeviceRelated<T>::operator=(std::move(other));
-        return *this;
-    }
+    DeviceConstructible(DeviceConstructible &&other) noexcept = default;
+    DeviceConstructible &operator=(DeviceConstructible &&other) noexcept = default;
 };
 
 }
