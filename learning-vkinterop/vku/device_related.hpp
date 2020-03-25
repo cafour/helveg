@@ -129,4 +129,22 @@ public:
         VkShaderModule vertexShader,
         VkShaderModule fragmentShader);
 };
+
+class DescriptorSetLayout : public DeviceConstructible<
+                                VkDescriptorSetLayout,
+                                VkDescriptorSetLayoutCreateInfo,
+                                &vkCreateDescriptorSetLayout,
+                                &vkDestroyDescriptorSetLayout> {
+public:
+    using DeviceConstructible::DeviceConstructible;
+};
+
+class DescriptorPool : public DeviceConstructible<
+                           VkDescriptorPool,
+                           VkDescriptorPoolCreateInfo,
+                           &vkCreateDescriptorPool,
+                           &vkDestroyDescriptorPool> {
+public:
+    using DeviceConstructible::DeviceConstructible;
+};
 }
