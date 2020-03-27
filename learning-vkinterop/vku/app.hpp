@@ -5,6 +5,7 @@
 #include "standalone.hpp"
 #include "swapchain_env.hpp"
 #include "window.hpp"
+#include "containers.hpp"
 
 #include <memory>
 #include <optional>
@@ -25,7 +26,7 @@ private:
     vku::RenderPass _renderPass;
     std::optional<vku::SwapchainEnv> _swapchainEnv;
     vku::CommandPool _commandPool;
-    std::vector<VkCommandBuffer> _commandBuffers;
+    vku::CommandBuffers _commandBuffers;
     VkQueue _queue;
 
 #if NDEBUG
@@ -52,7 +53,7 @@ public:
     vku::RenderPass &renderPass() { return _renderPass; }
     vku::SwapchainEnv &swapchainEnv() { return _swapchainEnv.value(); };
     vku::CommandPool &commandPool() { return _commandPool; }
-    std::vector<VkCommandBuffer> &commandBuffers() { return _commandBuffers; }
+    vku::CommandBuffers &commandBuffers() { return _commandBuffers; }
     VkQueue queue() { return _queue; }
 
     virtual void prepare();

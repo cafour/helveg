@@ -279,16 +279,11 @@ vku::Buffer vku::Buffer::exclusive(VkDevice device, VkDeviceSize size, VkBufferU
     return vku::Buffer(device, createInfo);
 }
 
-vku::Buffer vku::Buffer::vertex(VkDevice device, VkDeviceSize size)
-{
-    return exclusive(device, size, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
-}
-
 vku::DeviceMemory vku::DeviceMemory::forBuffer(
     VkPhysicalDevice physicalDevice,
     VkDevice device,
     VkBuffer buffer,
-    VkMemoryPropertyFlags requiredProperties = 0)
+    VkMemoryPropertyFlags requiredProperties)
 {
     VkMemoryRequirements memoryRequirements;
     vkGetBufferMemoryRequirements(device, buffer, &memoryRequirements);
@@ -303,4 +298,36 @@ vku::DeviceMemory vku::DeviceMemory::forBuffer(
     auto deviceMemory = vku::DeviceMemory(device, allocateInfo);
     ENSURE(vkBindBufferMemory(device, buffer, deviceMemory, memoryRequirements.alignment));
     return deviceMemory;
+}
+
+vku::DeviceMemory vku::DeviceMemory::deviceLocalData(
+    VkPhysicalDevice physicalDevice,
+    VkDevice device,
+    VkBuffer buffer,
+    const void *data,
+    size_t dataSize)
+{
+    auto stagingBuffer = vku::Buffer::exclusive(
+        device,
+        static_cast<VkDeviceSize>(dataSize),
+        VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+    auto stagingMemory = forBuffer(
+        physicalDevice,
+        device,
+        buffer,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+    VkMemoryRequirements stagingRequirements;
+    vkGetBufferMemoryRequirements(device, stagingBuffer, &stagingRequirements);
+
+    void *stage;
+    ENSURE(vkMapMemory(device, stagingMemory, stagingRequirements.alignment, stagingRequirements.size, 0, &stage));
+    std::copy(static_cast<const char *>(data), static_cast<const char *>(data) + dataSize, static_cast<char *>(stage));
+    vkUnmapMemory(device, stagingMemory);
+
+    auto memory = forBuffer(physicalDevice, device, buffer, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+    // TODO: Copy from stagingMemory to memory
+
+    return memory;
 }

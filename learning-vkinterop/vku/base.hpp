@@ -39,4 +39,12 @@ uint32_t findMemoryType(
     VkPhysicalDevice physicalDevice,
     uint32_t allowedTypes,
     VkMemoryPropertyFlags requiredProperties);
+
+void copy(
+    VkDevice device,
+    VkCommandPool commandPool,
+    VkQueue transferQueue,
+    VkBuffer src,
+    VkBuffer dst,
+    VkDeviceSize size);
 }

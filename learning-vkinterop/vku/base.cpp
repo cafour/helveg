@@ -218,9 +218,46 @@ uint32_t vku::findMemoryType(
 
     for (uint32_t i = 0; i < memoryProperties.memoryTypeCount; ++i) {
         if (allowedTypes & (1 << i)
-                && (memoryProperties.memoryTypes[i].propertyFlags & requiredProperties) == requiredProperties) {
+            && (memoryProperties.memoryTypes[i].propertyFlags & requiredProperties) == requiredProperties) {
             return i;
-        } 
+        }
     }
     throw std::runtime_error("failed to find a suitable memory type");
+}
+
+void vku::copy(
+    VkDevice device,
+    VkCommandPool commandPool,
+    VkQueue transferQueue,
+    VkBuffer src,
+    VkBuffer dst,
+    VkDeviceSize size)
+{
+    VkCommandBufferAllocateInfo allocateInfo = {};
+    allocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    allocateInfo.commandPool = commandPool;
+    allocateInfo.commandBufferCount = 1;
+    allocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+
+    VkCommandBuffer commandBuffer;
+    ENSURE(vkAllocateCommandBuffers(device, &allocateInfo, &commandBuffer));
+
+    VkCommandBufferBeginInfo beginInfo = {};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    ENSURE(vkBeginCommandBuffer(commandBuffer, &beginInfo));
+
+    VkBufferCopy copy = {};
+    copy.size = size;
+    vkCmdCopyBuffer(commandBuffer, src, dst, 1, &copy);
+
+    ENSURE(vkEndCommandBuffer(commandBuffer));
+
+    VkSubmitInfo submitInfo = {};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &commandBuffer;
+    ENSURE(vkQueueSubmit(transferQueue, 1, &submitInfo, VK_NULL_HANDLE));
+
+    ENSURE(vkQueueWaitIdle(transferQueue));
 }

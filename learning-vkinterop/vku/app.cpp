@@ -36,15 +36,12 @@ vku::App::App(
 
 void vku::App::prepare()
 {
-    _commandBuffers.clear();
-    _commandBuffers.resize(_swapchainEnv->frames().size(), VK_NULL_HANDLE);
-
     VkCommandBufferAllocateInfo allocateInfo = {};
     allocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocateInfo.commandPool = _commandPool;
-    allocateInfo.commandBufferCount = static_cast<uint32_t>(_commandBuffers.size());
+    allocateInfo.commandBufferCount = static_cast<uint32_t>(_swapchainEnv->frames().size());
     allocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    ENSURE(vkAllocateCommandBuffers(_device, &allocateInfo, _commandBuffers.data()));
+    _commandBuffers = vku::CommandBuffers(_device, allocateInfo);
 
     for (size_t i = 0; i < _commandBuffers.size(); ++i) {
         recordCommands(_commandBuffers[i], _swapchainEnv->frames()[i]);
@@ -74,7 +71,6 @@ void vku::App::step()
             _surface,
             _renderPass,
             _swapchainEnv->swapchain());
-        vkFreeCommandBuffers(_device, _commandPool, _commandBuffers.size(), _commandBuffers.data());
         prepare();
         return;
     } else if (result != VK_SUCCESS) {

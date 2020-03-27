@@ -157,7 +157,6 @@ public:
     using DeviceConstructible::DeviceConstructible;
 
     static Buffer exclusive(VkDevice device, VkDeviceSize size, VkBufferUsageFlags usage);
-    static Buffer vertex(VkDevice device, VkDeviceSize size);
 };
 
 class DeviceMemory : public DeviceConstructible<
@@ -173,6 +172,13 @@ public:
         VkDevice device,
         VkBuffer buffer,
         VkMemoryPropertyFlags requiredProperties = 0);
+
+    static DeviceMemory deviceLocalData(
+        VkPhysicalDevice physicalDevice,
+        VkDevice device,
+        VkBuffer buffer,
+        const void *data,
+        size_t dataSize);
 };
 
 }
