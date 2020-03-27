@@ -268,3 +268,22 @@ vku::GraphicsPipeline vku::GraphicsPipeline::basic(
     pipelineInfo.subpass = 0;
     return vku::GraphicsPipeline(device, pipelineInfo);
 }
+
+vku::DeviceMemory vku::DeviceMemory::forBuffer(
+    VkPhysicalDevice physicalDevice,
+    VkDevice device,
+    VkBuffer buffer,
+    VkMemoryPropertyFlags requiredProperties = 0)
+{
+    VkMemoryRequirements memoryRequirements;
+    vkGetBufferMemoryRequirements(device, buffer, &memoryRequirements);
+
+    VkMemoryAllocateInfo allocateInfo = {};
+    allocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocateInfo.allocationSize = memoryRequirements.size;
+    allocateInfo.memoryTypeIndex = vku::findMemoryType(
+        physicalDevice,
+        memoryRequirements.memoryTypeBits,
+        requiredProperties);
+    return vku::DeviceMemory(device, allocateInfo);
+}

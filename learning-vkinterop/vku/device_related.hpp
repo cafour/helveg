@@ -164,6 +164,12 @@ class DeviceMemory : public DeviceConstructible<
                          &vkFreeMemory> {
 public:
     using DeviceConstructible::DeviceConstructible;
+
+    static DeviceMemory forBuffer(
+        VkPhysicalDevice physicalDevice,
+        VkDevice device,
+        VkBuffer buffer,
+        VkMemoryPropertyFlags requiredProperties = 0);
 };
 
 }
