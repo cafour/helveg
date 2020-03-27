@@ -155,6 +155,9 @@ class Buffer : public DeviceConstructible<
                    &vkDestroyBuffer> {
 public:
     using DeviceConstructible::DeviceConstructible;
+
+    static Buffer exclusive(VkDevice device, VkDeviceSize size, VkBufferUsageFlags usage);
+    static Buffer vertex(VkDevice device, VkDeviceSize size);
 };
 
 class DeviceMemory : public DeviceConstructible<

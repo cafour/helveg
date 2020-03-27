@@ -269,6 +269,21 @@ vku::GraphicsPipeline vku::GraphicsPipeline::basic(
     return vku::GraphicsPipeline(device, pipelineInfo);
 }
 
+vku::Buffer vku::Buffer::exclusive(VkDevice device, VkDeviceSize size, VkBufferUsageFlags usage)
+{
+    VkBufferCreateInfo createInfo = {};
+    createInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    createInfo.size = size;
+    createInfo.usage = usage;
+    createInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    return vku::Buffer(device, createInfo);
+}
+
+vku::Buffer vku::Buffer::vertex(VkDevice device, VkDeviceSize size)
+{
+    return exclusive(device, size, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
+}
+
 vku::DeviceMemory vku::DeviceMemory::forBuffer(
     VkPhysicalDevice physicalDevice,
     VkDevice device,
