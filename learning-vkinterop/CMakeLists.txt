@@ -53,12 +53,12 @@ endfunction()
 string(LENGTH "${CMAKE_SOURCE_DIR}/" ROOT_PATH_LENGTH)
 add_compile_definitions(ROOT_PATH_LENGTH=${ROOT_PATH_LENGTH})
 
-add_embedded_shader(${CMAKE_SOURCE_DIR}/shaders/shader.frag
-    ${CMAKE_SOURCE_DIR}/generated/shader.frag.cpp
-    FRAGMENT_SHADER)
-add_embedded_shader(${CMAKE_SOURCE_DIR}/shaders/shader.vert
-    ${CMAKE_SOURCE_DIR}/generated/shader.vert.cpp
-    VERTEX_SHADER)
+add_embedded_shader(${CMAKE_SOURCE_DIR}/shaders/triangle.frag
+    ${CMAKE_SOURCE_DIR}/generated/triangle.frag.cpp
+    TRIANGLE_FRAG)
+add_embedded_shader(${CMAKE_SOURCE_DIR}/shaders/triangle.vert
+    ${CMAKE_SOURCE_DIR}/generated/triangle.vert.cpp
+    TRIANGLE_VERT)
 
 add_subdirectory(vku)
 
@@ -72,8 +72,8 @@ set (VKI_SOURCES
     triangle.cpp
 
     # generated files
-    generated/shader.vert.cpp
-    generated/shader.frag.cpp)
+    generated/triangle.vert.cpp
+    generated/triangle.frag.cpp)
 
 add_library(vki SHARED ${VKI_SOURCES})
 set_target_properties(vki PROPERTIES PUBLIC_HEADER vki.hpp)

@@ -3,8 +3,8 @@
 #include <cstdint>
 #include <cstdlib>
 
-extern const size_t VERTEX_SHADER_LENGTH;
-extern const uint32_t *VERTEX_SHADER;
+extern const size_t TRIANGLE_VERT_LENGTH;
+extern const uint32_t *TRIANGLE_VERT;
 
-extern const size_t FRAGMENT_SHADER_LENGTH;
-extern const uint32_t *FRAGMENT_SHADER;
+extern const size_t TRIANGLE_FRAG_LENGTH;
+extern const uint32_t *TRIANGLE_FRAG;

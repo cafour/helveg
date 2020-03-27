@@ -25,8 +25,8 @@ public:
             device(), 
             _pipelineLayout, 
             renderPass(),
-            vku::ShaderModule::inlined(device(), VERTEX_SHADER, VERTEX_SHADER_LENGTH),
-            vku::ShaderModule::inlined(device(), FRAGMENT_SHADER, FRAGMENT_SHADER_LENGTH));
+            vku::ShaderModule::inlined(device(), TRIANGLE_VERT, TRIANGLE_VERT_LENGTH),
+            vku::ShaderModule::inlined(device(), TRIANGLE_FRAG, TRIANGLE_FRAG_LENGTH));
     }
     
     void recordCommands(VkCommandBuffer commandBuffer, vku::SwapchainFrame &frame) override;
