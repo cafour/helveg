@@ -36,9 +36,13 @@ public:
 };
 
 class Device : public Standalone<VkDevice>{
+protected:
+    VkPhysicalDevice _physicalDevice = VK_NULL_HANDLE;
+
 public:
     using Standalone::Standalone;
     Device(VkPhysicalDevice physicalDevice, VkDeviceCreateInfo &createInfo)
+        : _physicalDevice(physicalDevice)
     {
         ENSURE(vkCreateDevice(physicalDevice, &createInfo, nullptr, &_raw));
     }
@@ -50,6 +54,8 @@ public:
     }
     Device(Device &&other) noexcept = default;
     Device &operator=(Device &&other) noexcept = default;
+
+    VkPhysicalDevice physicalDevice() { return _physicalDevice; }
 
     static Device basic(
         VkPhysicalDevice physicalDevice,
