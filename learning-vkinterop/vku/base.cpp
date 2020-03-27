@@ -1,4 +1,5 @@
 #include "base.hpp"
+#include "containers.hpp"
 
 #include <algorithm>
 #include <cstring>
@@ -238,25 +239,23 @@ void vku::copy(
     allocateInfo.commandPool = commandPool;
     allocateInfo.commandBufferCount = 1;
     allocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-
-    VkCommandBuffer commandBuffer;
-    ENSURE(vkAllocateCommandBuffers(device, &allocateInfo, &commandBuffer));
+    vku::CommandBuffers commandBuffers(device, allocateInfo);
 
     VkCommandBufferBeginInfo beginInfo = {};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-    ENSURE(vkBeginCommandBuffer(commandBuffer, &beginInfo));
+    ENSURE(vkBeginCommandBuffer(commandBuffers[0], &beginInfo));
 
     VkBufferCopy copy = {};
     copy.size = size;
-    vkCmdCopyBuffer(commandBuffer, src, dst, 1, &copy);
+    vkCmdCopyBuffer(commandBuffers[0], src, dst, 1, &copy);
 
-    ENSURE(vkEndCommandBuffer(commandBuffer));
+    ENSURE(vkEndCommandBuffer(commandBuffers[0]));
 
     VkSubmitInfo submitInfo = {};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &commandBuffer;
+    submitInfo.pCommandBuffers = commandBuffers;
     ENSURE(vkQueueSubmit(transferQueue, 1, &submitInfo, VK_NULL_HANDLE));
 
     ENSURE(vkQueueWaitIdle(transferQueue));

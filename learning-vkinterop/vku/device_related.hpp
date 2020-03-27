@@ -127,7 +127,9 @@ public:
         VkPipelineLayout pipelineLayout,
         VkRenderPass renderPass,
         VkShaderModule vertexShader,
-        VkShaderModule fragmentShader);
+        VkShaderModule fragmentShader,
+        const std::vector<VkVertexInputBindingDescription> *vertexBindings = nullptr,
+        const std::vector<VkVertexInputAttributeDescription> *vertexAttributes = nullptr);
 };
 
 class DescriptorSetLayout : public DeviceConstructible<
@@ -176,6 +178,8 @@ public:
     static DeviceMemory deviceLocalData(
         VkPhysicalDevice physicalDevice,
         VkDevice device,
+        VkCommandPool copyPool,
+        VkQueue transferQueue,
         VkBuffer buffer,
         const void *data,
         size_t dataSize);

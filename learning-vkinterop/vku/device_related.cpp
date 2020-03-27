@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <stdexcept>
+#include <cstring>
 
 vku::Semaphore vku::Semaphore::basic(VkDevice device)
 {
@@ -186,12 +187,20 @@ vku::GraphicsPipeline vku::GraphicsPipeline::basic(
     VkPipelineLayout pipelineLayout,
     VkRenderPass renderPass,
     VkShaderModule vertexShader,
-    VkShaderModule fragmentShader)
+    VkShaderModule fragmentShader,
+    const std::vector<VkVertexInputBindingDescription> *vertexBindings,
+    const std::vector<VkVertexInputAttributeDescription> *vertexAttributes)
 {
     VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    vertexInputInfo.vertexBindingDescriptionCount = 0;
-    vertexInputInfo.vertexAttributeDescriptionCount = 0;
+    if (vertexBindings) {
+        vertexInputInfo.vertexBindingDescriptionCount = vertexBindings->size();
+        vertexInputInfo.pVertexBindingDescriptions = vertexBindings->data();
+    }
+    if (vertexAttributes) {
+        vertexInputInfo.vertexAttributeDescriptionCount = vertexAttributes->size();
+        vertexInputInfo.pVertexAttributeDescriptions = vertexAttributes->data();
+    }
 
     VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo = {};
     inputAssemblyInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -296,13 +305,15 @@ vku::DeviceMemory vku::DeviceMemory::forBuffer(
         memoryRequirements.memoryTypeBits,
         requiredProperties);
     auto deviceMemory = vku::DeviceMemory(device, allocateInfo);
-    ENSURE(vkBindBufferMemory(device, buffer, deviceMemory, memoryRequirements.alignment));
+    ENSURE(vkBindBufferMemory(device, buffer, deviceMemory, 0));
     return deviceMemory;
 }
 
 vku::DeviceMemory vku::DeviceMemory::deviceLocalData(
     VkPhysicalDevice physicalDevice,
     VkDevice device,
+    VkCommandPool copyPool,
+    VkQueue transferQueue,
     VkBuffer buffer,
     const void *data,
     size_t dataSize)
@@ -314,20 +325,18 @@ vku::DeviceMemory vku::DeviceMemory::deviceLocalData(
     auto stagingMemory = forBuffer(
         physicalDevice,
         device,
-        buffer,
+        stagingBuffer,
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
     VkMemoryRequirements stagingRequirements;
     vkGetBufferMemoryRequirements(device, stagingBuffer, &stagingRequirements);
 
     void *stage;
-    ENSURE(vkMapMemory(device, stagingMemory, stagingRequirements.alignment, stagingRequirements.size, 0, &stage));
-    std::copy(static_cast<const char *>(data), static_cast<const char *>(data) + dataSize, static_cast<char *>(stage));
+    ENSURE(vkMapMemory(device, stagingMemory, 0, stagingRequirements.size, 0, &stage));
+    std::memcpy(stage, data, dataSize);
     vkUnmapMemory(device, stagingMemory);
 
     auto memory = forBuffer(physicalDevice, device, buffer, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-
-    // TODO: Copy from stagingMemory to memory
-
+    vku::copy(device, copyPool, transferQueue, stagingBuffer, buffer, dataSize);
     return memory;
 }

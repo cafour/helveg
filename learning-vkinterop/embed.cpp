@@ -19,26 +19,26 @@ int main(int argc, const char *argv[])
     dst << "#include \"shaders.hpp\"\n"
         << "#include <cstdint>\n"
         << "\n"
-        << "static const uint32_t _" << name << "[] = {\n";
+        << "static const uint32_t _" << name << "[] = {";
 
     std::ifstream src(srcName, std::ios::ate | std::ios::binary);
     size_t size = src.tellg();
     src.seekg(0);
     std::vector<char> buffer(size);
     src.read(buffer.data(), size);
-    const uint32_t *content = reinterpret_cast<const uint32_t*>(buffer.data());
+    const uint32_t *content = reinterpret_cast<const uint32_t *>(buffer.data());
 
-    for (size_t line = 0; line < size / (U32_PER_LINE * sizeof(uint32_t)); ++line) {
-        dst << "    ";
-        for (size_t i = 0; i < U32_PER_LINE; ++i) {
-            dst << "0x" << std::setfill('0') << std::setw(8) << std::hex << +content[line * U32_PER_LINE + i] << ",";
-            if (i != U32_PER_LINE - 1) {
-                dst << " ";
-            }
+    for (size_t i = 0; i < size / sizeof(uint32_t); ++i) {
+        if (i % U32_PER_LINE == 0) {
+            dst << "\n    ";
         }
-        dst << "\n";
+        dst << "0x" << std::setfill('0') << std::setw(8) << std::hex << +content[i] << ",";
+        if (i % U32_PER_LINE != 0) {
+            dst << " ";
+        }
     }
-    dst << "};\n"
+    dst << "\n"
+        << "};\n"
         << "\n"
         << "const size_t " << name << "_LENGTH = " << std::dec << size << ";\n"
         << "const uint32_t *" << name << " = _" << name << ";\n";

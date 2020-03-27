@@ -23,6 +23,11 @@ FetchContent_Declare(glfw_FETCH
     URL_HASH SHA1=c3eea7eb56b1f316da3d18a907d6fd370cfa8d5d)
 FetchContent_MakeAvailable(glfw_FETCH)
 
+FetchContent_Declare(glm_FETCH
+    URL https://github.com/g-truc/glm/archive/0.9.9.7.tar.gz
+    URL_HASH SHA1=df8e6c1472002be7e431bfb3189007d7a65f1745)
+FetchContent_MakeAvailable(glm_FETCH)
+
 set(CMAKE_C_VISIBILITY_PRESET hidden)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
@@ -77,8 +82,7 @@ set (VKI_SOURCES
 
 add_library(vki SHARED ${VKI_SOURCES})
 set_target_properties(vki PROPERTIES PUBLIC_HEADER vki.hpp)
-add_dependencies(vki glfw)
-target_link_libraries(vki PRIVATE glfw vku)
+target_link_libraries(vki PRIVATE vku glm)
 target_include_directories(vki PRIVATE ${Vulkan_INCLUDE_DIRS})
 target_include_directories(vki PRIVATE ${CMAKE_SOURCE_DIR})
 if(WIN32)
