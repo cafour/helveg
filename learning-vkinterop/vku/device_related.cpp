@@ -285,5 +285,7 @@ vku::DeviceMemory vku::DeviceMemory::forBuffer(
         physicalDevice,
         memoryRequirements.memoryTypeBits,
         requiredProperties);
-    return vku::DeviceMemory(device, allocateInfo);
+    auto deviceMemory = vku::DeviceMemory(device, allocateInfo);
+    ENSURE(vkBindBufferMemory(device, buffer, deviceMemory, memoryRequirements.alignment));
+    return deviceMemory;
 }
