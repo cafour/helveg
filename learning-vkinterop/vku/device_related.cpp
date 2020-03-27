@@ -1,5 +1,4 @@
 #include "device_related.hpp"
-#include "physical_device.hpp"
 
 #include <fstream>
 #include <stdexcept>

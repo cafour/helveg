@@ -13,7 +13,6 @@ set(VKU_SOURCES
     window.hpp
     standalone.hpp
     instance_related.hpp
-    physical_device.hpp
     device_related.hpp
     swapchain_env.hpp
     app.hpp
@@ -23,7 +22,6 @@ set(VKU_SOURCES
     window.cpp
     standalone.cpp
     instance_related.cpp
-    physical_device.cpp
     device_related.cpp
     swapchain_env.cpp
     app.cpp)

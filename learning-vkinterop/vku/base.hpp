@@ -3,6 +3,7 @@
 #include <volk.h>
 
 #include <utility>
+#include <vector>
 
 #define _FILENAME (static_cast<const char*>(__FILE__) + ROOT_PATH_LENGTH)
 #define _STR(what) #what
@@ -13,7 +14,24 @@
 namespace vku {
 
 void log(VkResult result, const char *filename, int line, const char *what);
+
 void ensure(VkResult result, const char *filename, int line, const char *what);
+
 void ensureLayers(const char **layers, size_t length);
+
 const char *resultString(VkResult result);
+
+bool hasExtensionSupport(
+    VkPhysicalDevice physicalDevice,
+    const std::vector<const char *> &extensions);
+
+VkPhysicalDevice findDevice(
+    VkInstance instance,
+    VkSurfaceKHR surface,
+    uint32_t *queueIndex,
+    const std::vector<const char *> *requiredExtensions = nullptr);
+
+VkSurfaceFormatKHR findSurfaceFormat(
+    VkPhysicalDevice physicalDevice,
+    VkSurfaceKHR surface);
 }
