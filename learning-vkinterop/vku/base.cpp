@@ -11,7 +11,7 @@ void vku::log(VkResult result, const char *filename, int line, const char *what)
     if (result == VK_SUCCESS) {
         return;
     }
-    std::cerr << "[" << resultString(result) << "] "<< filename << ":" << line << ": " << what << std::endl;
+    std::cerr << "[" << resultString(result) << "] " << filename << ":" << line << ": " << what << std::endl;
 }
 
 void vku::ensure(VkResult result, const char *filename, int line, const char *what)
@@ -20,7 +20,7 @@ void vku::ensure(VkResult result, const char *filename, int line, const char *wh
         return;
     }
     std::stringstream ss;
-    ss << "[" << resultString(result) << "] "<< filename << ":" << line << ": " << what;
+    ss << "[" << resultString(result) << "] " << filename << ":" << line << ": " << what;
     std::string message = ss.str();
     throw std::runtime_error(message);
 }
@@ -109,10 +109,9 @@ bool vku::hasExtensionSupport(
     vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extensionCount, available.data());
 
     for (auto extensionName : extensions) {
-        bool containsExtension = std::any_of(available.begin(), available.end(),
-            [extensionName](const auto &extension) {
-                return !strcmp(extensionName, extension.extensionName);
-            });
+        bool containsExtension = std::any_of(available.begin(), available.end(), [extensionName](const auto &extension) {
+            return !strcmp(extensionName, extension.extensionName);
+        });
         if (!containsExtension) {
             return false;
         }
@@ -207,4 +206,21 @@ VkSurfaceFormatKHR vku::findSurfaceFormat(
     }
 
     return chosenFormat;
+}
+
+uint32_t vku::findMemoryType(
+    VkPhysicalDevice physicalDevice,
+    uint32_t allowedTypes,
+    VkMemoryPropertyFlags requiredProperties)
+{
+    VkPhysicalDeviceMemoryProperties memoryProperties;
+    vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memoryProperties);
+
+    for (uint32_t i = 0; i < memoryProperties.memoryTypeCount; ++i) {
+        if (allowedTypes & (1 << i)
+                && (memoryProperties.memoryTypes[i].propertyFlags & requiredProperties) == requiredProperties) {
+            return i;
+        } 
+    }
+    throw std::runtime_error("failed to find a suitable memory type");
 }

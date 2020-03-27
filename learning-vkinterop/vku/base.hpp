@@ -5,7 +5,7 @@
 #include <utility>
 #include <vector>
 
-#define _FILENAME (static_cast<const char*>(__FILE__) + ROOT_PATH_LENGTH)
+#define _FILENAME (static_cast<const char *>(__FILE__) + ROOT_PATH_LENGTH)
 #define _STR(what) #what
 #define _TOSTR(what) _STR(what)
 #define LOG(vkInvocation) vku::log(vkInvocation, _FILENAME, __LINE__, #vkInvocation)
@@ -34,4 +34,9 @@ VkPhysicalDevice findDevice(
 VkSurfaceFormatKHR findSurfaceFormat(
     VkPhysicalDevice physicalDevice,
     VkSurfaceKHR surface);
+
+uint32_t findMemoryType(
+    VkPhysicalDevice physicalDevice,
+    uint32_t allowedTypes,
+    VkMemoryPropertyFlags requiredProperties);
 }
