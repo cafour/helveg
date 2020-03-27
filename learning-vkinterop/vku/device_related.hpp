@@ -147,4 +147,14 @@ class DescriptorPool : public DeviceConstructible<
 public:
     using DeviceConstructible::DeviceConstructible;
 };
+
+class Buffer : public DeviceConstructible<
+                   VkBuffer,
+                   VkBufferCreateInfo,
+                   &vkCreateBuffer,
+                   &vkDestroyBuffer> {
+public:
+    using DeviceConstructible::DeviceConstructible;
+};
+
 }
