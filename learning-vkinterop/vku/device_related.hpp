@@ -157,4 +157,13 @@ public:
     using DeviceConstructible::DeviceConstructible;
 };
 
+class DeviceMemory : public DeviceConstructible<
+                         VkDeviceMemory,
+                         VkMemoryAllocateInfo,
+                         &vkAllocateMemory,
+                         &vkFreeMemory> {
+public:
+    using DeviceConstructible::DeviceConstructible;
+};
+
 }
