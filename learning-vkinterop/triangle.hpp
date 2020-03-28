@@ -20,8 +20,15 @@ struct Vertex {
     glm::vec3 color;
 };
 
+struct UBO {
+    glm::mat4 model;
+    glm::mat4 view;
+    glm::mat4 projection;
+};
+
 class Triangle : public vku::App {
 private:
+    vku::DescriptorSetLayout _setLayout;
     vku::PipelineLayout _pipelineLayout;
     vku::GraphicsPipeline _pipeline;
     vku::Buffer _vertexBuffer;
@@ -37,7 +44,10 @@ public:
     Triangle(int width, int height)
         : vku::App("Hello, Triangle!", width, height)
     {
-        _pipelineLayout = vku::PipelineLayout::basic(device());
+        auto uboBinding = vku::descriptorBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT);
+        _setLayout = vku::DescriptorSetLayout::basic(device(), &uboBinding, 1);
+
+        _pipelineLayout = vku::PipelineLayout::basic(device(), _setLayout, 1);
 
         auto vertexBinding = vku::vertexInputBinding(0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX);
 

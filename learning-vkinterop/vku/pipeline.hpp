@@ -66,7 +66,10 @@ class PipelineLayout : public DeviceConstructible<
                            &vkDestroyPipelineLayout> {
 public:
     using DeviceConstructible::DeviceConstructible;
-    static PipelineLayout basic(VkDevice device);
+    static PipelineLayout basic(
+        VkDevice device,
+        const VkDescriptorSetLayout *setLayouts = nullptr,
+        size_t setLayoutCount = 0);
 };
 
 class GraphicsPipeline : public DeviceRelated<VkPipeline> {

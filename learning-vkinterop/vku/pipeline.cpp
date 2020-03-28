@@ -135,10 +135,17 @@ VkPipelineDynamicStateCreateInfo vku::dynamicState(
     return createInfo;
 }
 
-vku::PipelineLayout vku::PipelineLayout::basic(VkDevice device)
+vku::PipelineLayout vku::PipelineLayout::basic(
+    VkDevice device,
+    const VkDescriptorSetLayout *setLayouts,
+    size_t setLayoutCount)
 {
     VkPipelineLayoutCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    if (setLayouts) {
+        createInfo.pSetLayouts = setLayouts;
+        createInfo.setLayoutCount = static_cast<uint32_t>(setLayoutCount);
+    }
     return vku::PipelineLayout(device, createInfo);
 }
 

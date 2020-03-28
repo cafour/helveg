@@ -1,1 +1,29 @@
 #include "descriptor_set.hpp"
+
+VkDescriptorSetLayoutBinding vku::descriptorBinding(
+    uint32_t binding,
+    VkDescriptorType descriptorType,
+    uint32_t descriptorCount,
+    VkShaderStageFlags stageFlags,
+    const VkSampler *pImmutableSamplers)
+{
+    VkDescriptorSetLayoutBinding raw = {};
+    raw.binding = binding;
+    raw.descriptorType = descriptorType;
+    raw.descriptorCount = descriptorCount;
+    raw.stageFlags = stageFlags;
+    raw.pImmutableSamplers = pImmutableSamplers;
+    return raw;
+}
+
+vku::DescriptorSetLayout vku::DescriptorSetLayout::basic(
+    VkDevice device,
+    const VkDescriptorSetLayoutBinding *bindings,
+    size_t bindingCount)
+{
+    VkDescriptorSetLayoutCreateInfo createInfo = {};
+    createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    createInfo.bindingCount = static_cast<uint32_t>(bindingCount);
+    createInfo.pBindings = bindings;
+    return vku::DescriptorSetLayout(device, createInfo);
+}
