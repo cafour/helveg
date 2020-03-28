@@ -132,13 +132,6 @@ vku::CommandPool vku::CommandPool::basic(VkDevice device, uint32_t queueIndex)
     return vku::CommandPool(device, createInfo);
 }
 
-vku::PipelineLayout vku::PipelineLayout::basic(VkDevice device)
-{
-    VkPipelineLayoutCreateInfo createInfo = {};
-    createInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-    return vku::PipelineLayout(device, createInfo);
-}
-
 vku::ShaderModule vku::ShaderModule::inlined(VkDevice device, const uint32_t *code, size_t size)
 {
     VkShaderModuleCreateInfo createInfo = {};

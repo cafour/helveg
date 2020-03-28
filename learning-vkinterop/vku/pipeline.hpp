@@ -59,6 +59,16 @@ VkPipelineDynamicStateCreateInfo dynamicState(
     VkDynamicState *dynamicStates,
     size_t dynamicStateCount);
 
+class PipelineLayout : public DeviceConstructible<
+                           VkPipelineLayout,
+                           VkPipelineLayoutCreateInfo,
+                           &vkCreatePipelineLayout,
+                           &vkDestroyPipelineLayout> {
+public:
+    using DeviceConstructible::DeviceConstructible;
+    static PipelineLayout basic(VkDevice device);
+};
+
 class GraphicsPipeline : public DeviceRelated<VkPipeline> {
 public:
     using DeviceRelated::DeviceRelated;

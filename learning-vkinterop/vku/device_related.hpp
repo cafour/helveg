@@ -74,16 +74,6 @@ public:
     static CommandPool basic(VkDevice device, uint32_t queueIndex);
 };
 
-class PipelineLayout : public DeviceConstructible<
-                           VkPipelineLayout,
-                           VkPipelineLayoutCreateInfo,
-                           &vkCreatePipelineLayout,
-                           &vkDestroyPipelineLayout> {
-public:
-    using DeviceConstructible::DeviceConstructible;
-    static PipelineLayout basic(VkDevice device);
-};
-
 class ShaderModule : public DeviceConstructible<
                          VkShaderModule,
                          VkShaderModuleCreateInfo,
