@@ -1,10 +1,13 @@
 #pragma once
 
-// volk needs to be before glfw
-#include <GLFW/glfw3.h>
+// volk needs to be before GLFW
 #include <volk.h>
 
+#include <GLFW/glfw3.h>
+
 #include <string>
+
+struct GLFWwindow;
 
 namespace vku {
 class Window {

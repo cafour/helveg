@@ -95,24 +95,6 @@ public:
     static Framebuffer basic(VkDevice device, VkRenderPass renderPass, VkImageView imageView, uint32_t width, uint32_t height);
 };
 
-class DescriptorSetLayout : public DeviceConstructible<
-                                VkDescriptorSetLayout,
-                                VkDescriptorSetLayoutCreateInfo,
-                                &vkCreateDescriptorSetLayout,
-                                &vkDestroyDescriptorSetLayout> {
-public:
-    using DeviceConstructible::DeviceConstructible;
-};
-
-class DescriptorPool : public DeviceConstructible<
-                           VkDescriptorPool,
-                           VkDescriptorPoolCreateInfo,
-                           &vkCreateDescriptorPool,
-                           &vkDestroyDescriptorPool> {
-public:
-    using DeviceConstructible::DeviceConstructible;
-};
-
 class Buffer : public DeviceConstructible<
                    VkBuffer,
                    VkBufferCreateInfo,
