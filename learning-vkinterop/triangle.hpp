@@ -37,31 +37,13 @@ public:
     Triangle(int width, int height)
         : vku::App("Hello, Triangle!", width, height)
     {
-        std::fstream fuck("fuck.spv", std::ios::out | std::ios::binary);
-        fuck.write(static_cast<const char *>(static_cast<const void *>(TRIANGLE_VERT)), TRIANGLE_VERT_LENGTH);
-        fuck.close();
-
         _pipelineLayout = vku::PipelineLayout::basic(device());
 
-        VkVertexInputBindingDescription vertexBinding{
-            0,
-            sizeof(Vertex),
-            VK_VERTEX_INPUT_RATE_VERTEX
-        };
+        auto vertexBinding = vku::vertexInputBinding(0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX);
 
         VkVertexInputAttributeDescription vertexAttributes[2] = {
-            {
-                0,
-                0,
-                VK_FORMAT_R32G32_SFLOAT,
-                offsetof(Vertex, position)
-            },
-            {
-                1,
-                0,
-                VK_FORMAT_R32G32B32_SFLOAT,
-                offsetof(Vertex, color)
-            }
+            vku::vertexInputAttribute(0, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(Vertex, position)),
+            vku::vertexInputAttribute(1, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, color))
         };
 
         _pipeline = vku::GraphicsPipeline::basic(
@@ -69,7 +51,6 @@ public:
             _pipelineLayout,
             renderPass(),
             vku::ShaderModule::inlined(device(), TRIANGLE_VERT, TRIANGLE_VERT_LENGTH),
-            // vku::ShaderModule::fromFile(device(), "generated/triangle.vert.spv"),
             vku::ShaderModule::inlined(device(), TRIANGLE_FRAG, TRIANGLE_FRAG_LENGTH),
             &vertexBinding,
             1,

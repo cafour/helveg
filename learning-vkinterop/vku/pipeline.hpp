@@ -7,6 +7,17 @@
 
 namespace vku {
 
+VkVertexInputBindingDescription vertexInputBinding(
+    uint32_t binding,
+    uint32_t stride,
+    VkVertexInputRate inputRate);
+
+VkVertexInputAttributeDescription vertexInputAttribute(
+    uint32_t location,
+    uint32_t binding,
+    VkFormat format,
+    uint32_t offset);
+
 VkPipelineVertexInputStateCreateInfo vertexInputState(
     VkVertexInputBindingDescription *bindings,
     size_t bindingCount,

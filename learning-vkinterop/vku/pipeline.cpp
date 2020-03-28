@@ -1,5 +1,31 @@
 #include "pipeline.hpp"
 
+VkVertexInputBindingDescription vku::vertexInputBinding(
+    uint32_t binding,
+    uint32_t stride,
+    VkVertexInputRate inputRate)
+{
+    VkVertexInputBindingDescription description = {};
+    description.binding = binding;
+    description.stride = stride;
+    description.inputRate = inputRate;
+    return description;
+}
+
+VkVertexInputAttributeDescription vku::vertexInputAttribute(
+    uint32_t location,
+    uint32_t binding,
+    VkFormat format,
+    uint32_t offset)
+{
+    VkVertexInputAttributeDescription description = {};
+    description.location = location;
+    description.binding = binding;
+    description.format = format;
+    description.offset = offset;
+    return description;
+}
+
 VkPipelineVertexInputStateCreateInfo vku::vertexInputState(
     VkVertexInputBindingDescription *bindings,
     size_t bindingCount,
