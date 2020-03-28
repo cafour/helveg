@@ -105,33 +105,6 @@ public:
     static Framebuffer basic(VkDevice device, VkRenderPass renderPass, VkImageView imageView, uint32_t width, uint32_t height);
 };
 
-class GraphicsPipeline : public DeviceRelated<VkPipeline> {
-public:
-    using DeviceRelated::DeviceRelated;
-
-    GraphicsPipeline(VkDevice device, VkGraphicsPipelineCreateInfo &createInfo)
-        : DeviceRelated(device, VK_NULL_HANDLE)
-    {
-        ENSURE(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &createInfo, nullptr, &_raw));
-    }
-    ~GraphicsPipeline()
-    {
-        if (_device != VK_NULL_HANDLE && _raw != VK_NULL_HANDLE) {
-            vkDestroyPipeline(_device, _raw, nullptr);
-        }
-    }
-    GraphicsPipeline(GraphicsPipeline &&other) noexcept = default;
-    GraphicsPipeline &operator=(GraphicsPipeline &&other) noexcept = default;
-
-    static GraphicsPipeline basic(VkDevice device,
-        VkPipelineLayout pipelineLayout,
-        VkRenderPass renderPass,
-        VkShaderModule vertexShader,
-        VkShaderModule fragmentShader,
-        const std::vector<VkVertexInputBindingDescription> *vertexBindings = nullptr,
-        const std::vector<VkVertexInputAttributeDescription> *vertexAttributes = nullptr);
-};
-
 class DescriptorSetLayout : public DeviceConstructible<
                                 VkDescriptorSetLayout,
                                 VkDescriptorSetLayoutCreateInfo,

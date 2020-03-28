@@ -43,20 +43,26 @@ public:
 
         _pipelineLayout = vku::PipelineLayout::basic(device());
 
-        std::vector<VkVertexInputBindingDescription> vertexBindings(1);
-        vertexBindings[0].binding = 0;
-        vertexBindings[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-        vertexBindings[0].stride = sizeof(Vertex);
+        VkVertexInputBindingDescription vertexBinding{
+            0,
+            sizeof(Vertex),
+            VK_VERTEX_INPUT_RATE_VERTEX
+        };
 
-        std::vector<VkVertexInputAttributeDescription> vertexAttributes(2);
-        vertexAttributes[0].binding = 0;
-        vertexAttributes[0].location = 0;
-        vertexAttributes[0].offset = offsetof(Vertex, position);
-        vertexAttributes[0].format = VK_FORMAT_R32G32_SFLOAT;
-        vertexAttributes[1].binding = 0;
-        vertexAttributes[1].location = 1;
-        vertexAttributes[1].offset = offsetof(Vertex, color);
-        vertexAttributes[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+        VkVertexInputAttributeDescription vertexAttributes[2] = {
+            {
+                0,
+                0,
+                VK_FORMAT_R32G32_SFLOAT,
+                offsetof(Vertex, position)
+            },
+            {
+                1,
+                0,
+                VK_FORMAT_R32G32B32_SFLOAT,
+                offsetof(Vertex, color)
+            }
+        };
 
         _pipeline = vku::GraphicsPipeline::basic(
             device(),
@@ -65,8 +71,10 @@ public:
             vku::ShaderModule::inlined(device(), TRIANGLE_VERT, TRIANGLE_VERT_LENGTH),
             // vku::ShaderModule::fromFile(device(), "generated/triangle.vert.spv"),
             vku::ShaderModule::inlined(device(), TRIANGLE_FRAG, TRIANGLE_FRAG_LENGTH),
-            &vertexBindings,
-            &vertexAttributes);
+            &vertexBinding,
+            1,
+            vertexAttributes,
+            2);
 
         _vertexBuffer = vku::Buffer::exclusive(
             device(),

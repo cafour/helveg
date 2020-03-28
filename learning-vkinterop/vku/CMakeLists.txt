@@ -17,6 +17,7 @@ set(VKU_SOURCES
     swapchain_env.hpp
     app.hpp
     containers.hpp
+    pipeline.hpp
 
     # sources
     base.cpp
@@ -26,7 +27,8 @@ set(VKU_SOURCES
     device_related.cpp
     swapchain_env.cpp
     app.cpp
-    containers.cpp)
+    containers.cpp
+    pipeline.cpp)
 
 add_library(${PROJECT_NAME} STATIC ${VKU_SOURCES})
 target_link_libraries(${PROJECT_NAME} volk glfw)
