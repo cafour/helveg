@@ -112,20 +112,7 @@ void Triangle::prepare()
     _descriptorPool = vku::DescriptorPool::basic(device(), imageCount, &poolSize, 1);
     _descriptorSets = vku::allocateDescriptorSets(device(), _descriptorPool, _setLayout, imageCount);
     for (size_t i = 0; i < imageCount; ++i) {
-        VkDescriptorBufferInfo bufferInfo = {};
-        bufferInfo.buffer = _uboBuffers[i];
-        bufferInfo.offset = 0;
-        bufferInfo.range = VK_WHOLE_SIZE;
-
-        VkWriteDescriptorSet write = {};
-        write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        write.dstSet = _descriptorSets[i];
-        write.dstBinding = 0;
-        write.dstArrayElement = 0;
-        write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        write.descriptorCount = 1;
-        write.pBufferInfo = &bufferInfo;
-        vkUpdateDescriptorSets(device(), 1, &write, 0, nullptr);
+        vku::updateUboDescriptor(device(), _uboBuffers[i], _descriptorSets[i], 0);
     }
 
     App::prepare();
