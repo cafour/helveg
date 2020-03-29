@@ -170,7 +170,7 @@ vku::GraphicsPipeline vku::GraphicsPipeline::basic(
     createInfo.rasterizationState = vku::rasterizationState(
         VK_POLYGON_MODE_FILL,
         VK_CULL_MODE_BACK_BIT,
-        VK_FRONT_FACE_CLOCKWISE);
+        VK_FRONT_FACE_COUNTER_CLOCKWISE);
     createInfo.multisampleState = vku::multisampleState(VK_SAMPLE_COUNT_1_BIT);
 
     auto colorBlendAttachment = vku::colorBlendAttachment(false);

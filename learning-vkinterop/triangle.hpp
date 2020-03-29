@@ -29,12 +29,14 @@ struct UBO {
 class Triangle : public vku::App {
 private:
     vku::DescriptorSetLayout _setLayout;
+    vku::DescriptorPool _descriptorPool;
     vku::PipelineLayout _pipelineLayout;
     vku::GraphicsPipeline _pipeline;
     vku::Buffer _vertexBuffer;
     vku::DeviceMemory _vertexBufferMemory;
     std::vector<vku::Buffer> _uboBuffers;
     std::vector<vku::DeviceMemory> _uboBufferMemories;
+    std::vector<VkDescriptorSet> _descriptorSets;
 
     const std::vector<Vertex> vertices = {
         { { 0.0f, -0.5f }, { 1.0f, 0.0f, 0.0f } },

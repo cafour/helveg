@@ -16,6 +16,32 @@ VkDescriptorSetLayoutBinding vku::descriptorBinding(
     return raw;
 }
 
+VkDescriptorPoolSize vku::descriptorPoolSize(VkDescriptorType type, size_t descriptorCount)
+{
+    VkDescriptorPoolSize size = {};
+    size.descriptorCount = descriptorCount;
+    size.type = type;
+    return size;
+}
+
+std::vector<VkDescriptorSet> vku::allocateDescriptorSets(
+    VkDevice device,
+    VkDescriptorPool descriptorPool,
+    VkDescriptorSetLayout setLayout,
+    size_t count)
+{
+    std::vector<VkDescriptorSetLayout> layouts(count, setLayout);
+    VkDescriptorSetAllocateInfo allocateInfo = {};
+    allocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    allocateInfo.pSetLayouts = layouts.data();
+    allocateInfo.descriptorSetCount = static_cast<uint32_t>(layouts.size());
+    allocateInfo.descriptorPool = descriptorPool;
+
+    std::vector<VkDescriptorSet> sets(count);
+    ENSURE(vkAllocateDescriptorSets(device, &allocateInfo, sets.data()));
+    return sets;
+}
+
 vku::DescriptorSetLayout vku::DescriptorSetLayout::basic(
     VkDevice device,
     const VkDescriptorSetLayoutBinding *bindings,
@@ -26,4 +52,18 @@ vku::DescriptorSetLayout vku::DescriptorSetLayout::basic(
     createInfo.bindingCount = static_cast<uint32_t>(bindingCount);
     createInfo.pBindings = bindings;
     return vku::DescriptorSetLayout(device, createInfo);
+}
+
+vku::DescriptorPool vku::DescriptorPool::basic(
+    VkDevice device,
+    size_t maxSets,
+    const VkDescriptorPoolSize *sizes,
+    size_t sizeCount)
+{
+    VkDescriptorPoolCreateInfo createInfo = {};
+    createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    createInfo.maxSets = static_cast<uint32_t>(maxSets);
+    createInfo.poolSizeCount = sizeCount;
+    createInfo.pPoolSizes = sizes;
+    return vku::DescriptorPool(device, createInfo);
 }

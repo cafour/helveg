@@ -78,6 +78,15 @@ void Triangle::recordCommands(VkCommandBuffer commandBuffer, vku::SwapchainFrame
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
     VkDeviceSize offset = 0;
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, _vertexBuffer, &offset);
+    vkCmdBindDescriptorSets(
+        commandBuffer,
+        VK_PIPELINE_BIND_POINT_GRAPHICS,
+        _pipelineLayout,
+        0, // first set number
+        1, // setCount
+        &_descriptorSets[frame.index],
+        0, // dynamic offset count
+        nullptr); // dynamic offsets
     vkCmdDraw(commandBuffer, static_cast<uint32_t>(vertices.size()), 1, 0, 0);
     vkCmdEndRenderPass(commandBuffer);
 
@@ -86,16 +95,39 @@ void Triangle::recordCommands(VkCommandBuffer commandBuffer, vku::SwapchainFrame
 
 void Triangle::prepare()
 {
+    size_t imageCount = swapchainEnv().frames().size();
+
     // recreate the uniform buffers as the number of swapchain images could have changed
     _uboBufferMemories.clear();
     _uboBuffers.clear();
 
-    _uboBuffers.resize(swapchainEnv().frames().size());
-    _uboBufferMemories.resize(swapchainEnv().frames().size());
-    for (size_t i = 0; i < swapchainEnv().frames().size(); ++i) {
+    _uboBuffers.resize(imageCount);
+    _uboBufferMemories.resize(imageCount);
+    for (size_t i = 0; i < imageCount; ++i) {
         _uboBuffers[i] = vku::Buffer::exclusive(device(), sizeof(UBO), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
         _uboBufferMemories[i] = vku::DeviceMemory::host(physicalDevice(), device(), _uboBuffers[i]);
     }
+
+    auto poolSize = vku::descriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1);
+    _descriptorPool = vku::DescriptorPool::basic(device(), imageCount, &poolSize, 1);
+    _descriptorSets = vku::allocateDescriptorSets(device(), _descriptorPool, _setLayout, imageCount);
+    for (size_t i = 0; i < imageCount; ++i) {
+        VkDescriptorBufferInfo bufferInfo = {};
+        bufferInfo.buffer = _uboBuffers[i];
+        bufferInfo.offset = 0;
+        bufferInfo.range = VK_WHOLE_SIZE;
+
+        VkWriteDescriptorSet write = {};
+        write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        write.dstSet = _descriptorSets[i];
+        write.dstBinding = 0;
+        write.dstArrayElement = 0;
+        write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        write.descriptorCount = 1;
+        write.pBufferInfo = &bufferInfo;
+        vkUpdateDescriptorSets(device(), 1, &write, 0, nullptr);
+    }
+
     App::prepare();
 }
 
@@ -103,7 +135,7 @@ void Triangle::update(vku::SwapchainFrame &frame)
 {
     static auto start = std::chrono::high_resolution_clock::now();
 
-    static auto now = std::chrono::high_resolution_clock::now();
+    auto now = std::chrono::high_resolution_clock::now();
     float time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
 
     UBO ubo = {};

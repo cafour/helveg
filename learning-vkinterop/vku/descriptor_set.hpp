@@ -4,6 +4,8 @@
 
 #include <volk.h>
 
+#include <vector>
+
 namespace vku {
 
 VkDescriptorSetLayoutBinding descriptorBinding(
@@ -12,6 +14,14 @@ VkDescriptorSetLayoutBinding descriptorBinding(
     uint32_t descriptorCount,
     VkShaderStageFlags stageFlags,
     const VkSampler *pImmutableSamplers = nullptr);
+
+std::vector<VkDescriptorSet> allocateDescriptorSets(
+    VkDevice device,
+    VkDescriptorPool descriptorPool,
+    VkDescriptorSetLayout setLayout,
+    size_t count);
+
+VkDescriptorPoolSize descriptorPoolSize(VkDescriptorType type, size_t descriptorCount);
 
 class DescriptorSetLayout : public DeviceConstructible<
                                 VkDescriptorSetLayout,
@@ -33,6 +43,11 @@ class DescriptorPool : public DeviceConstructible<
                            &vkDestroyDescriptorPool> {
 public:
     using DeviceConstructible::DeviceConstructible;
+    static DescriptorPool basic(
+        VkDevice device,
+        size_t maxSets,
+        const VkDescriptorPoolSize *sizes,
+        size_t sizeCount);
 };
 
 }
