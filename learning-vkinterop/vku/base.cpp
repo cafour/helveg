@@ -226,7 +226,7 @@ uint32_t vku::findMemoryType(
     throw std::runtime_error("failed to find a suitable memory type");
 }
 
-void vku::copy(
+void vku::deviceDeviceCopy(
     VkDevice device,
     VkCommandPool commandPool,
     VkQueue transferQueue,
@@ -259,4 +259,16 @@ void vku::copy(
     ENSURE(vkQueueSubmit(transferQueue, 1, &submitInfo, VK_NULL_HANDLE));
 
     ENSURE(vkQueueWaitIdle(transferQueue));
+}
+
+void vku::hostDeviceCopy(
+    VkDevice device,
+    const void *src,
+    VkDeviceMemory dst,
+    size_t size)
+{
+    void *data;
+    ENSURE(vkMapMemory(device, dst, 0, size, 0, &data));
+    memcpy(data, src, size);
+    vkUnmapMemory(device, dst);
 }

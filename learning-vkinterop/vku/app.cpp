@@ -78,6 +78,8 @@ void vku::App::step()
         return;
     }
 
+    update(*frame);
+
     // submit rendering work
     VkPipelineStageFlags waitStage { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 
@@ -101,3 +103,6 @@ void vku::App::step()
     presentInfo.pWaitSemaphores = frame->releaseSemaphore;
     LOG(vkQueuePresentKHR(_queue, &presentInfo));
 }
+
+void vku::App::update(vku::SwapchainFrame &frame)
+{}

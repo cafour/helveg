@@ -40,11 +40,18 @@ uint32_t findMemoryType(
     uint32_t allowedTypes,
     VkMemoryPropertyFlags requiredProperties);
 
-void copy(
+void deviceDeviceCopy(
     VkDevice device,
     VkCommandPool commandPool,
     VkQueue transferQueue,
     VkBuffer src,
     VkBuffer dst,
     VkDeviceSize size);
+
+void hostDeviceCopy(
+    VkDevice device,
+    const void *src,
+    VkDeviceMemory dst,
+    size_t size);
+
 }

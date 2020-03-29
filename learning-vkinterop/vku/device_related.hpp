@@ -120,6 +120,16 @@ public:
         VkBuffer buffer,
         VkMemoryPropertyFlags requiredProperties = 0);
 
+    static DeviceMemory host(
+        VkPhysicalDevice physicalDevice,
+        VkDevice device,
+        VkBuffer buffer);
+
+    static DeviceMemory deviceLocal(
+        VkPhysicalDevice physicalDevice,
+        VkDevice device,
+        VkBuffer buffer);
+
     static DeviceMemory deviceLocalData(
         VkPhysicalDevice physicalDevice,
         VkDevice device,

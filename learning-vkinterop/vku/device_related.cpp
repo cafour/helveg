@@ -1,8 +1,8 @@
 #include "device_related.hpp"
 
+#include <cstring>
 #include <fstream>
 #include <stdexcept>
-#include <cstring>
 
 vku::Semaphore vku::Semaphore::basic(VkDevice device)
 {
@@ -206,6 +206,30 @@ vku::DeviceMemory vku::DeviceMemory::forBuffer(
     return deviceMemory;
 }
 
+vku::DeviceMemory vku::DeviceMemory::host(
+    VkPhysicalDevice physicalDevice,
+    VkDevice device,
+    VkBuffer buffer)
+{
+    return vku::DeviceMemory::forBuffer(
+        physicalDevice,
+        device,
+        buffer,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+}
+
+vku::DeviceMemory vku::DeviceMemory::deviceLocal(
+    VkPhysicalDevice physicalDevice,
+    VkDevice device,
+    VkBuffer buffer)
+{
+    return vku::DeviceMemory::forBuffer(
+        physicalDevice,
+        device,
+        buffer,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+}
+
 vku::DeviceMemory vku::DeviceMemory::deviceLocalData(
     VkPhysicalDevice physicalDevice,
     VkDevice device,
@@ -219,11 +243,7 @@ vku::DeviceMemory vku::DeviceMemory::deviceLocalData(
         device,
         static_cast<VkDeviceSize>(dataSize),
         VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
-    auto stagingMemory = forBuffer(
-        physicalDevice,
-        device,
-        stagingBuffer,
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+    auto stagingMemory = vku::DeviceMemory::host(physicalDevice, device, stagingBuffer);
 
     VkMemoryRequirements stagingRequirements;
     vkGetBufferMemoryRequirements(device, stagingBuffer, &stagingRequirements);
@@ -233,7 +253,7 @@ vku::DeviceMemory vku::DeviceMemory::deviceLocalData(
     std::memcpy(stage, data, dataSize);
     vkUnmapMemory(device, stagingMemory);
 
-    auto memory = forBuffer(physicalDevice, device, buffer, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-    vku::copy(device, copyPool, transferQueue, stagingBuffer, buffer, dataSize);
+    auto memory = vku::DeviceMemory::deviceLocal(physicalDevice, device, buffer);
+    vku::deviceDeviceCopy(device, copyPool, transferQueue, stagingBuffer, buffer, dataSize);
     return memory;
 }

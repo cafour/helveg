@@ -59,6 +59,7 @@ public:
     virtual void prepare();
     virtual void run();
     virtual void step();
+    virtual void update(vku::SwapchainFrame &frame);
     virtual void recordCommands(VkCommandBuffer commandBuffer, vku::SwapchainFrame &frame) = 0;
 };
 
