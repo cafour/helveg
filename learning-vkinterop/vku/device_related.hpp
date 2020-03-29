@@ -92,7 +92,12 @@ class Framebuffer : public DeviceConstructible<
                         &vkDestroyFramebuffer> {
 public:
     using DeviceConstructible::DeviceConstructible;
-    static Framebuffer basic(VkDevice device, VkRenderPass renderPass, VkImageView imageView, uint32_t width, uint32_t height);
+    static Framebuffer basic(
+        VkDevice device,
+        VkRenderPass renderPass,
+        VkImageView imageView,
+        uint32_t width,
+        uint32_t height);
 };
 
 class Buffer : public DeviceConstructible<
@@ -103,7 +108,7 @@ class Buffer : public DeviceConstructible<
 public:
     using DeviceConstructible::DeviceConstructible;
 
-    static Buffer exclusive(VkDevice device, VkDeviceSize size, VkBufferUsageFlags usage);
+    static Buffer exclusive(VkDevice device, size_t size, VkBufferUsageFlags usage);
 };
 
 class DeviceMemory : public DeviceConstructible<

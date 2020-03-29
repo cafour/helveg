@@ -175,11 +175,11 @@ vku::Framebuffer vku::Framebuffer::basic(
     return vku::Framebuffer(device, createInfo);
 }
 
-vku::Buffer vku::Buffer::exclusive(VkDevice device, VkDeviceSize size, VkBufferUsageFlags usage)
+vku::Buffer vku::Buffer::exclusive(VkDevice device, size_t size, VkBufferUsageFlags usage)
 {
     VkBufferCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    createInfo.size = size;
+    createInfo.size = static_cast<VkDeviceSize>(size);
     createInfo.usage = usage;
     createInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
     return vku::Buffer(device, createInfo);
@@ -239,19 +239,10 @@ vku::DeviceMemory vku::DeviceMemory::deviceLocalData(
     const void *data,
     size_t dataSize)
 {
-    auto stagingBuffer = vku::Buffer::exclusive(
-        device,
-        static_cast<VkDeviceSize>(dataSize),
-        VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+    auto stagingBuffer = vku::Buffer::exclusive(device, dataSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
     auto stagingMemory = vku::DeviceMemory::host(physicalDevice, device, stagingBuffer);
 
-    VkMemoryRequirements stagingRequirements;
-    vkGetBufferMemoryRequirements(device, stagingBuffer, &stagingRequirements);
-
-    void *stage;
-    ENSURE(vkMapMemory(device, stagingMemory, 0, stagingRequirements.size, 0, &stage));
-    std::memcpy(stage, data, dataSize);
-    vkUnmapMemory(device, stagingMemory);
+    vku::hostDeviceCopy(device, data, stagingMemory, dataSize);
 
     auto memory = vku::DeviceMemory::deviceLocal(physicalDevice, device, buffer);
     vku::deviceDeviceCopy(device, copyPool, transferQueue, stagingBuffer, buffer, dataSize);

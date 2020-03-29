@@ -265,10 +265,11 @@ void vku::hostDeviceCopy(
     VkDevice device,
     const void *src,
     VkDeviceMemory dst,
-    size_t size)
+    size_t size,
+    size_t offset)
 {
     void *data;
     ENSURE(vkMapMemory(device, dst, 0, size, 0, &data));
-    memcpy(data, src, size);
+    memcpy(static_cast<char *>(data) + offset, src, size);
     vkUnmapMemory(device, dst);
 }

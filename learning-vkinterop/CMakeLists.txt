@@ -32,21 +32,20 @@ set (VKI_SOURCES
     # headers
     vki.hpp
     triangle.hpp
-    mesh.hpp
+    mesh_render.hpp
 
     # sources
     vki.cpp
     triangle.cpp
-    mesh.cpp
+    mesh_render.cpp
 
     # generated files
     generated/triangle.vert.cpp
     generated/triangle.frag.cpp)
 
 add_library(vki SHARED ${VKI_SOURCES})
-set_target_properties(vki PROPERTIES PUBLIC_HEADER vki.hpp)
-target_link_libraries(vki PRIVATE vku glm)
-target_include_directories(vki PRIVATE ${Vulkan_INCLUDE_DIRS})
+# set_target_properties(vki PROPERTIES PUBLIC_HEADER vki.hpp)
+target_link_libraries(vki PUBLIC vku glm)
 target_include_directories(vki PRIVATE ${CMAKE_SOURCE_DIR})
 if(WIN32)
     target_compile_options(vki PRIVATE /W4)
@@ -55,7 +54,7 @@ else()
 endif()
 
 add_executable(hello hello.cpp)
-target_link_libraries(hello vki)
+target_link_libraries(hello PRIVATE vki)
 
 add_custom_target(VkInterop
 ALL dotnet build ${CMAKE_SOURCE_DIR} -o ${CMAKE_BINARY_DIR}

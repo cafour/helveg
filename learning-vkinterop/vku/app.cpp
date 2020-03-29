@@ -104,5 +104,5 @@ void vku::App::step()
     LOG(vkQueuePresentKHR(_queue, &presentInfo));
 }
 
-void vku::App::update(vku::SwapchainFrame &frame)
+void vku::App::update(vku::SwapchainFrame &)
 {}

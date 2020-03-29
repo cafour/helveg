@@ -158,7 +158,8 @@ vku::GraphicsPipeline vku::GraphicsPipeline::basic(
     VkVertexInputBindingDescription *vertexBindings,
     size_t vertexBindingCount,
     VkVertexInputAttributeDescription *vertexAttributes,
-    size_t vertexAttributeCount)
+    size_t vertexAttributeCount,
+    VkFrontFace frontFace)
 {
     CreateInfo createInfo;
     createInfo.vertexInputState = vku::vertexInputState(
@@ -170,7 +171,7 @@ vku::GraphicsPipeline vku::GraphicsPipeline::basic(
     createInfo.rasterizationState = vku::rasterizationState(
         VK_POLYGON_MODE_FILL,
         VK_CULL_MODE_BACK_BIT,
-        VK_FRONT_FACE_COUNTER_CLOCKWISE);
+        frontFace);
     createInfo.multisampleState = vku::multisampleState(VK_SAMPLE_COUNT_1_BIT);
 
     auto colorBlendAttachment = vku::colorBlendAttachment(false);

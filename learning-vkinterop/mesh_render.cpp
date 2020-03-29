@@ -1,22 +1,26 @@
-#include "triangle.hpp"
+#include "mesh_render.hpp"
 #include "shaders.hpp"
 
 #include <chrono>
 #include <glm/gtc/matrix_transform.hpp>
 
-Triangle::Triangle(int width, int height)
-    : vku::App("Hello, Triangle!", width, height)
+MeshRender::MeshRender(int width, int height, MeshRender::Mesh mesh)
+    : vku::App("Hello, MeshRender!", width, height)
+    , _mesh(mesh)
 {
     auto uboBinding = vku::descriptorBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT);
     _setLayout = vku::DescriptorSetLayout::basic(device(), &uboBinding, 1);
 
     _pipelineLayout = vku::PipelineLayout::basic(device(), _setLayout, 1);
 
-    auto vertexBinding = vku::vertexInputBinding(0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX);
+    VkVertexInputBindingDescription vertexBindings[2] = {
+        vku::vertexInputBinding(0, 0, VK_VERTEX_INPUT_RATE_VERTEX),
+        vku::vertexInputBinding(1, 0, VK_VERTEX_INPUT_RATE_VERTEX)
+    };
 
-    VkVertexInputAttributeDescription vertexAttributes[2] = {
-        vku::vertexInputAttribute(0, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(Vertex, position)),
-        vku::vertexInputAttribute(1, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, color))
+    VkVertexInputAttributeDescription vertexAttributes[] = {
+        vku::vertexInputAttribute(0, 0, VK_FORMAT_R32G32B32_SFLOAT, 0),
+        vku::vertexInputAttribute(1, 1, VK_FORMAT_R32G32B32_SFLOAT, 0)
     };
 
     _pipeline = vku::GraphicsPipeline::basic(
@@ -25,28 +29,38 @@ Triangle::Triangle(int width, int height)
         renderPass(),
         vku::ShaderModule::inlined(device(), TRIANGLE_VERT, TRIANGLE_VERT_LENGTH),
         vku::ShaderModule::inlined(device(), TRIANGLE_FRAG, TRIANGLE_FRAG_LENGTH),
-        &vertexBinding,
-        1,
-        vertexAttributes,
+        vertexBindings,
         2,
-        VK_FRONT_FACE_COUNTER_CLOCKWISE);
+        vertexAttributes,
+        2);
+
+    size_t verticesSize = mesh.vertexCount * sizeof(glm::vec3);
+    auto stagingBuffer = vku::Buffer::exclusive(device(), verticesSize * 2, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+    auto stagingMemory = vku::DeviceMemory::host(physicalDevice(), device(), stagingBuffer);
+    vku::hostDeviceCopy(device(), mesh.vertices, stagingMemory, verticesSize, 0);
+    vku::hostDeviceCopy(device(), mesh.indices, stagingMemory, verticesSize, verticesSize);
 
     _vertexBuffer = vku::Buffer::exclusive(
         device(),
-        vertices.size() * sizeof(Vertex),
+        verticesSize * 2,
         VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
+    _vertexBufferMemory = vku::DeviceMemory::deviceLocal(physicalDevice(), device(), _vertexBuffer);
 
-    _vertexBufferMemory = vku::DeviceMemory::deviceLocalData(
+    _indexBuffer = vku::Buffer::exclusive(
+        device(),
+        mesh.indexCount * sizeof(uint32_t),
+        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
+    _indexBufferMemory = vku::DeviceMemory::deviceLocalData(
         physicalDevice(),
         device(),
         commandPool(),
         queue(),
-        _vertexBuffer,
-        vertices.data(),
-        vertices.size() * sizeof(Vertex));
+        _indexBuffer,
+        mesh.indices,
+        mesh.indexCount * sizeof(uint32_t));
 }
 
-void Triangle::recordCommands(VkCommandBuffer commandBuffer, vku::SwapchainFrame &frame)
+void MeshRender::recordCommands(VkCommandBuffer commandBuffer, vku::SwapchainFrame &frame)
 {
     VkCommandBufferBeginInfo beginInfo = {};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -77,8 +91,11 @@ void Triangle::recordCommands(VkCommandBuffer commandBuffer, vku::SwapchainFrame
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipeline);
     vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
-    VkDeviceSize offset = 0;
-    vkCmdBindVertexBuffers(commandBuffer, 0, 1, _vertexBuffer, &offset);
+
+    VkBuffer vertexBuffers[] = { _vertexBuffer, _vertexBuffer };
+    VkDeviceSize offsets[] = { 0, _mesh.vertexCount * sizeof(glm::vec3) };
+    vkCmdBindVertexBuffers(commandBuffer, 0, 2, vertexBuffers, offsets);
+    vkCmdBindIndexBuffer(commandBuffer, _indexBuffer, 0, VK_INDEX_TYPE_UINT32);
     vkCmdBindDescriptorSets(
         commandBuffer,
         VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -88,13 +105,13 @@ void Triangle::recordCommands(VkCommandBuffer commandBuffer, vku::SwapchainFrame
         &_descriptorSets[frame.index],
         0, // dynamic offset count
         nullptr); // dynamic offsets
-    vkCmdDraw(commandBuffer, static_cast<uint32_t>(vertices.size()), 1, 0, 0);
+    vkCmdDrawIndexed(commandBuffer, _mesh.indexCount, 1, 0, 0, 0);
     vkCmdEndRenderPass(commandBuffer);
 
     ENSURE(vkEndCommandBuffer(commandBuffer));
 }
 
-void Triangle::prepare()
+void MeshRender::prepare()
 {
     size_t imageCount = swapchainEnv().frames().size();
 
@@ -119,7 +136,7 @@ void Triangle::prepare()
     App::prepare();
 }
 
-void Triangle::update(vku::SwapchainFrame &frame)
+void MeshRender::update(vku::SwapchainFrame &frame)
 {
     static auto start = std::chrono::high_resolution_clock::now();
 

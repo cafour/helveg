@@ -98,7 +98,8 @@ public:
         VkVertexInputBindingDescription *vertexBindings = nullptr,
         size_t vertexBindingCount = 0,
         VkVertexInputAttributeDescription *vertexAttributes = nullptr,
-        size_t vertexAttributeCount = 0);
+        size_t vertexAttributeCount = 0,
+        VkFrontFace frontFace = VK_FRONT_FACE_CLOCKWISE);
 
     struct CreateInfo {
         VkPipelineVertexInputStateCreateInfo vertexInputState = {};

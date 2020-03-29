@@ -1,5 +1,8 @@
 #pragma once
 
+#include "triangle.hpp"
+#include "mesh_render.hpp"
+
 #if defined _WIN32
     #define EXPORT __declspec(dllexport)
 #else
@@ -8,4 +11,6 @@
 
 extern "C" {
     EXPORT int helloTriangle();
+
+    EXPORT int helloMesh(MeshRender::Mesh mesh);
 }

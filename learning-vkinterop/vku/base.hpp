@@ -52,6 +52,7 @@ void hostDeviceCopy(
     VkDevice device,
     const void *src,
     VkDeviceMemory dst,
-    size_t size);
+    size_t size,
+    size_t offset = 0);
 
 }
