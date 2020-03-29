@@ -2,58 +2,19 @@ cmake_minimum_required(VERSION 3.10)
 
 project(vulkan-interop)
 
-include(FetchContent)
-FetchContent_Declare(volk_FETCH
-    GIT_REPOSITORY https://github.com/zeux/volk
-)
-FetchContent_MakeAvailable(volk_FETCH)
-if(WIN32)
-    target_compile_definitions(volk INTERFACE VK_USE_PLATFORM_WIN32_KHR)
-else()
-    target_compile_definitions(volk INTERFACE VK_USE_PLATFORM_XCB_KHR)
-endif()
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
-set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
-set(GLFW_VULKAN_STATIC OFF CACHE BOOL "" FORCE)
-FetchContent_Declare(glfw_FETCH
-    URL https://github.com/glfw/glfw/archive/3.3.2.tar.gz
-    URL_HASH SHA1=c3eea7eb56b1f316da3d18a907d6fd370cfa8d5d)
-FetchContent_MakeAvailable(glfw_FETCH)
+find_package(Volk REQUIRED)
+find_package(GLFW REQUIRED)
+find_package(Glm REQUIRED)
 
-FetchContent_Declare(glm_FETCH
-    URL https://github.com/g-truc/glm/archive/0.9.9.7.tar.gz
-    URL_HASH SHA1=df8e6c1472002be7e431bfb3189007d7a65f1745)
-FetchContent_MakeAvailable(glm_FETCH)
+include(Embed)
 
 set(CMAKE_C_VISIBILITY_PRESET hidden)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
-
-add_executable(embed embed.cpp)
-
-file(MAKE_DIRECTORY ${CMAKE_SOURCE_DIR}/generated)
-function(add_embedded_shader INPUT_GLSL OUTPUT_CPP SHADER_NAME)
-    get_filename_component(_SPV ${INPUT_GLSL} NAME)
-    set(_SPV generated/${_SPV}.spv)
-    add_custom_command(
-        OUTPUT ${_SPV}
-        COMMAND glslc ${INPUT_GLSL} -o ${_SPV}
-        MAIN_DEPENDENCY ${INPUT_GLSL}
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    )
-    add_custom_command(
-        OUTPUT ${OUTPUT_CPP}
-        COMMAND embed ${_SPV} ${OUTPUT_CPP} ${SHADER_NAME}
-        MAIN_DEPENDENCY ${_SPV}
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        DEPENDS embed
-    )
-endfunction()
 
 string(LENGTH "${CMAKE_SOURCE_DIR}/" ROOT_PATH_LENGTH)
 add_compile_definitions(ROOT_PATH_LENGTH=${ROOT_PATH_LENGTH})
@@ -71,10 +32,12 @@ set (VKI_SOURCES
     # headers
     vki.hpp
     triangle.hpp
+    mesh.hpp
 
     # sources
     vki.cpp
     triangle.cpp
+    mesh.cpp
 
     # generated files
     generated/triangle.vert.cpp

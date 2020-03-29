@@ -52,7 +52,7 @@ void vku::updateUboDescriptor(VkDevice device, VkBuffer uniformBuffer, VkDescrip
     VkWriteDescriptorSet write = {};
     write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     write.dstSet = descriptorSet;
-    write.dstBinding = 0;
+    write.dstBinding = binding;
     write.dstArrayElement = 0;
     write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     write.descriptorCount = 1;
