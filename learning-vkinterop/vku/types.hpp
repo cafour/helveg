@@ -3,29 +3,30 @@
 #include "base.hpp"
 
 #include <volk.h>
+#include <vulkan/vk_platform.h>
 
 #include <utility>
 
 namespace vku {
 
 template <typename T, typename TCreateInfo>
-using StandaloneConstructor = VkResult (*)(
+using StandaloneConstructor = VkResult (VKAPI_PTR *)(
     const TCreateInfo *pCreateInfo,
     const VkAllocationCallbacks *pAllocator,
     T *pDeviceObject);
 
 template <typename T>
-using StandaloneDestructor = void (*)(T standalone, const VkAllocationCallbacks *pAllocator);
+using StandaloneDestructor = void (VKAPI_PTR *)(T standalone, const VkAllocationCallbacks *pAllocator);
 
 template <typename TParent, typename T, typename TCreateInfo>
-using RelatedConstructor = VkResult (*)(
+using RelatedConstructor = VkResult (VKAPI_PTR *)(
     TParent parent,
     const TCreateInfo *pCreateInfo,
     const VkAllocationCallbacks *pAllocator,
     T *pRelated);
 
 template <typename TParent, typename T>
-using RelatedDestructor = void (*)(
+using RelatedDestructor = void (VKAPI_PTR *)(
     TParent parent,
     T related,
     const VkAllocationCallbacks *pAllocator);
@@ -44,7 +45,7 @@ public:
     {}
     Standalone(const Standalone &other) = delete;
     Standalone(Standalone &&other) noexcept
-        : _raw(std::exchange(other._raw, nullptr))
+        : _raw(std::exchange(other._raw, static_cast<T>(VK_NULL_HANDLE)))
     {}
     Standalone &operator=(const Standalone &other) = delete;
     Standalone &operator=(Standalone &&other) noexcept
@@ -101,7 +102,7 @@ public:
     InstanceRelated(const InstanceRelated &other) = delete;
     InstanceRelated(InstanceRelated &&other) noexcept
         : Standalone<T>(std::move(other))
-        , _instance(std::exchange(other._instance, nullptr))
+        , _instance(std::exchange(other._instance, static_cast<VkInstance>(VK_NULL_HANDLE)))
     {}
     InstanceRelated &operator=(const InstanceRelated &other) = delete;
     InstanceRelated &operator=(InstanceRelated &&other) noexcept
@@ -158,7 +159,7 @@ public:
     {}
     DeviceRelated(DeviceRelated &&other) noexcept
         : Standalone<T>(std::move(other))
-        , _device(std::exchange(other._device, nullptr))
+        , _device(std::exchange(other._device, static_cast<VkDevice>(VK_NULL_HANDLE)))
     {}
     DeviceRelated &operator=(DeviceRelated &&other) noexcept
     {

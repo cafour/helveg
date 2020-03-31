@@ -41,8 +41,8 @@ public:
     }
     CommandBuffers(const CommandBuffers &other) = delete;
     CommandBuffers(CommandBuffers &&other) noexcept
-        : _device(std::exchange(other._device, nullptr))
-        , _commandPool(std::exchange(other._commandPool, nullptr))
+        : _device(std::exchange(other._device, static_cast<VkDevice>(VK_NULL_HANDLE)))
+        , _commandPool(std::exchange(other._commandPool, static_cast<VkCommandPool>(VK_NULL_HANDLE)))
         , _raw(std::exchange(other._raw, std::vector<VkCommandBuffer>()))
     {}
     CommandBuffers &operator=(const CommandBuffers &other) = delete;
@@ -81,8 +81,8 @@ public:
     const_reference front() const { return _raw.front(); }
     reference back() { return _raw.back(); }
     const_reference back() const { return _raw.back(); }
-    reference operator[](size_t i) { return _raw[i]; }
-    const_reference operator[](size_t i) const { return _raw[i]; }
+    reference operator[](int i) { return _raw[i]; }
+    const_reference operator[](int i) const { return _raw[i]; }
     reference at(size_t i) { return _raw.at(i); }
     const_reference at(size_t i) const { return _raw.at(i); }
 

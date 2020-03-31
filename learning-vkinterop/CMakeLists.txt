@@ -4,6 +4,14 @@ project(vulkan-interop)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
+include(FetchContent)
+FetchContent_Declare(vulkan_FETCH
+    GIT_REPOSITORY https://github.com/KhronosGroup/Vulkan-Headers.git
+)
+FetchContent_MakeAvailable(vulkan_FETCH)
+get_target_property(vulkan_INCLUDE_DIR Vulkan-Headers INTERFACE_INCLUDE_DIRECTORIES)
+include_directories(${vulkan_INCLUDE_DIR})
+
 find_package(Volk REQUIRED)
 find_package(GLFW REQUIRED)
 find_package(Glm REQUIRED)
@@ -45,7 +53,7 @@ set (VKI_SOURCES
 
 add_library(vki SHARED ${VKI_SOURCES})
 # set_target_properties(vki PROPERTIES PUBLIC_HEADER vki.hpp)
-target_link_libraries(vki PUBLIC vku glm)
+target_link_libraries(vki PUBLIC vku glm Vulkan-Headers)
 target_include_directories(vki PRIVATE ${CMAKE_SOURCE_DIR})
 if(WIN32)
     target_compile_options(vki PRIVATE /W4)
