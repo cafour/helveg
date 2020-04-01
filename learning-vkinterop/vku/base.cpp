@@ -269,7 +269,7 @@ void vku::hostDeviceCopy(
     size_t offset)
 {
     void *data;
-    ENSURE(vkMapMemory(device, dst, 0, size, 0, &data));
-    memcpy(static_cast<char *>(data) + offset, src, size);
+    ENSURE(vkMapMemory(device, dst, offset, size, 0, &data));
+    memcpy(data, src, size);
     vkUnmapMemory(device, dst);
 }

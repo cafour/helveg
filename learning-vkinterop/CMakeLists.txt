@@ -7,6 +7,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 find_package(Volk REQUIRED)
 find_package(GLFW REQUIRED)
 find_package(Glm REQUIRED)
+# add_compile_definitions(GLM_FORCE_LEFT_HANDED GLM_FORCE_DEPTH_ZERO_TO_ONE GLM_FORCE_RADIANS)
+add_compile_definitions(GLM_FORCE_RADIANS)
 
 include(Embed)
 
@@ -25,10 +27,16 @@ add_embedded_shader(${CMAKE_SOURCE_DIR}/shaders/triangle.frag
 add_embedded_shader(${CMAKE_SOURCE_DIR}/shaders/triangle.vert
     ${CMAKE_SOURCE_DIR}/generated/triangle.vert.cpp
     TRIANGLE_VERT)
+add_embedded_shader(${CMAKE_SOURCE_DIR}/shaders/mesh.frag
+    ${CMAKE_SOURCE_DIR}/generated/mesh.frag.cpp
+    MESH_FRAG)
+add_embedded_shader(${CMAKE_SOURCE_DIR}/shaders/mesh.vert
+    ${CMAKE_SOURCE_DIR}/generated/mesh.vert.cpp
+    MESH_VERT)
 
 add_subdirectory(vku)
 
-set (VKI_SOURCES
+set(VKI_SOURCES
     # headers
     vki.hpp
     triangle.hpp
@@ -41,10 +49,11 @@ set (VKI_SOURCES
 
     # generated files
     generated/triangle.vert.cpp
-    generated/triangle.frag.cpp)
+    generated/triangle.frag.cpp
+    generated/mesh.vert.cpp
+    generated/mesh.frag.cpp)
 
 add_library(vki SHARED ${VKI_SOURCES})
-# set_target_properties(vki PROPERTIES PUBLIC_HEADER vki.hpp)
 target_link_libraries(vki PUBLIC vku glm)
 target_include_directories(vki PRIVATE ${CMAKE_SOURCE_DIR})
 if(WIN32)
@@ -57,5 +66,5 @@ add_executable(hello hello.cpp)
 target_link_libraries(hello PRIVATE vki)
 
 add_custom_target(VkInterop
-ALL dotnet build ${CMAKE_SOURCE_DIR} -o ${CMAKE_BINARY_DIR}
-DEPENDS vki)
+    ALL dotnet build ${CMAKE_SOURCE_DIR} -o ${CMAKE_BINARY_DIR}
+    DEPENDS vki)

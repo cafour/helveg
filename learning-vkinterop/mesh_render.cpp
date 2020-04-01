@@ -14,8 +14,8 @@ MeshRender::MeshRender(int width, int height, MeshRender::Mesh mesh)
     _pipelineLayout = vku::PipelineLayout::basic(device(), _setLayout, 1);
 
     VkVertexInputBindingDescription vertexBindings[2] = {
-        vku::vertexInputBinding(0, 0, VK_VERTEX_INPUT_RATE_VERTEX),
-        vku::vertexInputBinding(1, 0, VK_VERTEX_INPUT_RATE_VERTEX)
+        vku::vertexInputBinding(0, sizeof(glm::vec3), VK_VERTEX_INPUT_RATE_VERTEX),
+        vku::vertexInputBinding(1, sizeof(glm::vec3), VK_VERTEX_INPUT_RATE_VERTEX)
     };
 
     VkVertexInputAttributeDescription vertexAttributes[] = {
@@ -27,24 +27,26 @@ MeshRender::MeshRender(int width, int height, MeshRender::Mesh mesh)
         device(),
         _pipelineLayout,
         renderPass(),
-        vku::ShaderModule::inlined(device(), TRIANGLE_VERT, TRIANGLE_VERT_LENGTH),
-        vku::ShaderModule::inlined(device(), TRIANGLE_FRAG, TRIANGLE_FRAG_LENGTH),
+        vku::ShaderModule::inlined(device(), MESH_VERT, MESH_VERT_LENGTH),
+        vku::ShaderModule::inlined(device(), MESH_FRAG, MESH_FRAG_LENGTH),
         vertexBindings,
         2,
         vertexAttributes,
-        2);
+        2,
+        VK_FRONT_FACE_CLOCKWISE);
 
     size_t verticesSize = mesh.vertexCount * sizeof(glm::vec3);
     auto stagingBuffer = vku::Buffer::exclusive(device(), verticesSize * 2, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
     auto stagingMemory = vku::DeviceMemory::host(physicalDevice(), device(), stagingBuffer);
     vku::hostDeviceCopy(device(), mesh.vertices, stagingMemory, verticesSize, 0);
-    vku::hostDeviceCopy(device(), mesh.indices, stagingMemory, verticesSize, verticesSize);
+    vku::hostDeviceCopy(device(), mesh.colors, stagingMemory, verticesSize, verticesSize);
 
     _vertexBuffer = vku::Buffer::exclusive(
         device(),
         verticesSize * 2,
         VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
     _vertexBufferMemory = vku::DeviceMemory::deviceLocal(physicalDevice(), device(), _vertexBuffer);
+    vku::deviceDeviceCopy(device(), commandPool(), queue(), stagingBuffer, _vertexBuffer, 2 * verticesSize);
 
     _indexBuffer = vku::Buffer::exclusive(
         device(),
@@ -144,15 +146,16 @@ void MeshRender::update(vku::SwapchainFrame &frame)
     float time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
 
     UBO ubo = {};
-    ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.f), glm::vec3(0.0f, 0.0f, 1.0f));
-    ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
+    ubo.view = glm::lookAt(glm::vec3(4.0f, 4.0f, 4.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
     auto extent = swapchainEnv().extent();
     ubo.projection = glm::perspective(
         glm::radians(45.0f),
         static_cast<float>(extent.width) / static_cast<float>(extent.height),
         0.1f,
-        10.0f);
-    ubo.projection[1][1] *= -1; // vulkan has flipped y compared to opengl
+        100.0f);
+    ubo.projection = glm::mat4(1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 0.5f, 1.0f)
+        * ubo.projection;
     vku::hostDeviceCopy(device(), &ubo, _uboBufferMemories[frame.index], sizeof(UBO));
 }
