@@ -55,4 +55,10 @@ void hostDeviceCopy(
     size_t size,
     size_t offset = 0);
 
+VkFormat findSupportedFormat(
+    VkPhysicalDevice physicalDevice,
+    const std::vector<VkFormat> &candidates,
+    VkImageTiling tiling,
+    VkFormatFeatureFlags features);
+
 }

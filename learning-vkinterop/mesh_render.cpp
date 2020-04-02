@@ -37,7 +37,7 @@ MeshRender::MeshRender(int width, int height, MeshRender::Mesh mesh)
 
     size_t verticesSize = mesh.vertexCount * sizeof(glm::vec3);
     auto stagingBuffer = vku::Buffer::exclusive(device(), verticesSize * 2, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
-    auto stagingMemory = vku::DeviceMemory::host(physicalDevice(), device(), stagingBuffer);
+    auto stagingMemory = vku::DeviceMemory::hostCoherentBuffer(physicalDevice(), device(), stagingBuffer);
     vku::hostDeviceCopy(device(), mesh.vertices, stagingMemory, verticesSize, 0);
     vku::hostDeviceCopy(device(), mesh.colors, stagingMemory, verticesSize, verticesSize);
 
@@ -45,7 +45,7 @@ MeshRender::MeshRender(int width, int height, MeshRender::Mesh mesh)
         device(),
         verticesSize * 2,
         VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
-    _vertexBufferMemory = vku::DeviceMemory::deviceLocal(physicalDevice(), device(), _vertexBuffer);
+    _vertexBufferMemory = vku::DeviceMemory::deviceLocalBuffer(physicalDevice(), device(), _vertexBuffer);
     vku::deviceDeviceCopy(device(), commandPool(), queue(), stagingBuffer, _vertexBuffer, 2 * verticesSize);
 
     _indexBuffer = vku::Buffer::exclusive(
@@ -125,7 +125,7 @@ void MeshRender::prepare()
     _uboBufferMemories.resize(imageCount);
     for (size_t i = 0; i < imageCount; ++i) {
         _uboBuffers[i] = vku::Buffer::exclusive(device(), sizeof(UBO), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
-        _uboBufferMemories[i] = vku::DeviceMemory::host(physicalDevice(), device(), _uboBuffers[i]);
+        _uboBufferMemories[i] = vku::DeviceMemory::hostCoherentBuffer(physicalDevice(), device(), _uboBuffers[i]);
     }
 
     auto poolSize = vku::descriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1);
@@ -134,6 +134,37 @@ void MeshRender::prepare()
     for (size_t i = 0; i < imageCount; ++i) {
         vku::updateUboDescriptor(device(), _uboBuffers[i], _descriptorSets[i], 0);
     }
+
+    VkExtent3D depthExtent {
+        swapchainEnv().extent().width,
+        swapchainEnv().extent().height,
+        1
+    };
+    const std::vector<VkFormat> depthFormats {
+        VK_FORMAT_D32_SFLOAT_S8_UINT,
+        VK_FORMAT_D24_UNORM_S8_UINT
+    };
+    VkFormat format = vku::findSupportedFormat(
+        physicalDevice(),
+        depthFormats,
+        VK_IMAGE_TILING_OPTIMAL,
+        VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
+    _depthImage = vku::Image::basic(
+        device(),
+        depthExtent,
+        format,
+        VK_IMAGE_TILING_OPTIMAL,
+        VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
+    _depthImageMemory = vku::DeviceMemory::forImage(
+        physicalDevice(),
+        device(),
+        _depthImage,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    _depthImageView = vku::ImageView::basic(
+        device(),
+        _depthImage,
+        format,
+        VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT);
 
     App::prepare();
 }

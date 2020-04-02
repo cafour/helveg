@@ -273,3 +273,27 @@ void vku::hostDeviceCopy(
     memcpy(data, src, size);
     vkUnmapMemory(device, dst);
 }
+
+VkFormat vku::findSupportedFormat(
+    VkPhysicalDevice physicalDevice,
+    const std::vector<VkFormat> &candidates,
+    VkImageTiling tiling,
+    VkFormatFeatureFlags features)
+{
+    if (tiling != VK_IMAGE_TILING_OPTIMAL && tiling != VK_IMAGE_TILING_LINEAR) {
+        throw std::runtime_error("this function supports only 'optimal' and 'linear' image tiling");
+    }
+
+    for (VkFormat format : candidates) {
+        VkFormatProperties properties;
+        vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &properties);
+        auto flags = tiling == VK_IMAGE_TILING_OPTIMAL
+            ? properties.optimalTilingFeatures
+            : properties.linearTilingFeatures;
+        if ((flags & features) == features) {
+            return format;
+        }
+    }
+
+    throw std::runtime_error("failed to find a supported format");
+}

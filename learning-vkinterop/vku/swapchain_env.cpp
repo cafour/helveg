@@ -20,7 +20,7 @@ vku::SwapchainEnv::SwapchainEnv(
     ENSURE(vkGetSwapchainImagesKHR(device, _swapchain, &imageCount, images.data()));
 
     for (size_t i = 0; i < imageCount; ++i) {
-        auto imageView = vku::ImageView::basic(device, images[i], format.format);
+        auto imageView = vku::ImageView::basic(device, images[i], format.format, VK_IMAGE_ASPECT_COLOR_BIT);
         auto framebuffer = vku::Framebuffer::basic(
             device,
             renderPass,

@@ -27,6 +27,21 @@ public:
     static Fence basic(VkDevice device);
 };
 
+class Image : public DeviceConstructible<
+                  VkImage,
+                  VkImageCreateInfo,
+                  &vkCreateImage,
+                  &vkDestroyImage> {
+public:
+    using DeviceConstructible::DeviceConstructible;
+    static Image basic(
+        VkDevice device,
+        VkExtent3D extent,
+        VkFormat format,
+        VkImageTiling tiling,
+        VkImageUsageFlags usage);
+};
+
 class ImageView : public DeviceConstructible<
                       VkImageView,
                       VkImageViewCreateInfo,
@@ -34,7 +49,7 @@ class ImageView : public DeviceConstructible<
                       &vkDestroyImageView> {
 public:
     using DeviceConstructible::DeviceConstructible;
-    static ImageView basic(VkDevice device, VkImage image, VkFormat format);
+    static ImageView basic(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectMask);
 };
 
 class RenderPass : public DeviceConstructible<
@@ -123,14 +138,20 @@ public:
         VkPhysicalDevice physicalDevice,
         VkDevice device,
         VkBuffer buffer,
-        VkMemoryPropertyFlags requiredProperties = 0);
+        VkMemoryPropertyFlags requiredProperties);
 
-    static DeviceMemory host(
+    static DeviceMemory forImage(
+        VkPhysicalDevice physicalDevice,
+        VkDevice device,
+        VkImage image,
+        VkMemoryPropertyFlags requiredProperties);
+
+    static DeviceMemory hostCoherentBuffer(
         VkPhysicalDevice physicalDevice,
         VkDevice device,
         VkBuffer buffer);
 
-    static DeviceMemory deviceLocal(
+    static DeviceMemory deviceLocalBuffer(
         VkPhysicalDevice physicalDevice,
         VkDevice device,
         VkBuffer buffer);

@@ -106,7 +106,7 @@ void Triangle::prepare()
     _uboBufferMemories.resize(imageCount);
     for (size_t i = 0; i < imageCount; ++i) {
         _uboBuffers[i] = vku::Buffer::exclusive(device(), sizeof(UBO), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
-        _uboBufferMemories[i] = vku::DeviceMemory::host(physicalDevice(), device(), _uboBuffers[i]);
+        _uboBufferMemories[i] = vku::DeviceMemory::hostCoherentBuffer(physicalDevice(), device(), _uboBuffers[i]);
     }
 
     auto poolSize = vku::descriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1);

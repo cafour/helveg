@@ -10,8 +10,7 @@ include_directories(${VULKAN_HEADERS_DIR})
 find_package(Volk REQUIRED)
 find_package(GLFW REQUIRED)
 find_package(Glm REQUIRED)
-# add_compile_definitions(GLM_FORCE_LEFT_HANDED GLM_FORCE_DEPTH_ZERO_TO_ONE GLM_FORCE_RADIANS)
-add_compile_definitions(GLM_FORCE_RADIANS)
+add_compile_definitions(GLM_FORCE_RADIANS GLM_FORCE_DEPTH_ZERO_TO_ONE)
 
 include(Embed)
 
