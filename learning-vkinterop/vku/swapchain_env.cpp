@@ -7,7 +7,6 @@ vku::SwapchainEnv::SwapchainEnv(
     VkDevice device,
     VkPhysicalDevice physicalDevice,
     VkSurfaceKHR surface,
-    VkRenderPass renderPass,
     VkSwapchainKHR old)
 {
     VkSurfaceCapabilitiesKHR capabilities;
@@ -21,17 +20,10 @@ vku::SwapchainEnv::SwapchainEnv(
 
     for (size_t i = 0; i < imageCount; ++i) {
         auto imageView = vku::ImageView::basic(device, images[i], format.format, VK_IMAGE_ASPECT_COLOR_BIT);
-        auto framebuffer = vku::Framebuffer::basic(
-            device,
-            renderPass,
-            imageView,
-            capabilities.currentExtent.width,
-            capabilities.currentExtent.height);
         _frames.push_back(vku::SwapchainFrame {
             static_cast<uint32_t>(i),
             images[i],
             std::move(imageView),
-            std::move(framebuffer),
             vku::Semaphore::basic(device),
             vku::Semaphore::basic(device),
             vku::Fence::basic(device) });

@@ -55,6 +55,8 @@ VkPipelineShaderStageCreateInfo shaderStage(
     VkShaderModule module,
     const char *entryPoint = "main");
 
+VkPipelineDepthStencilStateCreateInfo depthStencilState(bool useDepthTest);
+
 VkPipelineDynamicStateCreateInfo dynamicState(
     VkDynamicState *dynamicStates,
     size_t dynamicStateCount);
@@ -99,7 +101,8 @@ public:
         size_t vertexBindingCount = 0,
         VkVertexInputAttributeDescription *vertexAttributes = nullptr,
         size_t vertexAttributeCount = 0,
-        VkFrontFace frontFace = VK_FRONT_FACE_CLOCKWISE);
+        VkFrontFace frontFace = VK_FRONT_FACE_CLOCKWISE,
+        bool hasDepthStencil = true);
 
     struct CreateInfo {
         VkPipelineVertexInputStateCreateInfo vertexInputState = {};

@@ -13,7 +13,6 @@ struct SwapchainFrame {
     uint32_t index;
     VkImage image;
     ImageView imageView;
-    Framebuffer framebuffer;
     Semaphore acquireSemaphore;
     Semaphore releaseSemaphore;
     Fence fence;
@@ -27,11 +26,11 @@ private:
     VkExtent2D _extent;
 
 public:
+    SwapchainEnv() {}
     SwapchainEnv(
         VkDevice device,
         VkPhysicalDevice physicalDevice,
         VkSurfaceKHR surface,
-        VkRenderPass renderPass,
         VkSwapchainKHR old = VK_NULL_HANDLE);
 
     Swapchain &swapchain() { return _swapchain; }

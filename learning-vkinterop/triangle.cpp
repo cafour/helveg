@@ -55,7 +55,7 @@ void Triangle::recordCommands(VkCommandBuffer commandBuffer, vku::SwapchainFrame
     VkRenderPassBeginInfo renderPassInfo = {};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     renderPassInfo.renderPass = renderPass();
-    renderPassInfo.framebuffer = frame.framebuffer;
+    renderPassInfo.framebuffer = framebuffers()[frame.index];
     renderPassInfo.renderArea.offset = { 0, 0 };
 
     VkExtent2D extent = swapchainEnv().extent();

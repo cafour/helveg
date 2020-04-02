@@ -135,6 +135,18 @@ VkPipelineDynamicStateCreateInfo vku::dynamicState(
     return createInfo;
 }
 
+VkPipelineDepthStencilStateCreateInfo vku::depthStencilState(bool useDepthTest)
+{
+    VkPipelineDepthStencilStateCreateInfo createInfo = {};
+    createInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+    if (useDepthTest) {
+        createInfo.depthTestEnable = true;
+        createInfo.depthWriteEnable = true;
+        createInfo.depthCompareOp = VK_COMPARE_OP_LESS;
+    }
+    return createInfo;
+}
+
 vku::PipelineLayout vku::PipelineLayout::basic(
     VkDevice device,
     const VkDescriptorSetLayout *setLayouts,
@@ -159,7 +171,8 @@ vku::GraphicsPipeline vku::GraphicsPipeline::basic(
     size_t vertexBindingCount,
     VkVertexInputAttributeDescription *vertexAttributes,
     size_t vertexAttributeCount,
-    VkFrontFace frontFace)
+    VkFrontFace frontFace,
+    bool hasDepthStencil)
 {
     CreateInfo createInfo;
     createInfo.vertexInputState = vku::vertexInputState(
@@ -177,6 +190,10 @@ vku::GraphicsPipeline vku::GraphicsPipeline::basic(
     auto colorBlendAttachment = vku::colorBlendAttachment(false);
     createInfo.colorBlendState = vku::colorBlendState(&colorBlendAttachment, 1);
     createInfo.viewportState = vku::viewportState(nullptr, 1, nullptr, 1);
+
+    if (hasDepthStencil) {
+        createInfo.depthStencilState = vku::depthStencilState(true);
+    }
 
     VkPipelineShaderStageCreateInfo shaderStages[] = {
         vku::shaderStage(VK_SHADER_STAGE_VERTEX_BIT, vertexShader),

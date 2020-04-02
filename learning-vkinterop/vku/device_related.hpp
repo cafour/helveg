@@ -52,16 +52,6 @@ public:
     static ImageView basic(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectMask);
 };
 
-class RenderPass : public DeviceConstructible<
-                       VkRenderPass,
-                       VkRenderPassCreateInfo,
-                       &vkCreateRenderPass,
-                       &vkDestroyRenderPass> {
-public:
-    using DeviceConstructible::DeviceConstructible;
-    static vku::RenderPass basic(VkDevice device, VkFormat colorFormat);
-};
-
 class Swapchain : public DeviceConstructible<
                       VkSwapchainKHR,
                       VkSwapchainCreateInfoKHR,
@@ -110,7 +100,8 @@ public:
     static Framebuffer basic(
         VkDevice device,
         VkRenderPass renderPass,
-        VkImageView imageView,
+        VkImageView *attachments,
+        size_t attachmentCount,
         uint32_t width,
         uint32_t height);
 };

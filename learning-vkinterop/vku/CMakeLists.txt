@@ -19,6 +19,7 @@ set(VKU_SOURCES
     containers.hpp
     pipeline.hpp
     descriptor_set.hpp
+    render_pass.hpp
 
     # sources
     base.cpp
@@ -30,7 +31,8 @@ set(VKU_SOURCES
     app.cpp
     containers.cpp
     pipeline.cpp
-    descriptor_set.cpp)
+    descriptor_set.cpp
+    render_pass.cpp)
 
 add_library(${PROJECT_NAME} STATIC ${VKU_SOURCES})
 target_link_libraries(${PROJECT_NAME} PUBLIC volk glfw)

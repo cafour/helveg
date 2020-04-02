@@ -33,9 +33,6 @@ private:
     std::vector<vku::Buffer> _uboBuffers;
     std::vector<vku::DeviceMemory> _uboBufferMemories;
     std::vector<VkDescriptorSet> _descriptorSets;
-    vku::Image _depthImage;
-    vku::DeviceMemory _depthImageMemory;
-    vku::ImageView _depthImageView;
 
 public:
     MeshRender(int width, int height, Mesh mesh);

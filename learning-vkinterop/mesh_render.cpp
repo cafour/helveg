@@ -33,7 +33,7 @@ MeshRender::MeshRender(int width, int height, MeshRender::Mesh mesh)
         2,
         vertexAttributes,
         2,
-        VK_FRONT_FACE_CLOCKWISE);
+        VK_FRONT_FACE_COUNTER_CLOCKWISE);
 
     size_t verticesSize = mesh.vertexCount * sizeof(glm::vec3);
     auto stagingBuffer = vku::Buffer::exclusive(device(), verticesSize * 2, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
@@ -71,15 +71,17 @@ void MeshRender::recordCommands(VkCommandBuffer commandBuffer, vku::SwapchainFra
     VkRenderPassBeginInfo renderPassInfo = {};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     renderPassInfo.renderPass = renderPass();
-    renderPassInfo.framebuffer = frame.framebuffer;
+    renderPassInfo.framebuffer = framebuffers()[frame.index];
     renderPassInfo.renderArea.offset = { 0, 0 };
 
     VkExtent2D extent = swapchainEnv().extent();
     renderPassInfo.renderArea.extent = extent;
 
-    VkClearValue clearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
-    renderPassInfo.clearValueCount = 1;
-    renderPassInfo.pClearValues = &clearColor;
+    VkClearValue clearValues[2];
+    clearValues[0].color = {0.0f, 0.0f, 0.0f, 1.0f};
+    clearValues[1].depthStencil = {1.0f, 0};
+    renderPassInfo.clearValueCount = 2;
+    renderPassInfo.pClearValues = clearValues;
 
     VkViewport viewport = {};
     viewport.width = extent.width;
@@ -135,37 +137,6 @@ void MeshRender::prepare()
         vku::updateUboDescriptor(device(), _uboBuffers[i], _descriptorSets[i], 0);
     }
 
-    VkExtent3D depthExtent {
-        swapchainEnv().extent().width,
-        swapchainEnv().extent().height,
-        1
-    };
-    const std::vector<VkFormat> depthFormats {
-        VK_FORMAT_D32_SFLOAT_S8_UINT,
-        VK_FORMAT_D24_UNORM_S8_UINT
-    };
-    VkFormat format = vku::findSupportedFormat(
-        physicalDevice(),
-        depthFormats,
-        VK_IMAGE_TILING_OPTIMAL,
-        VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
-    _depthImage = vku::Image::basic(
-        device(),
-        depthExtent,
-        format,
-        VK_IMAGE_TILING_OPTIMAL,
-        VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
-    _depthImageMemory = vku::DeviceMemory::forImage(
-        physicalDevice(),
-        device(),
-        _depthImage,
-        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-    _depthImageView = vku::ImageView::basic(
-        device(),
-        _depthImage,
-        format,
-        VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT);
-
     App::prepare();
 }
 
@@ -186,7 +157,8 @@ void MeshRender::update(vku::SwapchainFrame &frame)
         static_cast<float>(extent.width) / static_cast<float>(extent.height),
         0.1f,
         100.0f);
-    ubo.projection = glm::mat4(1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 0.5f, 1.0f)
-        * ubo.projection;
+    ubo.projection[1][1] *= -1;
+    // ubo.projection = glm::mat4(1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 0.5f, 1.0f)
+    //     * ubo.projection;
     vku::hostDeviceCopy(device(), &ubo, _uboBufferMemories[frame.index], sizeof(UBO));
 }
