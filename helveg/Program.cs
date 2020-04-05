@@ -33,6 +33,10 @@ namespace Helveg
 
         public static void Main(string[] args)
         {
+            var sentence = Spruce.Rewrite("TC", 7, 6, 3, 4, 2);
+            Console.WriteLine(sentence);
+            Environment.Exit(0);
+
             var positions = new[]{
                 new Vector3(1, 1, 1),
                 new Vector3(1, 1, -1),
