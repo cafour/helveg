@@ -33,8 +33,34 @@ namespace Helveg
 
         public static void Main(string[] args)
         {
-            var sentence = Spruce.Rewrite("TC", 7, 6, 3, 4, 2);
-            Console.WriteLine(sentence);
+            var sentence = Spruce.Rewrite(new[]
+                {
+                    new Spruce.Symbol(Spruce.Kind.Trunk),
+                    new Spruce.Symbol(Spruce.Kind.Canopy)
+                },
+                branchCount: 12,
+                maxBranching: 6,
+                minBranching: 3,
+                initialBranching: 4,
+                branchingDiff: 2);
+            var prefix = "";
+            foreach (var symbol in sentence)
+            {
+                if (symbol.Kind == Spruce.Kind.Push)
+                {
+                    Console.WriteLine($"{prefix}[");
+                    prefix += "\t";
+                    continue;
+                }
+                else if (symbol.Kind == Spruce.Kind.Pop)
+                {
+                    prefix = prefix.Substring(0, prefix.Length - 1);
+                    Console.WriteLine($"{prefix}]");
+                    continue;
+                }
+                Console.WriteLine($"{prefix}Kind={symbol.Kind},Parameter={symbol.Parameter}");
+            }
+            Console.WriteLine($"Sentence length: {sentence.Count}");
             Environment.Exit(0);
 
             var positions = new[]{
