@@ -11,11 +11,6 @@ else()
 endif()
 
 function(add_dotnet_build TARGET)
-    add_executable(${TARGET} IMPORTED)
-    set_target_properties(dotnet
-        PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/${TARGET})
-    add_custom_command(
-        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${TARGET}
-        COMMAND dotnet build ${CMAKE_CURRENT_SOURCE_DIR} -o ${CMAKE_CURRENT_BINARY_DIR} -r ${DOTNET_RID}
-        DEPENDS dotnet)
+    add_custom_target(${TARGET}
+        ALL dotnet build ${CMAKE_CURRENT_SOURCE_DIR} -o ${CMAKE_CURRENT_BINARY_DIR} -r ${DOTNET_RID})
 endfunction()
