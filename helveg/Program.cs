@@ -4,7 +4,7 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
-namespace VkInterop
+namespace Helveg
 {
     public class Program
     {

@@ -75,6 +75,6 @@ set_target_properties(dotnet
     PROPERTIES IMPORTED_LOCATION ${DOTNET_CLI})
 message(STATUS "Using dotnet: ${DOTNET_CLI}")
 
-add_custom_target(VkInterop
+add_custom_target(helveg
     ALL dotnet build ${CMAKE_SOURCE_DIR} -o ${CMAKE_BINARY_DIR} -r ${DOTNET_RID}
     DEPENDS vki)

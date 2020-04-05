@@ -1,7 +1,7 @@
 using System;
 using System.Numerics;
 
-namespace VkInterop
+namespace Helveg
 {
     public struct Mesh
     {
