@@ -13,7 +13,7 @@ add_compile_definitions(GLM_FORCE_RADIANS GLM_FORCE_DEPTH_ZERO_TO_ONE)
 include(Embed)
 
 
-set(SOURCES
+set(VKU_SOURCES
     # headers
     vku.hpp
     base.hpp
@@ -64,6 +64,9 @@ else()
     target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -pedantic)
 endif()
 
+string(LENGTH "${CMAKE_SOURCE_DIR}/" ROOT_PATH_LENGTH)
+target_compile_definitions(${PROJECT_NAME} PUBLIC ROOT_PATH_LENGTH=${ROOT_PATH_LENGTH})
+
 target_embed_shader(${PROJECT_NAME} shaders/triangle.frag TRIANGLE_FRAG)
 target_embed_shader(${PROJECT_NAME} shaders/triangle.vert TRIANGLE_VERT)
 target_embed_shader(${PROJECT_NAME} shaders/mesh.frag MESH_FRAG)
@@ -71,3 +74,6 @@ target_embed_shader(${PROJECT_NAME} shaders/mesh.vert MESH_VERT)
 
 add_executable(hello hello.cpp)
 target_link_libraries(hello PRIVATE ${PROJECT_NAME})
+set_target_properties(hello PROPERTIES
+    CXX_STANDARD 17
+    CXX_STANDARD_REQUIRED True)

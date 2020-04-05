@@ -8,10 +8,10 @@ namespace Helveg
 {
     public class Program
     {
-        [DllImport("vki", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("vku", CallingConvention = CallingConvention.Cdecl)]
         public static extern int helloTriangle();
 
-        [DllImport("vki", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("vku", CallingConvention = CallingConvention.Cdecl)]
         public static unsafe extern int helloMesh(Mesh.Raw mesh);
 
         public unsafe static int HelloMesh(Mesh mesh)
