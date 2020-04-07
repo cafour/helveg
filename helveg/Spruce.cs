@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using System.Text;
@@ -24,6 +25,7 @@ namespace Helveg
             Node
         }
 
+        [DebuggerDisplay("{Kind}({Parameter})")]
         public struct Symbol
         {
             public Kind Kind;
@@ -121,19 +123,20 @@ namespace Helveg
         public static Mesh GenerateMesh(Symbol[] sentence)
         {
             const int polygonSize = 12;
-            const float forwardLength = 10f;
+            const float forwardLength = 7f;
+            Vector3 color = new Vector3(0.4f, 0.2f, 0.0f);
 
             var vertices = new List<Vector3>();
-            AddPolygon(vertices, polygonSize, 10, Quaternion.Identity, Vector3.Zero);
+            AddPolygon(vertices, polygonSize, 10, Quaternion.CreateFromYawPitchRoll(0, -MathF.PI / 2, 0), Vector3.Zero);
             var colors = new List<Vector3>();
-            colors.AddRange(Enumerable.Repeat(Vector3.Zero, polygonSize));
+            colors.AddRange(Enumerable.Repeat(color, polygonSize));
             var indices = new List<uint>();
 
-            var stack = new Stack<(int yaw, int pitch, int roll, Vector3 position, int index)>();
-            stack.Push((0, 270, 0, new Vector3(0, 0, 0), 0));
+            var stack = new Queue<(int yaw, int pitch, int roll, Vector3 position, int index)>();
+            stack.Enqueue((0, 270, 0, new Vector3(0, 0, 0), 0));
             while (stack.Count != 0)
             {
-                var state = stack.Pop();
+                var state = stack.Dequeue();
                 for (; state.index < sentence.Length; ++state.index)
                 {
                     var current = sentence[state.index];
@@ -148,14 +151,14 @@ namespace Helveg
                             var forwardQ = rotation * new Quaternion(Vector3.UnitZ, 0)
                                 * Quaternion.Conjugate(rotation);
                             var forward = forwardLength * new Vector3(forwardQ.X, forwardQ.Y, forwardQ.Z);
-                            state.position += forward;
                             AddPolygon(
                                 vertices,
                                 polygonSize,
                                 current.Parameter,
                                 rotation,
                                 state.position + forward / 2);
-                            colors.AddRange(Enumerable.Repeat(new Vector3(0.6f, 0.4f, 0.0f), polygonSize));
+                            state.position += forward;
+                            colors.AddRange(Enumerable.Repeat(color, polygonSize));
                             StitchPolygons(
                                 indices,
                                 polygonSize,
@@ -169,29 +172,41 @@ namespace Helveg
                             state.yaw = (state.yaw - current.Parameter) % 360;
                             break;
                         case Kind.PitchUp:
-                            state.yaw = (state.pitch - current.Parameter) % 360;
+                            state.pitch = (state.pitch - current.Parameter) % 360;
                             break;
                         case Kind.PitchDown:
-                            state.yaw = (state.pitch + current.Parameter) % 360;
+                            state.pitch = (state.pitch + current.Parameter) % 360;
                             break;
                         case Kind.RollRight:
-                            state.yaw = (state.roll + current.Parameter) % 360;
+                            state.roll = (state.roll + current.Parameter) % 360;
                             break;
                         case Kind.RollLeft:
-                            state.yaw = (state.roll - current.Parameter) % 360;
+                            state.roll = (state.roll - current.Parameter) % 360;
                             break;
                         case Kind.Push:
                             state.index++;
-                            stack.Push(state);
-                            int j = state.index;
-                            for (; sentence[j].Kind != Kind.Pop; ++j)
+                            stack.Enqueue(state);
+                            int nest = 1;
+                            for (int i = state.index; i < sentence.Length; ++i)
                             {
-                                if (j == sentence.Length - 1)
+                                if (sentence[i].Kind == Kind.Push)
                                 {
-                                    throw new InvalidOperationException($"Push at {state.index} is missing a Pop.");
+                                    nest++;
+                                }
+                                else if (sentence[i].Kind == Kind.Pop)
+                                {
+                                    nest--;
+                                    if (nest == 0)
+                                    {
+                                        state.index = i + 1;
+                                        break;
+                                    }
                                 }
                             }
-                            state.index = j + 1;
+                            if (nest != 0)
+                            {
+                                throw new InvalidOperationException($"Push at {state.index} is missing a Pop.");
+                            }
                             break;
                         case Kind.Pop:
                             shouldPop = true;
@@ -236,7 +251,7 @@ namespace Helveg
             Vector3 center)
         {
             var rotationCon = Quaternion.Conjugate(rotation);
-            var local = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), 2 * MathF.PI / vertexCount);
+            var local = Quaternion.CreateFromAxisAngle(new Vector3(0, 0, 1), 2 * MathF.PI / vertexCount);
             var localCon = Quaternion.Conjugate(local);
 
             var current = new Quaternion(width, 0, 0, 0);
