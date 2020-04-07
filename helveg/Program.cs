@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
@@ -31,6 +33,37 @@ namespace Helveg
             }
         }
 
+        public static void HelloCube()
+        {
+            var positions = new[]{
+                new Vector3(1, 1, 1),
+                new Vector3(1, 1, -1),
+                new Vector3(1, -1, -1),
+                new Vector3(1, -1, 1),
+                new Vector3(-1, 1, 1),
+                new Vector3(-1, 1, -1),
+                new Vector3(-1, -1, -1),
+                new Vector3(-1, -1, 1)
+            };
+
+            var colors = positions.Select(v => (v + new Vector3(1)) / 2)
+                .ToArray();
+
+            var indices = new uint[] {
+                3, 2, 0, 0, 2, 1,
+                2, 6, 1, 1, 6, 5,
+                6, 7, 5, 5, 7, 4,
+                7, 3, 4, 4, 3, 0,
+                0, 1, 4, 4, 1, 5,
+                2, 3, 6, 6, 3, 7
+            };
+
+            var mesh = new Mesh(positions, colors, indices);
+
+            var value = HelloMesh(mesh);
+            Console.WriteLine($"Hello's return value: {value}");
+        }
+
         public static void Main(string[] args)
         {
             var sentence = Spruce.Rewrite(new[]
@@ -60,36 +93,12 @@ namespace Helveg
                 }
                 Console.WriteLine($"{prefix}Kind={symbol.Kind},Parameter={symbol.Parameter}");
             }
-            Console.WriteLine($"Sentence length: {sentence.Count}");
-            Environment.Exit(0);
-
-            var positions = new[]{
-                new Vector3(1, 1, 1),
-                new Vector3(1, 1, -1),
-                new Vector3(1, -1, -1),
-                new Vector3(1, -1, 1),
-                new Vector3(-1, 1, 1),
-                new Vector3(-1, 1, -1),
-                new Vector3(-1, -1, -1),
-                new Vector3(-1, -1, 1)
-            };
-
-            var colors = positions.Select(v => (v + new Vector3(1)) / 2)
-                .ToArray();
-
-            var indices = new uint[] {
-                3, 2, 0, 0, 2, 1,
-                2, 6, 1, 1, 6, 5,
-                6, 7, 5, 5, 7, 4,
-                7, 3, 4, 4, 3, 0,
-                0, 1, 4, 4, 1, 5,
-                2, 3, 6, 6, 3, 7
-            };
-
-            var mesh = new Mesh(positions, colors, indices);
-
-            var value = HelloMesh(mesh);
-            Console.WriteLine($"Hello's return value: {value}");
+            Console.WriteLine($"Sentence length: {sentence.Length}");
+            var spruceMesh = Spruce.GenerateMesh(sentence);
+            Console.WriteLine($"Vertices length: {spruceMesh.Vertices.Length}");
+            var test = HelloMesh(spruceMesh);
+            Console.WriteLine($"Hello's return value: {test}");
+            // HelloCube();
         }
     }
 }
