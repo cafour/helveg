@@ -66,12 +66,17 @@ namespace Helveg
 
         public static void Main(string[] args)
         {
+            // var test = Quaternion.CreateFromYawPitchRoll(0f, 0f, MathF.PI / 2) * Quaternion.CreateFromYawPitchRoll(0f, -MathF.PI / 3, 0f); // NOPE
+            // var test = Quaternion.CreateFromYawPitchRoll(0f, -MathF.PI / 2, 0f) * Quaternion.CreateFromYawPitchRoll(0f, 80 / 360f * 2 * MathF.PI, 0f); // NOPE
+            var test = Quaternion.CreateFromYawPitchRoll(0f, -MathF.PI / 2, 0f) * Quaternion.CreateFromYawPitchRoll(0f, 0f, MathF.PI / 4) * Quaternion.CreateFromYawPitchRoll(0f, 80 / 360f * 2 * MathF.PI, 0f); // YEP!
+            // var test = Quaternion.CreateFromYawPitchRoll(0f, (-MathF.PI / 2) + (80 / 360f * 2 * MathF.PI), MathF.PI / 4); // NOPE
+            var result = test * new Quaternion(Vector3.UnitZ, 0) * Quaternion.Conjugate(test);
             var sentence = Spruce.Rewrite(new[]
                 {
                     new Spruce.Symbol(Spruce.Kind.Trunk),
                     new Spruce.Symbol(Spruce.Kind.Canopy)
                 },
-                branchCount: 12,
+                branchCount: 4,
                 maxBranching: 6,
                 minBranching: 3,
                 initialBranching: 4,
@@ -96,8 +101,8 @@ namespace Helveg
             Console.WriteLine($"Sentence length: {sentence.Length}");
             var spruceMesh = Spruce.GenerateMesh(sentence);
             Console.WriteLine($"Vertices length: {spruceMesh.Vertices.Length}");
-            var test = HelloMesh(spruceMesh);
-            Console.WriteLine($"Hello's return value: {test}");
+            var mesh = HelloMesh(spruceMesh);
+            Console.WriteLine($"Hello's return value: {mesh}");
             // HelloCube();
         }
     }

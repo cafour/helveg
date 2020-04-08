@@ -149,8 +149,8 @@ void MeshRender::update(vku::SwapchainFrame &frame)
 
     UBO ubo = {};
     ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
-    ubo.model = glm::scale(ubo.model, glm::vec3(0.05f));
-    ubo.view = glm::lookAt(glm::vec3(8.0f, 8.0f, 8.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    ubo.model = glm::scale(ubo.model, glm::vec3(0.2f));
+    ubo.view = glm::lookAt(glm::vec3(8.0f, 8.0f, 8.0f), glm::vec3(0.0f, 2.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
     auto extent = swapchainEnv().extent();
     ubo.projection = glm::perspective(
