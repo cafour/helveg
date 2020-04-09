@@ -22,6 +22,8 @@ public:
 
 private:
     Mesh _mesh;
+    glm::vec3 _meshMin = {};
+    glm::vec3 _meshMax = {};
     vku::DescriptorSetLayout _setLayout;
     vku::DescriptorPool _descriptorPool;
     vku::PipelineLayout _pipelineLayout;

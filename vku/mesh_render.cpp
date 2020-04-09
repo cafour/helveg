@@ -8,6 +8,16 @@ MeshRender::MeshRender(int width, int height, MeshRender::Mesh mesh)
     : vku::App("Hello, MeshRender!", width, height)
     , _mesh(mesh)
 {
+    for (size_t i = 0; i < mesh.vertexCount; ++i) {
+        _meshMax.x = std::max(_meshMax.x, mesh.vertices[i].x);
+        _meshMax.y = std::max(_meshMax.y, mesh.vertices[i].y);
+        _meshMax.z = std::max(_meshMax.z, mesh.vertices[i].z);
+
+        _meshMin.x = std::min(_meshMin.x, mesh.vertices[i].x);
+        _meshMin.y = std::min(_meshMin.y, mesh.vertices[i].y);
+        _meshMin.z = std::min(_meshMin.z, mesh.vertices[i].z);
+    }
+
     auto uboBinding = vku::descriptorBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT);
     _setLayout = vku::DescriptorSetLayout::basic(device(), &uboBinding, 1);
 
@@ -78,8 +88,8 @@ void MeshRender::recordCommands(VkCommandBuffer commandBuffer, vku::SwapchainFra
     renderPassInfo.renderArea.extent = extent;
 
     VkClearValue clearValues[2];
-    clearValues[0].color = {0.0f, 0.0f, 0.0f, 1.0f};
-    clearValues[1].depthStencil = {1.0f, 0};
+    clearValues[0].color = { 0.0f, 0.0f, 0.0f, 1.0f };
+    clearValues[1].depthStencil = { 1.0f, 0 };
     renderPassInfo.clearValueCount = 2;
     renderPassInfo.pClearValues = clearValues;
 
@@ -147,10 +157,13 @@ void MeshRender::update(vku::SwapchainFrame &frame)
     auto now = std::chrono::high_resolution_clock::now();
     float time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
 
+    glm::vec3 meshSize = _meshMax - _meshMin;
+    float scale = 1.0f / meshSize.y;
+
     UBO ubo = {};
     ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
-    ubo.model = glm::scale(ubo.model, glm::vec3(0.2f));
-    ubo.view = glm::lookAt(glm::vec3(8.0f, 8.0f, 8.0f), glm::vec3(0.0f, 2.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    ubo.model = glm::scale(ubo.model, glm::vec3(scale));
+    ubo.view = glm::lookAt(glm::vec3(1.0f, 1.5f, 1.0f), glm::vec3(0.0f, 0.5f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
     auto extent = swapchainEnv().extent();
     ubo.projection = glm::perspective(
