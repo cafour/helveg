@@ -281,7 +281,7 @@ namespace Helveg
             var local = Quaternion.CreateFromAxisAngle(new Vector3(0, 0, 1), 2 * MathF.PI / vertexCount);
             var localCon = Quaternion.Conjugate(local);
 
-            var current = new Quaternion(width, 0, 0, 0);
+            var current = new Quaternion(width / 2.0f, 0, 0, 0);
             for (int i = 0; i < vertexCount; ++i)
             {
                 current = local * current * localCon;
