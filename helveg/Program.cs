@@ -76,6 +76,7 @@ namespace Helveg
                     new Spruce.Symbol(Spruce.Kind.Trunk),
                     new Spruce.Symbol(Spruce.Kind.Canopy)
                 },
+                seed: 42,
                 branchCount: 12,
                 maxBranching: 6,
                 minBranching: 3,

@@ -40,12 +40,18 @@ namespace Helveg
 
         public static Symbol[] Rewrite(
             IEnumerable<Symbol> axiom,
+            int seed,
             int branchCount,
             int maxBranching,
             int minBranching,
             int initialBranching,
             int branchingDiff)
         {
+            var random = new Random(seed);
+            int Cca(int value)
+            {
+                return value + random.Next(-10, 11);
+            }
             var buffers = new List<Symbol>[]
             {
                 new List<Symbol>(1 << 20),
@@ -80,7 +86,7 @@ namespace Helveg
                             {
                                 dst.Add(new Symbol(Kind.Push));
                                 dst.Add(new Symbol(Kind.RollRight, angle * j));
-                                dst.Add(new Symbol(Kind.PitchDown, 80));
+                                dst.Add(new Symbol(Kind.PitchDown, Cca(80)));
                                 dst.Add(new Symbol(Kind.Forward, 1));
                                 dst.Add(new Symbol(Kind.Node));
                                 dst.Add(new Symbol(Kind.Pop));
@@ -93,13 +99,13 @@ namespace Helveg
                             break;
                         case Kind.Node:
                             dst.Add(new Symbol(Kind.Push));
-                            dst.Add(new Symbol(Kind.TurnLeft, 50));
+                            dst.Add(new Symbol(Kind.TurnLeft, Cca(50)));
                             dst.Add(new Symbol(Kind.Forward, 1));
                             dst.Add(new Symbol(Kind.Node));
                             dst.Add(new Symbol(Kind.Pop));
 
                             dst.Add(new Symbol(Kind.Push));
-                            dst.Add(new Symbol(Kind.TurnRight, 50));
+                            dst.Add(new Symbol(Kind.TurnRight, Cca(50)));
                             dst.Add(new Symbol(Kind.Forward, 1));
                             dst.Add(new Symbol(Kind.Node));
                             dst.Add(new Symbol(Kind.Pop));
