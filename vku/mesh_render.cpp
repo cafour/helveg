@@ -140,7 +140,7 @@ void MeshRender::prepare()
         _uboBufferMemories[i] = vku::DeviceMemory::hostCoherentBuffer(physicalDevice(), device(), _uboBuffers[i]);
     }
 
-    auto poolSize = vku::descriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1);
+    auto poolSize = vku::descriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, imageCount);
     _descriptorPool = vku::DescriptorPool::basic(device(), imageCount, &poolSize, 1);
     _descriptorSets = vku::allocateDescriptorSets(device(), _descriptorPool, _setLayout, imageCount);
     for (size_t i = 0; i < imageCount; ++i) {
