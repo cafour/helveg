@@ -139,8 +139,8 @@ namespace Helveg
             colors.AddRange(Enumerable.Repeat(color, polygonSize));
             var indices = new List<uint>();
 
-            var stack = new Queue<(Quaternion orientation, Vector3 position, int index, int lastLength)>();
-            stack.Enqueue((orientation, Vector3.Zero, 0, polygonSize));
+            var stack = new Queue<(Quaternion orientation, Quaternion meshOrientation, Vector3 position, int index, int lastLength)>();
+            stack.Enqueue((orientation, orientation, Vector3.Zero, 0, polygonSize));
             while (stack.Count != 0)
             {
                 var state = stack.Dequeue();
@@ -152,6 +152,22 @@ namespace Helveg
                     var forwardQ = state.orientation * new Quaternion(Vector3.UnitZ, 0)
                                 * Quaternion.Conjugate(state.orientation);
                     var forward = forwardLength * new Vector3(forwardQ.X, forwardQ.Y, forwardQ.Z);
+
+                    void AdjustOrientation(float yaw, float pitch, float roll)
+                    {
+                        var originalOrientation = state.orientation;
+                        state.orientation *= Quaternion.CreateFromYawPitchRoll(yaw, pitch, roll);
+                        var unitForward = new Vector3(forwardQ.X, forwardQ.Y, forwardQ.Z);
+                        var newForwardQ = state.orientation * new Quaternion(Vector3.UnitZ, 0)
+                            * Quaternion.Conjugate(state.orientation);
+                        var newForward = new Vector3(newForwardQ.X, newForwardQ.Y, newForwardQ.Z);
+                        state.meshOrientation = Quaternion.CreateFromAxisAngle(Vector3.Cross(unitForward, newForward), MathF.Acos(Vector3.Dot(unitForward, newForward))) * originalOrientation;
+                        var test1 = state.orientation * new Quaternion(Vector3.UnitY, 0)
+                            * Quaternion.Conjugate(state.orientation);
+                        var test2 = state.meshOrientation * new Quaternion(Vector3.UnitY, 0)
+                            * Quaternion.Conjugate(state.meshOrientation);
+                        state.meshOrientation = state.orientation;
+                    }
                     switch (current.Kind)
                     {
                         case Kind.Forward:
@@ -159,7 +175,7 @@ namespace Helveg
                                 vertices,
                                 polygonSize,
                                 current.Parameter,
-                                state.orientation,
+                                state.meshOrientation,
                                 state.position + forward / 2);
                             state.position += forward;
                             colors.AddRange(Enumerable.Repeat(color, polygonSize));
@@ -171,22 +187,22 @@ namespace Helveg
                             state.lastLength = vertices.Count;
                             break;
                         case Kind.TurnLeft:
-                            state.orientation *= Quaternion.CreateFromYawPitchRoll(parameterRad, 0f, 0f);
+                            AdjustOrientation(parameterRad, 0f, 0f);
                             break;
                         case Kind.TurnRight:
-                            state.orientation *= Quaternion.CreateFromYawPitchRoll(-parameterRad, 0f, 0f);
+                            AdjustOrientation(-parameterRad, 0f, 0f);
                             break;
                         case Kind.PitchUp:
-                            state.orientation *= Quaternion.CreateFromYawPitchRoll(0f, -parameterRad, 0f);
+                            AdjustOrientation(0f, -parameterRad, 0f);
                             break;
                         case Kind.PitchDown:
-                            state.orientation *= Quaternion.CreateFromYawPitchRoll(0f, parameterRad, 0f);
+                            AdjustOrientation(0f, parameterRad, 0f);
                             break;
                         case Kind.RollRight:
-                            state.orientation *= Quaternion.CreateFromYawPitchRoll(0f, 0f, parameterRad);
+                            AdjustOrientation(0f, 0f, parameterRad);
                             break;
                         case Kind.RollLeft:
-                            state.orientation *= Quaternion.CreateFromYawPitchRoll(0f, 0f, -parameterRad);
+                            AdjustOrientation(0f, 0f, -parameterRad);
                             break;
                         case Kind.Push:
                             state.index++;
@@ -278,7 +294,7 @@ namespace Helveg
             Vector3 center)
         {
             var rotationCon = Quaternion.Conjugate(rotation);
-            var local = Quaternion.CreateFromAxisAngle(new Vector3(0, 0, 1), 2 * MathF.PI / vertexCount);
+            var local = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, 2 * MathF.PI / vertexCount);
             var localCon = Quaternion.Conjugate(local);
 
             var current = new Quaternion(width / 2.0f, 0, 0, 0);
