@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace Helveg
@@ -20,21 +21,30 @@ namespace Helveg
             RollLeft,
             Push,
             Pop,
-            Trunk,
             Canopy,
-            Node
+            Branch
         }
 
         [DebuggerDisplay("{Kind}({Parameter})")]
+        [StructLayout(LayoutKind.Explicit)]
         public struct Symbol
         {
-            public Kind Kind;
-            public int Parameter;
+            [FieldOffset(0)] public Kind Kind;
+            [FieldOffset(sizeof(byte))] public int Int;
+            [FieldOffset(sizeof(byte))] public float Float;
 
-            public Symbol(Kind kind, int parameter = 0)
+            public Symbol(Kind kind, int @int = 0)
             {
                 Kind = kind;
-                Parameter = parameter;
+                Float = 0;
+                Int = @int;
+            }
+
+            public Symbol(Kind kind, float @float)
+            {
+                Kind = kind;
+                Int = 0;
+                Float = @float;
             }
         }
 
@@ -48,10 +58,11 @@ namespace Helveg
             int branchingDiff)
         {
             var random = new Random(seed);
-            int Cca(int value)
+            float Cca(float value)
             {
-                return value + random.Next(-10, 11);
+                return value + random.Next(-10, 11) * MathF.PI / 180f;
             }
+
             var buffers = new List<Symbol>[]
             {
                 new List<Symbol>(1 << 20),
@@ -71,47 +82,39 @@ namespace Helveg
                     switch (src[i].Kind)
                     {
                         case Kind.Forward:
-                            dst.Add(new Symbol(Kind.Forward, src[i].Parameter + 1));
-                            break;
-                        case Kind.Trunk:
-                            for (int j = trunkHeight; j > 0; --j)
-                            {
-                                dst.Add(new Symbol(Kind.Forward, j + 1));
-                            }
+                            dst.Add(new Symbol(Kind.Forward, src[i].Int + 1));
                             break;
                         case Kind.Canopy:
+                            dst.Add(new Symbol(Kind.Forward, 1));
                             var branching = Math.Min(currentBranching, branchCount);
-                            var angle = 360 / branching;
+                            var angle = 2 * MathF.PI / branching;
                             for (int j = 0; j < branching; ++j)
                             {
                                 dst.Add(new Symbol(Kind.Push));
                                 dst.Add(new Symbol(Kind.RollRight, angle * j));
-                                dst.Add(new Symbol(Kind.PitchDown, Cca(80)));
-                                dst.Add(new Symbol(Kind.Forward, 1));
-                                dst.Add(new Symbol(Kind.Node));
+                                dst.Add(new Symbol(Kind.PitchDown, Cca(1.6f)));
+                                dst.Add(new Symbol(Kind.Branch));
                                 dst.Add(new Symbol(Kind.Pop));
                             }
                             branchCount -= branching;
                             currentBranching = ((currentBranching + branchingDiff - minBranching)
                                 % (maxBranching - minBranching)) + minBranching;
-                            dst.Add(new Symbol(Kind.Forward, 1));
                             dst.Add(new Symbol(Kind.Canopy));
                             break;
-                        case Kind.Node:
-                            dst.Add(new Symbol(Kind.Push));
-                            dst.Add(new Symbol(Kind.TurnLeft, Cca(50)));
+                        case Kind.Branch:
                             dst.Add(new Symbol(Kind.Forward, 1));
-                            dst.Add(new Symbol(Kind.Node));
+
+                            dst.Add(new Symbol(Kind.Push));
+                            dst.Add(new Symbol(Kind.TurnLeft, Cca(0.9f)));
+                            dst.Add(new Symbol(Kind.Branch));
                             dst.Add(new Symbol(Kind.Pop));
 
                             dst.Add(new Symbol(Kind.Push));
-                            dst.Add(new Symbol(Kind.TurnRight, Cca(50)));
-                            dst.Add(new Symbol(Kind.Forward, 1));
-                            dst.Add(new Symbol(Kind.Node));
+                            dst.Add(new Symbol(Kind.TurnRight, Cca(0.9f)));
+                            dst.Add(new Symbol(Kind.Branch));
                             dst.Add(new Symbol(Kind.Pop));
 
-                            dst.Add(new Symbol(Kind.Forward, 1));
-                            dst.Add(new Symbol(Kind.Node));
+                            dst.Add(new Symbol(Kind.Branch));
                             break;
                         default:
                             dst.Add(src[i]);
@@ -128,19 +131,18 @@ namespace Helveg
 
         public static Mesh GenerateMesh(Symbol[] sentence)
         {
-            const int polygonSize = 12;
-            const float forwardLength = 7f;
+            const int edgeCount = 12;
             var color = new Vector3(0.4f, 0.2f, 0.0f);
             var orientation = Quaternion.CreateFromYawPitchRoll(0f, -MathF.PI / 2f, 0f);
 
             var vertices = new List<Vector3>();
-            AddPolygon(vertices, polygonSize, sentence[0].Parameter + 1, orientation, Vector3.Zero);
+            AddPolygon(vertices, edgeCount, sentence[0].Int + 1, orientation, Vector3.Zero);
             var colors = new List<Vector3>();
-            colors.AddRange(Enumerable.Repeat(color, polygonSize));
-            var indices = new List<uint>();
+            colors.AddRange(Enumerable.Repeat(color, edgeCount));
+            var indices = new List<int>();
 
-            var stack = new Queue<(Quaternion orientation, Quaternion correction, Vector3 position, int index, int lastLength)>();
-            stack.Enqueue((orientation, Quaternion.Identity, Vector3.Zero, 0, polygonSize));
+            var stack = new Queue<(Quaternion orientation, Quaternion correction, Vector3 position, int index, int joint)>();
+            stack.Enqueue((orientation, Quaternion.Identity, Vector3.Zero, 0, 0));
             while (stack.Count != 0)
             {
                 var state = stack.Dequeue();
@@ -148,53 +150,54 @@ namespace Helveg
                 {
                     var current = sentence[state.index];
                     bool shouldPop = false;
-                    var parameterRad = current.Parameter / 360f * 2 * MathF.PI;
                     var forwardQ = state.orientation * new Quaternion(Vector3.UnitZ, 0)
                                 * Quaternion.Conjugate(state.orientation);
-                    var forward = forwardLength * new Vector3(forwardQ.X, forwardQ.Y, forwardQ.Z);
+                    var forward = new Vector3(forwardQ.X, forwardQ.Y, forwardQ.Z);
 
                     void AdjustOrientation(float yaw, float pitch, float roll)
                     {
                         state.orientation *= Quaternion.CreateFromYawPitchRoll(yaw, pitch, roll);
-                        if (roll != 0) {
+                        if (roll != 0)
+                        {
                             state.correction *= Quaternion.CreateFromYawPitchRoll(0, 0, -roll);
                         }
                     }
                     switch (current.Kind)
                     {
                         case Kind.Forward:
+                            float length = (1 << current.Int - 1) * 0.9f;
                             AddPolygon(
                                 vertices,
-                                polygonSize,
-                                current.Parameter,
+                                edgeCount,
+                                current.Int,
                                 state.orientation * state.correction,
-                                state.position + forward / 2);
-                            state.position += forward;
-                            colors.AddRange(Enumerable.Repeat(color, polygonSize));
+                                state.position + forward * length * 0.667f );
+                            state.position += forward * length;
+                            colors.AddRange(Enumerable.Repeat(color, edgeCount));
                             StitchPolygons(
                                 indices,
-                                polygonSize,
-                                (uint)(state.lastLength - polygonSize),
-                                (uint)(vertices.Count - polygonSize));
-                            state.lastLength = vertices.Count;
+                                edgeCount,
+                                state.joint,
+                                vertices.Count - edgeCount);
+                            state.joint = vertices.Count - edgeCount;
                             break;
                         case Kind.TurnLeft:
-                            AdjustOrientation(parameterRad, 0f, 0f);
+                            AdjustOrientation(current.Float, 0f, 0f);
                             break;
                         case Kind.TurnRight:
-                            AdjustOrientation(-parameterRad, 0f, 0f);
+                            AdjustOrientation(-current.Float, 0f, 0f);
                             break;
                         case Kind.PitchUp:
-                            AdjustOrientation(0f, -parameterRad, 0f);
+                            AdjustOrientation(0f, -current.Float, 0f);
                             break;
                         case Kind.PitchDown:
-                            AdjustOrientation(0f, parameterRad, 0f);
+                            AdjustOrientation(0f, current.Float, 0f);
                             break;
                         case Kind.RollRight:
-                            AdjustOrientation(0f, 0f, parameterRad);
+                            AdjustOrientation(0f, 0f, current.Float);
                             break;
                         case Kind.RollLeft:
-                            AdjustOrientation(0f, 0f, -parameterRad);
+                            AdjustOrientation(0f, 0f, -current.Float);
                             break;
                         case Kind.Push:
                             state.index++;
@@ -224,15 +227,15 @@ namespace Helveg
                         case Kind.Pop:
                             shouldPop = true;
                             break;
-                        case Kind.Node:
+                        case Kind.Branch:
                         case Kind.Canopy:
-                            vertices.Add(state.position + forward);
+                            vertices.Add(state.position + forward * 0.5f);
                             colors.Add(color);
                             StitchEnd(
                                 indices: indices,
-                                vertexCount: polygonSize,
-                                polygonStart: (uint)vertices.Count - polygonSize - 1,
-                                end: (uint)vertices.Count - 1);
+                                vertexCount: edgeCount,
+                                polygonStart: state.joint,
+                                end: vertices.Count - 1);
                             break;
                         default:
                             break;
@@ -248,12 +251,12 @@ namespace Helveg
         }
 
         private static void StitchPolygons(
-            IList<uint> indices,
-            uint vertexCount,
-            uint startL,
-            uint startR)
+            IList<int> indices,
+            int vertexCount,
+            int startL,
+            int startR)
         {
-            for (uint i = 0; i < vertexCount; ++i)
+            for (int i = 0; i < vertexCount; ++i)
             {
                 indices.Add(startL + i);
                 indices.Add(startL + (i + 1) % vertexCount);
@@ -265,12 +268,12 @@ namespace Helveg
         }
 
         private static void StitchEnd(
-            IList<uint> indices,
-            uint vertexCount,
-            uint polygonStart,
-            uint end)
+            IList<int> indices,
+            int vertexCount,
+            int polygonStart,
+            int end)
         {
-            for (uint i = 0; i < vertexCount; ++i)
+            for (int i = 0; i < vertexCount; ++i)
             {
                 indices.Add(polygonStart + i);
                 indices.Add(polygonStart + (i + 1) % vertexCount);
@@ -289,7 +292,7 @@ namespace Helveg
             var local = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, 2 * MathF.PI / vertexCount);
             var localCon = Quaternion.Conjugate(local);
 
-            var current = new Quaternion(width / 2.0f, 0, 0, 0);
+            var current = new Quaternion(width / 12f, 0, 0, 0);
             for (int i = 0; i < vertexCount; ++i)
             {
                 current = local * current * localCon;

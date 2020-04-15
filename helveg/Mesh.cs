@@ -5,7 +5,7 @@ namespace Helveg
 {
     public struct Mesh
     {
-        public Mesh(Vector3[] vertices, Vector3[] colors, uint[] indices)
+        public Mesh(Vector3[] vertices, Vector3[] colors, int[] indices)
         {
             if (vertices.Length != colors.Length)
             {
@@ -20,15 +20,15 @@ namespace Helveg
 
         public Vector3[] Colors { get; }
 
-        public uint[] Indices { get; }
+        public int[] Indices { get; }
 
         public unsafe struct Raw
         {
             public Vector3* Vertices;
             public Vector3* Colors;
-            public uint* Indices;
-            public uint VertexCount;
-            public uint IndexCount;
+            public int* Indices;
+            public int VertexCount;
+            public int IndexCount;
         }
     }
 }

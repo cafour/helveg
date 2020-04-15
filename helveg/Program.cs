@@ -20,15 +20,15 @@ namespace Helveg
         {
             fixed (Vector3* vertices = mesh.Vertices)
             fixed (Vector3* colors = mesh.Colors)
-            fixed (uint* indices = mesh.Indices)
+            fixed (int* indices = mesh.Indices)
             {
                 return helloMesh(new Mesh.Raw
                 {
                     Vertices = vertices,
                     Colors = colors,
                     Indices = indices,
-                    VertexCount = (uint)mesh.Vertices.Length,
-                    IndexCount = (uint)mesh.Indices.Length
+                    VertexCount = (int)mesh.Vertices.Length,
+                    IndexCount = (int)mesh.Indices.Length
                 });
             }
         }
@@ -49,7 +49,7 @@ namespace Helveg
             var colors = positions.Select(v => (v + new Vector3(1)) / 2)
                 .ToArray();
 
-            var indices = new uint[] {
+            var indices = new int[] {
                 3, 2, 0, 0, 2, 1,
                 2, 6, 1, 1, 6, 5,
                 6, 7, 5, 5, 7, 4,
@@ -81,16 +81,15 @@ namespace Helveg
                     Console.WriteLine($"{prefix}]");
                     continue;
                 }
-                Console.WriteLine($"{prefix}Kind={symbol.Kind},Parameter={symbol.Parameter}");
-                Console.WriteLine($"Sentence length: {sentence.Count}");
+                Console.WriteLine($"{prefix}Kind={symbol.Kind},Parameter={symbol.Int}");
             }
+            Console.WriteLine($"Sentence length: {sentence.Count}");
         }
 
         public static void Main(string[] args)
         {
             var sentence = Spruce.Rewrite(new[]
                 {
-                    new Spruce.Symbol(Spruce.Kind.Trunk),
                     new Spruce.Symbol(Spruce.Kind.Canopy)
                 },
                 seed: 42,
@@ -100,6 +99,7 @@ namespace Helveg
                 initialBranching: 4,
                 branchingDiff: 2);
             var spruceMesh = Spruce.GenerateMesh(sentence);
+            WriteSentence(sentence);
             Console.WriteLine($"Vertices length: {spruceMesh.Vertices.Length}");
             var mesh = HelloMesh(spruceMesh);
             Console.WriteLine($"Hello's return value: {mesh}");
