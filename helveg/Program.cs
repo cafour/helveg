@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using Microsoft.Build.Locator;
 
 namespace Helveg
 {
@@ -88,6 +89,13 @@ namespace Helveg
             File.WriteAllText("test.gv", Graph.Dotify(positions, weights));
         }
 
+        public static void HelloProject(string projectPath)
+        {
+            var test = MSBuildLocator.QueryVisualStudioInstances();
+            MSBuildLocator.RegisterDefaults();
+            var graph = Analyse.ConstructGraph(projectPath);
+        }
+
         public static void WriteSentence(IList<Spruce.Symbol> sentence)
         {
             var prefix = "";
@@ -112,7 +120,8 @@ namespace Helveg
 
         public static void Main(string[] args)
         {
-            HelloGraph();
+            HelloProject(args[0]);
+            // HelloGraph();
             // var sentence = Spruce.Rewrite(new[]
             //     {
             //         new Spruce.Symbol(Spruce.Kind.Canopy)
