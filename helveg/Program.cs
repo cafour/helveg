@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -64,6 +65,29 @@ namespace Helveg
             Console.WriteLine($"Hello's return value: {value}");
         }
 
+        public static void HelloGraph()
+        {
+            var random = new Random(42);
+            var positions = new Vector2[42];
+            var weights = new float[42,42];
+            for (int i = 0; i < 42; ++i)
+            {
+                var angle = 2 * MathF.PI / 42f * i;
+                positions[i] = 10 * new Vector2(MathF.Cos(angle), MathF.Sin(angle));
+                for (int j = 0; j < 42; ++j)
+                {
+                    if (i == j) {
+                        continue;
+                    }
+                    var weight = random.Next(0, 42);
+                    weights[i,j] = weight < 32 ? 0 : (weight - 32f) * 2;
+                }
+            }
+
+            positions = Graph.ApplyForces(positions, weights, 10000);
+            File.WriteAllText("test.gv", Graph.Dotify(positions, weights));
+        }
+
         public static void WriteSentence(IList<Spruce.Symbol> sentence)
         {
             var prefix = "";
@@ -88,21 +112,22 @@ namespace Helveg
 
         public static void Main(string[] args)
         {
-            var sentence = Spruce.Rewrite(new[]
-                {
-                    new Spruce.Symbol(Spruce.Kind.Canopy)
-                },
-                seed: 42,
-                branchCount: 12,
-                maxBranching: 6,
-                minBranching: 3,
-                initialBranching: 4,
-                branchingDiff: 2);
-            var spruceMesh = Spruce.GenerateMesh(sentence);
-            WriteSentence(sentence);
-            Console.WriteLine($"Vertices length: {spruceMesh.Vertices.Length}");
-            var mesh = HelloMesh(spruceMesh);
-            Console.WriteLine($"Hello's return value: {mesh}");
+            HelloGraph();
+            // var sentence = Spruce.Rewrite(new[]
+            //     {
+            //         new Spruce.Symbol(Spruce.Kind.Canopy)
+            //     },
+            //     seed: 42,
+            //     branchCount: 12,
+            //     maxBranching: 6,
+            //     minBranching: 3,
+            //     initialBranching: 4,
+            //     branchingDiff: 2);
+            // var spruceMesh = Spruce.GenerateMesh(sentence);
+            // WriteSentence(sentence);
+            // Console.WriteLine($"Vertices length: {spruceMesh.Vertices.Length}");
+            // var mesh = HelloMesh(spruceMesh);
+            // Console.WriteLine($"Hello's return value: {mesh}");
         }
     }
 }
