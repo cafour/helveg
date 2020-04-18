@@ -14,6 +14,7 @@ namespace Helveg
             {
                 Console.Write($"[{diagnostic.Kind}]: {diagnostic.Message}\n\n");
             }
+            Console.WriteLine($"Total MSBuild Diagnostics: {workspace.Diagnostics.Count}");
             return new float[0, 0];
         }
     }
