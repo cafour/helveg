@@ -1,6 +1,7 @@
 using System;
 using System.Numerics;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Helveg
 {
@@ -28,8 +29,7 @@ namespace Helveg
                 hasChanged = false;
                 Vector2[] input = (index % 2) == 1 ? buffer : positions;
                 Vector2[] result = (index % 2) == 0 ? buffer : positions;
-                for (int from = 0; from < nodeCount; ++from)
-                {
+                Parallel.For(0, nodeCount, from => {
                     Vector2 sumForce = Vector2.Zero;
                     for (int to = 0; to < nodeCount; ++to)
                     {
@@ -49,7 +49,7 @@ namespace Helveg
                         result[from] += sumForce;
                         hasChanged = true;
                     }
-                }
+                });
             }
 
             return (index % 2) == 0 ? buffer : positions;

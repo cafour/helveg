@@ -94,6 +94,14 @@ namespace Helveg
             var test = MSBuildLocator.QueryVisualStudioInstances();
             MSBuildLocator.RegisterDefaults();
             var graph = Analyse.ConstructGraph(projectPath);
+            var positions = new Vector2[graph.GetLength(0)];
+            for (int i = 0; i < graph.GetLength(0); ++i)
+            {
+                var angle = 2 * MathF.PI / graph.GetLength(0) * i;
+                positions[i] = new Vector2(MathF.Cos(angle), MathF.Sin(angle));
+            }
+            positions = Graph.ApplyForces(positions, graph, 500);
+            File.WriteAllText("project.gv", Graph.Dotify(positions, graph));
         }
 
         public static void WriteSentence(IList<Spruce.Symbol> sentence)
