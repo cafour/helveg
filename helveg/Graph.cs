@@ -55,14 +55,14 @@ namespace Helveg
             return (index % 2) == 0 ? buffer : positions;
         }
 
-        public static string Dotify(Vector2[] positions, float[,] weights)
+        public static string Dotify(Vector2[] positions, float[,] weights, string[] labels)
         {
             var sb = new StringBuilder();
             sb.AppendLine("digraph test {");
             sb.AppendLine("splines=\"line\";");
             for (int i = 0; i < positions.Length; ++i)
             {
-                sb.AppendLine($"{i} [pos=\"{positions[i].X},{positions[i].Y}!\"]");
+                sb.AppendLine($"{i} [pos=\"{positions[i].X},{positions[i].Y}!\",label=\"{labels[i]}\"]");
                 for (int j = 0; j < positions.Length; ++j)
                 {
                     if (weights[i, j] != 0) {

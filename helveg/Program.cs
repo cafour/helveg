@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Runtime.Serialization.Formatters.Binary;
 using Microsoft.Build.Locator;
 
 namespace Helveg
@@ -71,8 +72,10 @@ namespace Helveg
             var random = new Random(42);
             var positions = new Vector2[42];
             var weights = new float[42,42];
+            var labels = new string[42];
             for (int i = 0; i < 42; ++i)
             {
+                labels[i] = i.ToString();
                 var angle = 2 * MathF.PI / 42f * i;
                 positions[i] = 10 * new Vector2(MathF.Cos(angle), MathF.Sin(angle));
                 for (int j = 0; j < 42; ++j)
@@ -86,22 +89,35 @@ namespace Helveg
             }
 
             positions = Graph.ApplyForces(positions, weights, 10000);
-            File.WriteAllText("test.gv", Graph.Dotify(positions, weights));
+            File.WriteAllText("test.gv", Graph.Dotify(positions, weights, labels));
+        }
+
+        public static (string[] names, float[,] graph) AnalyzeProject(string projectPath)
+        {
+            var formatter = new BinaryFormatter();
+            if (File.Exists("project.bin"))
+            {
+                using var stream = File.OpenRead("project.bin");
+                return ((string[] names, float[,] graph))formatter.Deserialize(stream);
+            }
+            MSBuildLocator.RegisterDefaults();
+            var graph = Analyze.ConstructGraph(projectPath);
+            using var output = File.OpenWrite("project.bin");
+            formatter.Serialize(output, graph);
+            return graph;
         }
 
         public static void HelloProject(string projectPath)
         {
-            var test = MSBuildLocator.QueryVisualStudioInstances();
-            MSBuildLocator.RegisterDefaults();
-            var graph = Analyse.ConstructGraph(projectPath);
+            var (names, graph) = AnalyzeProject(projectPath);
             var positions = new Vector2[graph.GetLength(0)];
             for (int i = 0; i < graph.GetLength(0); ++i)
             {
                 var angle = 2 * MathF.PI / graph.GetLength(0) * i;
                 positions[i] = new Vector2(MathF.Cos(angle), MathF.Sin(angle));
             }
-            positions = Graph.ApplyForces(positions, graph, 500);
-            File.WriteAllText("project.gv", Graph.Dotify(positions, graph));
+            positions = Graph.ApplyForces(positions, graph, 10);
+            File.WriteAllText("project.gv", Graph.Dotify(positions, graph, names));
         }
 
         public static void WriteSentence(IList<Spruce.Symbol> sentence)

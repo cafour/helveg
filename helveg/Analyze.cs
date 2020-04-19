@@ -8,13 +8,13 @@ using Microsoft.CodeAnalysis.MSBuild;
 
 namespace Helveg
 {
-    public static class Analyse
+    public static class Analyze
     {
         public const int InheritanceWeight = 100;
         public const int CompositionWeight = 10;
         public const int ReferenceWeight = 1;
 
-        public static float[,] ConstructGraph(string projectPath)
+        public static (string[] names, float[,] graph) ConstructGraph(string projectPath)
         {
             var workspace = MSBuildWorkspace.Create();
             var project = workspace.OpenProjectAsync(projectPath).GetAwaiter().GetResult();
@@ -25,13 +25,14 @@ namespace Helveg
             Console.WriteLine($"Total MSBuild Diagnostics: {workspace.Diagnostics.Count}");
             if (!workspace.Diagnostics.IsEmpty)
             {
-                return new float[0, 0];
+                return (new string[0], new float[0, 0]);
             }
 
             var compilation = project.GetCompilationAsync().GetAwaiter().GetResult();
             if (compilation is null)
             {
-                return new float[0, 0];
+                return (new string[0], new float[0, 0]);
+
             }
 
             var weights = new Dictionary<(string from, string to), int>();
@@ -92,19 +93,24 @@ namespace Helveg
                     stack.Push(subnamespace);
                 }
             }
-            var names = weights.Keys.SelectMany(k => new [] {k.from, k.to}).OrderBy(k => k).ToList();
-            var matrix = new float[names.Count, names.Count];
-            for (int f = 0; f < names.Count; ++f)
+            var names = weights.Keys.SelectMany(k => new [] {k.from, k.to}).Distinct().OrderBy(k => k).ToArray();
+            var matrix = new float[names.Length, names.Length];
+            for (int f = 0; f < names.Length; ++f)
             {
-                for (int t = 0; t < names.Count; ++t)
+                for (int t = 0; t < names.Length; ++t)
                 {
+                    if (f == t)
+                    {
+                        continue;
+                    }
+
                     if (weights.TryGetValue((names[f], names[t]), out var weight))
                     {
                         matrix[f, t] = weight;
                     }
                 }
             }
-            return matrix;
+            return (names, matrix);
         }
     }
 }
