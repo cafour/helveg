@@ -7,52 +7,52 @@ namespace Helveg
 {
     public static class Graph
     {
-        public const float RepulsionWeight = 3.6f;
+        public const float RepulsionWeight = 0.1f;
         public const float MinChange = 0.1f;
+        public const float Centripetal = 0.1f;
+        public const float MaxForcePerStep = 1f;
 
-        public static Vector2[] ApplyForces(Vector2[] positions, float[,] weights, int maxIterations)
+        public static void ApplyForces(Vector2[] positions, float[,] weights, int maxIterations)
         {
-            if (positions.Length != weights.GetLength(0)
-                || positions.Length != weights.GetLength(1))
+            int nodeCount = positions.Length;
+            if (nodeCount != weights.GetLength(0)
+                || nodeCount != weights.GetLength(1))
             {
                 throw new ArgumentException("The lengths of arguments do not match.");
             }
 
-            Vector2[] buffer = new Vector2[positions.Length];
-            positions.CopyTo(buffer, 0);
-            bool hasChanged = true;
-
-            int nodeCount = positions.Length;
-            int index = 0;
-            for (; index < maxIterations && hasChanged; ++index)
+            Vector2[] forces = new Vector2[nodeCount];
+            for (int index = 0; index < maxIterations; ++index)
             {
-                hasChanged = false;
-                Vector2[] input = (index % 2) == 1 ? buffer : positions;
-                Vector2[] result = (index % 2) == 0 ? buffer : positions;
-                Parallel.For(0, nodeCount, from => {
+                for (int from = 0; from < nodeCount; ++from)
+                {
                     Vector2 sumForce = Vector2.Zero;
                     for (int to = 0; to < nodeCount; ++to)
                     {
-                        float weight = weights[from, to];
-                        if (weight == 0)
+                        if (from == to)
                         {
                             continue;
                         }
 
-                        var direction = input[to] - input[from];
+                        var direction = positions[to] - positions[from];
                         var unit = direction / direction.Length();
-                        sumForce += unit * weight / direction.LengthSquared();
-                        sumForce -= unit * RepulsionWeight / direction.LengthSquared();
+                        float weight = weights[from, to] + weights[to, from];
+                        if (weight < 1)
+                        {
+                            sumForce -= 1f * unit / direction.LengthSquared();
+                        }
+                        else
+                        {
+                            sumForce += 2 * unit * MathF.Log(direction.Length());
+                        }
                     }
-                    if (sumForce.Length() > MinChange)
-                    {
-                        result[from] += sumForce;
-                        hasChanged = true;
-                    }
-                });
+                    forces[from] = sumForce * 0.1f;
+                }
+                for (int i = 0; i < nodeCount; ++i)
+                {
+                    positions[i] += forces[i];
+                }
             }
-
-            return (index % 2) == 0 ? buffer : positions;
         }
 
         public static string Dotify(Vector2[] positions, float[,] weights, string[] labels)

@@ -71,7 +71,7 @@ namespace Helveg
         {
             var random = new Random(42);
             var positions = new Vector2[42];
-            var weights = new float[42,42];
+            var weights = new float[42, 42];
             var labels = new string[42];
             for (int i = 0; i < 42; ++i)
             {
@@ -80,16 +80,37 @@ namespace Helveg
                 positions[i] = 10 * new Vector2(MathF.Cos(angle), MathF.Sin(angle));
                 for (int j = 0; j < 42; ++j)
                 {
-                    if (i == j) {
+                    if (i == j)
+                    {
                         continue;
                     }
                     var weight = random.Next(0, 42);
-                    weights[i,j] = weight < 32 ? 0 : (weight - 32f) * 2;
+                    weights[i, j] = weight < 32 ? 0 : (weight - 32f) * 2;
                 }
             }
 
-            positions = Graph.ApplyForces(positions, weights, 10000);
+            Graph.ApplyForces(positions, weights, 10000);
             File.WriteAllText("test.gv", Graph.Dotify(positions, weights, labels));
+        }
+
+        public static void HelloCircle()
+        {
+            var positions = new Vector2[10];
+            var weights = new float[10, 10];
+            var labels = new string[10];
+            for (int i = 0; i < 10; ++i)
+            {
+                labels[i] = i.ToString();
+                var angle = 2f * MathF.PI / 10f * i;
+                positions[i] = 100 * new Vector2(MathF.Cos(angle), MathF.Sin(angle));
+                weights[i, (i + 1) % 10] = 1;
+                weights[i, (i + 9) % 10] = 1;
+            }
+            for (int i = 0; i < 10; ++i)
+            {
+                Graph.ApplyForces(positions, weights, 100);
+                File.WriteAllText($"circle_{i}.gv", Graph.Dotify(positions, weights, labels));
+            }
         }
 
         public static (string[] names, float[,] graph) AnalyzeProject(string projectPath)
@@ -114,10 +135,13 @@ namespace Helveg
             for (int i = 0; i < graph.GetLength(0); ++i)
             {
                 var angle = 2 * MathF.PI / graph.GetLength(0) * i;
-                positions[i] = new Vector2(MathF.Cos(angle), MathF.Sin(angle));
+                positions[i] = names.Length * new Vector2(MathF.Cos(angle), MathF.Sin(angle));
             }
-            positions = Graph.ApplyForces(positions, graph, 10);
-            File.WriteAllText("project.gv", Graph.Dotify(positions, graph, names));
+            for (int i = 0; i < 10; ++i)
+            {
+                Graph.ApplyForces(positions, graph, 1000);
+                File.WriteAllText($"project_{i}.gv", Graph.Dotify(positions, graph, names));
+            }
         }
 
         public static void WriteSentence(IList<Spruce.Symbol> sentence)
@@ -144,7 +168,8 @@ namespace Helveg
 
         public static void Main(string[] args)
         {
-            HelloProject(args[0]);
+            // HelloProject(args[0]);
+            HelloCircle();
             // HelloGraph();
             // var sentence = Spruce.Rewrite(new[]
             //     {
