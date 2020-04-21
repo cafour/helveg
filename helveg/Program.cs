@@ -143,7 +143,7 @@ namespace Helveg
             for (int i = 0; i < 10; ++i)
             {
                 File.WriteAllText($"project_{i:00}.gv", Graph.Dotify(positions, graph, names));
-                Graph.ApplyForces(positions, graph, 1000);
+                Graph.ApplyForces(positions, graph, 10);
             }
             File.WriteAllText($"project_10.gv", Graph.Dotify(positions, graph, names));
         }
