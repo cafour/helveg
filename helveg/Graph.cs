@@ -34,16 +34,17 @@ namespace Helveg
                             continue;
                         }
 
-                        // https://www.desmos.com/calculator/7ngbnfmcic
+                        // linear: https://www.desmos.com/calculator/7ngbnfmcic
+                        // logarithmic: https://www.desmos.com/calculator/4i201dkpqm
                         const float diameter = 2f;
                         const float weightValue = 1f;
                         var direction = positions[to] - positions[from];
                         var length = direction.Length();
                         var unit = direction / length;
-                        float weight = weights[from, to] + weights[to, from] > 0 ? weightValue : 0f;
+                        var weight = weights[from, to] + weights[to, from] > 0 ? weightValue : 0f;
 
-                        sumForce += weight * direction;
-                        sumForce -= Math.Max(0f, -(length * length) + diameter * diameter + weight * diameter) * unit;
+                        sumForce += weight * unit * MathF.Log2(length + 1);
+                        sumForce -= Math.Max(0f, -(length * length) + diameter * diameter + weight * MathF.Log2(diameter + 1)) * unit;
 
                         var centerDistance = positions[from].Length();
                         sumForce += -0.001f * positions[from] / centerDistance * MathF.Log2(centerDistance + 1);
