@@ -138,12 +138,12 @@ namespace Helveg
             for (int i = 0; i < graph.GetLength(0); ++i)
             {
                 var angle = 2 * MathF.PI / graph.GetLength(0) * i;
-                positions[i] = MathF.Log2(graph.GetLength(0)) * new Vector2(MathF.Cos(angle), MathF.Sin(angle));
+                positions[i] = graph.GetLength(0) * new Vector2(MathF.Cos(angle), MathF.Sin(angle));
             }
             for (int i = 0; i < 10; ++i)
             {
                 File.WriteAllText($"project_{i:00}.gv", Graph.Dotify(positions, graph, names));
-                Graph.ApplyForces(positions, graph, 100);
+                Graph.ApplyForces(positions, graph, 1000);
             }
             File.WriteAllText($"project_10.gv", Graph.Dotify(positions, graph, names));
         }

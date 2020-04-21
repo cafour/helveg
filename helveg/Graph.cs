@@ -34,23 +34,39 @@ namespace Helveg
                             continue;
                         }
 
+                        // https://www.desmos.com/calculator/7ngbnfmcic
+                        const float diameter = 2f;
+                        const float weightValue = 1f;
                         var direction = positions[to] - positions[from];
                         var length = direction.Length();
                         var unit = direction / length;
-                        // float weight = weights[from, to] + weights[to, from];
-                        // var attraction = 2 * unit * MathF.Log2(length);
-
-                        if (length < 2f)
-                        {
-                            // radius
-                            sumForce += -unit;
-                        }
+                        float weight = weights[from, to] + weights[to, from] > 0 ? weightValue : 0f;
                         // if (weight > 0)
                         // {
-                        //     sumForce += ;
+
                         // }
+                        // else
+                        // {
+                            sumForce += weight * direction;
+                            sumForce -= Math.Max(0f, -(length * length) + diameter * diameter + weight * diameter) * unit;
+                        // }
+                        // // var attraction = 2 * unit * MathF.Log2(length);
+
+                        // if (length < 0)
+                        // {
+                        //     // radius
+                        //     sumForce += unit * length;
+                        // }
+                        // else if (weight > 0)
+                        // {
+                        //     sumForce += 2 * unit * MathF.Log2(length);
+                        // }
+                        // // if (weight > 0)
+                        // // {
+                        // //     sumForce += ;
+                        // // }
                         var centerDistance = positions[from].Length();
-                        sumForce += -0.00001f * positions[from] / centerDistance * MathF.Log2(centerDistance + 1);
+                        sumForce += -0.001f * positions[from] / centerDistance * MathF.Log2(centerDistance + 1);
                         // if (weight < 1)
                         // {
                         //     sumForce -= unit / (length * length);
