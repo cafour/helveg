@@ -41,40 +41,12 @@ namespace Helveg
                         var length = direction.Length();
                         var unit = direction / length;
                         float weight = weights[from, to] + weights[to, from] > 0 ? weightValue : 0f;
-                        // if (weight > 0)
-                        // {
 
-                        // }
-                        // else
-                        // {
-                            sumForce += weight * direction;
-                            sumForce -= Math.Max(0f, -(length * length) + diameter * diameter + weight * diameter) * unit;
-                        // }
-                        // // var attraction = 2 * unit * MathF.Log2(length);
+                        sumForce += weight * direction;
+                        sumForce -= Math.Max(0f, -(length * length) + diameter * diameter + weight * diameter) * unit;
 
-                        // if (length < 0)
-                        // {
-                        //     // radius
-                        //     sumForce += unit * length;
-                        // }
-                        // else if (weight > 0)
-                        // {
-                        //     sumForce += 2 * unit * MathF.Log2(length);
-                        // }
-                        // // if (weight > 0)
-                        // // {
-                        // //     sumForce += ;
-                        // // }
                         var centerDistance = positions[from].Length();
                         sumForce += -0.001f * positions[from] / centerDistance * MathF.Log2(centerDistance + 1);
-                        // if (weight < 1)
-                        // {
-                        //     sumForce -= unit / (length * length);
-                        // }
-                        // else
-                        // {
-                        //     sumForce += 2 * unit * MathF.Log(length);
-                        // }
                     }
                     forces[from] = sumForce * 0.1f;
                 }
