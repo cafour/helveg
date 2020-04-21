@@ -95,9 +95,9 @@ namespace Helveg
 
         public static void HelloCircle()
         {
-            var positions = new Vector2[10];
-            var weights = new float[10, 10];
-            var labels = new string[10];
+            var positions = new Vector2[11];
+            var weights = new float[11, 11];
+            var labels = new string[11];
             for (int i = 0; i < 10; ++i)
             {
                 labels[i] = i.ToString();
@@ -106,6 +106,9 @@ namespace Helveg
                 weights[i, (i + 1) % 10] = 1;
                 weights[i, (i + 9) % 10] = 1;
             }
+            positions[10] = new Vector2(128, 128);
+            labels[10] = "fuck";
+            weights[10, 0] = 2;
             for (int i = 0; i < 10; ++i)
             {
                 Graph.ApplyForces(positions, weights, 100);
@@ -135,13 +138,14 @@ namespace Helveg
             for (int i = 0; i < graph.GetLength(0); ++i)
             {
                 var angle = 2 * MathF.PI / graph.GetLength(0) * i;
-                positions[i] = names.Length * new Vector2(MathF.Cos(angle), MathF.Sin(angle));
+                positions[i] = MathF.Log2(graph.GetLength(0)) * new Vector2(MathF.Cos(angle), MathF.Sin(angle));
             }
             for (int i = 0; i < 10; ++i)
             {
-                Graph.ApplyForces(positions, graph, 1000);
-                File.WriteAllText($"project_{i}.gv", Graph.Dotify(positions, graph, names));
+                File.WriteAllText($"project_{i:00}.gv", Graph.Dotify(positions, graph, names));
+                Graph.ApplyForces(positions, graph, 100);
             }
+            File.WriteAllText($"project_10.gv", Graph.Dotify(positions, graph, names));
         }
 
         public static void WriteSentence(IList<Spruce.Symbol> sentence)
@@ -168,8 +172,8 @@ namespace Helveg
 
         public static void Main(string[] args)
         {
-            // HelloProject(args[0]);
-            HelloCircle();
+            HelloProject(args[0]);
+            // HelloCircle();
             // HelloGraph();
             // var sentence = Spruce.Rewrite(new[]
             //     {

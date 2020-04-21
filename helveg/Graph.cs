@@ -35,16 +35,30 @@ namespace Helveg
                         }
 
                         var direction = positions[to] - positions[from];
-                        var unit = direction / direction.Length();
-                        float weight = weights[from, to] + weights[to, from];
-                        if (weight < 1)
+                        var length = direction.Length();
+                        var unit = direction / length;
+                        // float weight = weights[from, to] + weights[to, from];
+                        // var attraction = 2 * unit * MathF.Log2(length);
+
+                        if (length < 2f)
                         {
-                            sumForce -= 1f * unit / direction.LengthSquared();
+                            // radius
+                            sumForce += -unit;
                         }
-                        else
-                        {
-                            sumForce += 2 * unit * MathF.Log(direction.Length());
-                        }
+                        // if (weight > 0)
+                        // {
+                        //     sumForce += ;
+                        // }
+                        var centerDistance = positions[from].Length();
+                        sumForce += -0.00001f * positions[from] / centerDistance * MathF.Log2(centerDistance + 1);
+                        // if (weight < 1)
+                        // {
+                        //     sumForce -= unit / (length * length);
+                        // }
+                        // else
+                        // {
+                        //     sumForce += 2 * unit * MathF.Log(length);
+                        // }
                     }
                     forces[from] = sumForce * 0.1f;
                 }
@@ -59,10 +73,13 @@ namespace Helveg
         {
             var sb = new StringBuilder();
             sb.AppendLine("digraph test {");
-            sb.AppendLine("splines=\"line\";");
+            sb.AppendLine("splines=\"line\"");
+            sb.AppendLine("scale=72");
+            sb.AppendLine("size=36");
+            sb.AppendLine("node[shape=circle fixedsize=true width=2]");
             for (int i = 0; i < positions.Length; ++i)
             {
-                sb.AppendLine($"{i} [pos=\"{positions[i].X},{positions[i].Y}!\",label=\"{labels[i]}\"]");
+                sb.AppendLine($"{i} [pos=\"{positions[i].X},{positions[i].Y}!\" label=\"{labels[i]}\"]");
                 for (int j = 0; j < positions.Length; ++j)
                 {
                     if (weights[i, j] != 0) {
