@@ -93,7 +93,8 @@ namespace Helveg
             File.WriteAllText($"{name}_00.gv", Graph.Dotify(positions, graph, labels));
             for (int i = 0; i < outer; ++i)
             {
-                Graph.ApplyForces(positions, graph, inner);
+                // Graph.ApplyForces(positions, graph, inner);
+                Graph.Eades(positions, graph, inner);
                 File.WriteAllText($"{name}_{i + 1:00}.gv", Graph.Dotify(positions, graph, labels));
             }
         }
@@ -121,7 +122,7 @@ namespace Helveg
                 {0, 0, 0, 0},
                 {0, 0, 1, 0}
             };
-            DebugGraphForces("graph", labels, positions, weights, 10, 100);
+            DebugGraphForces("graph", labels, positions, weights, 10, 1000);
         }
 
         public static void HelloProject(string projectPath)
@@ -133,7 +134,7 @@ namespace Helveg
                 var angle = 2 * MathF.PI / graph.GetLength(0) * i;
                 positions[i] = graph.GetLength(0) * new Vector2(MathF.Cos(angle), MathF.Sin(angle));
             }
-            DebugGraphForces("project", names, positions, graph);
+            DebugGraphForces("project", names, positions, graph, 10, 1000);
         }
 
         public static void WriteSentence(IList<Spruce.Symbol> sentence)
@@ -160,8 +161,8 @@ namespace Helveg
 
         public static void Main(string[] args)
         {
-            // HelloProject(args[0]);
-            HelloDebugGraph();
+            HelloProject(args[0]);
+            // HelloDebugGraph();
             // var sentence = Spruce.Rewrite(new[]
             //     {
             //         new Spruce.Symbol(Spruce.Kind.Canopy)

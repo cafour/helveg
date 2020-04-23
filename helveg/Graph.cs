@@ -89,7 +89,11 @@ namespace Helveg
                         var length = direction.Length();
                         var unit = direction / length;
                         var relevant = Vector2.Dot(unit, attraction[from]);
-                        repulsion[from] += unit * Math.Min(0, length - diameter - relevant);
+                        var factor = MathF.Max(0f, -(length * length) + diameter * diameter + relevant);
+                        repulsion[from] += -factor * unit;
+                        // repulsion[from] += unit * (length - diameter);
+                        // repulsion[from] += unit * Math.Min(0, length - diameter - relevant);
+                        // repulsion[from] += unit * Math.Clamp(length - diameter - relevant, -diameter, 0f);
                     }
                 }
                 for (int i = 0; i < nodeCount; ++i)
@@ -106,6 +110,44 @@ namespace Helveg
                 var rep = $"{repulsion[i]:0.000}";
                 stringWriter.WriteLine($"{i,3}: pos={pos,-20},att={att,-20},rep={rep,-20}");
             }
+        }
+
+    
+        public static Vector2[] Eades(Vector2[] positions, float[,] weights, int maxIterations)
+        {
+            int nodeCount = positions.Length;
+            if (nodeCount != weights.GetLength(0)
+                || nodeCount != weights.GetLength(1))
+            {
+                throw new ArgumentException("The lengths of arguments do not match.");
+            }
+
+            Vector2[] forces = new Vector2[nodeCount];
+            for (int index = 0; index < maxIterations; ++index)
+            {
+                for (int from = 0; from < nodeCount; ++from)
+                {
+                    var centerDistance = positions[from].Length();
+                    forces[from] = -0.5f * positions[from] / centerDistance * MathF.Log2(centerDistance + 1);
+                    for (int to = from + 1; to < nodeCount; ++to)
+                    {
+                        var direction = positions[to] - positions[from];
+                        var length = direction.Length();
+                        var unit = direction / length;
+                        var force = weights[from, to] + weights[to, from] > 0f
+                            ? 2f * MathF.Log2(length)
+                            : -1f / (length * length);
+                        force = Math.Clamp(force, -nodeCount, nodeCount);
+                        forces[from] += force * unit;
+                        forces[to] -= force * unit;
+                    }
+                }
+                for (int i = 0; i < nodeCount; ++i)
+                {
+                    positions[i] += 0.1f * forces[i];
+                }
+            }
+            return forces;
         }
 
         public static string Dotify(Vector2[] positions, float[,] weights, string[] labels)
