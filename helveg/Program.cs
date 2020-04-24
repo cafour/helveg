@@ -90,12 +90,12 @@ namespace Helveg
             int outer = 10,
             int inner = 100)
         {
-            File.WriteAllText($"{name}_00.gv", Graph.Dotify(positions, graph, labels));
+            File.WriteAllText($"{name}_00.gv", Graph.ToGraphviz(positions, graph, labels));
             for (int i = 0; i < outer; ++i)
             {
                 // Graph.ApplyForces(positions, graph, inner);
                 Graph.Eades(positions, graph, inner);
-                File.WriteAllText($"{name}_{i + 1:00}.gv", Graph.Dotify(positions, graph, labels));
+                File.WriteAllText($"{name}_{i + 1:00}.gv", Graph.ToGraphviz(positions, graph, labels));
             }
         }
 

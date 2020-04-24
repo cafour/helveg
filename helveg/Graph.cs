@@ -150,7 +150,7 @@ namespace Helveg
             return forces;
         }
 
-        public static string Dotify(Vector2[] positions, float[,] weights, string[] labels)
+        public static string ToGraphviz(Vector2[] positions, float[,] weights, string[] labels)
         {
             var sb = new StringBuilder();
             sb.AppendLine("digraph test {");
