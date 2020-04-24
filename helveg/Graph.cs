@@ -160,7 +160,7 @@ namespace Helveg
             sb.AppendLine("node[shape=circle fixedsize=true width=2]");
             for (int i = 0; i < positions.Length; ++i)
             {
-                sb.AppendLine($"{i} [pos=\"{positions[i].X},{positions[i].Y}!\" label=\"{labels[i]}\"]");
+                sb.AppendLine($"{i} [pos=\"{positions[i].X:0.0000000},{positions[i].Y:0.0000000}!\" label=\"{labels[i]}\"]");
                 for (int j = 0; j < positions.Length; ++j)
                 {
                     if (weights[i, j] != 0)
