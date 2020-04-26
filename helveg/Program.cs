@@ -7,6 +7,7 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Threading;
 using Microsoft.Build.Locator;
 
 namespace Helveg
@@ -94,7 +95,7 @@ namespace Helveg
             for (int i = 0; i < outer; ++i)
             {
                 // Graph.ApplyForces(positions, graph, inner);
-                Graph.Eades(positions, graph, inner);
+                Graph.FruchtermanReingold(positions, graph, inner);
                 File.WriteAllText($"{name}_{i + 1:00}.gv", Graph.ToGraphviz(positions, graph, labels));
             }
         }
@@ -134,7 +135,7 @@ namespace Helveg
                 var angle = 2 * MathF.PI / graph.GetLength(0) * i;
                 positions[i] = graph.GetLength(0) * new Vector2(MathF.Cos(angle), MathF.Sin(angle));
             }
-            DebugGraphForces("project", names, positions, graph, 10, 1000);
+            DebugGraphForces("project", names, positions, graph, 1, 10000);
         }
 
         public static void WriteSentence(IList<Spruce.Symbol> sentence)

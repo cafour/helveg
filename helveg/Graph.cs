@@ -4,6 +4,7 @@ using System.IO;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace Helveg
 {
@@ -112,7 +113,7 @@ namespace Helveg
             }
         }
 
-    
+
         public static Vector2[] Eades(Vector2[] positions, float[,] weights, int maxIterations)
         {
             int nodeCount = positions.Length;
@@ -148,6 +149,74 @@ namespace Helveg
                 }
             }
             return forces;
+        }
+
+        public static Vector2[] FruchtermanReingold(Vector2[] positions, float[,] weights, int maxIterations)
+        {
+            int nodeCount = positions.Length;
+            if (nodeCount != weights.GetLength(0)
+                || nodeCount != weights.GetLength(1))
+            {
+                throw new ArgumentException("The lengths of arguments do not match.");
+            }
+
+            float width = nodeCount * 2;
+            float height = nodeCount * 2;
+            var area = width * height;
+            var k = MathF.Sqrt(area / nodeCount);
+            var maxTemperature = width / 10f;
+            var temperature = maxTemperature;
+
+            Vector2[] displacement = new Vector2[nodeCount];
+            for (int index = 0; index < maxIterations; ++index)
+            {
+                // calculate repulsive forces
+                for (int from = 0; from < nodeCount; ++from)
+                {
+                    displacement[from] = Vector2.Zero;
+                    for (int to = 0; to < nodeCount; ++to)
+                    {
+                        if (from == to)
+                        {
+                            continue;
+                        }
+
+                        var direction = positions[from] - positions[to];
+                        var length = direction.Length();
+                        var unit = direction / length;
+                        var force = k * k / length;
+                        displacement[from] += force * unit;
+                    }
+                }
+
+                // calculate attractive forces
+                for (int from = 0; from < nodeCount; ++from)
+                {
+                    for (int to = from + 1; to < nodeCount; ++to)
+                    {
+                        if (weights[from, to] + weights[to, from] > 0)
+                        {
+                            var direction = positions[from] - positions[to];
+                            var length = direction.Length();
+                            var unit = direction / length;
+                            var force = length * length / k;
+                            displacement[from] -= unit * force;
+                            displacement[to] += unit * force;
+                        }
+                    }
+                }
+
+                // limit max displacement to temperature 
+                for (int i = 0; i < nodeCount; ++i)
+                {
+                    var length = displacement[i].Length();
+                    positions[i] += displacement[i] / length * MathF.Min(length, temperature);
+                    positions[i].X = MathF.Min(width / 2f, MathF.Max(-width / 2f, positions[i].X));
+                    positions[i].Y = MathF.Min(height / 2f, MathF.Max(-height / 2f, positions[i].Y));
+                }
+                temperature = maxTemperature / (index + 2);
+            }
+            return displacement;
         }
 
         public static string ToGraphviz(Vector2[] positions, float[,] weights, string[] labels)
