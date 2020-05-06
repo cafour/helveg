@@ -133,9 +133,9 @@ namespace Helveg
             for (int i = 0; i < graph.GetLength(0); ++i)
             {
                 var angle = 2 * MathF.PI / graph.GetLength(0) * i;
-                positions[i] = graph.GetLength(0) * new Vector2(MathF.Cos(angle), MathF.Sin(angle));
+                positions[i] = 64f * new Vector2(MathF.Cos(angle), MathF.Sin(angle));
             }
-            DebugGraphForces("project", names, positions, graph, 1, 10000);
+            DebugGraphForces("project", names, positions, graph, 1, 1000);
         }
 
         public static void WriteSentence(IList<Spruce.Symbol> sentence)
@@ -162,23 +162,23 @@ namespace Helveg
 
         public static void Main(string[] args)
         {
-            HelloProject(args[0]);
+            // HelloProject(args[0]);
             // HelloDebugGraph();
-            // var sentence = Spruce.Rewrite(new[]
-            //     {
-            //         new Spruce.Symbol(Spruce.Kind.Canopy)
-            //     },
-            //     seed: 42,
-            //     branchCount: 12,
-            //     maxBranching: 6,
-            //     minBranching: 3,
-            //     initialBranching: 4,
-            //     branchingDiff: 2);
-            // var spruceMesh = Spruce.GenerateMesh(sentence);
-            // WriteSentence(sentence);
-            // Console.WriteLine($"Vertices length: {spruceMesh.Vertices.Length}");
-            // var mesh = HelloMesh(spruceMesh);
-            // Console.WriteLine($"Hello's return value: {mesh}");
+            var sentence = Spruce.Rewrite(new[]
+                {
+                    new Spruce.Symbol(Spruce.Kind.Canopy)
+                },
+                seed: 42,
+                branchCount: 12,
+                maxBranching: 6,
+                minBranching: 3,
+                initialBranching: 4,
+                branchingDiff: 2);
+            var spruceMesh = Spruce.GenerateMesh(sentence);
+            WriteSentence(sentence);
+            Console.WriteLine($"Vertices length: {spruceMesh.Vertices.Length}");
+            var mesh = HelloMesh(spruceMesh);
+            Console.WriteLine($"Hello's return value: {mesh}");
         }
     }
 }

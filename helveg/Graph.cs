@@ -160,10 +160,10 @@ namespace Helveg
                 throw new ArgumentException("The lengths of arguments do not match.");
             }
 
-            float width = nodeCount * 2;
-            float height = nodeCount * 2;
+            float width = 64f;
+            float height = 64f;
             var area = width * height;
-            var k = MathF.Sqrt(area / nodeCount);
+            var k = MathF.Sqrt(area / nodeCount) / 3f;
             var maxTemperature = width / 10f;
             var temperature = maxTemperature;
 
@@ -183,9 +183,12 @@ namespace Helveg
 
                         var direction = positions[from] - positions[to];
                         var length = direction.Length();
-                        var unit = direction / length;
-                        var force = k * k / length;
-                        displacement[from] += force * unit;
+                        if (length > 0)
+                        {
+                            var unit = direction / length;
+                            var force = k * k / length;
+                            displacement[from] += force * unit;
+                        }
                     }
                 }
 
@@ -198,10 +201,13 @@ namespace Helveg
                         {
                             var direction = positions[from] - positions[to];
                             var length = direction.Length();
-                            var unit = direction / length;
-                            var force = length * length / k;
-                            displacement[from] -= unit * force;
-                            displacement[to] += unit * force;
+                            if (length > 0)
+                            {
+                                var unit = direction / length;
+                                var force = length * length / k;
+                                displacement[from] -= unit * force;
+                                displacement[to] += unit * force;
+                            }
                         }
                     }
                 }
