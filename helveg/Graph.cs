@@ -140,6 +140,86 @@ namespace Helveg
             }
         }
 
+        public static void StepForceAtlas2(
+            Vector2[] previousForces,
+            Vector2[] forces,
+            int[] deg,
+            float[] swinging,
+            ref float globalSpeed,
+            Vector2[] positions,
+            float[,] weights,
+            bool preventOverlapping = false)
+        {
+            int nodeCount = positions.Length;
+
+            const float repulsionFactor = 1f;
+            const float overlapRepulsionFactor = 100f;
+            const float gravityFactor = 1f;
+            const float globalSpeedFactor = 0.1f;
+            const float maxSpeedConstant = 10;
+            const float nodeSize = 1f;
+            const float traSwgRatio = 1f;
+
+            for (int i = 0; i < nodeCount; ++i)
+            {
+                var direction = positions[i];
+                var unit = -direction / direction.Length();
+                var force = gravityFactor * (deg[i] + 1);
+                forces[i] = force * unit;
+            }
+
+            for (int from = 0; from < nodeCount; ++from)
+            {
+                for (int to = from + 1; to < nodeCount; ++to)
+                {
+                    var direction = positions[to] - positions[from];
+                    var length = direction.Length();
+                    var unit = length != 0 ? direction / length : Vector2.Zero;
+
+                    if (preventOverlapping)
+                    {
+                        length -= 2 * nodeSize;
+                    }
+
+                    float weight = weights[from, to] + weights[to, from];
+                    var attraction = weight * length;
+                    forces[from] += attraction * unit;
+                    forces[to] -= attraction * unit;
+
+                    float repulsion = 0;
+                    if (length > 0)
+                    {
+                        repulsion = repulsionFactor * (deg[from] + 1) * (deg[to] + 1) / length;
+                    }
+                    else if (length < 0)
+                    {
+                        repulsion = overlapRepulsionFactor * (deg[from] + 1) * (deg[to] + 1);
+                    }
+
+                    forces[from] -= repulsion * unit;
+                    forces[to] += repulsion * unit;
+                }
+            }
+
+            float globalTraction = 0f;
+            float globalSwinging = 0f;
+            for (int i = 0; i < nodeCount; ++i)
+            {
+                swinging[i] = (forces[i] - previousForces[i]).Length();
+                globalSwinging += (deg[i] + 1) * swinging[i];
+                globalTraction += (deg[i] + 1) * (forces[i] + previousForces[i]).Length() / 2f;
+            }
+
+            globalSpeed += MathF.Max(traSwgRatio * globalTraction / globalSwinging - globalSpeed, globalSpeed / 2f);
+
+            for (int i = 0; i < nodeCount; ++i)
+            {
+                float speed = globalSpeedFactor * globalSpeed / (1 + globalSpeed * MathF.Sqrt(swinging[i]));
+                speed = MathF.Max(speed, maxSpeedConstant / forces[i].Length());
+                forces[i] *= speed;
+            }
+        }
+
 
         public static string ToGraphviz(Vector2[] positions, float[,] weights, string[] labels)
         {
