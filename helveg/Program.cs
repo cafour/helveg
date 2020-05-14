@@ -95,7 +95,7 @@ namespace Helveg
             for (int i = 0; i < outer; ++i)
             {
                 // Graph.ApplyForces(positions, graph, inner);
-                Graph.FruchtermanReingold(positions, graph, inner);
+                // Graph.FruchtermanReingold(positions, graph, inner);
                 File.WriteAllText($"{name}_{i + 1:00}.gv", Graph.ToGraphviz(positions, graph, labels));
             }
         }
@@ -128,14 +128,19 @@ namespace Helveg
 
         public static void HelloProject(string projectPath)
         {
-            var (names, graph) = AnalyzeProject(projectPath);
-            var positions = new Vector2[graph.GetLength(0)];
-            for (int i = 0; i < graph.GetLength(0); ++i)
-            {
-                var angle = 2 * MathF.PI / graph.GetLength(0) * i;
-                positions[i] = 64f * new Vector2(MathF.Cos(angle), MathF.Sin(angle));
-            }
-            DebugGraphForces("project", names, positions, graph, 1, 1000);
+            // var (names, graph) = AnalyzeProject(projectPath);
+            // var positions = new Vector2[graph.GetLength(0)];
+            // for (int i = 0; i < graph.GetLength(0); ++i)
+            // {
+            //     var angle = 2 * MathF.PI / graph.GetLength(0) * i;
+            //     positions[i] = 64f * new Vector2(MathF.Cos(angle), MathF.Sin(angle));
+            // }
+            var positions = new Vector2[] { new Vector2(0, 0) };
+            // File.WriteAllText($"forceatlas_00.gv", Graph.ToGraphviz(positions, graph, names));
+            // Graph.RunForceAtlas2(positions, graph, 1000, 1000);
+            // File.WriteAllText($"forceatlas_01.gv", Graph.ToGraphviz(positions, graph, names));
+            var mesh = Graph.ToMesh(positions);
+            HelloMesh(mesh);
         }
 
         public static void WriteSentence(IList<Spruce.Symbol> sentence)
@@ -162,23 +167,23 @@ namespace Helveg
 
         public static void Main(string[] args)
         {
-            // HelloProject(args[0]);
+            HelloProject(args[0]);
             // HelloDebugGraph();
-            var sentence = Spruce.Rewrite(new[]
-                {
-                    new Spruce.Symbol(Spruce.Kind.Canopy)
-                },
-                seed: 42,
-                branchCount: 12,
-                maxBranching: 6,
-                minBranching: 3,
-                initialBranching: 4,
-                branchingDiff: 2);
-            var spruceMesh = Spruce.GenerateMesh(sentence);
-            WriteSentence(sentence);
-            Console.WriteLine($"Vertices length: {spruceMesh.Vertices.Length}");
-            var mesh = HelloMesh(spruceMesh);
-            Console.WriteLine($"Hello's return value: {mesh}");
+            // var sentence = Spruce.Rewrite(new[]
+            //     {
+            //         new Spruce.Symbol(Spruce.Kind.Canopy)
+            //     },
+            //     seed: 42,
+            //     branchCount: 12,
+            //     maxBranching: 6,
+            //     minBranching: 3,
+            //     initialBranching: 4,
+            //     branchingDiff: 2);
+            // var spruceMesh = Spruce.GenerateMesh(sentence);
+            // WriteSentence(sentence);
+            // Console.WriteLine($"Vertices length: {spruceMesh.Vertices.Length}");
+            // var mesh = HelloMesh(spruceMesh);
+            // Console.WriteLine($"Hello's return value: {mesh}");
         }
     }
 }

@@ -5,6 +5,7 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace Helveg
 {
@@ -154,7 +155,7 @@ namespace Helveg
 
             const float repulsionFactor = 1f;
             const float overlapRepulsionFactor = 100f;
-            const float gravityFactor = 1f;
+            const float gravityFactor = 5f;
             const float globalSpeedFactor = 0.1f;
             const float maxSpeedConstant = 10;
             const float nodeSize = 1f;
@@ -163,8 +164,9 @@ namespace Helveg
             for (int i = 0; i < nodeCount; ++i)
             {
                 var direction = positions[i];
+                var length = direction.Length();
                 var unit = -direction / direction.Length();
-                var force = gravityFactor * (deg[i] + 1);
+                var force = gravityFactor * (deg[i] + 1) * length;
                 forces[i] = force * unit;
             }
 
@@ -216,7 +218,49 @@ namespace Helveg
             {
                 float speed = globalSpeedFactor * globalSpeed / (1 + globalSpeed * MathF.Sqrt(swinging[i]));
                 speed = MathF.Max(speed, maxSpeedConstant / forces[i].Length());
-                forces[i] *= speed;
+                positions[i] += forces[i] * speed;
+            }
+        }
+
+        public static void RunForceAtlas2(Vector2[] positions, float[,] weights, int iterationCount, int overlappingIterationCount = 0)
+        {
+            int nodeCount = positions.Length;
+            if (nodeCount != weights.GetLength(0)
+                || nodeCount != weights.GetLength(1))
+            {
+                throw new ArgumentException("The lengths of arguments do not match.");
+            }
+
+            Vector2[] previousForces = new Vector2[nodeCount];
+            Vector2[] forces = new Vector2[nodeCount];
+            int[] deg = new int[nodeCount];
+            for (int from = 0; from < nodeCount; ++from)
+            {
+                for (int to = 0; to < nodeCount; ++to)
+                {
+                    if (weights[from, to] + weights[to, from] > 0)
+                    {
+                        deg[from]++;
+                        deg[to]++;
+                    }
+                }
+            }
+            float[] swinging = new float[nodeCount];
+            float globalSpeed = 1f;
+            for (int index = 0; index < iterationCount; ++index)
+            {
+                StepForceAtlas2(previousForces, forces, deg, swinging, ref globalSpeed, positions, weights, false);
+                Vector2[] tmp = forces;
+                forces = previousForces;
+                previousForces = tmp;
+            }
+
+            for (int index = 0; index < overlappingIterationCount; ++index)
+            {
+                StepForceAtlas2(previousForces, forces, deg, swinging, ref globalSpeed, positions, weights, true);
+                Vector2[] tmp = forces;
+                forces = previousForces;
+                previousForces = tmp;
             }
         }
 
@@ -242,6 +286,57 @@ namespace Helveg
             }
             sb.AppendLine("}");
             return sb.ToString();
+        }
+
+        public static Mesh ToMesh(Vector2[] positions)
+        {
+            var color = new Vector3(0.5f, 0.5f, 0.5f);
+            var colors = new List<Vector3>();
+            var indices = new List<int>();
+            var vertices = new List<Vector3>();
+
+            foreach (var position in positions)
+            {
+                var start = vertices.Count;
+                vertices.Add(new Vector3(position.X, 0f, position.Y));
+                vertices.Add(new Vector3(position.X, 0f, position.Y) + new Vector3(1f, 0f, 0f));
+                vertices.Add(new Vector3(position.X, 0f, position.Y) + new Vector3(0.5f, 0f, -0.866f));
+                vertices.Add(new Vector3(position.X, 0f, position.Y) + new Vector3(-0.5f, 0f, -0.866f));
+                vertices.Add(new Vector3(position.X, 0f, position.Y) + new Vector3(-1f, 0f, 0f));
+                vertices.Add(new Vector3(position.X, 0f, position.Y) + new Vector3(-0.5f, 0f, 0.866f));
+                vertices.Add(new Vector3(position.X, 0f, position.Y) + new Vector3(0.5f, 0f, 0.866f));
+
+                indices.Add(start + 0);
+                indices.Add(start + 1);
+                indices.Add(start + 2);
+
+                indices.Add(start + 0);
+                indices.Add(start + 2);
+                indices.Add(start + 3);
+                
+                indices.Add(start + 0);
+                indices.Add(start + 3);
+                indices.Add(start + 4);
+
+                indices.Add(start + 0);
+                indices.Add(start + 4);
+                indices.Add(start + 5);
+
+                indices.Add(start + 0);
+                indices.Add(start + 5);
+                indices.Add(start + 6);
+
+                indices.Add(start + 0);
+                indices.Add(start + 6);
+                indices.Add(start + 1);
+
+                for (int i = 0; i < 7; ++i)
+                {
+                    colors.Add(color);
+                }
+            }
+
+            return new Mesh(vertices.ToArray(), colors.ToArray(), indices.ToArray());
         }
     }
 }
