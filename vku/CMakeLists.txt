@@ -32,6 +32,7 @@ set(VKU_SOURCES
     triangle.hpp
     mesh_render.hpp
     graph_render.hpp
+    wrapper.hpp
 
     # sources
     base.cpp
