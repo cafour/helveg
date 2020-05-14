@@ -31,6 +31,7 @@ set(VKU_SOURCES
     vki.hpp
     triangle.hpp
     mesh_render.hpp
+    graph_render.hpp
 
     # sources
     base.cpp
@@ -46,7 +47,8 @@ set(VKU_SOURCES
     render_pass.cpp
     vki.cpp
     triangle.cpp
-    mesh_render.cpp)
+    mesh_render.cpp
+    graph_render.cpp)
 
 add_library(${PROJECT_NAME} SHARED ${VKU_SOURCES})
 target_link_libraries(${PROJECT_NAME} PUBLIC volk glfw glm)
