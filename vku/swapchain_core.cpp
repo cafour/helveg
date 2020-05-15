@@ -1,9 +1,9 @@
-#include "swapchain_env.hpp"
+#include "swapchain_core.hpp"
 #include "base.hpp"
 
 #include <vector>
 
-vku::SwapchainEnv::SwapchainEnv(
+vku::SwapchainCore::SwapchainCore(
     VkDevice device,
     VkPhysicalDevice physicalDevice,
     VkSurfaceKHR surface,
@@ -30,7 +30,7 @@ vku::SwapchainEnv::SwapchainEnv(
     }
 }
 
-VkResult vku::SwapchainEnv::acquire(vku::SwapchainFrame *&frame)
+VkResult vku::SwapchainCore::acquire(vku::SwapchainFrame *&frame)
 {
     vku::Semaphore acquireSemaphore = _recycledSemaphores.empty()
         ? vku::Semaphore::basic(_swapchain.device())

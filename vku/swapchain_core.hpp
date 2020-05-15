@@ -18,7 +18,7 @@ struct SwapchainFrame {
     Fence fence;
 };
 
-class SwapchainEnv {
+class SwapchainCore {
 private:
     Swapchain _swapchain;
     std::vector<SwapchainFrame> _frames;
@@ -26,8 +26,8 @@ private:
     VkExtent2D _extent;
 
 public:
-    SwapchainEnv() {}
-    SwapchainEnv(
+    SwapchainCore() {}
+    SwapchainCore(
         VkDevice device,
         VkPhysicalDevice physicalDevice,
         VkSurfaceKHR surface,

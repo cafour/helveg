@@ -22,7 +22,6 @@ set(VKU_SOURCES
     standalone.hpp
     instance_related.hpp
     device_related.hpp
-    swapchain_env.hpp
     app.hpp
     containers.hpp
     pipeline.hpp
@@ -33,6 +32,10 @@ set(VKU_SOURCES
     mesh_render.hpp
     graph_render.hpp
     wrapper.hpp
+    instance_core.hpp
+    display_core.hpp
+    swapchain_core.hpp
+    render_core.hpp
 
     # sources
     base.cpp
@@ -40,7 +43,6 @@ set(VKU_SOURCES
     standalone.cpp
     instance_related.cpp
     device_related.cpp
-    swapchain_env.cpp
     app.cpp
     containers.cpp
     pipeline.cpp
@@ -49,7 +51,11 @@ set(VKU_SOURCES
     vki.cpp
     triangle.cpp
     mesh_render.cpp
-    graph_render.cpp)
+    graph_render.cpp
+    instance_core.cpp
+    display_core.cpp
+    swapchain_core.cpp
+    render_core.cpp)
 
 add_library(${PROJECT_NAME} SHARED ${VKU_SOURCES})
 target_link_libraries(${PROJECT_NAME} PUBLIC volk glfw glm)

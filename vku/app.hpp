@@ -5,7 +5,7 @@
 #include "instance_related.hpp"
 #include "render_pass.hpp"
 #include "standalone.hpp"
-#include "swapchain_env.hpp"
+#include "swapchain_core.hpp"
 #include "window.hpp"
 
 #include <memory>
@@ -25,10 +25,11 @@ private:
     VkPhysicalDevice _physicalDevice;
     vku::Device _device;
     VkQueue _queue;
+
     vku::CommandPool _commandPool;
     VkFormat _depthFormat;
     vku::RenderPass _renderPass;
-    vku::SwapchainEnv _swapchainEnv;
+    vku::SwapchainCore _swapchainEnv;
     vku::Image _depthImage;
     vku::DeviceMemory _depthImageMemory;
     vku::ImageView _depthImageView;
