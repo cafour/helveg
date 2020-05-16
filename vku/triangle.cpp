@@ -56,7 +56,6 @@ void Triangle::recordCommands(VkCommandBuffer commandBuffer, vku::SwapchainFrame
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     renderPassInfo.renderPass = renderPass();
     renderPassInfo.framebuffer = framebuffers()[frame.index];
-    renderPassInfo.renderArea.offset = { 0, 0 };
 
     VkExtent2D extent = swapchainEnv().extent();
     renderPassInfo.renderArea.extent = extent;
@@ -109,7 +108,7 @@ void Triangle::prepare()
         _uboBufferMemories[i] = vku::DeviceMemory::hostCoherentBuffer(physicalDevice(), device(), _uboBuffers[i]);
     }
 
-    auto poolSize = vku::descriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1);
+    auto poolSize = vku::descriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, imageCount);
     _descriptorPool = vku::DescriptorPool::basic(device(), imageCount, &poolSize, 1);
     _descriptorSets = vku::allocateDescriptorSets(device(), _descriptorPool, _setLayout, imageCount);
     for (size_t i = 0; i < imageCount; ++i) {

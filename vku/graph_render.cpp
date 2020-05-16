@@ -20,7 +20,7 @@ static vku::GraphicsPipeline buildPipeline(VkDevice device, VkPipelineLayout pip
     auto vertexInput = vku::vertexInputState(vertexBindings, 1, vertexAttributes, 1);
     createInfo.pVertexInputState = &vertexInput;
 
-    auto inputAssembly = vku::inputAssemblyState(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+    auto inputAssembly = vku::inputAssemblyState(VK_PRIMITIVE_TOPOLOGY_POINT_LIST);
     createInfo.pInputAssemblyState = &inputAssembly;
 
     auto rasterization = vku::rasterizationState(
@@ -153,7 +153,7 @@ void GraphRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::Swapch
 
     VkDeviceSize offsets[] = { 0 };
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, _positionBuffer, offsets);
-    vkCmdDraw(commandBuffer, _graph->count, 1, 0, 0);
+    vkCmdDraw(commandBuffer, _graph->count * 3, 1, 0, 0);
     vkCmdEndRenderPass(commandBuffer);
 
     ENSURE(vkEndCommandBuffer(commandBuffer));
