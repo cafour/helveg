@@ -20,6 +20,41 @@ namespace Helveg
         [DllImport("vku", CallingConvention = CallingConvention.Cdecl)]
         public static unsafe extern int helloMesh(Mesh.Raw mesh);
 
+        [DllImport("vku", CallingConvention = CallingConvention.Cdecl)]
+        public static unsafe extern int createGraphRender(InteropGraph.Raw graph, void** ptr);
+
+        [DllImport("vku", CallingConvention = CallingConvention.Cdecl)]
+        public static unsafe extern int stepGraphRender(void* ptr);
+
+        [DllImport("vku", CallingConvention = CallingConvention.Cdecl)]
+        public static unsafe extern int destroyGraphRender(void* ptr);
+
+        public static unsafe InteropGraph.Raw CreateRawGraph(InteropGraph graph)
+        {
+            var raw = new InteropGraph.Raw
+            {
+                Positions = (Vector2*)Marshal.AllocHGlobal(sizeof(Vector2) * graph.Positions.Length).ToPointer(),
+                Count = graph.Positions.Length
+            };
+            UpdateRawGraph(raw, graph);
+            return raw;
+        }
+
+        public static unsafe void UpdateRawGraph(InteropGraph.Raw raw, InteropGraph graph)
+        {
+            if (graph.Positions.Length != raw.Count)
+            {
+                throw new ArgumentException("The updated graph must have the same amount of positions.");
+            }
+            var positionsSpan = new Span<Vector2>(raw.Positions, graph.Positions.Length);
+            graph.Positions.CopyTo(positionsSpan);
+        }
+
+        public static unsafe void DestroyRawGraph(InteropGraph.Raw raw)
+        {
+            Marshal.FreeHGlobal(new IntPtr(raw.Positions));
+        }
+
         public unsafe static int HelloMesh(Mesh mesh)
         {
             fixed (Vector3* vertices = mesh.Vertices)
@@ -35,6 +70,44 @@ namespace Helveg
                     IndexCount = (int)mesh.Indices.Length
                 });
             }
+        }
+
+        public static unsafe void HelloAnimatedGraph(string projectPath)
+        {
+            var (names, weights) = AnalyzeProject(projectPath);
+            var graph = new InteropGraph(new Vector2[weights.GetLength(0)], Array.Empty<int>());
+            for (int i = 0; i < graph.Positions.Length; ++i)
+            {
+                var angle = 2 * MathF.PI / graph.Positions.Length * i;
+                graph.Positions[i] = 64f * new Vector2(MathF.Cos(angle), MathF.Sin(angle));
+            }
+            fixed (Vector2* positions = graph.Positions)
+            {
+                var raw = new InteropGraph.Raw
+                {
+                    Positions = positions,
+                    Count = graph.Positions.Length
+                };
+                Console.WriteLine(new IntPtr(positions).ToString("x"));
+                void* graphRender = null;
+                createGraphRender(raw, &graphRender);
+                while (stepGraphRender(graphRender) == 0)
+                {
+                }
+                destroyGraphRender(graphRender);
+            }
+            // var raw = CreateRawGraph(graph);
+            // Console.WriteLine(new IntPtr(raw.Positions).ToString("x"));
+            // void *graphRender = null;
+            // createGraphRender(raw, &graphRender);
+            // while (stepGraphRender(graphRender) == 0)
+            // {
+            // }
+            // destroyGraphRender(graphRender);
+            // DestroyRawGraph(raw);
+            // File.WriteAllText($"forceatlas_00.gv", Graph.ToGraphviz(positions, graph, names));
+            // Graph.RunForceAtlas2(positions, graph, 1000, 1000);
+            // File.WriteAllText($"forceatlas_01.gv", Graph.ToGraphviz(positions, graph, names));
         }
 
         public static void HelloCube()
@@ -167,7 +240,8 @@ namespace Helveg
 
         public static void Main(string[] args)
         {
-            HelloProject(args[0]);
+            // HelloProject(args[0]);
+            HelloAnimatedGraph(args[0]);
             // HelloDebugGraph();
             // var sentence = Spruce.Rewrite(new[]
             //     {

@@ -24,7 +24,7 @@ private:
     vku::PipelineLayout _pipelineLayout;
     vku::RenderPass _renderPass;
     vku::GraphicsPipeline _pipeline;
-    Graph *_graph;
+    Graph _graph;
     vku::DescriptorSetLayout _setLayout;
     vku::DescriptorPool _descriptorPool;
     vku::Buffer _positionBuffer;
@@ -35,7 +35,8 @@ private:
     vku::Framebuffer createFramebuffer(vku::SwapchainFrame &frame);
 
 public:
-    GraphRender(int width, int height, Graph *graph);
+    GraphRender(int width, int height, Graph graph);
 
-    void run() { _renderCore.run(); }
+    vku::DisplayCore &displayCore() { return _displayCore; }
+    vku::RenderCore &renderCore() { return _renderCore; }
 };

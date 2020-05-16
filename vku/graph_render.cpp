@@ -70,7 +70,7 @@ static VkPhysicalDeviceFeatures getDeviceFeatures()
 
 static const VkPhysicalDeviceFeatures requiredFeatures = getDeviceFeatures();
 
-GraphRender::GraphRender(int width, int height, Graph *graph)
+GraphRender::GraphRender(int width, int height, Graph graph)
     : _instanceCore("GraphRender", true, true)
     , _displayCore(_instanceCore.instance(), width, height, "vkdev", &requiredFeatures)
     , _swapchainCore(_displayCore.device(), _displayCore.physicalDevice(), _displayCore.surface())
@@ -84,37 +84,21 @@ GraphRender::GraphRender(int width, int height, Graph *graph)
     , _pipeline(buildPipeline(_displayCore.device(), _pipelineLayout, _renderPass))
     , _graph(graph)
 {
-    size_t positionsSize = graph->count * sizeof(glm::vec2);
-    auto stagingBuffer = vku::Buffer::exclusive(
-        _displayCore.device(),
-        positionsSize,
-        VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
-    auto stagingMemory = vku::DeviceMemory::hostCoherentBuffer(
-        _displayCore.physicalDevice(),
-        _displayCore.device(),
-        stagingBuffer);
-    vku::hostDeviceCopy(
-        _displayCore.device(),
-        graph->positions,
-        stagingMemory,
-        positionsSize,
-        0);
-
+    size_t positionsSize = graph.count * sizeof(glm::vec2);
     _positionBuffer = vku::Buffer::exclusive(
         _displayCore.device(),
         positionsSize,
         VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
-    _positionBufferMemory = vku::DeviceMemory::deviceLocalBuffer(
+    _positionBufferMemory = vku::DeviceMemory::hostCoherentBuffer(
         _displayCore.physicalDevice(),
         _displayCore.device(),
         _positionBuffer);
-    vku::deviceDeviceCopy(
+    vku::hostDeviceCopy(
         _displayCore.device(),
-        _renderCore.commandPool(),
-        _displayCore.queue(),
-        stagingBuffer,
-        _positionBuffer,
-        positionsSize);
+        graph.positions,
+        _positionBufferMemory,
+        positionsSize,
+        0);
 }
 
 void GraphRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::SwapchainFrame &frame)
@@ -153,7 +137,7 @@ void GraphRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::Swapch
 
     VkDeviceSize offsets[] = { 0 };
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, _positionBuffer, offsets);
-    vkCmdDraw(commandBuffer, _graph->count * 3, 1, 0, 0);
+    vkCmdDraw(commandBuffer, _graph.count * 3, 1, 0, 0);
     vkCmdEndRenderPass(commandBuffer);
 
     ENSURE(vkEndCommandBuffer(commandBuffer));

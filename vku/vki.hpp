@@ -15,5 +15,11 @@ extern "C" {
 
     EXPORT int helloMesh(MeshRender::Mesh mesh);
 
-    EXPORT int helloGraph(GraphRender::Graph *graph);
+    EXPORT int helloGraph(GraphRender::Graph graph);
+
+    EXPORT int createGraphRender(GraphRender::Graph graph, void **graphRender);
+
+    EXPORT int stepGraphRender(void *ptr);
+
+    EXPORT int destroyGraphRender(void *ptr);
 }

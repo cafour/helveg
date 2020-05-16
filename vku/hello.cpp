@@ -8,5 +8,5 @@ int main()
 
     GraphRender::Graph graph { positions, nullptr, 1 };
 
-    return helloGraph(&graph);
+    return helloGraph(graph);
 }

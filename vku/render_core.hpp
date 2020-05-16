@@ -29,10 +29,6 @@ private:
     std::optional<std::function<void (vku::SwapchainFrame &)>> _onUpdate;
     std::optional<std::function<void (size_t, VkExtent2D)>> _onResize;
 
-    void resize();
-    void step();
-    void update(vku::SwapchainFrame &frame);
-
 public:
     RenderCore(
         vku::DisplayCore &displayCore,
@@ -47,5 +43,7 @@ public:
     vku::CommandBuffers &commandBuffers() { return _commandBuffers; }
 
     void run();
+    void resize();
+    void step();
 };
 }
