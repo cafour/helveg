@@ -14,7 +14,8 @@ static vku::GraphicsPipeline buildPipeline(VkDevice device, VkPipelineLayout pip
         vku::vertexInputAttribute(0, 0, VK_FORMAT_R32G32_SFLOAT, 0)
     };
 
-    VkGraphicsPipelineCreateInfo createInfo;
+    VkGraphicsPipelineCreateInfo createInfo = {};
+    createInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 
     auto vertexInput = vku::vertexInputState(vertexBindings, 1, vertexAttributes, 1);
     createInfo.pVertexInputState = &vertexInput;
@@ -40,7 +41,7 @@ static vku::GraphicsPipeline buildPipeline(VkDevice device, VkPipelineLayout pip
 
     auto vertexShader = vku::ShaderModule::inlined(device, GRAPH_VERT, GRAPH_VERT_LENGTH);
     auto geometryShader = vku::ShaderModule::inlined(device, GRAPH_GEOM, GRAPH_GEOM_LENGTH);
-    auto fragmentShader = vku::ShaderModule::inlined(device, GRAPH_FRAG, MESH_FRAG_LENGTH);
+    auto fragmentShader = vku::ShaderModule::inlined(device, GRAPH_FRAG, GRAPH_FRAG_LENGTH);
 
     VkPipelineShaderStageCreateInfo shaderStages[] = {
         vku::shaderStage(VK_SHADER_STAGE_VERTEX_BIT, vertexShader),
@@ -48,7 +49,7 @@ static vku::GraphicsPipeline buildPipeline(VkDevice device, VkPipelineLayout pip
         vku::shaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, fragmentShader)
     };
     createInfo.pStages = shaderStages;
-    createInfo.stageCount = 2;
+    createInfo.stageCount = 3;
 
     VkDynamicState dynamicStates[] = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
     auto dynamic = vku::dynamicState(dynamicStates, 2);
@@ -60,9 +61,18 @@ static vku::GraphicsPipeline buildPipeline(VkDevice device, VkPipelineLayout pip
     return vku::GraphicsPipeline(device, createInfo);
 }
 
+static VkPhysicalDeviceFeatures getDeviceFeatures()
+{
+    VkPhysicalDeviceFeatures features = {};
+    features.geometryShader = VK_TRUE;
+    return features;
+}
+
+static const VkPhysicalDeviceFeatures requiredFeatures = getDeviceFeatures();
+
 GraphRender::GraphRender(int width, int height, Graph *graph)
     : _instanceCore("GraphRender", true, true)
-    , _displayCore(_instanceCore.instance(), width, height, "GraphRender")
+    , _displayCore(_instanceCore.instance(), width, height, "vkdev", &requiredFeatures)
     , _swapchainCore(_displayCore.device(), _displayCore.physicalDevice(), _displayCore.surface())
     , _renderCore(
           _displayCore,

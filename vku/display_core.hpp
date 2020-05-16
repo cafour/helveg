@@ -31,8 +31,9 @@ public:
         VkInstance instance,
         int width,
         int height,
-        const std::string &name)
-        : DisplayCore(instance, width, height, name, defaultExtensions)
+        const std::string &name,
+        const VkPhysicalDeviceFeatures *features = nullptr)
+        : DisplayCore(instance, width, height, name, defaultExtensions, features)
     { }
 
     DisplayCore(
@@ -40,7 +41,8 @@ public:
         int width,
         int height,
         const std::string &name,
-        const std::vector<const char *> extensions);
+        const std::vector<const char *> extensions,
+        const VkPhysicalDeviceFeatures *features = nullptr);
 
     vku::Window &window() { return _window; }
     VkPhysicalDevice physicalDevice() { return _physicalDevice; }

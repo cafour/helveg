@@ -14,4 +14,6 @@ extern "C" {
     EXPORT int helloTriangle();
 
     EXPORT int helloMesh(MeshRender::Mesh mesh);
+
+    EXPORT int helloGraph(GraphRender::Graph *graph);
 }

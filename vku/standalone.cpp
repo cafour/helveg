@@ -71,7 +71,8 @@ vku::Instance vku::Instance::basic(
 vku::Device vku::Device::basic(
     VkPhysicalDevice physicalDevice,
     uint32_t queueIndex,
-    const std::vector<const char *> *extensions)
+    const std::vector<const char *> *extensions,
+    const VkPhysicalDeviceFeatures *features)
 {
     float queuePriority = 1.0f;
     VkDeviceQueueCreateInfo queueCreateInfo = {};
@@ -80,13 +81,16 @@ vku::Device vku::Device::basic(
     queueCreateInfo.queueCount = 1;
     queueCreateInfo.pQueuePriorities = &queuePriority;
 
-    VkPhysicalDeviceFeatures features = {};
+    VkPhysicalDeviceFeatures fs = {};
+    if (features) {
+        fs = *features;
+    }
 
     VkDeviceCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
     createInfo.pQueueCreateInfos = &queueCreateInfo;
     createInfo.queueCreateInfoCount = 1;
-    createInfo.pEnabledFeatures = &features;
+    createInfo.pEnabledFeatures = &fs;
     if (extensions) {
         createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions->size());
         createInfo.ppEnabledExtensionNames = extensions->data();

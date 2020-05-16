@@ -35,7 +35,7 @@ int helloMesh(MeshRender::Mesh mesh)
 
 int helloGraph(GraphRender::Graph *graph)
 {
-    if (volkInitialize() != VK_SUCCESS) {
+    if (volkInitialize() != VK_SUCCESS || glfwInit() == GLFW_FALSE) {
         return EXIT_FAILURE;
     }
     try {

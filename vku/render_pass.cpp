@@ -38,7 +38,9 @@ vku::RenderPass vku::RenderPass::basic(
     subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
     subpass.colorAttachmentCount = 1;
     subpass.pColorAttachments = &colorReference;
-    subpass.pDepthStencilAttachment = &depthReference;
+    if (depthFormat != VK_FORMAT_UNDEFINED) {
+        subpass.pDepthStencilAttachment = &depthReference;
+    }
 
     VkSubpassDependency dependencies[2] = {};
     dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;

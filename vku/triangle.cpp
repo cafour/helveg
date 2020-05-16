@@ -5,7 +5,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 Triangle::Triangle(int width, int height)
-    : vku::App("Hello, Triangle!", width, height)
+    : vku::App("vkdev", width, height)
 {
     auto uboBinding = vku::descriptorBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT);
     _setLayout = vku::DescriptorSetLayout::basic(device(), &uboBinding, 1);
