@@ -174,39 +174,54 @@ vku::GraphicsPipeline vku::GraphicsPipeline::basic(
     VkFrontFace frontFace,
     bool hasDepthStencil)
 {
-    CreateInfo createInfo;
-    createInfo.vertexInputState = vku::vertexInputState(
+    VkGraphicsPipelineCreateInfo createInfo = {};
+    createInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+
+    auto vertexInputState = vku::vertexInputState(
         vertexBindings,
         vertexBindingCount,
         vertexAttributes,
         vertexAttributeCount);
-    createInfo.inputAssemblyState = vku::inputAssemblyState(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
-    createInfo.rasterizationState = vku::rasterizationState(
+    createInfo.pVertexInputState = &vertexInputState;
+
+    auto inputAssemblyState = vku::inputAssemblyState(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+    createInfo.pInputAssemblyState = &inputAssemblyState;
+
+    auto rasterizationState = vku::rasterizationState(
         VK_POLYGON_MODE_FILL,
         VK_CULL_MODE_BACK_BIT,
         frontFace);
-    createInfo.multisampleState = vku::multisampleState(VK_SAMPLE_COUNT_1_BIT);
+    createInfo.pRasterizationState = &rasterizationState;
+
+    auto multisampleState = vku::multisampleState(VK_SAMPLE_COUNT_1_BIT);
+    createInfo.pMultisampleState = &multisampleState;
 
     auto colorBlendAttachment = vku::colorBlendAttachment(false);
-    createInfo.colorBlendState = vku::colorBlendState(&colorBlendAttachment, 1);
-    createInfo.viewportState = vku::viewportState(nullptr, 1, nullptr, 1);
+    auto colorBlendState = vku::colorBlendState(&colorBlendAttachment, 1);
+    createInfo.pColorBlendState = &colorBlendState;
 
+    auto viewportState = vku::viewportState(nullptr, 1, nullptr, 1);
+    createInfo.pViewportState = &viewportState;
+
+    VkPipelineDepthStencilStateCreateInfo depthStencil;
     if (hasDepthStencil) {
-        createInfo.depthStencilState = vku::depthStencilState(true);
+        depthStencil = vku::depthStencilState(true);
+        createInfo.pDepthStencilState = &depthStencil;
     }
 
     VkPipelineShaderStageCreateInfo shaderStages[] = {
         vku::shaderStage(VK_SHADER_STAGE_VERTEX_BIT, vertexShader),
         vku::shaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, fragmentShader)
     };
-    createInfo.raw.pStages = shaderStages;
-    createInfo.raw.stageCount = 2;
+    createInfo.pStages = shaderStages;
+    createInfo.stageCount = 2;
 
     VkDynamicState dynamicStates[] = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
-    createInfo.dynamicState = vku::dynamicState(dynamicStates, 2);
+    auto dynamicState = vku::dynamicState(dynamicStates, 2);
+    createInfo.pDynamicState = &dynamicState;
 
-    createInfo.raw.layout = pipelineLayout;
-    createInfo.raw.renderPass = renderPass;
-    createInfo.raw.subpass = 0;
+    createInfo.layout = pipelineLayout;
+    createInfo.renderPass = renderPass;
+    createInfo.subpass = 0;
     return vku::GraphicsPipeline(device, createInfo);
 }

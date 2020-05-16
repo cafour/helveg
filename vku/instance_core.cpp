@@ -10,5 +10,5 @@ vku::InstanceCore::InstanceCore(
     bool useGlfw,
     bool debug)
 {
-    _instance = vku::Instance::basic(name, useGlfw, debug, extensions, layers, &_debugMessenger);
+    _instance = vku::Instance::basic(name, useGlfw, debug, &extensions, &layers, &_debugMessenger);
 }

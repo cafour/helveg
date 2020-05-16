@@ -3,14 +3,12 @@
 vku::RenderCore::RenderCore(
     vku::DisplayCore &displayCore,
     vku::SwapchainCore &swapchainCore,
-    VkRenderPass renderPass,
     std::function<vku::Framebuffer(vku::SwapchainFrame &)> createFramebuffer,
     std::function<void(VkCommandBuffer, vku::SwapchainFrame &)> recordCommandBuffer,
     std::optional<std::function<void(vku::SwapchainFrame &)>> onUpdate,
     std::optional<std::function<void(size_t, VkExtent2D)>> onResize)
     : _displayCore(displayCore)
     , _swapchainCore(swapchainCore)
-    , _renderPass(renderPass)
     , _createFramebuffer(createFramebuffer)
     , _recordCommandBuffer(recordCommandBuffer)
     , _onUpdate(onUpdate)

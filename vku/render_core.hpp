@@ -20,7 +20,6 @@ class RenderCore {
 private:
     vku::DisplayCore &_displayCore;
     vku::SwapchainCore &_swapchainCore;
-    VkRenderPass _renderPass;
     vku::CommandPool _commandPool;
     std::vector<vku::Framebuffer> _framebuffers;
     vku::CommandBuffers _commandBuffers;
@@ -38,7 +37,6 @@ public:
     RenderCore(
         vku::DisplayCore &displayCore,
         vku::SwapchainCore &swapchainCore,
-        VkRenderPass renderPass,
         std::function<vku::Framebuffer (vku::SwapchainFrame &)> createFramebuffer,
         std::function<void (VkCommandBuffer, vku::SwapchainFrame &)> recordCommandBuffer,
         std::optional<std::function<void (vku::SwapchainFrame &)>> onUpdate = std::nullopt,

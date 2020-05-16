@@ -2,6 +2,7 @@
 
 #include "triangle.hpp"
 #include "mesh_render.hpp"
+#include "graph_render.hpp"
 
 #if defined _WIN32
     #define EXPORT __declspec(dllexport)

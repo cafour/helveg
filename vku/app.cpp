@@ -99,7 +99,7 @@ void vku::App::step()
 
 void vku::App::resize()
 {
-    _swapchainEnv = vku::SwapchainEnv(
+    _swapchainEnv = vku::SwapchainCore(
         _device,
         _physicalDevice,
         _surface,

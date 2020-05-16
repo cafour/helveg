@@ -62,7 +62,7 @@ public:
     VkPhysicalDevice physicalDevice() { return _physicalDevice; }
     vku::Device &device() { return _device; }
     vku::RenderPass &renderPass() { return _renderPass; }
-    vku::SwapchainEnv &swapchainEnv() { return _swapchainEnv; };
+    vku::SwapchainCore &swapchainEnv() { return _swapchainEnv; };
     vku::CommandPool &commandPool() { return _commandPool; }
     vku::CommandBuffers &commandBuffers() { return _commandBuffers; }
     std::vector<vku::Framebuffer> &framebuffers() { return _framebuffers; }

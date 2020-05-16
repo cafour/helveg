@@ -92,7 +92,8 @@ public:
     GraphicsPipeline(GraphicsPipeline &&other) noexcept = default;
     GraphicsPipeline &operator=(GraphicsPipeline &&other) noexcept = default;
 
-    static GraphicsPipeline basic(VkDevice device,
+    static GraphicsPipeline basic(
+        VkDevice device,
         VkPipelineLayout pipelineLayout,
         VkRenderPass renderPass,
         VkShaderModule vertexShader,
@@ -103,44 +104,5 @@ public:
         size_t vertexAttributeCount = 0,
         VkFrontFace frontFace = VK_FRONT_FACE_CLOCKWISE,
         bool hasDepthStencil = true);
-
-    struct CreateInfo {
-        VkPipelineVertexInputStateCreateInfo vertexInputState = {};
-        VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = {};
-        VkPipelineTessellationStateCreateInfo tessellationState = {};
-        VkPipelineViewportStateCreateInfo viewportState = {};
-        VkPipelineRasterizationStateCreateInfo rasterizationState = {};
-        VkPipelineMultisampleStateCreateInfo multisampleState = {};
-        VkPipelineDepthStencilStateCreateInfo depthStencilState = {};
-        VkPipelineColorBlendStateCreateInfo colorBlendState = {};
-        VkPipelineDynamicStateCreateInfo dynamicState = {};
-
-        VkGraphicsPipelineCreateInfo raw = {};
-
-        CreateInfo()
-        {
-            vertexInputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-            inputAssemblyState.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-            tessellationState.sType = VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO;
-            viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-            rasterizationState.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-            multisampleState.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-            depthStencilState.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-            colorBlendState.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-            dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-            raw.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-            raw.pVertexInputState = &vertexInputState;
-            raw.pInputAssemblyState = &inputAssemblyState;
-            raw.pTessellationState = &tessellationState;
-            raw.pViewportState = &viewportState;
-            raw.pRasterizationState = &rasterizationState;
-            raw.pMultisampleState = &multisampleState;
-            raw.pDepthStencilState = &depthStencilState;
-            raw.pColorBlendState = &colorBlendState;
-            raw.pDynamicState = &dynamicState;
-        }
-
-        operator VkGraphicsPipelineCreateInfo &() { return raw; }
-    };
 };
 }

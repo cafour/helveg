@@ -32,3 +32,19 @@ int helloMesh(MeshRender::Mesh mesh)
 
     return EXIT_SUCCESS;
 }
+
+int helloGraph(GraphRender::Graph *graph)
+{
+    if (volkInitialize() != VK_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+    try {
+        GraphRender app(1280, 720, graph);
+        app.run();
+    } catch (const std::exception& e) {
+        std::cerr << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
+}
