@@ -70,6 +70,7 @@ int createGraphRender(GraphRender::Graph graph, void **ptr)
 int stepGraphRender(void *ptr)
 {
     GraphRender *graphRender = static_cast<GraphRender *>(ptr);
+    graphRender->flushPositions();
     glfwPollEvents();
     graphRender->renderCore().step();
     return glfwWindowShouldClose(graphRender->displayCore().window());

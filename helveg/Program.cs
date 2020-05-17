@@ -91,8 +91,10 @@ namespace Helveg
                 Console.WriteLine(new IntPtr(positions).ToString("x"));
                 void* graphRender = null;
                 createGraphRender(raw, &graphRender);
+                var forces = new Vector2[raw.Count];
                 while (stepGraphRender(graphRender) == 0)
                 {
+                    Graph.StepEades(forces, graph.Positions, weights);
                 }
                 destroyGraphRender(graphRender);
             }

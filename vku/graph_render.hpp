@@ -37,6 +37,7 @@ private:
 public:
     GraphRender(int width, int height, Graph graph);
 
+    void flushPositions();
     vku::DisplayCore &displayCore() { return _displayCore; }
     vku::RenderCore &renderCore() { return _renderCore; }
 };

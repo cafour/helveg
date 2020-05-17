@@ -93,11 +93,16 @@ GraphRender::GraphRender(int width, int height, Graph graph)
         _displayCore.physicalDevice(),
         _displayCore.device(),
         _positionBuffer);
+    flushPositions();
+}
+
+void GraphRender::flushPositions()
+{
     vku::hostDeviceCopy(
         _displayCore.device(),
-        graph.positions,
+        _graph.positions,
         _positionBufferMemory,
-        positionsSize,
+        _graph.count * sizeof(glm::vec2),
         0);
 }
 
