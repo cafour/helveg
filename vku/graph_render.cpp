@@ -137,7 +137,7 @@ void GraphRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::Swapch
 
     VkDeviceSize offsets[] = { 0 };
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, _positionBuffer, offsets);
-    vkCmdDraw(commandBuffer, _graph.count * 3, 1, 0, 0);
+    vkCmdDraw(commandBuffer, _graph.count, 1, 0, 0);
     vkCmdEndRenderPass(commandBuffer);
 
     ENSURE(vkEndCommandBuffer(commandBuffer));

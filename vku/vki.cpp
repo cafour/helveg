@@ -56,7 +56,7 @@ int createGraphRender(GraphRender::Graph graph, void **ptr)
         return EXIT_FAILURE;
     }
     try {
-        auto graphRender = new GraphRender(1280, 720, graph);
+        auto graphRender = new GraphRender(1024, 1024, graph);
         graphRender->renderCore().resize();
         *ptr = graphRender;
     } catch (const std::exception &e) {
@@ -78,6 +78,7 @@ int stepGraphRender(void *ptr)
 int destroyGraphRender(void *ptr)
 {
     GraphRender *graphRender = static_cast<GraphRender *>(ptr);
+    ENSURE(vkDeviceWaitIdle(graphRender->displayCore().device()));
     delete graphRender;
     return EXIT_SUCCESS;
 }
