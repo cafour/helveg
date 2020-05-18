@@ -1,0 +1,162 @@
+using System;
+using System.Numerics;
+
+namespace Helveg
+{
+    public static class Fdg
+    {
+        public const float DefaultGlobalSpeed = 1f;
+        public const float DefaultRepulsionFactor = 1f;
+        public const float DefaultOverlapRepulsionFactor = 100f;
+        public const float DefaultGravityFactor = 5f;
+        public const float DefaultGlobalSpeedFactor = 0.1f;
+        public const float DefaultMaxSpeedConstant = 10;
+        public const float DefaultNodeSize = 1f;
+        public const float DefaultTraSwgRatio = 1f;
+
+        public struct FdgState
+        {
+            public Vector2[] PreviousForces;
+            public Vector2[] Forces;
+            public int[] Degrees;
+            public float[] Swinging;
+            public Vector2[] Positions;
+            public float[] Weights;
+            public bool PreventOverlapping;
+            public float RepulsionFactor;
+            public float GlobalSpeed;
+            public float OverlapRepulsionFactor;
+            public float GravityFactor;
+            public float GlobalSpeedFactor;
+            public float MaxSpeedConstant;
+            public float NodeSize;
+            public float TraSwgRatio;
+
+            public static readonly FdgState Default = new FdgState
+            {
+                RepulsionFactor = DefaultRepulsionFactor,
+                OverlapRepulsionFactor = DefaultOverlapRepulsionFactor,
+                GravityFactor = DefaultGravityFactor,
+                GlobalSpeedFactor = DefaultGlobalSpeedFactor,
+                MaxSpeedConstant = DefaultMaxSpeedConstant,
+                NodeSize = DefaultNodeSize,
+                TraSwgRatio = DefaultTraSwgRatio,
+            };
+
+            public static FdgState Create(float[,] directedWeights)
+            {
+                if (directedWeights.GetLength(0) != directedWeights.GetLength(1))
+                {
+                    throw new ArgumentException("The weights matrix must be a square one.");
+                }
+
+                int nodeCount = directedWeights.GetLength(0);
+                var state = Default;
+                state.PreviousForces = new Vector2[nodeCount];
+                state.Forces = new Vector2[nodeCount];
+                state.Swinging = new float[nodeCount];
+
+                state.Positions = new Vector2[nodeCount];
+                for (int i = 0; i < nodeCount; ++i)
+                {
+                    var angle = 2f * MathF.PI / nodeCount * i;
+                    state.Positions[i] = nodeCount * new Vector2(MathF.Cos(angle), MathF.Sin(angle));
+                }
+
+                state.Degrees = new int[nodeCount];
+                int weightCount = nodeCount * (nodeCount - 1) / 2;
+                state.Weights = new float[weightCount];
+                int current = 0;
+                for (int from = 0; from < nodeCount; ++from)
+                {
+                    for (int to = from + 1; to < nodeCount; ++to)
+                    {
+                        state.Weights[current] = directedWeights[from, to] + directedWeights[to, from];
+                        ++current;
+                        if (state.Weights[current] > 0)
+                        {
+                            state.Degrees[from]++;
+                            state.Degrees[to]++;
+                        }
+                    }
+                }
+                return state;
+            }
+        }
+
+        public static void Step(ref FdgState state)
+        {
+            {
+                Vector2[] tmp = state.Forces;
+                state.Forces = state.PreviousForces;
+                state.PreviousForces = tmp;
+            }
+
+            int nodeCount = state.Positions.Length;
+
+            for (int i = 0; i < nodeCount; ++i)
+            {
+                var direction = state.Positions[i];
+                var length = direction.Length();
+                var unit = -direction / direction.Length();
+                var force = state.GravityFactor * (state.Degrees[i] + 1) * length;
+                state.Forces[i] = force * unit;
+            }
+
+            int current = 0;
+            for (int from = 0; from < nodeCount; ++from)
+            {
+                for (int to = from + 1; to < nodeCount; ++to, ++current)
+                {
+                    var direction = state.Positions[to] - state.Positions[from];
+                    var length = direction.Length();
+                    var unit = length != 0 ? direction / length : Vector2.Zero;
+
+                    if (state.PreventOverlapping)
+                    {
+                        length -= 2 * state.NodeSize;
+                    }
+
+                    var attraction = state.Weights[current] * length;
+                    state.Forces[from] += attraction * unit;
+                    state.Forces[to] -= attraction * unit;
+
+                    float repulsion = 0;
+                    if (length > 0)
+                    {
+                        repulsion = state.RepulsionFactor * (state.Degrees[from] + 1)
+                            * (state.Degrees[to] + 1) / length;
+                    }
+                    else if (length < 0)
+                    {
+                        repulsion = state.OverlapRepulsionFactor * (state.Degrees[from] + 1) * (state.Degrees[to] + 1);
+                    }
+
+                    state.Forces[from] -= repulsion * unit;
+                    state.Forces[to] += repulsion * unit;
+                }
+            }
+
+            float globalTraction = 0f;
+            float globalSwinging = 0f;
+            for (int i = 0; i < nodeCount; ++i)
+            {
+                state.Swinging[i] = (state.Forces[i] - state.PreviousForces[i]).Length();
+                globalSwinging += (state.Degrees[i] + 1) * state.Swinging[i];
+                globalTraction += (state.Degrees[i] + 1) * (state.Forces[i] + state.PreviousForces[i]).Length() / 2f;
+            }
+
+            state.GlobalSpeed += MathF.Max(
+                state.TraSwgRatio * globalTraction / globalSwinging - state.GlobalSpeed,
+                state.GlobalSpeed / 2f);
+
+            for (int i = 0; i < nodeCount; ++i)
+            {
+                float speed = state.GlobalSpeedFactor * state.GlobalSpeed 
+                    / (1 + state.GlobalSpeed * MathF.Sqrt(state.Swinging[i]));
+                speed = MathF.Max(speed, state.MaxSpeedConstant / state.Forces[i].Length());
+                state.Positions[i] += state.Forces[i] * speed;
+            }
+        }
+    }
+}
