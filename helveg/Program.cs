@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.CommandLine;
+using System.CommandLine.Invocation;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -14,105 +16,40 @@ namespace Helveg
 {
     public class Program
     {
-        [DllImport("vku", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int helloTriangle();
-
-        [DllImport("vku", CallingConvention = CallingConvention.Cdecl)]
-        public static unsafe extern int helloMesh(Mesh.Raw mesh);
-
-        [DllImport("vku", CallingConvention = CallingConvention.Cdecl)]
-        public static unsafe extern int createGraphRender(InteropGraph.Raw graph, void** ptr);
-
-        [DllImport("vku", CallingConvention = CallingConvention.Cdecl)]
-        public static unsafe extern int stepGraphRender(void* ptr);
-
-        [DllImport("vku", CallingConvention = CallingConvention.Cdecl)]
-        public static unsafe extern int destroyGraphRender(void* ptr);
-
-        public static unsafe InteropGraph.Raw CreateRawGraph(InteropGraph graph)
+        public enum ProjectRenderKind
         {
-            var raw = new InteropGraph.Raw
+            Vku,
+            Graphviz
+        };
+
+        public static void WriteSentence(IList<Spruce.Symbol> sentence)
+        {
+            var prefix = "";
+            foreach (var symbol in sentence)
             {
-                Positions = (Vector2*)Marshal.AllocHGlobal(sizeof(Vector2) * graph.Positions.Length).ToPointer(),
-                Count = graph.Positions.Length
-            };
-            UpdateRawGraph(raw, graph);
-            return raw;
-        }
-
-        public static unsafe void UpdateRawGraph(InteropGraph.Raw raw, InteropGraph graph)
-        {
-            if (graph.Positions.Length != raw.Count)
-            {
-                throw new ArgumentException("The updated graph must have the same amount of positions.");
-            }
-            var positionsSpan = new Span<Vector2>(raw.Positions, graph.Positions.Length);
-            graph.Positions.CopyTo(positionsSpan);
-        }
-
-        public static unsafe void DestroyRawGraph(InteropGraph.Raw raw)
-        {
-            Marshal.FreeHGlobal(new IntPtr(raw.Positions));
-        }
-
-        public unsafe static int HelloMesh(Mesh mesh)
-        {
-            fixed (Vector3* vertices = mesh.Vertices)
-            fixed (Vector3* colors = mesh.Colors)
-            fixed (int* indices = mesh.Indices)
-            {
-                return helloMesh(new Mesh.Raw
+                if (symbol.Kind == Spruce.Kind.Push)
                 {
-                    Vertices = vertices,
-                    Colors = colors,
-                    Indices = indices,
-                    VertexCount = (int)mesh.Vertices.Length,
-                    IndexCount = (int)mesh.Indices.Length
-                });
-            }
-        }
-
-        public static unsafe void HelloAnimatedGraph(string projectPath)
-        {
-            var (names, weights) = AnalyzeProject(projectPath);
-            var graph = new InteropGraph(new Vector2[weights.GetLength(0)], Array.Empty<int>());
-            for (int i = 0; i < graph.Positions.Length; ++i)
-            {
-                var angle = 2 * MathF.PI / graph.Positions.Length * i;
-                graph.Positions[i] = 64f * new Vector2(MathF.Cos(angle), MathF.Sin(angle));
-            }
-            fixed (Vector2* positions = graph.Positions)
-            {
-                var raw = new InteropGraph.Raw
-                {
-                    Positions = positions,
-                    Count = graph.Positions.Length
-                };
-                Console.WriteLine(new IntPtr(positions).ToString("x"));
-                void* graphRender = null;
-                createGraphRender(raw, &graphRender);
-                var forces = new Vector2[raw.Count];
-                while (stepGraphRender(graphRender) == 0)
-                {
-                    Graph.StepEades(forces, graph.Positions, weights);
+                    Console.WriteLine($"{prefix}[");
+                    prefix += "\t";
+                    continue;
                 }
-                destroyGraphRender(graphRender);
+                else if (symbol.Kind == Spruce.Kind.Pop)
+                {
+                    prefix = prefix.Substring(0, prefix.Length - 1);
+                    Console.WriteLine($"{prefix}]");
+                    continue;
+                }
+                Console.WriteLine($"{prefix}Kind={symbol.Kind},Parameter={symbol.Int}");
             }
-            // var raw = CreateRawGraph(graph);
-            // Console.WriteLine(new IntPtr(raw.Positions).ToString("x"));
-            // void *graphRender = null;
-            // createGraphRender(raw, &graphRender);
-            // while (stepGraphRender(graphRender) == 0)
-            // {
-            // }
-            // destroyGraphRender(graphRender);
-            // DestroyRawGraph(raw);
-            // File.WriteAllText($"forceatlas_00.gv", Graph.ToGraphviz(positions, graph, names));
-            // Graph.RunForceAtlas2(positions, graph, 1000, 1000);
-            // File.WriteAllText($"forceatlas_01.gv", Graph.ToGraphviz(positions, graph, names));
+            Console.WriteLine($"Sentence length: {sentence.Count}");
         }
 
-        public static void HelloCube()
+        public static int DrawTriangle()
+        {
+            return Vku.HelloTriangle();
+        }
+
+        public static int DrawCube()
         {
             var positions = new[]{
                 new Vector3(1, 1, 1),
@@ -138,128 +75,132 @@ namespace Helveg
             };
 
             var mesh = new Mesh(positions, colors, indices);
-
-            var value = HelloMesh(mesh);
-            Console.WriteLine($"Hello's return value: {value}");
+            return Vku.HelloMesh(mesh);
         }
 
-        public static (string[] names, float[,] graph) AnalyzeProject(string projectPath)
+        public static int DrawTree()
+        {
+            var sentence = Spruce.Rewrite(
+                axiom: new[] { new Spruce.Symbol(Spruce.Kind.Canopy) },
+                seed: 42,
+                branchCount: 12,
+                maxBranching: 6,
+                minBranching: 3,
+                initialBranching: 4,
+                branchingDiff: 2);
+            WriteSentence(sentence);
+            var spruceMesh = Spruce.GenerateMesh(sentence);
+            Console.WriteLine($"VertexCount: {spruceMesh.Vertices.Length}");
+
+            return Vku.HelloMesh(spruceMesh);
+        }
+
+        public static void DrawEades()
+        {
+            var (names, weights) = RunAnalysis(string.Empty, false);
+            var graph = new InteropGraph(new Vector2[weights.GetLength(0)], Array.Empty<float>());
+            for (int i = 0; i < graph.Positions.Length; ++i)
+            {
+                var angle = 2 * MathF.PI / graph.Positions.Length * i;
+                graph.Positions[i] = 64f * new Vector2(MathF.Cos(angle), MathF.Sin(angle));
+            }
+            var render = Vku.CreateGraphRender(graph);
+            var forces = new Vector2[names.Length];
+            while (!Vku.StepGraphRender(render))
+            {
+                Graph.StepEades(forces, graph.Positions, weights);
+            }
+            Vku.DestroyGraphRender(render);
+        }
+
+        public static (string[] names, float[,] weights) RunAnalysis(string projectPath, bool overwriteCache)
         {
             var formatter = new BinaryFormatter();
-            if (File.Exists("project.bin"))
+            if (File.Exists("project.bin") && !overwriteCache)
             {
                 using var stream = File.OpenRead("project.bin");
-                return ((string[] names, float[,] graph))formatter.Deserialize(stream);
+                return ((string[], float[,]))formatter.Deserialize(stream);
             }
-            MSBuildLocator.RegisterDefaults();
-            var graph = Analyze.ConstructGraph(projectPath);
-            using var output = File.OpenWrite("project.bin");
-            formatter.Serialize(output, graph);
-            return graph;
-        }
-
-        public static void DebugGraphForces(
-            string name,
-            string[] labels,
-            Vector2[] positions,
-            float[,] graph,
-            int outer = 10,
-            int inner = 100)
-        {
-            File.WriteAllText($"{name}_00.gv", Graph.ToGraphviz(positions, graph, labels));
-            for (int i = 0; i < outer; ++i)
+            else
             {
-                // Graph.ApplyForces(positions, graph, inner);
-                // Graph.FruchtermanReingold(positions, graph, inner);
-                File.WriteAllText($"{name}_{i + 1:00}.gv", Graph.ToGraphviz(positions, graph, labels));
+                MSBuildLocator.RegisterDefaults();
+                var graph = Analyze.ConstructGraph(projectPath);
+                using var output = File.OpenWrite("project.bin");
+                formatter.Serialize(output, graph);
+                return graph;
             }
         }
 
-        public static (string[] labels, Vector2[] positions) GetCircle(int count)
+        public static void AnalyzeProject(
+            FileSystemInfo project,
+            ProjectRenderKind kind,
+            int iterationCount,
+            bool overwriteCache,
+            int every)
         {
-            var labels = new string[count];
-            var positions = new Vector2[count];
-            for (int i = 0; i < count; ++i)
+            var (names, weights) = RunAnalysis(project.FullName, overwriteCache);
+            var state = Fdg.State.Create(weights);
+
+            if (kind == ProjectRenderKind.Vku)
             {
-                labels[i] = i.ToString();
-                var angle = 2f * MathF.PI / count * i;
-                positions[i] = count * new Vector2(MathF.Cos(angle), MathF.Sin(angle));
+                var render = Vku.CreateGraphRender(new InteropGraph(state.Positions, state.Weights));
+                Vku.StepGraphRender(render);
+                for (int i = 0; i < iterationCount; ++i)
+                {
+                    Fdg.Step(ref state);
+                    Vku.StepGraphRender(render);
+                }
+                Vku.DestroyGraphRender(render);
             }
-            return (labels, positions);
+            else if (kind == ProjectRenderKind.Graphviz)
+            {
+                File.WriteAllText($"graph_000.gv", Graph.ToGraphviz(state.Positions, weights, names));
+                for (int i = 0; i < iterationCount; ++i)
+                {
+                    Fdg.Step(ref state);
+                    if (i % every == 0)
+                    {
+                        var current = i / every + 1;
+                        File.WriteAllText($"graph_{current,000}.gv", Graph.ToGraphviz(state.Positions, weights, names));
+                    }
+                }
+                var last = iterationCount / every + 1;
+                File.WriteAllText($"graph_{last,000}.gv", Graph.ToGraphviz(state.Positions, weights, names));
+            }
         }
 
-        public static void HelloDebugGraph()
+        public static int Main(string[] args)
         {
-            var (labels, positions) = GetCircle(4);
-            var weights = new float[4, 4]
+            var rootCommand = new RootCommand("A software visualization tool");
+            rootCommand.AddCommand(new Command("triangle", "Draw a triangle")
             {
-                {0, 1, 0, 0},
-                {0, 0, 1, 0},
-                {0, 0, 0, 0},
-                {0, 0, 1, 0}
+                Handler = CommandHandler.Create(DrawTriangle)
+            });
+            rootCommand.AddCommand(new Command("cube", "Draw a cube")
+            {
+                Handler = CommandHandler.Create(DrawCube)
+            });
+            rootCommand.AddCommand(new Command("tree", "Draw a tree")
+            {
+                Handler = CommandHandler.Create(DrawTree)
+            });
+            rootCommand.AddCommand(new Command("eades", "Draw an animation of Eades from cached project analysis")
+            {
+                Handler = CommandHandler.Create(DrawEades)
+            });
+            var projectCommand = new Command("project", "Analyze a project")
+            {
+                new Argument<FileSystemInfo>("project", "Path to an MSBuild project"),
+                new Argument<ProjectRenderKind>("kind", "The way to display the results"),
+                new Argument<int>("iterationCount", "How many steps should the FDG algorithm make"),
+                new Option<bool>(new []{"-o", "--overwrite-cache"}, "Overwrite a cached project analysis"),
+                new Option<int>("--every", () => 1000, "Generate a graphviz file every # steps (Graphviz kind only)")
             };
-            DebugGraphForces("graph", labels, positions, weights, 10, 1000);
-        }
+            projectCommand.Handler = CommandHandler
+                .Create<FileSystemInfo, ProjectRenderKind, int, bool, int>(AnalyzeProject);
+            rootCommand.AddCommand(projectCommand);
 
-        public static void HelloProject(string projectPath)
-        {
-            // var (names, graph) = AnalyzeProject(projectPath);
-            // var positions = new Vector2[graph.GetLength(0)];
-            // for (int i = 0; i < graph.GetLength(0); ++i)
-            // {
-            //     var angle = 2 * MathF.PI / graph.GetLength(0) * i;
-            //     positions[i] = 64f * new Vector2(MathF.Cos(angle), MathF.Sin(angle));
-            // }
-            var positions = new Vector2[] { new Vector2(0, 0) };
-            // File.WriteAllText($"forceatlas_00.gv", Graph.ToGraphviz(positions, graph, names));
-            // Graph.RunForceAtlas2(positions, graph, 1000, 1000);
-            // File.WriteAllText($"forceatlas_01.gv", Graph.ToGraphviz(positions, graph, names));
-            var mesh = Graph.ToMesh(positions);
-            HelloMesh(mesh);
-        }
-
-        public static void WriteSentence(IList<Spruce.Symbol> sentence)
-        {
-            var prefix = "";
-            foreach (var symbol in sentence)
-            {
-                if (symbol.Kind == Spruce.Kind.Push)
-                {
-                    Console.WriteLine($"{prefix}[");
-                    prefix += "\t";
-                    continue;
-                }
-                else if (symbol.Kind == Spruce.Kind.Pop)
-                {
-                    prefix = prefix.Substring(0, prefix.Length - 1);
-                    Console.WriteLine($"{prefix}]");
-                    continue;
-                }
-                Console.WriteLine($"{prefix}Kind={symbol.Kind},Parameter={symbol.Int}");
-            }
-            Console.WriteLine($"Sentence length: {sentence.Count}");
-        }
-
-        public static void Main(string[] args)
-        {
-            // HelloProject(args[0]);
-            HelloAnimatedGraph(args[0]);
-            // HelloDebugGraph();
-            // var sentence = Spruce.Rewrite(new[]
-            //     {
-            //         new Spruce.Symbol(Spruce.Kind.Canopy)
-            //     },
-            //     seed: 42,
-            //     branchCount: 12,
-            //     maxBranching: 6,
-            //     minBranching: 3,
-            //     initialBranching: 4,
-            //     branchingDiff: 2);
-            // var spruceMesh = Spruce.GenerateMesh(sentence);
-            // WriteSentence(sentence);
-            // Console.WriteLine($"Vertices length: {spruceMesh.Vertices.Length}");
-            // var mesh = HelloMesh(spruceMesh);
-            // Console.WriteLine($"Hello's return value: {mesh}");
+            return rootCommand.Invoke(args);
         }
     }
 }

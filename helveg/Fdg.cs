@@ -14,7 +14,7 @@ namespace Helveg
         public const float DefaultNodeSize = 1f;
         public const float DefaultTraSwgRatio = 1f;
 
-        public struct FdgState
+        public struct State
         {
             public Vector2[] PreviousForces;
             public Vector2[] Forces;
@@ -32,7 +32,7 @@ namespace Helveg
             public float NodeSize;
             public float TraSwgRatio;
 
-            public static readonly FdgState Default = new FdgState
+            public static readonly State Default = new State
             {
                 RepulsionFactor = DefaultRepulsionFactor,
                 OverlapRepulsionFactor = DefaultOverlapRepulsionFactor,
@@ -43,7 +43,7 @@ namespace Helveg
                 TraSwgRatio = DefaultTraSwgRatio,
             };
 
-            public static FdgState Create(float[,] directedWeights)
+            public static State Create(float[,] directedWeights)
             {
                 if (directedWeights.GetLength(0) != directedWeights.GetLength(1))
                 {
@@ -84,7 +84,7 @@ namespace Helveg
             }
         }
 
-        public static void Step(ref FdgState state)
+        public static void Step(ref State state)
         {
             {
                 Vector2[] tmp = state.Forces;
