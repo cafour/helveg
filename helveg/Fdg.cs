@@ -106,7 +106,7 @@ namespace Helveg
                 var direction = state.Positions[i];
                 var length = direction.Length();
                 var unit = -direction / direction.Length();
-                var force = state.GravityFactor * (state.Degrees[i] + 1) * length;
+                var force = state.GravityFactor * (state.Degrees[i] + 1);
                 state.Forces[i] = force * unit;
             }
 
@@ -124,13 +124,11 @@ namespace Helveg
                         length -= 2 * state.NodeSize;
                     }
 
-                    var attraction = state.Weights[current] * length;
-                    state.Forces[from] += attraction * unit;
-                    state.Forces[to] -= attraction * unit;
-
+                    float attraction = 0;
                     float repulsion = 0;
                     if (length > 0)
                     {
+                        attraction = state.Weights[current] * length;
                         repulsion = state.RepulsionFactor * (state.Degrees[from] + 1)
                             * (state.Degrees[to] + 1) / length;
                     }
@@ -139,6 +137,8 @@ namespace Helveg
                         repulsion = state.OverlapRepulsionFactor * (state.Degrees[from] + 1) * (state.Degrees[to] + 1);
                     }
 
+                    state.Forces[from] += attraction * unit;
+                    state.Forces[to] -= attraction * unit;
                     state.Forces[from] -= repulsion * unit;
                     state.Forces[to] += repulsion * unit;
                 }
