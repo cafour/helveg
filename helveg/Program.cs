@@ -134,10 +134,65 @@ namespace Helveg
             }
         }
 
+        public static void DrawGraphVku(Fdg.State state, int iterationCount, int noOverlapInterationCount, long time)
+        {
+            var render = Vku.CreateGraphRender(new InteropGraph(state.Positions, state.Weights));
+            Vku.StepGraphRender(render);
+            var stopwatch = new Stopwatch();
+            var end = false;
+            for (int i = 0; i < iterationCount && !end; ++i)
+            {
+                Fdg.Step(ref state);
+                end = Vku.StepGraphRender(render);
+                Thread.Sleep((int)(time - stopwatch.ElapsedMilliseconds % time));
+            }
+            state.PreventOverlapping = true;
+            for (int i = 0; i < noOverlapInterationCount && !end; ++i)
+            {
+                Fdg.Step(ref state);
+                end = Vku.StepGraphRender(render);
+                Thread.Sleep((int)(time - stopwatch.ElapsedMilliseconds % time));
+            }
+            Vku.DestroyGraphRender(render);
+        }
+
+        public static void DrawGraphGraphviz(
+            Fdg.State state,
+            string[] names,
+            float[,] weights,
+            int iterationCount,
+            int noOverlapIterationCount,
+            int every)
+        {
+            File.WriteAllText($"graph_000.gv", Graph.ToGraphviz(state.Positions, weights, names));
+            for (int i = 0; i < iterationCount; ++i)
+            {
+                Fdg.Step(ref state);
+                if (i % every == 0)
+                {
+                    var current = i / every + 1;
+                    File.WriteAllText($"graph_{current,000}.gv", Graph.ToGraphviz(state.Positions, weights, names));
+                }
+            }
+            state.PreventOverlapping = true;
+            for (int i = 0; i < noOverlapIterationCount; ++i)
+            {
+                Fdg.Step(ref state);
+                if ((iterationCount + i) % every == 0)
+                {
+                    var current = (iterationCount + i) / every + 1;
+                    File.WriteAllText($"graph_{current,000}.gv", Graph.ToGraphviz(state.Positions, weights, names));
+                }
+            }
+            var last = (iterationCount + noOverlapIterationCount) / every + 1;
+            File.WriteAllText($"graph_{last,000}.gv", Graph.ToGraphviz(state.Positions, weights, names));
+        }
+
         public static void AnalyzeProject(
             FileSystemInfo project,
             ProjectRenderKind kind,
             int iterationCount,
+            int noOverlapIterationCount,
             bool overwriteCache,
             int every,
             long time)
@@ -145,34 +200,16 @@ namespace Helveg
             var (names, weights) = RunAnalysis(project.FullName, overwriteCache);
             var state = Fdg.State.Create(weights);
 
-            if (kind == ProjectRenderKind.Vku)
+            switch(kind)
             {
-                var render = Vku.CreateGraphRender(new InteropGraph(state.Positions, state.Weights));
-                Vku.StepGraphRender(render);
-                var stopwatch = new Stopwatch();
-                var end = false;
-                for (int i = 0; i < iterationCount && !end; ++i)
-                {
-                    Fdg.Step(ref state);
-                    end = Vku.StepGraphRender(render);
-                    Thread.Sleep((int)(time - stopwatch.ElapsedMilliseconds % time));
-                }
-                Vku.DestroyGraphRender(render);
-            }
-            else if (kind == ProjectRenderKind.Graphviz)
-            {
-                File.WriteAllText($"graph_000.gv", Graph.ToGraphviz(state.Positions, weights, names));
-                for (int i = 0; i < iterationCount; ++i)
-                {
-                    Fdg.Step(ref state);
-                    if (i % every == 0)
-                    {
-                        var current = i / every + 1;
-                        File.WriteAllText($"graph_{current,000}.gv", Graph.ToGraphviz(state.Positions, weights, names));
-                    }
-                }
-                var last = iterationCount / every + 1;
-                File.WriteAllText($"graph_{last,000}.gv", Graph.ToGraphviz(state.Positions, weights, names));
+                case ProjectRenderKind.Vku:
+                    DrawGraphVku(state, iterationCount, noOverlapIterationCount, time);
+                    break;
+                case ProjectRenderKind.Graphviz:
+                    DrawGraphGraphviz(state, names, weights, iterationCount, noOverlapIterationCount, every);
+                    break;
+                default:
+                    throw new ArgumentException($"ProjectRenderKind '{kind}' is not supported.");
             }
         }
 
@@ -199,13 +236,14 @@ namespace Helveg
             {
                 new Argument<FileSystemInfo>("project", "Path to an MSBuild project"),
                 new Argument<ProjectRenderKind>("kind", "The way to display the results"),
-                new Argument<int>("iterationCount", "How many steps should the FDG algorithm make"),
+                new Argument<int>("iterationCount", "Step count"),
+                new Argument<int>("noOverlapIterationCount", "Overlap-preventing step count"),
                 new Option<bool>(new []{"-o", "--overwrite-cache"}, "Overwrite a cached project analysis"),
                 new Option<int>("--every", () => 1000, "Generate a graphviz file every # steps (Graphviz kind only)"),
                 new Option<long>("--time", () => 100, "Minimum time spent on one frame")
             };
             projectCommand.Handler = CommandHandler
-                .Create<FileSystemInfo, ProjectRenderKind, int, bool, int, long>(AnalyzeProject);
+                .Create<FileSystemInfo, ProjectRenderKind, int, int, bool, int, long>(AnalyzeProject);
             rootCommand.AddCommand(projectCommand);
 
             return rootCommand.Invoke(args);
