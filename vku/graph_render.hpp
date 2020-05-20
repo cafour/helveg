@@ -23,12 +23,16 @@ private:
     vku::RenderCore _renderCore;
     vku::PipelineLayout _pipelineLayout;
     vku::RenderPass _renderPass;
-    vku::GraphicsPipeline _pipeline;
+    vku::GraphicsPipeline _nodePipeline;
+    vku::GraphicsPipeline _edgePipeline;
     Graph _graph;
     vku::DescriptorSetLayout _setLayout;
     vku::DescriptorPool _descriptorPool;
-    vku::Buffer _positionBuffer;
-    vku::DeviceMemory _positionBufferMemory;
+    vku::Buffer _nodeBuffer;
+    vku::DeviceMemory _nodeBufferMemory;
+    size_t _edgeCount;
+    vku::Buffer _edgeBuffer;
+    vku::DeviceMemory _edgeBufferMemory;
     std::vector<VkDescriptorSet> _descriptorSets;
 
     void recordCommandBuffer(VkCommandBuffer commandBuffer, vku::SwapchainFrame &frame);

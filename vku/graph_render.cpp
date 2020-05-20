@@ -4,7 +4,7 @@
 #include <chrono>
 #include <glm/gtc/matrix_transform.hpp>
 
-static vku::GraphicsPipeline buildPipeline(VkDevice device, VkPipelineLayout pipelineLayout, VkRenderPass renderPass)
+static vku::GraphicsPipeline buildNodePipeline(VkDevice device, VkPipelineLayout pipelineLayout, VkRenderPass renderPass)
 {
     VkVertexInputBindingDescription vertexBindings[] = {
         vku::vertexInputBinding(0, sizeof(glm::vec2), VK_VERTEX_INPUT_RATE_VERTEX)
@@ -39,9 +39,9 @@ static vku::GraphicsPipeline buildPipeline(VkDevice device, VkPipelineLayout pip
     auto viewport = vku::viewportState(nullptr, 1, nullptr, 1);
     createInfo.pViewportState = &viewport;
 
-    auto vertexShader = vku::ShaderModule::inlined(device, GRAPH_VERT, GRAPH_VERT_LENGTH);
-    auto geometryShader = vku::ShaderModule::inlined(device, GRAPH_GEOM, GRAPH_GEOM_LENGTH);
-    auto fragmentShader = vku::ShaderModule::inlined(device, GRAPH_FRAG, GRAPH_FRAG_LENGTH);
+    auto vertexShader = vku::ShaderModule::inlined(device, NODE_VERT, NODE_VERT_LENGTH);
+    auto geometryShader = vku::ShaderModule::inlined(device, NODE_GEOM, NODE_GEOM_LENGTH);
+    auto fragmentShader = vku::ShaderModule::inlined(device, NODE_FRAG, NODE_FRAG_LENGTH);
 
     VkPipelineShaderStageCreateInfo shaderStages[] = {
         vku::shaderStage(VK_SHADER_STAGE_VERTEX_BIT, vertexShader),
@@ -50,6 +50,61 @@ static vku::GraphicsPipeline buildPipeline(VkDevice device, VkPipelineLayout pip
     };
     createInfo.pStages = shaderStages;
     createInfo.stageCount = 3;
+
+    VkDynamicState dynamicStates[] = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
+    auto dynamic = vku::dynamicState(dynamicStates, 2);
+    createInfo.pDynamicState = &dynamic;
+
+    createInfo.layout = pipelineLayout;
+    createInfo.renderPass = renderPass;
+    createInfo.subpass = 0;
+    return vku::GraphicsPipeline(device, createInfo);
+}
+
+static vku::GraphicsPipeline buildEdgePipeline(VkDevice device, VkPipelineLayout pipelineLayout, VkRenderPass renderPass)
+{
+    VkVertexInputBindingDescription vertexBindings[] = {
+        vku::vertexInputBinding(0, sizeof(glm::vec2), VK_VERTEX_INPUT_RATE_VERTEX)
+    };
+
+    VkVertexInputAttributeDescription vertexAttributes[] = {
+        vku::vertexInputAttribute(0, 0, VK_FORMAT_R32G32_SFLOAT, 0)
+    };
+
+    VkGraphicsPipelineCreateInfo createInfo = {};
+    createInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+
+    auto vertexInput = vku::vertexInputState(vertexBindings, 1, vertexAttributes, 1);
+    createInfo.pVertexInputState = &vertexInput;
+
+    auto inputAssembly = vku::inputAssemblyState(VK_PRIMITIVE_TOPOLOGY_LINE_LIST);
+    createInfo.pInputAssemblyState = &inputAssembly;
+
+    auto rasterization = vku::rasterizationState(
+        VK_POLYGON_MODE_FILL,
+        VK_CULL_MODE_BACK_BIT,
+        VK_FRONT_FACE_COUNTER_CLOCKWISE);
+    createInfo.pRasterizationState = &rasterization;
+
+    auto multisample = vku::multisampleState(VK_SAMPLE_COUNT_1_BIT);
+    createInfo.pMultisampleState = &multisample;
+
+    auto colorBlendAttachment = vku::colorBlendAttachment(false);
+    auto colorBlend = vku::colorBlendState(&colorBlendAttachment, 1);
+    createInfo.pColorBlendState = &colorBlend;
+
+    auto viewport = vku::viewportState(nullptr, 1, nullptr, 1);
+    createInfo.pViewportState = &viewport;
+
+    auto vertexShader = vku::ShaderModule::inlined(device, EDGE_VERT, EDGE_VERT_LENGTH);
+    auto fragmentShader = vku::ShaderModule::inlined(device, EDGE_FRAG, EDGE_FRAG_LENGTH);
+
+    VkPipelineShaderStageCreateInfo shaderStages[] = {
+        vku::shaderStage(VK_SHADER_STAGE_VERTEX_BIT, vertexShader),
+        vku::shaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, fragmentShader)
+    };
+    createInfo.pStages = shaderStages;
+    createInfo.stageCount = 2;
 
     VkDynamicState dynamicStates[] = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
     auto dynamic = vku::dynamicState(dynamicStates, 2);
@@ -81,19 +136,45 @@ GraphRender::GraphRender(int width, int height, Graph graph)
           [this](auto cb, auto &f) { this->recordCommandBuffer(cb, f); })
     , _pipelineLayout(vku::PipelineLayout::basic(_displayCore.device()))
     , _renderPass(vku::RenderPass::basic(_displayCore.device(), _displayCore.surfaceFormat().format))
-    , _pipeline(buildPipeline(_displayCore.device(), _pipelineLayout, _renderPass))
+    , _nodePipeline(buildNodePipeline(_displayCore.device(), _pipelineLayout, _renderPass))
+    , _edgePipeline(buildEdgePipeline(_displayCore.device(), _pipelineLayout, _renderPass))
     , _graph(graph)
 {
     size_t positionsSize = graph.count * sizeof(glm::vec2);
-    _positionBuffer = vku::Buffer::exclusive(
+    _nodeBuffer = vku::Buffer::exclusive(
         _displayCore.device(),
         positionsSize,
         VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
-    _positionBufferMemory = vku::DeviceMemory::hostCoherentBuffer(
+    _nodeBufferMemory = vku::DeviceMemory::hostCoherentBuffer(
         _displayCore.physicalDevice(),
         _displayCore.device(),
-        _positionBuffer);
+        _nodeBuffer);
     flushPositions();
+
+    std::vector<uint32_t> edges;
+    size_t current = 0;
+    for (size_t from = 0; from < graph.count; ++from) {
+        for (size_t to = from + 1; to < graph.count; ++to, ++current) {
+            if (graph.weights[current])
+            {
+                edges.push_back(static_cast<uint32_t>(from));
+                edges.push_back(static_cast<uint32_t>(to));
+            }
+        }
+    }
+    _edgeBuffer = vku::Buffer::exclusive(
+        _displayCore.device(),
+        edges.size() * sizeof(uint32_t),
+        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
+    _edgeBufferMemory = vku::DeviceMemory::deviceLocalData(
+        _displayCore.physicalDevice(),
+        _displayCore.device(),
+        _renderCore.commandPool(),
+        _displayCore.queue(),
+        _edgeBuffer,
+        edges.data(),
+        edges.size() * sizeof(uint32_t));
+    _edgeCount = edges.size();
 }
 
 void GraphRender::flushPositions()
@@ -101,7 +182,7 @@ void GraphRender::flushPositions()
     vku::hostDeviceCopy(
         _displayCore.device(),
         _graph.positions,
-        _positionBufferMemory,
+        _nodeBufferMemory,
         _graph.count * sizeof(glm::vec2),
         0);
 }
@@ -136,13 +217,23 @@ void GraphRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::Swapch
     scissor.extent = extent;
 
     vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipeline);
+
+    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _edgePipeline);
     vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
     VkDeviceSize offsets[] = { 0 };
-    vkCmdBindVertexBuffers(commandBuffer, 0, 1, _positionBuffer, offsets);
+    vkCmdBindVertexBuffers(commandBuffer, 0, 1, _nodeBuffer, offsets);
+    vkCmdBindIndexBuffer(commandBuffer, _edgeBuffer, 0, VK_INDEX_TYPE_UINT32);
+    vkCmdDrawIndexed(commandBuffer, _edgeCount, 1, 0, 0, 0);
+
+    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _nodePipeline);
+    vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+    vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
+    vkCmdBindVertexBuffers(commandBuffer, 0, 1, _nodeBuffer, offsets);
     vkCmdDraw(commandBuffer, _graph.count, 1, 0, 0);
+
     vkCmdEndRenderPass(commandBuffer);
 
     ENSURE(vkEndCommandBuffer(commandBuffer));
