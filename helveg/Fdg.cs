@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Numerics;
 
 namespace Helveg
@@ -6,6 +7,8 @@ namespace Helveg
     public static class Fdg
     {
         public const float DefaultGlobalSpeed = 1f;
+        public const float DefaultMinGlobalSpeed = float.MinValue;
+        public const float DefaultMaxGlobalSpeed = float.MaxValue;
         public const float DefaultRepulsionFactor = 1f;
         public const float DefaultOverlapRepulsionFactor = 100f;
         public const float DefaultGravityFactor = 5f;
@@ -25,6 +28,8 @@ namespace Helveg
             public bool PreventOverlapping;
             public float RepulsionFactor;
             public float GlobalSpeed;
+            public float MinGlobalSpeed;
+            public float MaxGlobalSpeed;
             public float OverlapRepulsionFactor;
             public float GravityFactor;
             public float GlobalSpeedFactor;
@@ -34,6 +39,9 @@ namespace Helveg
 
             public static readonly State Default = new State
             {
+                GlobalSpeed = DefaultGlobalSpeed,
+                MinGlobalSpeed = DefaultMinGlobalSpeed,
+                MaxGlobalSpeed = DefaultMaxGlobalSpeed,
                 RepulsionFactor = DefaultRepulsionFactor,
                 OverlapRepulsionFactor = DefaultOverlapRepulsionFactor,
                 GravityFactor = DefaultGravityFactor,
@@ -145,15 +153,23 @@ namespace Helveg
                 globalTraction += (state.Degrees[i] + 1) * (state.Forces[i] + state.PreviousForces[i]).Length() / 2f;
             }
 
-            state.GlobalSpeed += MathF.Max(
+            var globalSpeedDiff = MathF.Min(
                 state.TraSwgRatio * globalTraction / globalSwinging - state.GlobalSpeed,
                 state.GlobalSpeed / 2f);
+            state.GlobalSpeed = Math.Clamp(
+                state.MinGlobalSpeed,
+                state.GlobalSpeed + globalSpeedDiff,
+                state.MaxGlobalSpeed);
 
             for (int i = 0; i < nodeCount; ++i)
             {
+                if (float.IsNaN(state.Forces[i].X) || float.IsNaN(state.Forces[i].X))
+                {
+                    Debugger.Break();
+                }
                 float speed = state.GlobalSpeedFactor * state.GlobalSpeed 
                     / (1 + state.GlobalSpeed * MathF.Sqrt(state.Swinging[i]));
-                speed = MathF.Max(speed, state.MaxSpeedConstant / state.Forces[i].Length());
+                speed = MathF.Min(speed, state.MaxSpeedConstant / state.Forces[i].Length());
                 state.Positions[i] += state.Forces[i] * speed;
             }
         }
