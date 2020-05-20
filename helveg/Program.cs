@@ -44,9 +44,9 @@ namespace Helveg
             Console.WriteLine($"Sentence length: {sentence.Count}");
         }
 
-        public static int DrawTriangle()
+        public static void DrawTriangle()
         {
-            return Vku.HelloTriangle();
+            Vku.HelloTriangle();
         }
 
         public static int DrawCube()

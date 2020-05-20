@@ -21,9 +21,13 @@ namespace Helveg
         [DllImport("vku", CallingConvention = CallingConvention.Cdecl)]
         private static unsafe extern int destroyGraphRender(void* ptr);
 
-        public static unsafe int HelloTriangle()
+        public static unsafe void HelloTriangle()
         {
-            return -1;
+            var result = helloTriangle();
+            if (result != 0)
+            {
+                throw new InvalidOperationException($"The 'helloTriangle' function returned {result}.");
+            }
         }
 
         public static unsafe int HelloMesh(Mesh mesh)
