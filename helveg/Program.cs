@@ -125,8 +125,11 @@ namespace Helveg
             {
                 MSBuildLocator.RegisterDefaults();
                 var graph = Analyze.ConstructGraph(projectPath);
-                using var output = File.OpenWrite("project.bin");
-                formatter.Serialize(output, graph);
+                if (graph.names.Length > 0)
+                {
+                    using var output = File.OpenWrite("project.bin");
+                    formatter.Serialize(output, graph);
+                }
                 return graph;
             }
         }
@@ -136,7 +139,8 @@ namespace Helveg
             ProjectRenderKind kind,
             int iterationCount,
             bool overwriteCache,
-            int every)
+            int every,
+            long time)
         {
             var (names, weights) = RunAnalysis(project.FullName, overwriteCache);
             var state = Fdg.State.Create(weights);
@@ -145,10 +149,13 @@ namespace Helveg
             {
                 var render = Vku.CreateGraphRender(new InteropGraph(state.Positions, state.Weights));
                 Vku.StepGraphRender(render);
-                for (int i = 0; i < iterationCount; ++i)
+                var stopwatch = new Stopwatch();
+                var end = false;
+                for (int i = 0; i < iterationCount && !end; ++i)
                 {
                     Fdg.Step(ref state);
-                    Vku.StepGraphRender(render);
+                    end = Vku.StepGraphRender(render);
+                    Thread.Sleep((int)(time - stopwatch.ElapsedMilliseconds % time));
                 }
                 Vku.DestroyGraphRender(render);
             }
@@ -194,10 +201,11 @@ namespace Helveg
                 new Argument<ProjectRenderKind>("kind", "The way to display the results"),
                 new Argument<int>("iterationCount", "How many steps should the FDG algorithm make"),
                 new Option<bool>(new []{"-o", "--overwrite-cache"}, "Overwrite a cached project analysis"),
-                new Option<int>("--every", () => 1000, "Generate a graphviz file every # steps (Graphviz kind only)")
+                new Option<int>("--every", () => 1000, "Generate a graphviz file every # steps (Graphviz kind only)"),
+                new Option<long>("--time", () => 100, "Minimum time spent on one frame")
             };
             projectCommand.Handler = CommandHandler
-                .Create<FileSystemInfo, ProjectRenderKind, int, bool, int>(AnalyzeProject);
+                .Create<FileSystemInfo, ProjectRenderKind, int, bool, int, long>(AnalyzeProject);
             rootCommand.AddCommand(projectCommand);
 
             return rootCommand.Invoke(args);

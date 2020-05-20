@@ -69,10 +69,9 @@ namespace Helveg
                 int current = 0;
                 for (int from = 0; from < nodeCount; ++from)
                 {
-                    for (int to = from + 1; to < nodeCount; ++to)
+                    for (int to = from + 1; to < nodeCount; ++to, ++current)
                     {
                         state.Weights[current] = directedWeights[from, to] + directedWeights[to, from];
-                        ++current;
                         if (state.Weights[current] > 0)
                         {
                             state.Degrees[from]++;
