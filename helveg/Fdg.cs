@@ -9,10 +9,10 @@ namespace Helveg
         public const float DefaultGlobalSpeed = 1f;
         public const float DefaultMinGlobalSpeed = float.MinValue;
         public const float DefaultMaxGlobalSpeed = float.MaxValue;
-        public const float DefaultRepulsionFactor = 1f;
+        public const float DefaultRepulsionFactor = 2f;
         public const float DefaultOverlapRepulsionFactor = 100f;
         public const float DefaultGravityFactor = 5f;
-        public const float DefaultGlobalSpeedFactor = 0.1f;
+        public const float DefaultGlobalSpeedFactor = 0.01f;
         public const float DefaultMaxSpeedConstant = 10;
         public const float DefaultNodeSize = 1f;
         public const float DefaultTraSwgRatio = 1f;
@@ -26,6 +26,7 @@ namespace Helveg
             public Vector2[] Positions;
             public float[] Weights;
             public bool PreventOverlapping;
+            public bool IsGravityStrong;
             public float RepulsionFactor;
             public float GlobalSpeed;
             public float MinGlobalSpeed;
@@ -104,9 +105,12 @@ namespace Helveg
             for (int i = 0; i < nodeCount; ++i)
             {
                 var direction = state.Positions[i];
-                var length = direction.Length();
                 var unit = -direction / direction.Length();
                 var force = state.GravityFactor * (state.Degrees[i] + 1);
+                if (state.IsGravityStrong)
+                {
+                    force *= direction.Length();
+                }
                 state.Forces[i] = force * unit;
             }
 
