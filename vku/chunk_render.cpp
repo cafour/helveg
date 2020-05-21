@@ -4,9 +4,17 @@
 #include <chrono>
 #include <glm/gtc/matrix_transform.hpp>
 
+static VkPhysicalDeviceFeatures getRequiredFeatures()
+{
+    VkPhysicalDeviceFeatures features = {};
+    return features;
+}
+
+static const VkPhysicalDeviceFeatures requiredFeatures = getRequiredFeatures();
+
 vku::ChunkRender::ChunkRender(int width, int height, Chunk chunk)
     : _instanceCore("ChunkRender", true, true)
-    , _displayCore(_instanceCore.instance(), width, height, "vkdev")
+    , _displayCore(_instanceCore.instance(), width, height, "vkdev", &requiredFeatures)
     , _swapchainCore(_displayCore)
     , _renderCore(
           _displayCore,
@@ -36,13 +44,18 @@ vku::ChunkRender::ChunkRender(int width, int height, Chunk chunk)
         vku::descriptorBinding(1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT)
     };
     _setLayout = vku::DescriptorSetLayout::basic(_displayCore.device(), bindings, 2);
+    std::vector<VkDescriptorSetLayout> setLayouts { _setLayout };
 
     _renderPass = vku::RenderPass::basic(
         _displayCore.device(),
         _displayCore.surfaceFormat().format,
         _depthCore.depthFormat());
 
-    _pipelineLayout = vku::PipelineLayout::basic(_displayCore.device(), _setLayout, 1);
+    std::vector<VkPushConstantRange> pushConstantRanges {
+        VkPushConstantRange { VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(uint32_t) }
+    };
+
+    _pipelineLayout = vku::PipelineLayout::basic(_displayCore.device(), &setLayouts, &pushConstantRanges);
 
     VkVertexInputBindingDescription vertexBindings[] = {
         vku::vertexInputBinding(0, sizeof(glm::vec3), VK_VERTEX_INPUT_RATE_VERTEX)
@@ -105,6 +118,7 @@ void vku::ChunkRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::S
     VkDeviceSize offsets[] = { 0 };
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, _cubeCore.vertexBuffer(), offsets);
     vkCmdBindIndexBuffer(commandBuffer, _cubeCore.indexBuffer(), 0, VK_INDEX_TYPE_UINT32);
+    vkCmdPushConstants(commandBuffer, _pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(uint32_t), &_chunk.size);
     vkCmdBindDescriptorSets(
         commandBuffer,
         VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -114,7 +128,7 @@ void vku::ChunkRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::S
         &_descriptorSets[frame.index],
         0, // dynamic offset count
         nullptr); // dynamic offsets
-    vkCmdDrawIndexed(commandBuffer, _cubeCore.indexCount(), _chunk.size * _chunk.size * _chunk.size , 0, 0, 0);
+    vkCmdDrawIndexed(commandBuffer, _cubeCore.indexCount(), _chunk.size * _chunk.size * _chunk.size, 0, 0, 0);
     vkCmdEndRenderPass(commandBuffer);
 
     ENSURE(vkEndCommandBuffer(commandBuffer));
@@ -154,7 +168,7 @@ void vku::ChunkRender::onResize(size_t imageCount, VkExtent2D)
 
     VkDescriptorPoolSize poolSizes[] = {
         vku::descriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, imageCount),
-        vku::descriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1)
+        vku::descriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, imageCount)
     };
     _descriptorPool = vku::DescriptorPool::basic(_displayCore.device(), imageCount, poolSizes, 2);
     _descriptorSets = vku::allocateDescriptorSets(_displayCore.device(), _descriptorPool, _setLayout, imageCount);
@@ -181,11 +195,12 @@ void vku::ChunkRender::onUpdate(vku::SwapchainFrame &frame)
     auto now = std::chrono::high_resolution_clock::now();
     float time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
 
-    float scale = 1.0f / _chunk.size;
+    float scale = 0.5f / _chunk.size;
 
     UBO ubo = {};
     ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
     ubo.model = glm::scale(ubo.model, glm::vec3(scale));
+    ubo.model = glm::translate(ubo.model, glm::vec3(-0.5f));
     ubo.view = glm::lookAt(glm::vec3(1.0f, 1.5f, 1.0f), glm::vec3(0.0f, 0.5f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
     auto extent = _swapchainCore.extent();

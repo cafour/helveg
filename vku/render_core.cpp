@@ -75,6 +75,10 @@ void vku::RenderCore::resize()
         _displayCore,
         _swapchainCore.swapchain());
 
+    for (auto handler : _resizeHandlers) {
+        handler(_swapchainCore.frames().size(), _swapchainCore.extent());
+    }
+
     _framebuffers.resize(_swapchainCore.frames().size());
     for (auto &frame : _swapchainCore.frames()) {
         _framebuffers[frame.index] = _createFramebuffer(frame);
@@ -86,9 +90,6 @@ void vku::RenderCore::resize()
     allocateInfo.commandBufferCount = static_cast<uint32_t>(_swapchainCore.frames().size());
     allocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     _commandBuffers = vku::CommandBuffers(_displayCore.device(), allocateInfo);
-    for (auto handler : _resizeHandlers) {
-        handler(_swapchainCore.frames().size(), _swapchainCore.extent());
-    }
 
     for (size_t i = 0; i < _commandBuffers.size(); ++i) {
         _recordCommandBuffer(_commandBuffers[i], _swapchainCore.frames()[i]);

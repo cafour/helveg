@@ -215,12 +215,13 @@ namespace Helveg
 
         public static unsafe void DrawChunk()
         {
-            var y  = new Vector3(0.7f, 0.5f, 0.1f);
+            var y = new Vector3(0.7f, 0.5f, 0.1f);
+            var b = new Vector3(0.7f, 0.7f, 0.9f);
             var chunk = new Chunk(new Vector3[,,] {
-                { {y, y, y, y}, {y, y, y, y}, {y, y, y, y}, {y, y, y, y} },
-                { {y, y, y, y}, {y, y, y, y}, {y, y, y, y}, {y, y, y, y} },
-                { {y, y, y, y}, {y, y, y, y}, {y, y, y, y}, {y, y, y, y} },
-                { {y, y, y, y}, {y, y, y, y}, {y, y, y, y}, {y, y, y, y} }
+                { {y, y, y, y}, {b, b, b, b}, {y, y, y, y}, {b, b, b, b} },
+                { {b, b, b, b}, {y, y, y, y}, {b, b, b, b}, {y, y, y, y} },
+                { {y, y, y, y}, {b, b, b, b}, {y, y, y, y}, {b, b, b, b} },
+                { {b, b, b, b}, {y, y, y, y}, {b, b, b, b}, {y, y, y, y} }
             });
             Vku.HelloChunk(chunk);
         }

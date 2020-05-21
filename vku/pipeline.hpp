@@ -70,8 +70,8 @@ public:
     using DeviceConstructible::DeviceConstructible;
     static PipelineLayout basic(
         VkDevice device,
-        const VkDescriptorSetLayout *setLayouts = nullptr,
-        size_t setLayoutCount = 0);
+        const std::vector<VkDescriptorSetLayout> *setLayouts = nullptr,
+        const std::vector<VkPushConstantRange> *pushConstantRanges = nullptr);
 };
 
 class GraphicsPipeline : public DeviceRelated<VkPipeline> {

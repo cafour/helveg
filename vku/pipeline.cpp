@@ -149,14 +149,18 @@ VkPipelineDepthStencilStateCreateInfo vku::depthStencilState(bool useDepthTest)
 
 vku::PipelineLayout vku::PipelineLayout::basic(
     VkDevice device,
-    const VkDescriptorSetLayout *setLayouts,
-    size_t setLayoutCount)
+    const std::vector<VkDescriptorSetLayout> *setLayouts,
+    const std::vector<VkPushConstantRange> *pushConstantRanges)
 {
     VkPipelineLayoutCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     if (setLayouts) {
-        createInfo.pSetLayouts = setLayouts;
-        createInfo.setLayoutCount = static_cast<uint32_t>(setLayoutCount);
+        createInfo.pSetLayouts = setLayouts->data();
+        createInfo.setLayoutCount = static_cast<uint32_t>(setLayouts->size());
+    }
+    if (pushConstantRanges) {
+        createInfo.pPushConstantRanges = pushConstantRanges->data();
+        createInfo.pushConstantRangeCount = pushConstantRanges->size();
     }
     return vku::PipelineLayout(device, createInfo);
 }
