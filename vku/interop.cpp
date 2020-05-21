@@ -6,7 +6,7 @@
 
 int helloTriangle()
 {
-    if (volkInitialize() != VK_SUCCESS) {
+    if (volkInitialize() != VK_SUCCESS || glfwInit() == GLFW_FALSE) {
         return EXIT_FAILURE;
     }
     try {
@@ -22,7 +22,7 @@ int helloTriangle()
 
 int helloMesh(vku::MeshRender::Mesh mesh)
 {
-    if (volkInitialize() != VK_SUCCESS) {
+    if (volkInitialize() != VK_SUCCESS || glfwInit() == GLFW_FALSE) {
         return EXIT_FAILURE;
     }
     try {
