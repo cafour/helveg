@@ -126,14 +126,12 @@ uint32_t vku::findQueueFamily(
     VkQueueFlags requiredFlags,
     VkQueueFamilyProperties *queueFamily)
 {
-    uint32_t queueIndex = -1;
     uint32_t queueFamilyCount = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(physical, &queueFamilyCount, nullptr);
     std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
     vkGetPhysicalDeviceQueueFamilyProperties(physical, &queueFamilyCount, queueFamilies.data());
 
     for (uint32_t i = 0; i < queueFamilyCount; ++i) {
-        VkBool32 isPresentSupported = false;
         if (queueFamilies[i].queueFlags & requiredFlags) {
             if (queueFamily) {
                 *queueFamily = queueFamilies[i];
@@ -167,7 +165,7 @@ VkPhysicalDevice vku::findDevice(
 
         VkQueueFamilyProperties queueFamily;
         uint32_t queue = vku::findQueueFamily(device, VK_QUEUE_GRAPHICS_BIT, &queueFamily);
-        if (queue == -1) {
+        if (queue == static_cast<uint32_t>(-1)) {
             continue;
         }
         VkBool32 isPresentSupported = false;

@@ -18,8 +18,24 @@ vku::ChunkRender::ChunkRender(int width, int height, Chunk chunk)
     , _cubeCore(vku::InlineMeshCore::cube(_transferCore))
     , _chunk(chunk)
 {
-    auto uboBinding = vku::descriptorBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT);
-    _setLayout = vku::DescriptorSetLayout::basic(_displayCore.device(), &uboBinding, 1);
+    _colorBuffer = vku::Buffer::exclusive(
+        _displayCore.device(),
+        sizeof(glm::vec3) * _chunk.size * _chunk.size * _chunk.size,
+        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT);
+    _colorMemory = vku::DeviceMemory::deviceLocalData(
+        _transferCore.physicalDevice(),
+        _transferCore.device(),
+        _transferCore.transferPool(),
+        _transferCore.transferQueue(),
+        _colorBuffer,
+        _chunk.voxels,
+        sizeof(glm::vec3) * _chunk.size * _chunk.size * _chunk.size);
+
+    VkDescriptorSetLayoutBinding bindings[] = {
+        vku::descriptorBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT),
+        vku::descriptorBinding(1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT)
+    };
+    _setLayout = vku::DescriptorSetLayout::basic(_displayCore.device(), bindings, 2);
 
     _renderPass = vku::RenderPass::basic(
         _displayCore.device(),
@@ -120,7 +136,7 @@ vku::Framebuffer vku::ChunkRender::createFramebuffer(vku::SwapchainFrame &frame)
         extent.height);
 }
 
-void vku::ChunkRender::onResize(size_t imageCount, VkExtent2D extent)
+void vku::ChunkRender::onResize(size_t imageCount, VkExtent2D)
 {
     // recreate the uniform buffers as the number of swapchain images could have changed
     _uboBufferMemories.clear();
@@ -136,11 +152,25 @@ void vku::ChunkRender::onResize(size_t imageCount, VkExtent2D extent)
             _uboBuffers[i]);
     }
 
-    auto poolSize = vku::descriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, imageCount);
-    _descriptorPool = vku::DescriptorPool::basic(_displayCore.device(), imageCount, &poolSize, 1);
+    VkDescriptorPoolSize poolSizes[] = {
+        vku::descriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, imageCount),
+        vku::descriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1)
+    };
+    _descriptorPool = vku::DescriptorPool::basic(_displayCore.device(), imageCount, poolSizes, 2);
     _descriptorSets = vku::allocateDescriptorSets(_displayCore.device(), _descriptorPool, _setLayout, imageCount);
     for (size_t i = 0; i < imageCount; ++i) {
-        vku::updateUboDescriptor(_displayCore.device(), _uboBuffers[i], _descriptorSets[i], 0);
+        vku::writeWholeBufferDescriptor(
+            _displayCore.device(),
+            VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            _uboBuffers[i],
+            _descriptorSets[i],
+            0);
+        vku::writeWholeBufferDescriptor(
+            _displayCore.device(),
+            VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+            _colorBuffer,
+            _descriptorSets[i],
+            1);
     }
 }
 

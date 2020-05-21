@@ -172,7 +172,7 @@ vku::Framebuffer vku::MeshRender::createFramebuffer(vku::SwapchainFrame &frame)
         extent.height);
 }
 
-void vku::MeshRender::onResize(size_t imageCount, VkExtent2D extent)
+void vku::MeshRender::onResize(size_t imageCount, VkExtent2D)
 {
     // recreate the uniform buffers as the number of swapchain images could have changed
     _uboBufferMemories.clear();
@@ -192,7 +192,12 @@ void vku::MeshRender::onResize(size_t imageCount, VkExtent2D extent)
     _descriptorPool = vku::DescriptorPool::basic(_displayCore.device(), imageCount, &poolSize, 1);
     _descriptorSets = vku::allocateDescriptorSets(_displayCore.device(), _descriptorPool, _setLayout, imageCount);
     for (size_t i = 0; i < imageCount; ++i) {
-        vku::updateUboDescriptor(_displayCore.device(), _uboBuffers[i], _descriptorSets[i], 0);
+        vku::writeWholeBufferDescriptor(
+            _displayCore.device(),
+            VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            _uboBuffers[i],
+            _descriptorSets[i],
+            0);
     }
 }
 

@@ -25,7 +25,7 @@ bool hasExtensionSupport(
     VkPhysicalDevice physicalDevice,
     const std::vector<const char *> &extensions);
 
-uint32_t vku::findQueueFamily(
+uint32_t findQueueFamily(
     VkPhysicalDevice physical,
     VkQueueFlags requiredFlags,
     VkQueueFamilyProperties *queueFamily = nullptr);

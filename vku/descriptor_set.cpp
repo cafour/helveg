@@ -42,10 +42,15 @@ std::vector<VkDescriptorSet> vku::allocateDescriptorSets(
     return sets;
 }
 
-void vku::updateUboDescriptor(VkDevice device, VkBuffer uniformBuffer, VkDescriptorSet descriptorSet, uint32_t binding)
+void vku::writeWholeBufferDescriptor(
+    VkDevice device,
+    VkDescriptorType descriptorType,
+    VkBuffer buffer,
+    VkDescriptorSet descriptorSet,
+    uint32_t binding)
 {
     VkDescriptorBufferInfo bufferInfo = {};
-    bufferInfo.buffer = uniformBuffer;
+    bufferInfo.buffer = buffer;
     bufferInfo.offset = 0;
     bufferInfo.range = VK_WHOLE_SIZE;
 
@@ -54,7 +59,7 @@ void vku::updateUboDescriptor(VkDevice device, VkBuffer uniformBuffer, VkDescrip
     write.dstSet = descriptorSet;
     write.dstBinding = binding;
     write.dstArrayElement = 0;
-    write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    write.descriptorType = descriptorType;
     write.descriptorCount = 1;
     write.pBufferInfo = &bufferInfo;
     vkUpdateDescriptorSets(device, 1, &write, 0, nullptr);

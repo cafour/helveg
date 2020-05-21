@@ -21,7 +21,12 @@ std::vector<VkDescriptorSet> allocateDescriptorSets(
     VkDescriptorSetLayout setLayout,
     size_t count);
 
-void updateUboDescriptor(VkDevice device, VkBuffer uniformBuffer, VkDescriptorSet descriptorSet, uint32_t binding);
+void writeWholeBufferDescriptor(
+    VkDevice device,
+    VkDescriptorType descriptorType,
+    VkBuffer buffer,
+    VkDescriptorSet descriptorSet,
+    uint32_t binding);
 
 VkDescriptorPoolSize descriptorPoolSize(VkDescriptorType type, size_t descriptorCount);
 

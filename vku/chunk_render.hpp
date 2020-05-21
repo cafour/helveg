@@ -40,6 +40,8 @@ private:
     vku::RenderPass _renderPass;
     vku::PipelineLayout _pipelineLayout;
     vku::GraphicsPipeline _pipeline;
+    vku::Buffer _colorBuffer;
+    vku::DeviceMemory _colorMemory;
     std::vector<vku::Buffer> _uboBuffers;
     std::vector<vku::DeviceMemory> _uboBufferMemories;
     std::vector<VkDescriptorSet> _descriptorSets;
