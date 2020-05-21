@@ -3,6 +3,7 @@
 #include "triangle_render.hpp"
 #include "mesh_render.hpp"
 #include "graph_render.hpp"
+#include "chunk_render.hpp"
 
 #if defined _WIN32
     #define EXPORT __declspec(dllexport)
@@ -22,4 +23,6 @@ extern "C" {
     EXPORT int stepGraphRender(void *ptr);
 
     EXPORT int destroyGraphRender(void *ptr);
+
+    EXPORT int helloChunk(vku::ChunkRender::Chunk chunk);
 }

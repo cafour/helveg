@@ -55,5 +55,7 @@ private:
 
 public:
     ChunkRender(int width, int height, Chunk chunk);
+
+    vku::RenderCore &renderCore() { return _renderCore; }
 };
 }

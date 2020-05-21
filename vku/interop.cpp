@@ -85,3 +85,19 @@ int destroyGraphRender(void *ptr)
     delete graphRender;
     return EXIT_SUCCESS;
 }
+
+int helloChunk(vku::ChunkRender::Chunk chunk)
+{
+    if (volkInitialize() != VK_SUCCESS || glfwInit() == GLFW_FALSE) {
+        return EXIT_FAILURE;
+    }
+    try {
+        vku::ChunkRender app(1280, 720, chunk);
+        app.renderCore().run();
+    } catch (const std::exception &e) {
+        std::cerr << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
+}

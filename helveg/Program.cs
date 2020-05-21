@@ -213,6 +213,18 @@ namespace Helveg
             }
         }
 
+        public static unsafe void DrawChunk()
+        {
+            var y  = new Vector3(0.7f, 0.5f, 0.1f);
+            var chunk = new Chunk(new Vector3[,,] {
+                { {y, y, y, y}, {y, y, y, y}, {y, y, y, y}, {y, y, y, y} },
+                { {y, y, y, y}, {y, y, y, y}, {y, y, y, y}, {y, y, y, y} },
+                { {y, y, y, y}, {y, y, y, y}, {y, y, y, y}, {y, y, y, y} },
+                { {y, y, y, y}, {y, y, y, y}, {y, y, y, y}, {y, y, y, y} }
+            });
+            Vku.HelloChunk(chunk);
+        }
+
         public static int Main(string[] args)
         {
             var rootCommand = new RootCommand("A software visualization tool");
@@ -245,6 +257,10 @@ namespace Helveg
             projectCommand.Handler = CommandHandler
                 .Create<FileSystemInfo, ProjectRenderKind, int, int, bool, int, long>(AnalyzeProject);
             rootCommand.AddCommand(projectCommand);
+            rootCommand.AddCommand(new Command("chunk", "Draw a single chunk")
+            {
+                Handler = CommandHandler.Create(DrawChunk)
+            });
 
             return rootCommand.Invoke(args);
         }

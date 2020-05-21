@@ -21,6 +21,9 @@ namespace Helveg
         [DllImport("vku", CallingConvention = CallingConvention.Cdecl)]
         private static unsafe extern int destroyGraphRender(void* ptr);
 
+        [DllImport("vku", CallingConvention = CallingConvention.Cdecl)]
+        private static unsafe extern int helloChunk(Chunk.Raw chunk);
+
         public static unsafe void HelloTriangle()
         {
             var result = helloTriangle();
@@ -87,6 +90,22 @@ namespace Helveg
 
             render.PositionsPin.Free();
             render.WeightsPin.Free();
+        }
+
+        public static unsafe void HelloChunk(Chunk chunk)
+        {
+            fixed (Vector3* colors = chunk.Colors)
+            {
+                var result = helloChunk(new Chunk.Raw
+                {
+                    Colors = colors,
+                    Side = chunk.Colors.GetLength(0)
+                });
+                if (result != 0)
+                {
+                    throw new InvalidOperationException($"The 'helloChunk' function returned {result}.");
+                }
+            }
         }
 
     }
