@@ -26,21 +26,22 @@ private:
 
     std::function<vku::Framebuffer (vku::SwapchainFrame &)> _createFramebuffer;
     std::function<void (VkCommandBuffer, vku::SwapchainFrame &)> _recordCommandBuffer;
-    std::optional<std::function<void (vku::SwapchainFrame &)>> _onUpdate;
-    std::optional<std::function<void (size_t, VkExtent2D)>> _onResize;
+    std::vector<std::function<void (vku::SwapchainFrame &)>> _updateHandlers;
+    std::vector<std::function<void (size_t, VkExtent2D)>> _resizeHandlers;
 
 public:
     RenderCore(
         vku::DisplayCore &displayCore,
         vku::SwapchainCore &swapchainCore,
         std::function<vku::Framebuffer (vku::SwapchainFrame &)> createFramebuffer,
-        std::function<void (VkCommandBuffer, vku::SwapchainFrame &)> recordCommandBuffer,
-        std::optional<std::function<void (vku::SwapchainFrame &)>> onUpdate = std::nullopt,
-        std::optional<std::function<void (size_t, VkExtent2D)>> onResize = std::nullopt);
+        std::function<void (VkCommandBuffer, vku::SwapchainFrame &)> recordCommandBuffer);
 
     vku::CommandPool &commandPool() { return _commandPool; }
     std::vector<vku::Framebuffer> &framebuffers() { return _framebuffers; }
     vku::CommandBuffers &commandBuffers() { return _commandBuffers; }
+
+    void onUpdate(std::function<void (vku::SwapchainFrame &)> handler);
+    void onResize(std::function<void (size_t, VkExtent2D)> handler);
 
     void run();
     void resize();

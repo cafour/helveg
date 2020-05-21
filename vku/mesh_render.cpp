@@ -4,8 +4,16 @@
 #include <chrono>
 #include <glm/gtc/matrix_transform.hpp>
 
-MeshRender::MeshRender(int width, int height, MeshRender::Mesh mesh)
-    : vku::App("Hello, MeshRender!", width, height)
+vku::MeshRender::MeshRender(int width, int height, MeshRender::Mesh mesh)
+    : _instanceCore("MeshRender", true, true)
+    , _displayCore(_instanceCore.instance(), width, height, "vkdev")
+    , _swapchainCore(_displayCore)
+    , _renderCore(
+          _displayCore,
+          _swapchainCore,
+          [this](auto &f) { return this->createFramebuffer(f); },
+          [this](auto cb, auto &f) { this->recordCommandBuffer(cb, f); })
+    , _depthCore(_displayCore, _renderCore)
     , _mesh(mesh)
 {
     for (size_t i = 0; i < mesh.vertexCount; ++i) {
@@ -19,9 +27,14 @@ MeshRender::MeshRender(int width, int height, MeshRender::Mesh mesh)
     }
 
     auto uboBinding = vku::descriptorBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT);
-    _setLayout = vku::DescriptorSetLayout::basic(device(), &uboBinding, 1);
+    _setLayout = vku::DescriptorSetLayout::basic(_displayCore.device(), &uboBinding, 1);
 
-    _pipelineLayout = vku::PipelineLayout::basic(device(), _setLayout, 1);
+    _renderPass = vku::RenderPass::basic(
+        _displayCore.device(),
+        _displayCore.surfaceFormat().format,
+        _depthCore.depthFormat());
+
+    _pipelineLayout = vku::PipelineLayout::basic(_displayCore.device(), _setLayout, 1);
 
     VkVertexInputBindingDescription vertexBindings[2] = {
         vku::vertexInputBinding(0, sizeof(glm::vec3), VK_VERTEX_INPUT_RATE_VERTEX),
@@ -34,11 +47,11 @@ MeshRender::MeshRender(int width, int height, MeshRender::Mesh mesh)
     };
 
     _pipeline = vku::GraphicsPipeline::basic(
-        device(),
+        _displayCore.device(),
         _pipelineLayout,
-        renderPass(),
-        vku::ShaderModule::inlined(device(), MESH_VERT, MESH_VERT_LENGTH),
-        vku::ShaderModule::inlined(device(), MESH_FRAG, MESH_FRAG_LENGTH),
+        _renderPass,
+        vku::ShaderModule::inlined(_displayCore.device(), MESH_VERT, MESH_VERT_LENGTH),
+        vku::ShaderModule::inlined(_displayCore.device(), MESH_FRAG, MESH_FRAG_LENGTH),
         vertexBindings,
         2,
         vertexAttributes,
@@ -46,33 +59,51 @@ MeshRender::MeshRender(int width, int height, MeshRender::Mesh mesh)
         VK_FRONT_FACE_COUNTER_CLOCKWISE);
 
     size_t verticesSize = mesh.vertexCount * sizeof(glm::vec3);
-    auto stagingBuffer = vku::Buffer::exclusive(device(), verticesSize * 2, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
-    auto stagingMemory = vku::DeviceMemory::hostCoherentBuffer(physicalDevice(), device(), stagingBuffer);
-    vku::hostDeviceCopy(device(), mesh.vertices, stagingMemory, verticesSize, 0);
-    vku::hostDeviceCopy(device(), mesh.colors, stagingMemory, verticesSize, verticesSize);
+    auto stagingBuffer = vku::Buffer::exclusive(
+        _displayCore.device(),
+        verticesSize * 2,
+        VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+    auto stagingMemory = vku::DeviceMemory::hostCoherentBuffer(
+        _displayCore.physicalDevice(),
+        _displayCore.device(),
+        stagingBuffer);
+    vku::hostDeviceCopy(_displayCore.device(), mesh.vertices, stagingMemory, verticesSize, 0);
+    vku::hostDeviceCopy(_displayCore.device(), mesh.colors, stagingMemory, verticesSize, verticesSize);
 
     _vertexBuffer = vku::Buffer::exclusive(
-        device(),
+        _displayCore.device(),
         verticesSize * 2,
         VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
-    _vertexBufferMemory = vku::DeviceMemory::deviceLocalBuffer(physicalDevice(), device(), _vertexBuffer);
-    vku::deviceDeviceCopy(device(), commandPool(), queue(), stagingBuffer, _vertexBuffer, 2 * verticesSize);
+    _vertexBufferMemory = vku::DeviceMemory::deviceLocalBuffer(
+        _displayCore.physicalDevice(),
+        _displayCore.device(),
+        _vertexBuffer);
+    vku::deviceDeviceCopy(
+        _displayCore.device(),
+        _renderCore.commandPool(),
+        _displayCore.queue(),
+        stagingBuffer,
+        _vertexBuffer,
+        2 * verticesSize);
 
     _indexBuffer = vku::Buffer::exclusive(
-        device(),
+        _displayCore.device(),
         mesh.indexCount * sizeof(uint32_t),
         VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
     _indexBufferMemory = vku::DeviceMemory::deviceLocalData(
-        physicalDevice(),
-        device(),
-        commandPool(),
-        queue(),
+        _displayCore.physicalDevice(),
+        _displayCore.device(),
+        _renderCore.commandPool(),
+        _displayCore.queue(),
         _indexBuffer,
         mesh.indices,
         mesh.indexCount * sizeof(uint32_t));
+
+    _renderCore.onResize([this](auto s, auto e) { onResize(s, e); });
+    _renderCore.onUpdate([this](auto &f) { onUpdate(f); });
 }
 
-void MeshRender::recordCommands(VkCommandBuffer commandBuffer, vku::SwapchainFrame &frame)
+void vku::MeshRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::SwapchainFrame &frame)
 {
     VkCommandBufferBeginInfo beginInfo = {};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -80,11 +111,11 @@ void MeshRender::recordCommands(VkCommandBuffer commandBuffer, vku::SwapchainFra
 
     VkRenderPassBeginInfo renderPassInfo = {};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    renderPassInfo.renderPass = renderPass();
-    renderPassInfo.framebuffer = framebuffers()[frame.index];
+    renderPassInfo.renderPass = _renderPass;
+    renderPassInfo.framebuffer = _renderCore.framebuffers()[frame.index];
     renderPassInfo.renderArea.offset = { 0, 0 };
 
-    VkExtent2D extent = swapchainEnv().extent();
+    VkExtent2D extent = _swapchainCore.extent();
     renderPassInfo.renderArea.extent = extent;
 
     VkClearValue clearValues[2];
@@ -125,10 +156,24 @@ void MeshRender::recordCommands(VkCommandBuffer commandBuffer, vku::SwapchainFra
     ENSURE(vkEndCommandBuffer(commandBuffer));
 }
 
-void MeshRender::prepare()
+vku::Framebuffer vku::MeshRender::createFramebuffer(vku::SwapchainFrame &frame)
 {
-    size_t imageCount = swapchainEnv().frames().size();
+    auto extent = _swapchainCore.extent();
+    VkImageView attachments[] = {
+        frame.imageView,
+        _depthCore.depthImageView()
+    };
+    return vku::Framebuffer::basic(
+        _displayCore.device(),
+        _renderPass,
+        attachments,
+        2,
+        extent.width,
+        extent.height);
+}
 
+void vku::MeshRender::onResize(size_t imageCount, VkExtent2D extent)
+{
     // recreate the uniform buffers as the number of swapchain images could have changed
     _uboBufferMemories.clear();
     _uboBuffers.clear();
@@ -136,21 +181,22 @@ void MeshRender::prepare()
     _uboBuffers.resize(imageCount);
     _uboBufferMemories.resize(imageCount);
     for (size_t i = 0; i < imageCount; ++i) {
-        _uboBuffers[i] = vku::Buffer::exclusive(device(), sizeof(UBO), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
-        _uboBufferMemories[i] = vku::DeviceMemory::hostCoherentBuffer(physicalDevice(), device(), _uboBuffers[i]);
+        _uboBuffers[i] = vku::Buffer::exclusive(_displayCore.device(), sizeof(UBO), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
+        _uboBufferMemories[i] = vku::DeviceMemory::hostCoherentBuffer(
+            _displayCore.physicalDevice(),
+            _displayCore.device(),
+            _uboBuffers[i]);
     }
 
     auto poolSize = vku::descriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, imageCount);
-    _descriptorPool = vku::DescriptorPool::basic(device(), imageCount, &poolSize, 1);
-    _descriptorSets = vku::allocateDescriptorSets(device(), _descriptorPool, _setLayout, imageCount);
+    _descriptorPool = vku::DescriptorPool::basic(_displayCore.device(), imageCount, &poolSize, 1);
+    _descriptorSets = vku::allocateDescriptorSets(_displayCore.device(), _descriptorPool, _setLayout, imageCount);
     for (size_t i = 0; i < imageCount; ++i) {
-        vku::updateUboDescriptor(device(), _uboBuffers[i], _descriptorSets[i], 0);
+        vku::updateUboDescriptor(_displayCore.device(), _uboBuffers[i], _descriptorSets[i], 0);
     }
-
-    App::prepare();
 }
 
-void MeshRender::update(vku::SwapchainFrame &frame)
+void vku::MeshRender::onUpdate(vku::SwapchainFrame &frame)
 {
     static auto start = std::chrono::high_resolution_clock::now();
 
@@ -165,7 +211,7 @@ void MeshRender::update(vku::SwapchainFrame &frame)
     ubo.model = glm::scale(ubo.model, glm::vec3(scale));
     ubo.view = glm::lookAt(glm::vec3(1.0f, 1.5f, 1.0f), glm::vec3(0.0f, 0.5f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
-    auto extent = swapchainEnv().extent();
+    auto extent = _swapchainCore.extent();
     ubo.projection = glm::perspective(
         glm::radians(45.0f),
         static_cast<float>(extent.width) / static_cast<float>(extent.height),
@@ -174,5 +220,5 @@ void MeshRender::update(vku::SwapchainFrame &frame)
     ubo.projection[1][1] *= -1;
     // ubo.projection = glm::mat4(1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 0.5f, 1.0f)
     //     * ubo.projection;
-    vku::hostDeviceCopy(device(), &ubo, _uboBufferMemories[frame.index], sizeof(UBO));
+    vku::hostDeviceCopy(_displayCore.device(), &ubo, _uboBufferMemories[frame.index], sizeof(UBO));
 }

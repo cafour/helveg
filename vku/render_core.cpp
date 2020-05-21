@@ -4,15 +4,11 @@ vku::RenderCore::RenderCore(
     vku::DisplayCore &displayCore,
     vku::SwapchainCore &swapchainCore,
     std::function<vku::Framebuffer(vku::SwapchainFrame &)> createFramebuffer,
-    std::function<void(VkCommandBuffer, vku::SwapchainFrame &)> recordCommandBuffer,
-    std::optional<std::function<void(vku::SwapchainFrame &)>> onUpdate,
-    std::optional<std::function<void(size_t, VkExtent2D)>> onResize)
+    std::function<void(VkCommandBuffer, vku::SwapchainFrame &)> recordCommandBuffer)
     : _displayCore(displayCore)
     , _swapchainCore(swapchainCore)
     , _createFramebuffer(createFramebuffer)
     , _recordCommandBuffer(recordCommandBuffer)
-    , _onUpdate(onUpdate)
-    , _onResize(onResize)
 {
     _commandPool = vku::CommandPool::basic(displayCore.device(), displayCore.queueIndex());
 }
@@ -40,8 +36,8 @@ void vku::RenderCore::step()
         return;
     }
 
-    if (_onUpdate.has_value()) {
-        _onUpdate.value()(*frame);
+    for (auto handler : _updateHandlers) {
+        handler(*frame);
     }
 
     VkPipelineStageFlags waitStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
@@ -76,9 +72,7 @@ void vku::RenderCore::step()
 void vku::RenderCore::resize()
 {
     _swapchainCore = vku::SwapchainCore(
-        _displayCore.device(),
-        _displayCore.physicalDevice(),
-        _displayCore.surface(),
+        _displayCore,
         _swapchainCore.swapchain());
 
     _framebuffers.resize(_swapchainCore.frames().size());
@@ -92,11 +86,21 @@ void vku::RenderCore::resize()
     allocateInfo.commandBufferCount = static_cast<uint32_t>(_swapchainCore.frames().size());
     allocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     _commandBuffers = vku::CommandBuffers(_displayCore.device(), allocateInfo);
-    if (_onResize.has_value()) {
-        _onResize.value()(_swapchainCore.frames().size(), _swapchainCore.extent());
+    for (auto handler : _resizeHandlers) {
+        handler(_swapchainCore.frames().size(), _swapchainCore.extent());
     }
-    
+
     for (size_t i = 0; i < _commandBuffers.size(); ++i) {
         _recordCommandBuffer(_commandBuffers[i], _swapchainCore.frames()[i]);
     }
+}
+
+void vku::RenderCore::onUpdate(std::function<void(vku::SwapchainFrame &)> handler)
+{
+    _updateHandlers.push_back(handler);
+}
+
+void vku::RenderCore::onResize(std::function<void(size_t, VkExtent2D)> handler)
+{
+    _resizeHandlers.push_back(handler);
 }

@@ -1,6 +1,8 @@
-#include "vki.hpp"
+#include "interop.hpp"
 
 #include <cstdlib>
+#include <iostream>
+#include <stdexcept>
 
 int helloTriangle()
 {
@@ -8,39 +10,7 @@ int helloTriangle()
         return EXIT_FAILURE;
     }
     try {
-        Triangle app(1280, 720);
-        app.run();
-    } catch (const std::exception &e) {
-        std::cerr << e.what() << std::endl;
-        return EXIT_FAILURE;
-    }
-
-    return EXIT_SUCCESS;
-}
-
-int helloMesh(MeshRender::Mesh mesh)
-{
-    if (volkInitialize() != VK_SUCCESS) {
-        return EXIT_FAILURE;
-    }
-    try {
-        MeshRender app(1280, 720, mesh);
-        app.run();
-    } catch (const std::exception &e) {
-        std::cerr << e.what() << std::endl;
-        return EXIT_FAILURE;
-    }
-
-    return EXIT_SUCCESS;
-}
-
-int helloGraph(GraphRender::Graph graph)
-{
-    if (volkInitialize() != VK_SUCCESS || glfwInit() == GLFW_FALSE) {
-        return EXIT_FAILURE;
-    }
-    try {
-        GraphRender app(1280, 720, graph);
+        vku::TriangleRender app(1280, 720);
         app.renderCore().run();
     } catch (const std::exception &e) {
         std::cerr << e.what() << std::endl;
@@ -50,13 +20,45 @@ int helloGraph(GraphRender::Graph graph)
     return EXIT_SUCCESS;
 }
 
-int createGraphRender(GraphRender::Graph graph, void **ptr)
+int helloMesh(vku::MeshRender::Mesh mesh)
+{
+    if (volkInitialize() != VK_SUCCESS) {
+        return EXIT_FAILURE;
+    }
+    try {
+        vku::MeshRender app(1280, 720, mesh);
+        app.renderCore().run();
+    } catch (const std::exception &e) {
+        std::cerr << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
+}
+
+int helloGraph(vku::GraphRender::Graph graph)
 {
     if (volkInitialize() != VK_SUCCESS || glfwInit() == GLFW_FALSE) {
         return EXIT_FAILURE;
     }
     try {
-        auto graphRender = new GraphRender(1024, 1024, graph);
+        vku::GraphRender app(1280, 720, graph);
+        app.renderCore().run();
+    } catch (const std::exception &e) {
+        std::cerr << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
+}
+
+int createGraphRender(vku::GraphRender::Graph graph, void **ptr)
+{
+    if (volkInitialize() != VK_SUCCESS || glfwInit() == GLFW_FALSE) {
+        return EXIT_FAILURE;
+    }
+    try {
+        auto graphRender = new vku::GraphRender(1024, 1024, graph);
         graphRender->renderCore().resize();
         *ptr = graphRender;
     } catch (const std::exception &e) {
@@ -69,7 +71,7 @@ int createGraphRender(GraphRender::Graph graph, void **ptr)
 
 int stepGraphRender(void *ptr)
 {
-    GraphRender *graphRender = static_cast<GraphRender *>(ptr);
+    vku::GraphRender *graphRender = static_cast<vku::GraphRender *>(ptr);
     graphRender->flushPositions();
     glfwPollEvents();
     graphRender->renderCore().step();
@@ -78,7 +80,7 @@ int stepGraphRender(void *ptr)
 
 int destroyGraphRender(void *ptr)
 {
-    GraphRender *graphRender = static_cast<GraphRender *>(ptr);
+    vku::GraphRender *graphRender = static_cast<vku::GraphRender *>(ptr);
     ENSURE(vkDeviceWaitIdle(graphRender->displayCore().device()));
     delete graphRender;
     return EXIT_SUCCESS;

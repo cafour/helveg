@@ -1,8 +1,7 @@
 #pragma once
 
+#include "display_core.hpp"
 #include "device_related.hpp"
-
-#include <volk.h>
 
 #include <functional>
 #include <vector>
@@ -28,9 +27,7 @@ private:
 public:
     SwapchainCore() {}
     SwapchainCore(
-        VkDevice device,
-        VkPhysicalDevice physicalDevice,
-        VkSurfaceKHR surface,
+        DisplayCore &displayCore,
         VkSwapchainKHR old = VK_NULL_HANDLE);
 
     Swapchain &swapchain() { return _swapchain; }

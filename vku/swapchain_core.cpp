@@ -4,29 +4,33 @@
 #include <vector>
 
 vku::SwapchainCore::SwapchainCore(
-    VkDevice device,
-    VkPhysicalDevice physicalDevice,
-    VkSurfaceKHR surface,
+    DisplayCore &displayCore,
     VkSwapchainKHR old)
 {
     VkSurfaceCapabilitiesKHR capabilities;
     VkSurfaceFormatKHR format;
-    _swapchain = vku::Swapchain::basic(device, physicalDevice, surface, &capabilities, &format, old);
+    _swapchain = vku::Swapchain::basic(
+        displayCore.device(),
+        displayCore.physicalDevice(),
+        displayCore.surface(),
+        &capabilities,
+        &format,
+        old);
     _extent = capabilities.currentExtent;
     uint32_t imageCount = 0;
-    ENSURE(vkGetSwapchainImagesKHR(device, _swapchain, &imageCount, nullptr));
+    ENSURE(vkGetSwapchainImagesKHR(displayCore.device(), _swapchain, &imageCount, nullptr));
     std::vector<VkImage> images(imageCount, VK_NULL_HANDLE);
-    ENSURE(vkGetSwapchainImagesKHR(device, _swapchain, &imageCount, images.data()));
+    ENSURE(vkGetSwapchainImagesKHR(displayCore.device(), _swapchain, &imageCount, images.data()));
 
     for (size_t i = 0; i < imageCount; ++i) {
-        auto imageView = vku::ImageView::basic(device, images[i], format.format, VK_IMAGE_ASPECT_COLOR_BIT);
+        auto imageView = vku::ImageView::basic(displayCore.device(), images[i], format.format, VK_IMAGE_ASPECT_COLOR_BIT);
         _frames.push_back(vku::SwapchainFrame {
             static_cast<uint32_t>(i),
             images[i],
             std::move(imageView),
-            vku::Semaphore::basic(device),
-            vku::Semaphore::basic(device),
-            vku::Fence::basic(device) });
+            vku::Semaphore::basic(displayCore.device()),
+            vku::Semaphore::basic(displayCore.device()),
+            vku::Fence::basic(displayCore.device()) });
     }
 }
 

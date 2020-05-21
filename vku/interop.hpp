@@ -1,6 +1,6 @@
 #pragma once
 
-#include "triangle.hpp"
+#include "triangle_render.hpp"
 #include "mesh_render.hpp"
 #include "graph_render.hpp"
 
@@ -13,11 +13,11 @@
 extern "C" {
     EXPORT int helloTriangle();
 
-    EXPORT int helloMesh(MeshRender::Mesh mesh);
+    EXPORT int helloMesh(vku::MeshRender::Mesh mesh);
 
-    EXPORT int helloGraph(GraphRender::Graph graph);
+    EXPORT int helloGraph(vku::GraphRender::Graph graph);
 
-    EXPORT int createGraphRender(GraphRender::Graph graph, void **graphRender);
+    EXPORT int createGraphRender(vku::GraphRender::Graph graph, void **graphRender);
 
     EXPORT int stepGraphRender(void *ptr);
 

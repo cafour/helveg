@@ -125,10 +125,10 @@ static VkPhysicalDeviceFeatures getDeviceFeatures()
 
 static const VkPhysicalDeviceFeatures requiredFeatures = getDeviceFeatures();
 
-GraphRender::GraphRender(int width, int height, Graph graph)
+vku::GraphRender::GraphRender(int width, int height, Graph graph)
     : _instanceCore("GraphRender", true, true)
     , _displayCore(_instanceCore.instance(), width, height, "vkdev", &requiredFeatures)
-    , _swapchainCore(_displayCore.device(), _displayCore.physicalDevice(), _displayCore.surface())
+    , _swapchainCore(_displayCore)
     , _renderCore(
           _displayCore,
           _swapchainCore,
@@ -177,7 +177,7 @@ GraphRender::GraphRender(int width, int height, Graph graph)
     _edgeCount = edges.size();
 }
 
-void GraphRender::flushPositions()
+void vku::GraphRender::flushPositions()
 {
     vku::hostDeviceCopy(
         _displayCore.device(),
@@ -187,7 +187,7 @@ void GraphRender::flushPositions()
         0);
 }
 
-void GraphRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::SwapchainFrame &frame)
+void vku::GraphRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::SwapchainFrame &frame)
 {
     VkCommandBufferBeginInfo beginInfo = {};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -239,7 +239,7 @@ void GraphRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::Swapch
     ENSURE(vkEndCommandBuffer(commandBuffer));
 }
 
-vku::Framebuffer GraphRender::createFramebuffer(vku::SwapchainFrame &frame)
+vku::Framebuffer vku::GraphRender::createFramebuffer(vku::SwapchainFrame &frame)
 {
     auto extent = _swapchainCore.extent();
     return vku::Framebuffer::basic(_displayCore.device(), _renderPass, frame.imageView, 1, extent.width, extent.height);

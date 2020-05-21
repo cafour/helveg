@@ -1,4 +1,4 @@
-#include "vki.hpp"
+#include "interop.hpp"
 
 int main()
 {
@@ -6,7 +6,7 @@ int main()
         glm::vec2(0.0f, 0.0f)
     };
 
-    GraphRender::Graph graph { positions, nullptr, 1 };
+    vku::GraphRender::Graph graph { positions, nullptr, 1 };
 
     return helloGraph(graph);
 }

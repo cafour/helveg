@@ -14,49 +14,52 @@ include(Embed)
 
 
 set(VKU_SOURCES
-    # headers
-    vku.hpp
+    # interop
+    interop.hpp
+    interop.cpp
+
+    # wrappers & utils
     base.hpp
+    base.cpp
     types.hpp
     window.hpp
-    standalone.hpp
-    instance_related.hpp
-    device_related.hpp
-    app.hpp
-    containers.hpp
-    pipeline.hpp
-    descriptor_set.hpp
-    render_pass.hpp
-    vki.hpp
-    triangle.hpp
-    mesh_render.hpp
-    graph_render.hpp
-    wrapper.hpp
-    instance_core.hpp
-    display_core.hpp
-    swapchain_core.hpp
-    render_core.hpp
-    chunk_render.hpp
-
-    # sources
-    base.cpp
     window.cpp
+    standalone.hpp
     standalone.cpp
+    instance_related.hpp
     instance_related.cpp
+    device_related.hpp
     device_related.cpp
-    app.cpp
+    containers.hpp
     containers.cpp
+    pipeline.hpp
     pipeline.cpp
+    descriptor_set.hpp
     descriptor_set.cpp
+    render_pass.hpp
     render_pass.cpp
-    vki.cpp
-    triangle.cpp
-    mesh_render.cpp
-    graph_render.cpp
+    wrapper.hpp
+
+    # cores
+    instance_core.hpp
     instance_core.cpp
+    display_core.hpp
     display_core.cpp
+    swapchain_core.hpp
     swapchain_core.cpp
+    render_core.hpp
     render_core.cpp
+    depth_core.hpp
+    depth_core.cpp
+    
+    # renders
+    triangle_render.hpp
+    triangle_render.cpp
+    mesh_render.hpp
+    mesh_render.cpp
+    graph_render.hpp
+    graph_render.cpp
+    chunk_render.hpp
     chunk_render.cpp)
 
 add_library(${PROJECT_NAME} SHARED ${VKU_SOURCES})
