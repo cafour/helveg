@@ -29,3 +29,9 @@ extern const uint32_t *EDGE_VERT;
 
 extern const size_t EDGE_FRAG_LENGTH;
 extern const uint32_t *EDGE_FRAG;
+
+extern const size_t CHUNK_VERT_LENGTH;
+extern const uint32_t *CHUNK_VERT;
+
+extern const size_t CHUNK_FRAG_LENGTH;
+extern const uint32_t *CHUNK_FRAG;

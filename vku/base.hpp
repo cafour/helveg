@@ -25,6 +25,11 @@ bool hasExtensionSupport(
     VkPhysicalDevice physicalDevice,
     const std::vector<const char *> &extensions);
 
+uint32_t vku::findQueueFamily(
+    VkPhysicalDevice physical,
+    VkQueueFlags requiredFlags,
+    VkQueueFamilyProperties *queueFamily = nullptr);
+
 VkPhysicalDevice findDevice(
     VkInstance instance,
     VkSurfaceKHR surface,

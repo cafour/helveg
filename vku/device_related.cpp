@@ -104,11 +104,11 @@ vku::Swapchain vku::Swapchain::basic(
     return vku::Swapchain(device, createInfo);
 }
 
-vku::CommandPool vku::CommandPool::basic(VkDevice device, uint32_t queueIndex)
+vku::CommandPool vku::CommandPool::basic(VkDevice device, uint32_t queueFamily)
 {
     VkCommandPoolCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-    createInfo.queueFamilyIndex = queueIndex;
+    createInfo.queueFamilyIndex = queueFamily;
     return vku::CommandPool(device, createInfo);
 }
 

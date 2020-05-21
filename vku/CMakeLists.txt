@@ -39,7 +39,7 @@ set(VKU_SOURCES
     render_pass.hpp
     render_pass.cpp
     wrapper.hpp
-
+    
     # cores
     instance_core.hpp
     instance_core.cpp
@@ -51,6 +51,11 @@ set(VKU_SOURCES
     render_core.cpp
     depth_core.hpp
     depth_core.cpp
+    transfer_core.hpp
+    transfer_core.cpp
+    inline_mesh_core.hpp
+    inline_mesh_core.cpp
+    inline_cube.cpp
     
     # renders
     triangle_render.hpp
@@ -90,6 +95,8 @@ target_embed_shader(${PROJECT_NAME} shaders/node.geom NODE_GEOM)
 target_embed_shader(${PROJECT_NAME} shaders/node.frag NODE_FRAG)
 target_embed_shader(${PROJECT_NAME} shaders/edge.vert EDGE_VERT)
 target_embed_shader(${PROJECT_NAME} shaders/edge.frag EDGE_FRAG)
+target_embed_shader(${PROJECT_NAME} shaders/chunk.vert CHUNK_VERT)
+target_embed_shader(${PROJECT_NAME} shaders/chunk.frag CHUNK_FRAG)
 
 
 add_executable(hello hello.cpp)

@@ -121,6 +121,29 @@ bool vku::hasExtensionSupport(
     return true;
 }
 
+uint32_t vku::findQueueFamily(
+    VkPhysicalDevice physical,
+    VkQueueFlags requiredFlags,
+    VkQueueFamilyProperties *queueFamily)
+{
+    uint32_t queueIndex = -1;
+    uint32_t queueFamilyCount = 0;
+    vkGetPhysicalDeviceQueueFamilyProperties(physical, &queueFamilyCount, nullptr);
+    std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+    vkGetPhysicalDeviceQueueFamilyProperties(physical, &queueFamilyCount, queueFamilies.data());
+
+    for (uint32_t i = 0; i < queueFamilyCount; ++i) {
+        VkBool32 isPresentSupported = false;
+        if (queueFamilies[i].queueFlags & requiredFlags) {
+            if (queueFamily) {
+                *queueFamily = queueFamilies[i];
+            }
+            return i;
+        }
+    }
+    return -1;
+}
+
 VkPhysicalDevice vku::findDevice(
     VkInstance instance,
     VkSurfaceKHR surface,
@@ -142,23 +165,21 @@ VkPhysicalDevice vku::findDevice(
             continue;
         }
 
-        uint32_t queueFamilyCount = 0;
-        vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
-        std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-        vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
-
-        for (uint32_t i = 0; i < queueFamilyCount; ++i) {
-            VkBool32 isPresentSupported = false;
-            vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &isPresentSupported);
-            if (queueFamilies[0].queueFlags & VK_QUEUE_GRAPHICS_BIT && isPresentSupported) {
-                *queueIndex = i;
-                chosenDevice = device;
-                break;
-            }
+        VkQueueFamilyProperties queueFamily;
+        uint32_t queue = vku::findQueueFamily(device, VK_QUEUE_GRAPHICS_BIT, &queueFamily);
+        if (queue == -1) {
+            continue;
         }
-        if (chosenDevice != VK_NULL_HANDLE) {
-            break;
+        VkBool32 isPresentSupported = false;
+        vkGetPhysicalDeviceSurfaceSupportKHR(device, queue, surface, &isPresentSupported);
+        if (!isPresentSupported) {
+            continue;
         }
+        if(queueIndex) {
+            *queueIndex = queue;
+        }
+        chosenDevice = device;
+        break;
     }
     if (chosenDevice == VK_NULL_HANDLE) {
         throw std::runtime_error("failed to find a suitable physical device");

@@ -76,7 +76,7 @@ class CommandPool : public DeviceConstructible<
                         &vkDestroyCommandPool> {
 public:
     using DeviceConstructible::DeviceConstructible;
-    static CommandPool basic(VkDevice device, uint32_t queueIndex);
+    static CommandPool basic(VkDevice device, uint32_t queueFamily);
 };
 
 class ShaderModule : public DeviceConstructible<
