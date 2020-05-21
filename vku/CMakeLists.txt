@@ -36,6 +36,7 @@ set(VKU_SOURCES
     display_core.hpp
     swapchain_core.hpp
     render_core.hpp
+    chunk_render.hpp
 
     # sources
     base.cpp
@@ -55,7 +56,8 @@ set(VKU_SOURCES
     instance_core.cpp
     display_core.cpp
     swapchain_core.cpp
-    render_core.cpp)
+    render_core.cpp
+    chunk_render.cpp)
 
 add_library(${PROJECT_NAME} SHARED ${VKU_SOURCES})
 target_link_libraries(${PROJECT_NAME} PUBLIC volk glfw glm)
