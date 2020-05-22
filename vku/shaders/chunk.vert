@@ -19,7 +19,7 @@ layout(location = 1) out vec3 fragPosition;
 
 void main() {
     uint x = gl_InstanceIndex / (size * size);
-    uint y = gl_InstanceIndex % (size * size);
+    uint y = gl_InstanceIndex / size % size;
     uint z = gl_InstanceIndex % size;
     gl_Position = ubo.proj * ubo.view * ubo.model * vec4(inPosition + vec3(x, y, z) * 2, 1.0f);
     fragPosition = gl_Position.xyz;
