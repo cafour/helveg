@@ -200,7 +200,7 @@ namespace Helveg
             var (names, weights) = RunAnalysis(project.FullName, overwriteCache);
             var state = Fdg.State.Create(weights);
 
-            switch(kind)
+            switch (kind)
             {
                 case ProjectRenderKind.Vku:
                     DrawGraphVku(state, iterationCount, noOverlapIterationCount, time);
@@ -215,14 +215,20 @@ namespace Helveg
 
         public static unsafe void DrawChunk()
         {
-            var y = new Vector3(0.5f, 0.3f, 0.0f);
+            var o = new Vector3(0.5f, 0.3f, 0.0f);
             var b = new Vector3(0.0f, 0.3f, 0.5f);
-            var chunk = new Chunk(new Vector3[,,] {
-                { {y, y, y, y}, {b, b, b, b}, {y, y, y, y}, {b, b, b, b} },
-                { {b, b, b, b}, {y, y, y, y}, {b, b, b, b}, {y, y, y, y} },
-                { {y, y, y, y}, {b, b, b, b}, {y, y, y, y}, {b, b, b, b} },
-                { {b, b, b, b}, {y, y, y, y}, {b, b, b, b}, {y, y, y, y} }
-            });
+            var voxels = new Vector3[32, 32, 32];
+            for (int x = 0; x < 32; ++x)
+            {
+                for (int y = 0; y < 32; ++y)
+                {
+                    for (int z = 0; z < 32; ++z)
+                    {
+                        voxels[x, y, z] = (x + y + z) >= 42 ? o : b;
+                    }
+                }
+            }
+            var chunk = new Chunk(voxels);
             Vku.HelloChunk(chunk);
         }
 
