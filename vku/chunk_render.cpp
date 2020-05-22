@@ -191,12 +191,14 @@ void vku::ChunkRender::onUpdate(vku::SwapchainFrame &frame)
     float time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
 
     float scale = 0.5f / _chunk.size;
+    float offset = (_chunk.size - 1) * -1.0f;
 
     UBO ubo = {};
-    ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
+    ubo.model = glm::identity<glm::mat4>();
+    ubo.model = glm::rotate(ubo.model, time * glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
     ubo.model = glm::scale(ubo.model, glm::vec3(scale));
-    ubo.model = glm::translate(ubo.model, glm::vec3(-0.5f));
-    ubo.view = glm::lookAt(glm::vec3(1.0f, 1.5f, 1.0f), glm::vec3(0.0f, 0.5f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    ubo.model = glm::translate(ubo.model, glm::vec3(offset));
+    ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
     auto extent = _swapchainCore.extent();
     ubo.projection = glm::perspective(
