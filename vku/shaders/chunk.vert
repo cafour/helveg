@@ -7,9 +7,8 @@ layout(binding = 0) uniform UBO {
     mat4 proj;
 } ubo;
 
-layout(binding = 1) readonly buffer ColorSSBO { vec3 colors[]; };
-
 layout(location = 0) in vec3 inPosition;
+layout(location = 1) in vec3 inColor;
 layout(push_constant) uniform Constants {
     uint size;
 };
@@ -23,5 +22,5 @@ void main() {
     uint z = gl_InstanceIndex % size;
     gl_Position = ubo.proj * ubo.view * ubo.model * vec4(inPosition + vec3(x, y, z) * 2, 1.0f);
     fragPosition = gl_Position.xyz;
-    fragColor = colors[gl_InstanceIndex];
+    fragColor = inColor;
 }

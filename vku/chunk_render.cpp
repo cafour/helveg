@@ -29,7 +29,7 @@ vku::ChunkRender::ChunkRender(int width, int height, Chunk chunk)
     _colorBuffer = vku::Buffer::exclusive(
         _displayCore.device(),
         sizeof(glm::vec3) * _chunk.size * _chunk.size * _chunk.size,
-        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT);
+        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
     _colorMemory = vku::DeviceMemory::deviceLocalData(
         _transferCore.physicalDevice(),
         _transferCore.device(),
@@ -40,10 +40,9 @@ vku::ChunkRender::ChunkRender(int width, int height, Chunk chunk)
         sizeof(glm::vec3) * _chunk.size * _chunk.size * _chunk.size);
 
     VkDescriptorSetLayoutBinding bindings[] = {
-        vku::descriptorBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT),
-        vku::descriptorBinding(1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT)
+        vku::descriptorBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT)
     };
-    _setLayout = vku::DescriptorSetLayout::basic(_displayCore.device(), bindings, 2);
+    _setLayout = vku::DescriptorSetLayout::basic(_displayCore.device(), bindings, 1);
     std::vector<VkDescriptorSetLayout> setLayouts { _setLayout };
 
     _renderPass = vku::RenderPass::basic(
@@ -58,11 +57,13 @@ vku::ChunkRender::ChunkRender(int width, int height, Chunk chunk)
     _pipelineLayout = vku::PipelineLayout::basic(_displayCore.device(), &setLayouts, &pushConstantRanges);
 
     VkVertexInputBindingDescription vertexBindings[] = {
-        vku::vertexInputBinding(0, sizeof(glm::vec3), VK_VERTEX_INPUT_RATE_VERTEX)
+        vku::vertexInputBinding(0, sizeof(glm::vec3), VK_VERTEX_INPUT_RATE_VERTEX),
+        vku::vertexInputBinding(1, sizeof(glm::vec3), VK_VERTEX_INPUT_RATE_INSTANCE)
     };
 
     VkVertexInputAttributeDescription vertexAttributes[] = {
-        vku::vertexInputAttribute(0, 0, VK_FORMAT_R32G32B32_SFLOAT, 0)
+        vku::vertexInputAttribute(0, 0, VK_FORMAT_R32G32B32_SFLOAT, 0),
+        vku::vertexInputAttribute(1, 1, VK_FORMAT_R32G32B32_SFLOAT, 0)
     };
 
     _pipeline = vku::GraphicsPipeline::basic(
@@ -72,9 +73,9 @@ vku::ChunkRender::ChunkRender(int width, int height, Chunk chunk)
         vku::ShaderModule::inlined(_displayCore.device(), CHUNK_VERT, CHUNK_VERT_LENGTH),
         vku::ShaderModule::inlined(_displayCore.device(), CHUNK_FRAG, CHUNK_FRAG_LENGTH),
         vertexBindings,
-        1,
+        2,
         vertexAttributes,
-        1,
+        2,
         VK_FRONT_FACE_COUNTER_CLOCKWISE);
 
     _renderCore.onResize([this](auto s, auto e) { onResize(s, e); });
@@ -115,8 +116,9 @@ void vku::ChunkRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::S
     vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-    VkDeviceSize offsets[] = { 0 };
-    vkCmdBindVertexBuffers(commandBuffer, 0, 1, _cubeCore.vertexBuffer(), offsets);
+    VkDeviceSize offsets[] = { 0, 0 };
+    VkBuffer vertexBuffers[] { _cubeCore.vertexBuffer(), _colorBuffer };
+    vkCmdBindVertexBuffers(commandBuffer, 0, 2, vertexBuffers, offsets);
     vkCmdBindIndexBuffer(commandBuffer, _cubeCore.indexBuffer(), 0, VK_INDEX_TYPE_UINT32);
     vkCmdPushConstants(commandBuffer, _pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(uint32_t), &_chunk.size);
     vkCmdBindDescriptorSets(
@@ -167,10 +169,9 @@ void vku::ChunkRender::onResize(size_t imageCount, VkExtent2D)
     }
 
     VkDescriptorPoolSize poolSizes[] = {
-        vku::descriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, imageCount),
-        vku::descriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, imageCount)
+        vku::descriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, imageCount)
     };
-    _descriptorPool = vku::DescriptorPool::basic(_displayCore.device(), imageCount, poolSizes, 2);
+    _descriptorPool = vku::DescriptorPool::basic(_displayCore.device(), imageCount, poolSizes, 1);
     _descriptorSets = vku::allocateDescriptorSets(_displayCore.device(), _descriptorPool, _setLayout, imageCount);
     for (size_t i = 0; i < imageCount; ++i) {
         vku::writeWholeBufferDescriptor(
@@ -179,12 +180,6 @@ void vku::ChunkRender::onResize(size_t imageCount, VkExtent2D)
             _uboBuffers[i],
             _descriptorSets[i],
             0);
-        vku::writeWholeBufferDescriptor(
-            _displayCore.device(),
-            VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-            _colorBuffer,
-            _descriptorSets[i],
-            1);
     }
 }
 

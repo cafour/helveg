@@ -95,9 +95,13 @@ int helloChunk(vku::ChunkRender::Chunk chunk)
         vku::ChunkRender app(1280, 720, chunk);
         app.renderCore().run();
     } catch (const std::exception &e) {
-        std::cerr << e.what() << std::endl;
+        std::cerr << std::string(e.what()) << std::endl;
+        std::cout.flush();
+        std::cerr.flush();
         return EXIT_FAILURE;
     }
 
+    std::cout.flush();
+    std::cerr.flush();
     return EXIT_SUCCESS;
 }
