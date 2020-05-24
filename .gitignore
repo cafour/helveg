@@ -1,0 +1,50 @@
+*
+!.gitignore
+
+# directories
+!*/
+
+# documents
+!*.ad
+!*.md
+!*.tex
+!*.txt
+!*.bib
+
+# source code
+!*.cs
+!*.cpp
+!*.cu
+!*.csproj
+!*.h
+!*.hpp
+!Makefile
+!CMakeLists.txt
+!*.vert
+!*.frag
+!*.cuh
+!*.geom
+!*.sh
+!*.sln
+
+# misc
+!.clang-format
+!.editorconfig
+
+# images
+!*.png
+
+# cmake
+!*.cmake
+
+# IDE
+.vscode/
+
+# generated stuff
+obj/
+bin/
+out/
+build/
+external/
+embedded/
+*.gv.png
