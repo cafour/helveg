@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.Diagnostics;
@@ -234,6 +235,9 @@ namespace Helveg
 
         public static int Main(string[] args)
         {
+            var a = ImmutableArray.Create<int>(0, 1, 2);
+            var b = ImmutableArray.Create<int>(0, 1, 2);
+            var test = a.GetHashCode().Equals(b.GetHashCode());
             var rootCommand = new RootCommand("A software visualization tool");
             rootCommand.AddCommand(new Command("triangle", "Draw a triangle")
             {
