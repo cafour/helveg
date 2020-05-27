@@ -96,11 +96,13 @@ namespace Helveg
 
         public static unsafe void HelloChunk(Chunk chunk)
         {
-            fixed (Vector3* voxels = chunk.Voxels)
+            fixed (Block* voxels = chunk.Voxels)
+            fixed (Vector3* palette = chunk.Palette.Colors)
             {
                 var result = helloChunk(new Chunk.Raw
                 {
                     Voxels = voxels,
+                    Palette = palette,
                     Size = chunk.Voxels.GetLength(0)
                 });
                 if (result != 0)

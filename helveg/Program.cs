@@ -216,20 +216,29 @@ namespace Helveg
 
         public static unsafe void DrawChunk()
         {
-            var o = new Vector3(0.5f, 0.3f, 0.0f);
-            var b = new Vector3(0.0f, 0.3f, 0.5f);
-            var voxels = new Vector3[32, 32, 32];
+            var blockTypes = new Block[]
+            {
+                new Block {Flags = BlockFlags.IsAir},
+                new Block {PalleteIndex = 0},
+                new Block {PalleteIndex = 1}
+            };
+            var voxels = new Block[32, 32, 32];
             for (int x = 0; x < 32; ++x)
             {
                 for (int y = 0; y < 32; ++y)
                 {
                     for (int z = 0; z < 32; ++z)
                     {
-                        voxels[x, y, z] = (x + y + z) >= 42 ? o : b;
+                        voxels[x, y, z] = blockTypes[(x + y + z) % blockTypes.Length];
                     }
                 }
             }
-            var chunk = new Chunk(voxels);
+            var palette = new Palette(new Vector3[]
+            {
+                new Vector3(0.5f, 0.3f, 0.0f),
+                new Vector3(0.0f, 0.3f, 0.5f)
+            });
+            var chunk = new Chunk(voxels, palette);
             Vku.HelloChunk(chunk);
         }
 

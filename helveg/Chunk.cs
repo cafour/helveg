@@ -5,7 +5,7 @@ namespace Helveg
 {
     public struct Chunk
     {
-        public Chunk(Vector3[,,] voxels)
+        public Chunk(Block[,,] voxels, Palette palette)
         {
             if (voxels.GetLength(0) != voxels.GetLength(1)
                 || voxels.GetLength(1) != voxels.GetLength(2))
@@ -13,13 +13,16 @@ namespace Helveg
                 throw new ArgumentException("The colors array must be a cube.");
             }
             Voxels = voxels;
+            Palette = palette;
         }
 
-        public Vector3[,,] Voxels { get; }
+        public Block[,,] Voxels { get; }
+        public Palette Palette { get; }
 
         public unsafe struct Raw
         {
-            public Vector3* Voxels;
+            public Block* Voxels;
+            public Vector3 *Palette;
             public int Size;
         }
     }
