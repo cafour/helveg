@@ -1,25 +1,26 @@
 using System;
+using System.Numerics;
 
 namespace Helveg
 {
     public struct Chunk
     {
-        public Chunk(BlockKind[,,] blocks)
+        public Chunk(Vector3[,,] colors)
         {
-            if (blocks.GetLength(0) != blocks.GetLength(1)
-                || blocks.GetLength(1) != blocks.GetLength(2))
+            if (colors.GetLength(0) != colors.GetLength(1)
+                || colors.GetLength(1) != colors.GetLength(2))
             {
-                throw new ArgumentException("The block array must be a cube.");
+                throw new ArgumentException("The colors array must be a cube.");
             }
-            Blocks = blocks;
+            Colors = colors;
         }
 
-        public BlockKind[,,] Blocks { get; }
+        public Vector3[,,] Colors { get; }
 
         public unsafe struct Raw
         {
-            public BlockKind* Blocks;
-            public int Size;
+            public Vector3* Colors;
+            public int Side;
         }
     }
 }
