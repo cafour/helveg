@@ -5,22 +5,22 @@ namespace Helveg
 {
     public struct Chunk
     {
-        public Chunk(Vector3[,,] colors)
+        public Chunk(Vector3[,,] voxels)
         {
-            if (colors.GetLength(0) != colors.GetLength(1)
-                || colors.GetLength(1) != colors.GetLength(2))
+            if (voxels.GetLength(0) != voxels.GetLength(1)
+                || voxels.GetLength(1) != voxels.GetLength(2))
             {
                 throw new ArgumentException("The colors array must be a cube.");
             }
-            Colors = colors;
+            Voxels = voxels;
         }
 
-        public Vector3[,,] Colors { get; }
+        public Vector3[,,] Voxels { get; }
 
         public unsafe struct Raw
         {
-            public Vector3* Colors;
-            public int Side;
+            public Vector3* Voxels;
+            public int Size;
         }
     }
 }
