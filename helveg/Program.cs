@@ -233,11 +233,8 @@ namespace Helveg
             Vku.HelloChunk(chunk);
         }
 
-        public static int Main(string[] args)
+        public static unsafe int Main(string[] args)
         {
-            var a = ImmutableArray.Create<int>(0, 1, 2);
-            var b = ImmutableArray.Create<int>(0, 1, 2);
-            var test = a.GetHashCode().Equals(b.GetHashCode());
             var rootCommand = new RootCommand("A software visualization tool");
             rootCommand.AddCommand(new Command("triangle", "Draw a triangle")
             {
