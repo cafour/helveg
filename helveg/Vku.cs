@@ -6,6 +6,7 @@ namespace Helveg
 {
     public static class Vku
     {
+#pragma warning disable IDE1006
         [DllImport("vku", CallingConvention = CallingConvention.Cdecl)]
         private static extern int helloTriangle();
 
@@ -23,6 +24,7 @@ namespace Helveg
 
         [DllImport("vku", CallingConvention = CallingConvention.Cdecl)]
         private static unsafe extern int helloChunk(Chunk.Raw chunk);
+#pragma warning restore IDE1006
 
         public static unsafe void HelloTriangle()
         {
@@ -94,12 +96,12 @@ namespace Helveg
 
         public static unsafe void HelloChunk(Chunk chunk)
         {
-            fixed (Vector3* colors = chunk.Colors)
+            fixed (BlockKind* blocks = chunk.Blocks)
             {
                 var result = helloChunk(new Chunk.Raw
                 {
-                    Colors = colors,
-                    Side = chunk.Colors.GetLength(0)
+                    Blocks = blocks,
+                    Size = chunk.Blocks.GetLength(0)
                 });
                 if (result != 0)
                 {

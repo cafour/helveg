@@ -68,7 +68,6 @@ namespace Helveg
                 new List<Symbol>(1 << 20),
                 new List<Symbol>(1 << 20)
             };
-            var trunkHeight = branchCount / 2;
             var currentBranching = initialBranching;
             var src = buffers[0];
             src.AddRange(axiom);
