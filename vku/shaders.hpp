@@ -35,3 +35,9 @@ extern const uint32_t *CHUNK_VERT;
 
 extern const size_t CHUNK_FRAG_LENGTH;
 extern const uint32_t *CHUNK_FRAG;
+
+extern const size_t WORLD_VERT_LENGTH;
+extern const uint32_t *WORLD_VERT;
+
+extern const size_t WORLD_FRAG_LENGTH;
+extern const uint32_t *WORLD_FRAG;

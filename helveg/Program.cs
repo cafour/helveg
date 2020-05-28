@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -214,7 +215,7 @@ namespace Helveg
             }
         }
 
-        public static unsafe void DrawChunk()
+        public static void DrawChunk()
         {
             var blockTypes = new Block[]
             {
@@ -222,11 +223,11 @@ namespace Helveg
                 new Block {PaletteIndex = 0},
                 new Block {PaletteIndex = 1}
             };
-            var palette = new Palette(new Vector3[]
+            var palette = new []
             {
                 new Vector3(0.5f, 0.3f, 0.0f),
                 new Vector3(0.0f, 0.3f, 0.5f)
-            });
+            };
             var size = 16;
             var voxels = new Block[size, size, size];
             for (int x = 0; x < size; ++x)
@@ -243,27 +244,23 @@ namespace Helveg
             Vku.HelloChunk(chunk);
         }
 
-        public static unsafe void DrawOpenSimplexChunk()
+        public static Block[,,] GetOpenSimplexVoxels(
+            OpenSimplexNoise.Data openSimplex,
+            double frequency,
+            int size,
+            Vector2 offset,
+            Block air,
+            Block stone)
         {
-            var blockTypes = new Block[]
-            {
-                new Block {Flags = BlockFlags.IsAir},
-                new Block {PaletteIndex = 0},
-            };
-            var palette = new Palette(new Vector3[]
-            {
-                new Vector3(0.3f, 0.3f, 0.3f),
-            });
-
-            var size = 64;
             var terrain = new double[size, size];
-            double frequency = 0.025;
-            var openSimplex = new OpenSimplexNoise.Data(42L);
             for (int x = 0; x < size; ++x)
             {
                 for (int y = 0; y < size; ++y)
                 {
-                    var noise = OpenSimplexNoise.Evaluate(openSimplex, frequency * x, frequency * y);
+                    var noise = OpenSimplexNoise.Evaluate(
+                        openSimplex,
+                        frequency * (x + offset.X),
+                        frequency * (y + offset.Y));
                     terrain[x, y] = (noise + 1.0) / 2.0 * size;
                 }
             }
@@ -275,12 +272,66 @@ namespace Helveg
                 {
                     for (int z = 0; z < size; ++z)
                     {
-                        voxels[x, y, z] = blockTypes[y > terrain[x, z] ? 0 : 1];
+                        voxels[x, y, z] = y > terrain[x, z] ? air : stone;
                     }
                 }
             }
+            return voxels;
+        }
+
+        public static void DrawOpenSimplexChunk()
+        {
+            var air = new Block { Flags = BlockFlags.IsAir };
+            var stone = new Block { PaletteIndex = 0 };
+            var palette = new []
+            {
+                new Vector3(0.3f, 0.3f, 0.3f),
+            };
+
+            var openSimplex = new OpenSimplexNoise.Data(42L);
+            var voxels = GetOpenSimplexVoxels(
+                openSimplex: openSimplex,
+                frequency: 0.025,
+                size: 64,
+                offset: Vector2.Zero,
+                air: air,
+                stone: stone);
             var chunk = new Chunk(voxels, palette);
             Vku.HelloChunk(chunk);
+        }
+
+        public static void DrawNoisyWorld()
+        {
+            var air = new Block { Flags = BlockFlags.IsAir };
+            var stone = new Block { PaletteIndex = 0 };
+            var palette = new []
+            {
+                new Vector3(0.3f, 0.3f, 0.3f),
+            };
+            const int chunkSize = 64;
+            var openSimplex = new OpenSimplexNoise.Data(42L);
+            var chunks = new List<Chunk>();
+            var positions = new List<Vector3>();
+            var width = 3;
+            var height = 3;
+            for (int x = 0; x < width; ++x)
+            {
+                for (int z = 0; z < height; ++z)
+                {
+                    positions.Add(chunkSize * new Vector3(x, 0, z));
+                    var voxels = GetOpenSimplexVoxels(
+                        openSimplex: openSimplex,
+                        frequency: 0.025,
+                        size: chunkSize,
+                        offset: new Vector2(x, z),
+                        air: air,
+                        stone: stone);
+                    chunks.Add(new Chunk(voxels, palette));
+                }
+            }
+
+            var world = new World(chunks.ToArray(), positions.ToArray());
+            Vku.HelloWorld(world);
         }
 
         public static unsafe int Main(string[] args)
@@ -322,6 +373,10 @@ namespace Helveg
             rootCommand.AddCommand(new Command("opensimplex", "Draw a single chunk with OpenSimplex noise")
             {
                 Handler = CommandHandler.Create(DrawOpenSimplexChunk)
+            });
+            rootCommand.AddCommand(new Command("world", "Draw multiple noisy chunks")
+            {
+                Handler = CommandHandler.Create(DrawNoisyWorld)
             });
 
             return rootCommand.Invoke(args);

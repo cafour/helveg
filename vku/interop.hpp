@@ -4,6 +4,7 @@
 #include "mesh_render.hpp"
 #include "graph_render.hpp"
 #include "chunk_render.hpp"
+#include "world_render.hpp"
 
 #if defined _WIN32
     #define EXPORT __declspec(dllexport)
@@ -25,4 +26,6 @@ extern "C" {
     EXPORT int destroyGraphRender(void *ptr);
 
     EXPORT int helloChunk(vku::ChunkRender::Chunk chunk);
+
+    EXPORT int helloWorld(vku::WorldRender::World world);
 }

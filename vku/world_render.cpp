@@ -1,4 +1,4 @@
-#include "chunk_render.hpp"
+#include "world_render.hpp"
 #include "shaders.hpp"
 
 #include <chrono>
@@ -14,71 +14,8 @@ static VkPhysicalDeviceFeatures getRequiredFeatures()
 
 static const VkPhysicalDeviceFeatures requiredFeatures = getRequiredFeatures();
 
-static void pushCube(
-    std::vector<glm::vec3> &vertices,
-    std::vector<glm::vec3> &colors,
-    std::vector<uint32_t> &indices,
-    glm::vec3 position,
-    glm::vec3 color)
-{
-    static const glm::vec3 cubeVertices[] = {
-        glm::vec3(0.0f, 0.0f, 0.0f),
-        glm::vec3(1.0f, 0.0f, 0.0f),
-        glm::vec3(1.0f, 0.0f, 1.0f),
-        glm::vec3(0.0f, 0.0f, 1.0f),
-        glm::vec3(0.0f, 1.0f, 0.0f),
-        glm::vec3(1.0f, 1.0f, 0.0f),
-        glm::vec3(1.0f, 1.0f, 1.0f),
-        glm::vec3(0.0f, 1.0f, 1.0f)
-    };
-
-    // clang-format off
-    static const uint32_t cubeIndices[] = { //
-        0, 1, 3, 1, 2, 3,
-        7, 5, 4, 7, 6, 5,
-        4, 1, 0, 4, 5, 1,
-        3, 2, 7, 2, 6, 7,
-        5, 2, 1, 5, 6, 2,
-        0, 3, 4, 3, 7, 4,
-    };
-    // clang-format on
-
-    uint32_t last = vertices.size();
-    for (size_t i = 0; i < sizeof(cubeVertices) / sizeof(glm::vec3); ++i) {
-        vertices.push_back(cubeVertices[i] + position);
-        colors.push_back(color);
-    }
-
-    for (size_t i = 0; i < sizeof(cubeIndices) / sizeof(uint32_t); ++i) {
-        indices.push_back(cubeIndices[i] + last);
-    }
-}
-
-vku::MeshCore vku::ChunkRender::createChunkMesh(vku::TransferCore &transferCore, vku::ChunkRender::Chunk chunk)
-{
-    std::vector<glm::vec3> vertices;
-    std::vector<glm::vec3> colors;
-    std::vector<uint32_t> indices;
-
-    size_t plane = chunk.size * chunk.size;
-    for (size_t x = 0; x < chunk.size; ++x) {
-        for (size_t y = 0; y < chunk.size; ++y) {
-            for (size_t z = 0; z < chunk.size; ++z) {
-                size_t i = z + y * chunk.size + x * plane;
-                auto block = chunk.voxels[i];
-                if (block.flags & vku::ChunkRender::BlockFlags::IS_AIR) {
-                    continue;
-                }
-                pushCube(vertices, colors, indices, glm::vec3(x, y, z), chunk.palette[block.paletteIndex]);
-            }
-        }
-    }
-
-    return vku::MeshCore(transferCore, vertices.data(), vertices.size(), indices.data(), indices.size(), colors.data());
-}
-
-vku::ChunkRender::ChunkRender(int width, int height, Chunk chunk)
-    : _instanceCore("ChunkRender", true, true)
+vku::WorldRender::WorldRender(int width, int height, World world)
+    : _instanceCore("WorldRender", true, true)
     , _displayCore(_instanceCore.instance(), width, height, "vkdev", &requiredFeatures)
     , _swapchainCore(_displayCore)
     , _renderCore(
@@ -88,9 +25,22 @@ vku::ChunkRender::ChunkRender(int width, int height, Chunk chunk)
           [this](auto cb, auto &f) { recordCommandBuffer(cb, f); })
     , _depthCore(_displayCore, _renderCore)
     , _transferCore(_displayCore.physicalDevice(), _displayCore.device())
-    , _meshCore(createChunkMesh(_transferCore, chunk))
-    , _chunk(chunk)
+    , _world(world)
 {
+    for (size_t i = 0; i < world.count; ++i) {
+        _meshes.push_back(vku::ChunkRender::createChunkMesh(_transferCore, _world.chunks[i]));
+
+        float chunkSize = static_cast<float>(world.chunks[i].size);
+        glm::vec3 chunkPosition = world.positions[i];
+        _boxMax.x = std::max(_boxMax.x, chunkPosition.x + chunkSize);
+        _boxMax.y = std::max(_boxMax.y, chunkPosition.y + chunkSize);
+        _boxMax.z = std::max(_boxMax.z, chunkPosition.z + chunkSize);
+
+        _boxMin.x = std::min(_boxMin.x, chunkPosition.x);
+        _boxMin.y = std::min(_boxMin.y, chunkPosition.y);
+        _boxMin.z = std::min(_boxMin.z, chunkPosition.z);
+    }
+
     VkDescriptorSetLayoutBinding bindings[] = {
         vku::descriptorBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT)
     };
@@ -102,11 +52,15 @@ vku::ChunkRender::ChunkRender(int width, int height, Chunk chunk)
         _displayCore.surfaceFormat().format,
         _depthCore.depthFormat());
 
-    _pipelineLayout = vku::PipelineLayout::basic(_displayCore.device(), &setLayouts);
+    std::vector<VkPushConstantRange> pushConstantRanges {
+        VkPushConstantRange { VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::vec3) }
+    };
+
+    _pipelineLayout = vku::PipelineLayout::basic(_displayCore.device(), &setLayouts, &pushConstantRanges);
 
     VkVertexInputBindingDescription vertexBindings[] = {
         vku::vertexInputBinding(0, sizeof(glm::vec3), VK_VERTEX_INPUT_RATE_VERTEX),
-        vku::vertexInputBinding(1, sizeof(glm::vec3), VK_VERTEX_INPUT_RATE_VERTEX)
+        vku::vertexInputBinding(1, sizeof(glm::vec3), VK_VERTEX_INPUT_RATE_VERTEX),
     };
 
     VkVertexInputAttributeDescription vertexAttributes[] = {
@@ -118,8 +72,8 @@ vku::ChunkRender::ChunkRender(int width, int height, Chunk chunk)
         _displayCore.device(),
         _pipelineLayout,
         _renderPass,
-        vku::ShaderModule::inlined(_displayCore.device(), CHUNK_VERT, CHUNK_VERT_LENGTH),
-        vku::ShaderModule::inlined(_displayCore.device(), CHUNK_FRAG, CHUNK_FRAG_LENGTH),
+        vku::ShaderModule::inlined(_displayCore.device(), WORLD_VERT, WORLD_VERT_LENGTH),
+        vku::ShaderModule::inlined(_displayCore.device(), WORLD_FRAG, WORLD_FRAG_LENGTH),
         vertexBindings,
         2,
         vertexAttributes,
@@ -130,7 +84,7 @@ vku::ChunkRender::ChunkRender(int width, int height, Chunk chunk)
     _renderCore.onUpdate([this](auto &f) { onUpdate(f); });
 }
 
-void vku::ChunkRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::SwapchainFrame &frame)
+void vku::WorldRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::SwapchainFrame &frame)
 {
     VkCommandBufferBeginInfo beginInfo = {};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -164,10 +118,6 @@ void vku::ChunkRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::S
     vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-    VkDeviceSize offsets[] = { 0, _meshCore.vertexCount() * sizeof(glm::vec3) };
-    VkBuffer vertexBuffers[] { _meshCore.vertexBuffer(), _meshCore.vertexBuffer() };
-    vkCmdBindVertexBuffers(commandBuffer, 0, 2, vertexBuffers, offsets);
-    vkCmdBindIndexBuffer(commandBuffer, _meshCore.indexBuffer(), 0, VK_INDEX_TYPE_UINT32);
     vkCmdBindDescriptorSets(
         commandBuffer,
         VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -177,13 +127,27 @@ void vku::ChunkRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::S
         &_descriptorSets[frame.index],
         0, // dynamic offset count
         nullptr); // dynamic offsets
-    vkCmdDrawIndexed(commandBuffer, _meshCore.indexCount(), 1, 0, 0, 0);
+    for (size_t i = 0; i < _meshes.size(); ++i) {
+        auto &mesh = _meshes[i];
+        VkDeviceSize offsets[] = { 0, mesh.vertexCount() * sizeof(glm::vec3) };
+        VkBuffer vertexBuffers[] { mesh.vertexBuffer(), mesh.vertexBuffer() };
+        vkCmdBindVertexBuffers(commandBuffer, 0, 2, vertexBuffers, offsets);
+        vkCmdBindIndexBuffer(commandBuffer, mesh.indexBuffer(), 0, VK_INDEX_TYPE_UINT32);
+        vkCmdPushConstants(
+            commandBuffer,
+            _pipelineLayout,
+            VK_SHADER_STAGE_VERTEX_BIT,
+            0, // offset
+            sizeof(glm::vec3), // size
+            &_world.positions[i]);
+        vkCmdDrawIndexed(commandBuffer, mesh.indexCount(), 1, 0, 0, 0);
+    }
     vkCmdEndRenderPass(commandBuffer);
 
     ENSURE(vkEndCommandBuffer(commandBuffer));
 }
 
-vku::Framebuffer vku::ChunkRender::createFramebuffer(vku::SwapchainFrame &frame)
+vku::Framebuffer vku::WorldRender::createFramebuffer(vku::SwapchainFrame &frame)
 {
     auto extent = _swapchainCore.extent();
     VkImageView attachments[] = {
@@ -199,7 +163,7 @@ vku::Framebuffer vku::ChunkRender::createFramebuffer(vku::SwapchainFrame &frame)
         extent.height);
 }
 
-void vku::ChunkRender::onResize(size_t imageCount, VkExtent2D)
+void vku::WorldRender::onResize(size_t imageCount, VkExtent2D)
 {
     // recreate the uniform buffers as the number of swapchain images could have changed
     _uboBufferMemories.clear();
@@ -230,21 +194,22 @@ void vku::ChunkRender::onResize(size_t imageCount, VkExtent2D)
     }
 }
 
-void vku::ChunkRender::onUpdate(vku::SwapchainFrame &frame)
+void vku::WorldRender::onUpdate(vku::SwapchainFrame &frame)
 {
     static auto start = std::chrono::high_resolution_clock::now();
 
     auto now = std::chrono::high_resolution_clock::now();
     float time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
 
-    float scale = 1.0f / _chunk.size;
-    float offset = static_cast<float>(_chunk.size) / -2.0f;
+    glm::vec3 worldSize = _boxMax - _boxMin;
+    float scale = 1.0f / std::max({ worldSize.x, worldSize.y, worldSize.z });
+    glm::vec3 offset = (_boxMax + _boxMin) / -2.0f;
 
     UBO ubo = {};
     ubo.model = glm::identity<glm::mat4>();
     ubo.model = glm::rotate(ubo.model, time * glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
     ubo.model = glm::scale(ubo.model, glm::vec3(scale));
-    ubo.model = glm::translate(ubo.model, glm::vec3(offset));
+    ubo.model = glm::translate(ubo.model, offset);
     ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
     auto extent = _swapchainCore.extent();

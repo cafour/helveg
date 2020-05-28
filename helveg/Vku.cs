@@ -24,6 +24,9 @@ namespace Helveg
 
         [DllImport("vku", CallingConvention = CallingConvention.Cdecl)]
         private static unsafe extern int helloChunk(Chunk.Raw chunk);
+
+        [DllImport("vku", CallingConvention = CallingConvention.Cdecl)]
+        private static unsafe extern int helloWorld(World.Raw world);
 #pragma warning restore IDE1006
 
         public static unsafe void HelloTriangle()
@@ -94,23 +97,24 @@ namespace Helveg
             render.WeightsPin.Free();
         }
 
-        public static unsafe void HelloChunk(Chunk chunk)
+        public static void HelloChunk(Chunk chunk)
         {
-            fixed (Block* voxels = chunk.Voxels)
-            fixed (Vector3* palette = chunk.Palette.Colors)
+            var raw = chunk.GetRaw();
+            var result = helloChunk(raw);
+            if (result != 0)
             {
-                var result = helloChunk(new Chunk.Raw
-                {
-                    Voxels = voxels,
-                    Palette = palette,
-                    Size = chunk.Voxels.GetLength(0)
-                });
-                if (result != 0)
-                {
-                    throw new InvalidOperationException($"The 'helloChunk' function returned {result}.");
-                }
+                throw new InvalidOperationException($"The 'helloChunk' function returned {result}.");
             }
         }
 
+        public static void HelloWorld(World world)
+        {
+            var raw = world.GetRaw();
+            var result = helloWorld(raw);
+            if (result != 0)
+            {
+                throw new InvalidOperationException($"The 'helloWorld' function returned {result}.");
+            }
+        }
     }
 }

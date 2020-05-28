@@ -67,7 +67,9 @@ set(VKU_SOURCES
     graph_render.hpp
     graph_render.cpp
     chunk_render.hpp
-    chunk_render.cpp)
+    chunk_render.cpp
+    world_render.hpp
+    world_render.cpp)
 
 add_library(${PROJECT_NAME} SHARED ${VKU_SOURCES})
 target_link_libraries(${PROJECT_NAME} PUBLIC volk glfw glm)
@@ -99,7 +101,8 @@ target_embed_shader(${PROJECT_NAME} shaders/edge.vert EDGE_VERT)
 target_embed_shader(${PROJECT_NAME} shaders/edge.frag EDGE_FRAG)
 target_embed_shader(${PROJECT_NAME} shaders/chunk.vert CHUNK_VERT)
 target_embed_shader(${PROJECT_NAME} shaders/chunk.frag CHUNK_FRAG)
-
+target_embed_shader(${PROJECT_NAME} shaders/world.vert WORLD_VERT)
+target_embed_shader(${PROJECT_NAME} shaders/world.frag WORLD_FRAG)
 
 add_executable(hello hello.cpp)
 target_link_libraries(hello PRIVATE ${PROJECT_NAME})

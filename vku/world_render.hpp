@@ -1,5 +1,6 @@
 #pragma once
 
+#include "chunk_render.hpp"
 #include "instance_core.hpp"
 #include "display_core.hpp"
 #include "swapchain_core.hpp"
@@ -12,24 +13,14 @@
 #include <glm/glm.hpp>
 
 namespace vku {
-class ChunkRender {
+class WorldRender {
 public:
-    enum BlockFlags
-    {
-        IS_AIR = 1 << 0
-    };
 
-    struct Block
+    struct World
     {
-        uint8_t paletteIndex;
-        uint8_t flags;
-    };
-
-    struct Chunk
-    {
-        Block *voxels;
-        glm::vec3 *palette;
-        uint32_t size;
+        vku::ChunkRender::Chunk *chunks;
+        glm::vec3 *positions;
+        size_t count;
     };
 
     struct UBO {
@@ -45,7 +36,7 @@ private:
     vku::RenderCore _renderCore;
     vku::DepthCore _depthCore;
     vku::TransferCore _transferCore;
-    vku::MeshCore _meshCore;
+    std::vector<vku::MeshCore> _meshes;
 
     vku::DescriptorSetLayout _setLayout;
     vku::DescriptorPool _descriptorPool;
@@ -58,7 +49,9 @@ private:
     std::vector<vku::DeviceMemory> _uboBufferMemories;
     std::vector<VkDescriptorSet> _descriptorSets;
 
-    Chunk _chunk;
+    World _world;
+    glm::vec3 _boxMin;
+    glm::vec3 _boxMax;
 
     void recordCommandBuffer(VkCommandBuffer commandBuffer, vku::SwapchainFrame &frame);
     vku::Framebuffer createFramebuffer(vku::SwapchainFrame &frame);
@@ -66,10 +59,8 @@ private:
     void onUpdate(vku::SwapchainFrame &frame);
 
 public:
-    ChunkRender(int width, int height, Chunk chunk);
+    WorldRender(int width, int height, World chunk);
 
     vku::RenderCore &renderCore() { return _renderCore; }
-
-    static vku::MeshCore createChunkMesh(vku::TransferCore &transferCore, vku::ChunkRender::Chunk chunk);
 };
 }
