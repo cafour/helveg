@@ -157,6 +157,16 @@ VkPhysicalDevice vku::findDevice(
     std::vector<VkPhysicalDevice> devices(deviceCount);
     ENSURE(vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data()));
 
+    // std::vector<VkPhysicalDeviceProperties> deviceProperties(deviceCount);
+    // for (size_t i = 0; i < deviceCount; ++i) {
+    //     vkGetPhysicalDeviceProperties(devices[i], &deviceProperties[i]);
+    // }
+
+
+
+    // std::sort(devices.begin(), devices.end(), [deviceProperties](const auto &left, const auto &right) {
+    // });
+
     VkPhysicalDevice chosenDevice = VK_NULL_HANDLE;
     for (auto device : devices) {
         if (requiredExtensions && !hasExtensionSupport(device, *requiredExtensions)) {
@@ -173,7 +183,7 @@ VkPhysicalDevice vku::findDevice(
         if (!isPresentSupported) {
             continue;
         }
-        if(queueIndex) {
+        if (queueIndex) {
             *queueIndex = queue;
         }
         chosenDevice = device;

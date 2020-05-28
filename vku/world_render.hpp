@@ -50,8 +50,8 @@ private:
     std::vector<VkDescriptorSet> _descriptorSets;
 
     World _world;
-    glm::vec3 _boxMin;
-    glm::vec3 _boxMax;
+    glm::vec3 _boxMin = {};
+    glm::vec3 _boxMax = {};
 
     void recordCommandBuffer(VkCommandBuffer commandBuffer, vku::SwapchainFrame &frame);
     vku::Framebuffer createFramebuffer(vku::SwapchainFrame &frame);

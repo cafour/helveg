@@ -5,6 +5,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <tuple>
 #include <vector>
+#include <iostream>
 
 static VkPhysicalDeviceFeatures getRequiredFeatures()
 {
@@ -27,6 +28,10 @@ vku::WorldRender::WorldRender(int width, int height, World world)
     , _transferCore(_displayCore.physicalDevice(), _displayCore.device())
     , _world(world)
 {
+    VkPhysicalDeviceProperties properties;
+    vkGetPhysicalDeviceProperties(_displayCore.physicalDevice(), &properties);
+    std::cout << "Device name: " << properties.deviceName << std::endl;
+
     for (size_t i = 0; i < world.count; ++i) {
         _meshes.push_back(vku::ChunkRender::createChunkMesh(_transferCore, _world.chunks[i]));
 

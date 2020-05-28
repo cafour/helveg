@@ -330,18 +330,18 @@ namespace Helveg
             var openSimplex = new OpenSimplexNoise.Data(42L);
             var chunks = new List<Chunk>();
             var positions = new List<Vector3>();
-            var width = 3;
-            var height = 3;
+            var width = 5;
+            var height = 5;
             for (int x = 0; x < width; ++x)
             {
                 for (int z = 0; z < height; ++z)
                 {
-                    positions.Add(chunkSize * new Vector3(x, 0, z));
+                    positions.Add(chunkSize * new Vector3(x, 0.0f, z));
                     var voxels = GetOpenSimplexVoxels(
                         openSimplex: openSimplex,
                         frequency: 0.025,
                         size: chunkSize,
-                        offset: new Vector2(x, z),
+                        offset: new Vector2(x, z) * chunkSize,
                         air: air,
                         stone: stone);
                     chunks.Add(new Chunk(voxels, palette));
