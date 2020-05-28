@@ -223,7 +223,7 @@ namespace Helveg
                 new Block {PaletteIndex = 0},
                 new Block {PaletteIndex = 1}
             };
-            var palette = new []
+            var palette = new[]
             {
                 new Vector3(0.5f, 0.3f, 0.0f),
                 new Vector3(0.0f, 0.3f, 0.5f)
@@ -276,14 +276,32 @@ namespace Helveg
                     }
                 }
             }
-            return voxels;
+            var hollowed = new Block[size, size, size];
+            Array.Copy(voxels, hollowed, voxels.Length);
+            for (int x = 1; x < size - 1; ++x)
+            {
+                for (int y = 1; y < size - 1; ++y)
+                {
+                    for (int z = 1; z < size - 1; ++z)
+                    {
+                        var airAdjacent = voxels[x - 1, y, z] == air
+                            || voxels[x + 1, y, z] == air
+                            || voxels[x, y - 1, z] == air
+                            || voxels[x, y + 1, z] == air
+                            || voxels[x, y, z - 1] == air
+                            || voxels[x, y, z + 1] == air;
+                        hollowed[x, y, z] = airAdjacent ? voxels[x, y, z] : air;
+                    }
+                }
+            }
+            return hollowed;
         }
 
         public static void DrawOpenSimplexChunk()
         {
             var air = new Block { Flags = BlockFlags.IsAir };
             var stone = new Block { PaletteIndex = 0 };
-            var palette = new []
+            var palette = new[]
             {
                 new Vector3(0.3f, 0.3f, 0.3f),
             };
@@ -304,7 +322,7 @@ namespace Helveg
         {
             var air = new Block { Flags = BlockFlags.IsAir };
             var stone = new Block { PaletteIndex = 0 };
-            var palette = new []
+            var palette = new[]
             {
                 new Vector3(0.3f, 0.3f, 0.3f),
             };
