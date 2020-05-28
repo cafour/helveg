@@ -219,10 +219,15 @@ namespace Helveg
             var blockTypes = new Block[]
             {
                 new Block {Flags = BlockFlags.IsAir},
-                new Block {PalleteIndex = 0},
-                new Block {PalleteIndex = 1}
+                new Block {PaletteIndex = 0},
+                new Block {PaletteIndex = 1}
             };
-            var size = 4;
+            var palette = new Palette(new Vector3[]
+            {
+                new Vector3(0.5f, 0.3f, 0.0f),
+                new Vector3(0.0f, 0.3f, 0.5f)
+            });
+            var size = 16;
             var voxels = new Block[size, size, size];
             for (int x = 0; x < size; ++x)
             {
@@ -234,11 +239,46 @@ namespace Helveg
                     }
                 }
             }
+            var chunk = new Chunk(voxels, palette);
+            Vku.HelloChunk(chunk);
+        }
+
+        public static unsafe void DrawOpenSimplexChunk()
+        {
+            var blockTypes = new Block[]
+            {
+                new Block {Flags = BlockFlags.IsAir},
+                new Block {PaletteIndex = 0},
+            };
             var palette = new Palette(new Vector3[]
             {
-                new Vector3(0.5f, 0.3f, 0.0f),
-                new Vector3(0.0f, 0.3f, 0.5f)
+                new Vector3(0.3f, 0.3f, 0.3f),
             });
+
+            var size = 64;
+            var terrain = new double[size, size];
+            double frequency = 0.025;
+            var openSimplex = new OpenSimplexNoise.Data(42L);
+            for (int x = 0; x < size; ++x)
+            {
+                for (int y = 0; y < size; ++y)
+                {
+                    var noise = OpenSimplexNoise.Evaluate(openSimplex, frequency * x, frequency * y);
+                    terrain[x, y] = (noise + 1.0) / 2.0 * size;
+                }
+            }
+
+            var voxels = new Block[size, size, size];
+            for (int x = 0; x < size; ++x)
+            {
+                for (int y = 0; y < size; ++y)
+                {
+                    for (int z = 0; z < size; ++z)
+                    {
+                        voxels[x, y, z] = blockTypes[y > terrain[x, z] ? 0 : 1];
+                    }
+                }
+            }
             var chunk = new Chunk(voxels, palette);
             Vku.HelloChunk(chunk);
         }
@@ -278,6 +318,10 @@ namespace Helveg
             rootCommand.AddCommand(new Command("chunk", "Draw a single chunk")
             {
                 Handler = CommandHandler.Create(DrawChunk)
+            });
+            rootCommand.AddCommand(new Command("opensimplex", "Draw a single chunk with OpenSimplex noise")
+            {
+                Handler = CommandHandler.Create(DrawOpenSimplexChunk)
             });
 
             return rootCommand.Invoke(args);

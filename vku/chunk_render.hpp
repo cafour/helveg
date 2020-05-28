@@ -21,8 +21,8 @@ public:
 
     struct Block
     {
-        uint8_t flags;
         uint8_t paletteIndex;
+        uint8_t flags;
     };
 
     struct Chunk
