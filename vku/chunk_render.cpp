@@ -39,16 +39,16 @@ static void pushCube(
         4, 1, 0, 4, 5, 1,
         3, 2, 7, 2, 6, 7,
         5, 2, 1, 5, 6, 2,
-        0, 3, 5, 3, 7, 4,
+        0, 3, 4, 3, 7, 4,
     };
     // clang-format on
 
+    uint32_t last = vertices.size();
     for (size_t i = 0; i < sizeof(cubeVertices) / sizeof(glm::vec3); ++i) {
         vertices.push_back(cubeVertices[i] + position);
         colors.push_back(color);
     }
 
-    uint32_t last = indices.size();
     for (size_t i = 0; i < sizeof(cubeIndices) / sizeof(uint32_t); ++i) {
         indices.push_back(cubeIndices[i] + last);
     }
