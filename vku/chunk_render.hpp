@@ -6,7 +6,7 @@
 #include "render_core.hpp"
 #include "depth_core.hpp"
 #include "transfer_core.hpp"
-#include "inline_mesh_core.hpp"
+#include "mesh_core.hpp"
 #include "wrapper.hpp"
 
 #include <glm/glm.hpp>
@@ -14,9 +14,21 @@
 namespace vku {
 class ChunkRender {
 public:
+    enum BlockFlags
+    {
+        IS_AIR = 1 << 0
+    };
+
+    struct Block
+    {
+        uint8_t flags;
+        uint8_t paletteIndex;
+    };
+
     struct Chunk
     {
-        glm::vec3 *voxels;
+        Block *voxels;
+        glm::vec3 *palette;
         uint32_t size;
     };
 
@@ -33,7 +45,7 @@ private:
     vku::RenderCore _renderCore;
     vku::DepthCore _depthCore;
     vku::TransferCore _transferCore;
-    vku::InlineMeshCore _cubeCore;
+    vku::MeshCore _meshCore;
 
     vku::DescriptorSetLayout _setLayout;
     vku::DescriptorPool _descriptorPool;

@@ -3,6 +3,8 @@
 
 #include <chrono>
 #include <glm/gtc/matrix_transform.hpp>
+#include <tuple>
+#include <vector>
 
 static VkPhysicalDeviceFeatures getRequiredFeatures()
 {
@@ -11,6 +13,69 @@ static VkPhysicalDeviceFeatures getRequiredFeatures()
 }
 
 static const VkPhysicalDeviceFeatures requiredFeatures = getRequiredFeatures();
+
+static void pushCube(
+    std::vector<glm::vec3> &vertices,
+    std::vector<glm::vec3> &colors,
+    std::vector<uint32_t> &indices,
+    glm::vec3 position,
+    glm::vec3 color)
+{
+    static const glm::vec3 cubeVertices[] = {
+        glm::vec3(0.0f, 0.0f, 0.0f),
+        glm::vec3(1.0f, 0.0f, 0.0f),
+        glm::vec3(1.0f, 0.0f, 1.0f),
+        glm::vec3(0.0f, 0.0f, 1.0f),
+        glm::vec3(0.0f, 1.0f, 0.0f),
+        glm::vec3(1.0f, 1.0f, 0.0f),
+        glm::vec3(1.0f, 1.0f, 1.0f),
+        glm::vec3(0.0f, 1.0f, 1.0f)
+    };
+
+    // clang-format off
+    static const uint32_t cubeIndices[] = { //
+        0, 1, 3, 1, 2, 3,
+        7, 5, 4, 7, 6, 5,
+        4, 1, 0, 4, 5, 1,
+        3, 2, 7, 2, 6, 7,
+        5, 2, 1, 5, 6, 2,
+        0, 3, 5, 3, 7, 4,
+    };
+    // clang-format on
+
+    for (size_t i = 0; i < sizeof(cubeVertices) / sizeof(glm::vec3); ++i) {
+        vertices.push_back(cubeVertices[i] + position);
+        colors.push_back(color);
+    }
+
+    uint32_t last = indices.size();
+    for (size_t i = 0; i < sizeof(cubeIndices) / sizeof(uint32_t); ++i) {
+        indices.push_back(cubeIndices[i] + last);
+    }
+}
+
+static vku::MeshCore createMesh(vku::TransferCore &transferCore, vku::ChunkRender::Chunk chunk)
+{
+    std::vector<glm::vec3> vertices;
+    std::vector<glm::vec3> colors;
+    std::vector<uint32_t> indices;
+
+    size_t plane = chunk.size * chunk.size;
+    for (size_t x = 0; x < chunk.size; ++x) {
+        for (size_t y = 0; y < chunk.size; ++y) {
+            for (size_t z = 0; z < chunk.size; ++z) {
+                size_t i = z + y * chunk.size + x * plane;
+                auto block = chunk.voxels[i];
+                if (block.flags & vku::ChunkRender::BlockFlags::IS_AIR) {
+                    continue;
+                }
+                pushCube(vertices, colors, indices, glm::vec3(x, y, z), chunk.palette[block.paletteIndex]);
+            }
+        }
+    }
+
+    return vku::MeshCore(transferCore, vertices.data(), vertices.size(), indices.data(), indices.size(), colors.data());
+}
 
 vku::ChunkRender::ChunkRender(int width, int height, Chunk chunk)
     : _instanceCore("ChunkRender", true, true)
@@ -23,22 +88,9 @@ vku::ChunkRender::ChunkRender(int width, int height, Chunk chunk)
           [this](auto cb, auto &f) { recordCommandBuffer(cb, f); })
     , _depthCore(_displayCore, _renderCore)
     , _transferCore(_displayCore.physicalDevice(), _displayCore.device())
-    , _cubeCore(vku::InlineMeshCore::cube(_transferCore))
+    , _meshCore(createMesh(_transferCore, chunk))
     , _chunk(chunk)
 {
-    _colorBuffer = vku::Buffer::exclusive(
-        _displayCore.device(),
-        sizeof(glm::vec3) * _chunk.size * _chunk.size * _chunk.size,
-        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
-    _colorMemory = vku::DeviceMemory::deviceLocalData(
-        _transferCore.physicalDevice(),
-        _transferCore.device(),
-        _transferCore.transferPool(),
-        _transferCore.transferQueue(),
-        _colorBuffer,
-        _chunk.voxels,
-        sizeof(glm::vec3) * _chunk.size * _chunk.size * _chunk.size);
-
     VkDescriptorSetLayoutBinding bindings[] = {
         vku::descriptorBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT)
     };
@@ -50,15 +102,11 @@ vku::ChunkRender::ChunkRender(int width, int height, Chunk chunk)
         _displayCore.surfaceFormat().format,
         _depthCore.depthFormat());
 
-    std::vector<VkPushConstantRange> pushConstantRanges {
-        VkPushConstantRange { VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(uint32_t) }
-    };
-
-    _pipelineLayout = vku::PipelineLayout::basic(_displayCore.device(), &setLayouts, &pushConstantRanges);
+    _pipelineLayout = vku::PipelineLayout::basic(_displayCore.device(), &setLayouts);
 
     VkVertexInputBindingDescription vertexBindings[] = {
         vku::vertexInputBinding(0, sizeof(glm::vec3), VK_VERTEX_INPUT_RATE_VERTEX),
-        vku::vertexInputBinding(1, sizeof(glm::vec3), VK_VERTEX_INPUT_RATE_INSTANCE)
+        vku::vertexInputBinding(1, sizeof(glm::vec3), VK_VERTEX_INPUT_RATE_VERTEX)
     };
 
     VkVertexInputAttributeDescription vertexAttributes[] = {
@@ -116,11 +164,10 @@ void vku::ChunkRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::S
     vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-    VkDeviceSize offsets[] = { 0, 0 };
-    VkBuffer vertexBuffers[] { _cubeCore.vertexBuffer(), _colorBuffer };
+    VkDeviceSize offsets[] = { 0, _meshCore.vertexCount() * sizeof(glm::vec3) };
+    VkBuffer vertexBuffers[] { _meshCore.vertexBuffer(), _meshCore.vertexBuffer() };
     vkCmdBindVertexBuffers(commandBuffer, 0, 2, vertexBuffers, offsets);
-    vkCmdBindIndexBuffer(commandBuffer, _cubeCore.indexBuffer(), 0, VK_INDEX_TYPE_UINT32);
-    vkCmdPushConstants(commandBuffer, _pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(uint32_t), &_chunk.size);
+    vkCmdBindIndexBuffer(commandBuffer, _meshCore.indexBuffer(), 0, VK_INDEX_TYPE_UINT32);
     vkCmdBindDescriptorSets(
         commandBuffer,
         VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -130,7 +177,7 @@ void vku::ChunkRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::S
         &_descriptorSets[frame.index],
         0, // dynamic offset count
         nullptr); // dynamic offsets
-    vkCmdDrawIndexed(commandBuffer, _cubeCore.indexCount(), _chunk.size * _chunk.size * _chunk.size, 0, 0, 0);
+    vkCmdDrawIndexed(commandBuffer, _meshCore.indexCount(), 1, 0, 0, 0);
     vkCmdEndRenderPass(commandBuffer);
 
     ENSURE(vkEndCommandBuffer(commandBuffer));
@@ -190,8 +237,8 @@ void vku::ChunkRender::onUpdate(vku::SwapchainFrame &frame)
     auto now = std::chrono::high_resolution_clock::now();
     float time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
 
-    float scale = 0.5f / _chunk.size;
-    float offset = (_chunk.size - 1) * -1.0f;
+    float scale = 1.0f / _chunk.size;
+    float offset = static_cast<float>(_chunk.size) / -2.0f;
 
     UBO ubo = {};
     ubo.model = glm::identity<glm::mat4>();

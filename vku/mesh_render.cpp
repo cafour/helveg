@@ -37,7 +37,7 @@ vku::MeshRender::MeshRender(int width, int height, MeshRender::Mesh mesh)
     std::vector<VkDescriptorSetLayout> setLayouts { _setLayout };
     _pipelineLayout = vku::PipelineLayout::basic(_displayCore.device(), &setLayouts);
 
-    VkVertexInputBindingDescription vertexBindings[2] = {
+    VkVertexInputBindingDescription vertexBindings[] = {
         vku::vertexInputBinding(0, sizeof(glm::vec3), VK_VERTEX_INPUT_RATE_VERTEX),
         vku::vertexInputBinding(1, sizeof(glm::vec3), VK_VERTEX_INPUT_RATE_VERTEX)
     };

@@ -222,12 +222,13 @@ namespace Helveg
                 new Block {PalleteIndex = 0},
                 new Block {PalleteIndex = 1}
             };
-            var voxels = new Block[32, 32, 32];
-            for (int x = 0; x < 32; ++x)
+            var size = 4;
+            var voxels = new Block[size, size, size];
+            for (int x = 0; x < size; ++x)
             {
-                for (int y = 0; y < 32; ++y)
+                for (int y = 0; y < size; ++y)
                 {
-                    for (int z = 0; z < 32; ++z)
+                    for (int z = 0; z < size; ++z)
                     {
                         voxels[x, y, z] = blockTypes[(x + y + z) % blockTypes.Length];
                     }

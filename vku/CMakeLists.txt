@@ -56,6 +56,8 @@ set(VKU_SOURCES
     inline_mesh_core.hpp
     inline_mesh_core.cpp
     inline_cube.cpp
+    mesh_core.hpp
+    mesh_core.cpp
     
     # renders
     triangle_render.hpp
