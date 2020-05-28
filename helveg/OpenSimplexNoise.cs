@@ -400,7 +400,7 @@ namespace Helveg
                (int)(inSum + yins) << 2 |
                (int)(inSum + xins) << 4;
 
-            var c = lookup2D[hash];
+            Contribution2? c = lookup2D[hash];
 
             var value = 0.0;
             while (c != null)
@@ -455,7 +455,7 @@ namespace Helveg
                (int)(inSum + yins) << 7 |
                (int)(inSum + xins) << 9;
 
-            var c = lookup3D[hash];
+            Contribution3? c = lookup3D[hash];
 
             var value = 0.0;
             while (c != null)
@@ -521,7 +521,7 @@ namespace Helveg
                 (int)(inSum + yins) << 14 |
                 (int)(inSum + xins) << 17;
 
-            var c = lookup4D[hash];
+            Contribution4? c = lookup4D[hash];
 
             var value = 0.0;
             while (c != null)
