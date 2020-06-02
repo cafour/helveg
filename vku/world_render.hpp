@@ -20,7 +20,7 @@ public:
     {
         vku::ChunkRender::Chunk *chunks;
         glm::vec3 *positions;
-        size_t count;
+        uint32_t count;
     };
 
     struct UBO {

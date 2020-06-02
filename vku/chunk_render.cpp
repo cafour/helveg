@@ -56,6 +56,9 @@ static void pushCube(
 
 vku::MeshCore vku::ChunkRender::createChunkMesh(vku::TransferCore &transferCore, vku::ChunkRender::Chunk chunk)
 {
+    if (!chunk.palette || !chunk.voxels || !chunk.size) {
+        throw std::invalid_argument("the chunk is not valid");
+    }
     std::vector<glm::vec3> vertices;
     std::vector<glm::vec3> colors;
     std::vector<uint32_t> indices;

@@ -72,7 +72,7 @@ namespace Helveg
             {
                 Chunks = (Chunk.Raw*)chunksHandle.AddrOfPinnedObject().ToPointer(),
                 Positions = (Vector3*)positionsHandle.AddrOfPinnedObject().ToPointer(),
-                ChunkCount = Chunks.Length
+                ChunkCount = (uint)Chunks.Length
             };
         }
 
@@ -90,7 +90,7 @@ namespace Helveg
             public Chunk.Raw* Chunks;
 
             public Vector3* Positions;
-            public int ChunkCount;
+            public uint ChunkCount;
         }
     }
 }
