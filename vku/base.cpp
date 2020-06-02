@@ -156,19 +156,23 @@ VkPhysicalDevice vku::findDevice(
 
     std::vector<VkPhysicalDevice> devices(deviceCount);
     ENSURE(vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data()));
+    std::vector<std::pair<VkPhysicalDevice, VkPhysicalDeviceProperties>> props(deviceCount);
+    std::transform(devices.begin(), devices.end(), props.begin(), [](auto d) {
+        VkPhysicalDeviceProperties properties;
+        vkGetPhysicalDeviceProperties(d, &properties);
+        return std::make_pair(d, properties);
+    });
 
-    // std::vector<VkPhysicalDeviceProperties> deviceProperties(deviceCount);
-    // for (size_t i = 0; i < deviceCount; ++i) {
-    //     vkGetPhysicalDeviceProperties(devices[i], &deviceProperties[i]);
-    // }
-
-
-
-    // std::sort(devices.begin(), devices.end(), [deviceProperties](const auto &left, const auto &right) {
-    // });
+    std::sort(props.begin(), props.end(), [](const auto &left, const auto &right) {
+        const VkPhysicalDeviceProperties& leftProps = std::get<1>(left);
+        const VkPhysicalDeviceProperties& rightProps = std::get<1>(right);
+        return leftProps.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU
+            && rightProps.deviceType != VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU;
+    });
 
     VkPhysicalDevice chosenDevice = VK_NULL_HANDLE;
-    for (auto device : devices) {
+    for (auto pair : props) {
+        auto device = std::get<0>(pair);
         if (requiredExtensions && !hasExtensionSupport(device, *requiredExtensions)) {
             continue;
         }
