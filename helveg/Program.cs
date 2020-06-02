@@ -11,7 +11,9 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Text.Json;
 using System.Threading;
+using Helveg.Serialization;
 using Microsoft.Build.Locator;
 
 namespace Helveg
@@ -37,7 +39,7 @@ namespace Helveg
                 }
                 else if (symbol.Kind == Spruce.Kind.Pop)
                 {
-                    prefix = prefix.Substring(0, prefix.Length - 1);
+                    prefix = prefix[0..^1];
                     Console.WriteLine($"{prefix}]");
                     continue;
                 }
@@ -136,7 +138,7 @@ namespace Helveg
             }
         }
 
-        public static void DrawGraphVku(Fdg.State state, int iterationCount, int noOverlapInterationCount, long time)
+        public static void DrawGraphVku(Fdg.State state, int iterationCount, int noOverlapIterationCount, long time)
         {
             var render = Vku.CreateGraphRender(new InteropGraph(state.Positions, state.Weights));
             Vku.StepGraphRender(render);
@@ -149,7 +151,7 @@ namespace Helveg
                 Thread.Sleep((int)(time - stopwatch.ElapsedMilliseconds % time));
             }
             state.PreventOverlapping = true;
-            for (int i = 0; i < noOverlapInterationCount && !end; ++i)
+            for (int i = 0; i < noOverlapIterationCount && !end; ++i)
             {
                 Fdg.Step(ref state);
                 end = Vku.StepGraphRender(render);
@@ -244,84 +246,26 @@ namespace Helveg
             Vku.HelloChunk(chunk);
         }
 
-        public static Block[,,] GetOpenSimplexVoxels(
-            OpenSimplexNoise.Data openSimplex,
-            double frequency,
-            int size,
-            Vector2 offset,
-            Block air,
-            Block stone)
+        public static void DrawNoisyChunk()
         {
-            var terrain = new double[size, size];
-            for (int x = 0; x < size; ++x)
-            {
-                for (int y = 0; y < size; ++y)
-                {
-                    var noise = OpenSimplexNoise.Evaluate(
-                        openSimplex,
-                        frequency * (x + offset.X),
-                        frequency * (y + offset.Y));
-                    terrain[x, y] = (noise + 1.0) / 2.0 * size;
-                }
-            }
-
-            var voxels = new Block[size, size, size];
-            for (int x = 0; x < size; ++x)
-            {
-                for (int y = 0; y < size; ++y)
-                {
-                    for (int z = 0; z < size; ++z)
-                    {
-                        voxels[x, y, z] = y > terrain[x, z] ? air : stone;
-                    }
-                }
-            }
-            var hollowed = new Block[size, size, size];
-            Array.Copy(voxels, hollowed, voxels.Length);
-            for (int x = 1; x < size - 1; ++x)
-            {
-                for (int y = 1; y < size - 1; ++y)
-                {
-                    for (int z = 1; z < size - 1; ++z)
-                    {
-                        var airAdjacent = voxels[x - 1, y, z] == air
-                            || voxels[x + 1, y, z] == air
-                            || voxels[x, y - 1, z] == air
-                            || voxels[x, y + 1, z] == air
-                            || voxels[x, y, z - 1] == air
-                            || voxels[x, y, z + 1] == air;
-                        hollowed[x, y, z] = airAdjacent ? voxels[x, y, z] : air;
-                    }
-                }
-            }
-            return hollowed;
-        }
-
-        public static void DrawOpenSimplexChunk()
-        {
-            var air = new Block { Flags = BlockFlags.IsAir };
-            var stone = new Block { PaletteIndex = 0 };
             var palette = new[]
             {
                 new Vector3(0.3f, 0.3f, 0.3f),
             };
 
             var openSimplex = new OpenSimplexNoise.Data(42L);
-            var voxels = GetOpenSimplexVoxels(
+            var chunk = Chunk.CreateNoisy(
+                size: 64,
+                palette: palette,
+                stoneIndex: 0,
                 openSimplex: openSimplex,
                 frequency: 0.025,
-                size: 64,
-                offset: Vector2.Zero,
-                air: air,
-                stone: stone);
-            var chunk = new Chunk(voxels, palette);
+                offset: Vector2.Zero);
             Vku.HelloChunk(chunk);
         }
 
         public static void DrawNoisyWorld()
         {
-            var air = new Block { Flags = BlockFlags.IsAir };
-            var stone = new Block { PaletteIndex = 0 };
             var palette = new[]
             {
                 new Vector3(0.3f, 0.3f, 0.3f),
@@ -337,24 +281,90 @@ namespace Helveg
                 for (int z = 0; z < height; ++z)
                 {
                     positions.Add(chunkSize * new Vector3(x, 0.0f, z));
-                    var voxels = GetOpenSimplexVoxels(
+                    var chunk = Chunk.CreateNoisy(
+                        size: chunkSize,
+                        palette: palette,
+                        stoneIndex: 0,
                         openSimplex: openSimplex,
                         frequency: 0.025,
-                        size: chunkSize,
-                        offset: new Vector2(x, z) * chunkSize,
-                        air: air,
-                        stone: stone);
-                    chunks.Add(new Chunk(voxels, palette));
+                        offset: new Vector2(x, z) * chunkSize);
+                    chunks.Add(chunk);
                 }
             }
 
-            var world = new World(chunks.ToArray(), positions.ToArray());
+            var world = new World(chunkSize, chunks.ToArray(), positions.ToArray());
+            Vku.HelloWorld(world);
+        }
+
+        public static void DrawGraphWorld(FileSystemInfo project, bool overwriteCache)
+        {
+            const int iterationCount = 200;
+            const int noOverlapIterationCount = 400;
+            const int chunkSize = 64;
+            var (names, weights) = RunAnalysis(project.FullName, overwriteCache);
+            var positions = Array.Empty<Vector2>();
+            if (File.Exists("positions.json") && !overwriteCache)
+            {
+                var positionsText = File.ReadAllText("positions.json");
+                positions = JsonSerializer.Deserialize<Vector2[]>(positionsText, Serialize.JsonOptions);
+            }
+            else
+            {
+                var state = Fdg.State.Create(weights);
+                for (int i = 0; i < iterationCount; ++i)
+                {
+                    Fdg.Step(ref state);
+                }
+                state.PreventOverlapping = true;
+                for (int i = 0; i < noOverlapIterationCount; ++i)
+                {
+                    Fdg.Step(ref state);
+                }
+                var stream = new FileStream("positions.json", FileMode.Create);
+                var writer = new Utf8JsonWriter(stream);
+                JsonSerializer.Serialize(writer, state.Positions, Serialize.JsonOptions);
+                positions = state.Positions;
+            }
+
+            var boxMin = positions.FirstOrDefault();
+            var boxMax = positions.FirstOrDefault();
+            foreach (var position in positions)
+            {
+                boxMin = new Vector2(MathF.Min(boxMin.X, position.X), MathF.Min(boxMin.Y, position.Y));
+                boxMax = new Vector2(MathF.Max(boxMax.X, position.X), MathF.Max(boxMax.Y, position.Y));
+            }
+            boxMin = new Vector2(boxMin.X - boxMin.X % chunkSize, boxMin.Y - boxMin.Y % chunkSize);
+            boxMax = new Vector2(
+                boxMax.X - boxMax.X % chunkSize + chunkSize,
+                boxMax.Y - boxMax.Y % chunkSize + chunkSize);
+
+            var palette = new Vector3[] {
+                new Vector3(0.8f, 0.8f, 0.8f)
+            };
+
+            var builder = ImmutableDictionary.CreateBuilder<Vector3, Chunk>();
+            for (float x = boxMin.X; x < boxMax.X; x += chunkSize)
+            {
+                for (float z = boxMin.Y; z < boxMax.Y; z += chunkSize)
+                {
+                    builder.Add(new Vector3(x, 0, z), Chunk.CreateHorizontalPlane(
+                        size: chunkSize,
+                        palette: palette,
+                        planeBlock: new Block { PaletteIndex = 0 }));
+                }
+            }
+            var world = new World(chunkSize, builder.ToImmutable());
             Vku.HelloWorld(world);
         }
 
         public static unsafe int Main(string[] args)
         {
-            var rootCommand = new RootCommand("A software visualization tool");
+            var rootCommand = new RootCommand("A software visualization tool")
+            {
+                new Argument<FileSystemInfo>("project", "Path to an MSBuild project"),
+                new Option<bool>(new []{"-o", "--overwrite-cache"}, "Overwrite a cached project analysis")
+            };
+            rootCommand.Handler = CommandHandler.Create<FileSystemInfo, bool>(DrawGraphWorld);
             rootCommand.AddCommand(new Command("triangle", "Draw a triangle")
             {
                 Handler = CommandHandler.Create(DrawTriangle)
@@ -371,7 +381,7 @@ namespace Helveg
             {
                 Handler = CommandHandler.Create(DrawEades)
             });
-            var projectCommand = new Command("project", "Analyze a project")
+            var projectCommand = new Command("graph", "Analyze a project")
             {
                 new Argument<FileSystemInfo>("project", "Path to an MSBuild project"),
                 new Argument<ProjectRenderKind>("kind", "The way to display the results"),
@@ -390,7 +400,7 @@ namespace Helveg
             });
             rootCommand.AddCommand(new Command("opensimplex", "Draw a single chunk with OpenSimplex noise")
             {
-                Handler = CommandHandler.Create(DrawOpenSimplexChunk)
+                Handler = CommandHandler.Create(DrawNoisyChunk)
             });
             rootCommand.AddCommand(new Command("world", "Draw multiple noisy chunks")
             {
