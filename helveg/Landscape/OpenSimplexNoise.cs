@@ -38,7 +38,7 @@
 using System;
 using System.Runtime.CompilerServices;
 
-namespace Helveg
+namespace Helveg.Landscape
 {
     public static class OpenSimplexNoise
     {

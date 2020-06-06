@@ -2,7 +2,7 @@ using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
-namespace Helveg
+namespace Helveg.Render
 {
     public static class Vku
     {

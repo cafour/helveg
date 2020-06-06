@@ -1,7 +1,7 @@
 using System;
 using System.Numerics;
 
-namespace Helveg
+namespace Helveg.Render
 {
     public struct Mesh
     {

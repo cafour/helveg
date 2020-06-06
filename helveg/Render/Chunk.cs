@@ -2,8 +2,9 @@ using System;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using Helveg.Landscape;
 
-namespace Helveg
+namespace Helveg.Render
 {
     public struct Chunk
     {

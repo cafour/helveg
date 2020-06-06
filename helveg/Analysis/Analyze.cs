@@ -6,7 +6,7 @@ using System.Numerics;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
 
-namespace Helveg
+namespace Helveg.Analysis
 {
     public static class Analyze
     {

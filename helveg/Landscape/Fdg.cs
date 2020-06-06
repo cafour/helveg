@@ -2,7 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Numerics;
 
-namespace Helveg
+namespace Helveg.Landscape
 {
     public static class Fdg
     {

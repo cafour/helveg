@@ -6,8 +6,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Linq;
 using System.Collections.Generic;
+using Helveg.Render;
 
-namespace Helveg
+namespace Helveg.Landscape
 {
     public static class Graph
     {

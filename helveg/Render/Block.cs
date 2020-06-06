@@ -2,7 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Helveg
+namespace Helveg.Render
 {
     [DebuggerDisplay("[{PaletteIndex}:{Flags}]")]
     public struct Block : IEquatable<Block>

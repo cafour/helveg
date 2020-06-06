@@ -1,7 +1,7 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
 
-namespace Helveg
+namespace Helveg.Render
 {
     public struct InteropGraph
     {

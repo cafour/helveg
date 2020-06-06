@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace Helveg
+namespace Helveg.Render
 {
     public unsafe struct GraphRender
     {

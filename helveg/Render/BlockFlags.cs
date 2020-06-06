@@ -1,6 +1,6 @@
 using System;
 
-namespace Helveg
+namespace Helveg.Render
 {
     [Flags]
     public enum BlockFlags : byte
