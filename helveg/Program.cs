@@ -342,6 +342,13 @@ namespace Helveg
             // }
             // var world = new World(chunkSize, builder.ToImmutable());
             var world = Terrain.GenerateIsland(positions).Build();
+            for (int i = 0; i < world.Positions.Length; ++i)
+            {
+                if (world.Chunks[i].IsAir())
+                {
+                    Console.WriteLine(world.Positions[i]);
+                }
+            }
             Vku.HelloWorld(world);
         }
 

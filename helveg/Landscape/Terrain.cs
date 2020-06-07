@@ -42,7 +42,8 @@ namespace Helveg.Landscape
                 for (int z = (int)min.Z; z < max.Z; ++z)
                 {
                     var block = world.GetBlock(new Vector3(x, 0, z));
-                    var value = OpenSimplexNoise.Evaluate(noise, x * frequency, z * frequency) + block.PaletteIndex * heightUnit;
+                    var value = OpenSimplexNoise.Evaluate(noise, x * frequency, z * frequency) * 32
+                        + block.PaletteIndex * heightUnit;
                     world.FillColumnTo(new Vector2(x, z), new Block {PaletteIndex = 0}, (int)value);
                 }
             }

@@ -132,7 +132,7 @@ namespace Helveg.Render
                 {
                     for (int z = 0; z < Voxels.GetLength(2); ++z)
                     {
-                        if (Voxels[x, y, z].Flags.HasFlag(BlockFlags.IsAir))
+                        if (!Voxels[x, y, z].Flags.HasFlag(BlockFlags.IsAir))
                         {
                             return false;
                         }
