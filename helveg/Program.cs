@@ -329,34 +329,19 @@ namespace Helveg
                 positions = state.Positions;
             }
 
-            var boxMin = positions.FirstOrDefault();
-            var boxMax = positions.FirstOrDefault();
-            foreach (var position in positions)
-            {
-                boxMin = new Vector2(MathF.Min(boxMin.X, position.X), MathF.Min(boxMin.Y, position.Y));
-                boxMax = new Vector2(MathF.Max(boxMax.X, position.X), MathF.Max(boxMax.Y, position.Y));
-            }
-            boxMin = new Vector2(boxMin.X - boxMin.X % chunkSize, boxMin.Y - boxMin.Y % chunkSize);
-            boxMax = new Vector2(
-                boxMax.X - boxMax.X % chunkSize + chunkSize,
-                boxMax.Y - boxMax.Y % chunkSize + chunkSize);
-
-            var palette = new Vector3[] {
-                new Vector3(0.8f, 0.8f, 0.8f)
-            };
-
-            var builder = ImmutableDictionary.CreateBuilder<Vector3, Chunk>();
-            for (float x = boxMin.X; x < boxMax.X; x += chunkSize)
-            {
-                for (float z = boxMin.Y; z < boxMax.Y; z += chunkSize)
-                {
-                    builder.Add(new Vector3(x, 0, z), Chunk.CreateHorizontalPlane(
-                        size: chunkSize,
-                        palette: palette,
-                        planeBlock: new Block { PaletteIndex = 0 }));
-                }
-            }
-            var world = new World(chunkSize, builder.ToImmutable());
+            // var builder = ImmutableDictionary.CreateBuilder<Vector3, Chunk>();
+            // for (float x = boxMin.X; x < boxMax.X; x += chunkSize)
+            // {
+            //     for (float z = boxMin.Y; z < boxMax.Y; z += chunkSize)
+            //     {
+            //         builder.Add(new Vector3(x, 0, z), Chunk.CreateHorizontalPlane(
+            //             size: chunkSize,
+            //             palette: palette,
+            //             planeBlock: new Block { PaletteIndex = 0 }));
+            //     }
+            // }
+            // var world = new World(chunkSize, builder.ToImmutable());
+            var world = Terrain.GenerateIsland(positions).Build();
             Vku.HelloWorld(world);
         }
 

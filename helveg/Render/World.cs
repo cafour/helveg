@@ -88,7 +88,6 @@ namespace Helveg.Render
         public unsafe struct Raw
         {
             public Chunk.Raw* Chunks;
-
             public Vector3* Positions;
             public uint ChunkCount;
         }

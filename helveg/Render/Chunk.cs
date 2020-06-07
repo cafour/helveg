@@ -95,25 +95,51 @@ namespace Helveg.Render
                     }
                 }
             }
-            var hollowed = new Block[size, size, size];
-            Array.Copy(voxels, hollowed, voxels.Length);
+            var chunk = new Chunk(voxels, palette);
+            chunk.HollowOut(air);
+            return chunk;
+        }
+
+        public void HollowOut(Block air)
+        {
+            var size = Voxels.GetLength(0);
+            var hollowed = (Block[,,])Voxels.Clone();
+            Array.Copy(Voxels, hollowed, Voxels.Length);
             for (int x = 1; x < size - 1; ++x)
             {
                 for (int y = 1; y < size - 1; ++y)
                 {
                     for (int z = 1; z < size - 1; ++z)
                     {
-                        var airAdjacent = voxels[x - 1, y, z] == air
-                            || voxels[x + 1, y, z] == air
-                            || voxels[x, y - 1, z] == air
-                            || voxels[x, y + 1, z] == air
-                            || voxels[x, y, z - 1] == air
-                            || voxels[x, y, z + 1] == air;
-                        hollowed[x, y, z] = airAdjacent ? voxels[x, y, z] : air;
+                        var airAdjacent = Voxels[x - 1, y, z] == air
+                            || Voxels[x + 1, y, z] == air
+                            || Voxels[x, y - 1, z] == air
+                            || Voxels[x, y + 1, z] == air
+                            || Voxels[x, y, z - 1] == air
+                            || Voxels[x, y, z + 1] == air;
+                        hollowed[x, y, z] = airAdjacent ? Voxels[x, y, z] : air;
                     }
                 }
             }
-            return new Chunk(hollowed, palette);
+            Array.Copy(hollowed, Voxels, hollowed.Length);
+        }
+
+        public bool IsAir()
+        {
+            for (int x = 0; x < Voxels.GetLength(0); ++x)
+            {
+                for (int y = 0; y < Voxels.GetLength(1); ++y)
+                {
+                    for (int z = 0; z < Voxels.GetLength(2); ++z)
+                    {
+                        if (Voxels[x, y, z].Flags.HasFlag(BlockFlags.IsAir))
+                        {
+                            return false;
+                        }
+                    }
+                }
+            }
+            return true;
         }
 
         public unsafe Raw GetRaw()
