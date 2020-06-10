@@ -18,6 +18,7 @@ using Helveg.Landscape;
 using Helveg.Analysis;
 using Helveg.Render;
 using Microsoft.Build.Locator;
+using System.Drawing;
 
 namespace Helveg
 {
@@ -276,14 +277,14 @@ namespace Helveg
             const int chunkSize = 64;
             var openSimplex = new OpenSimplexNoise.Data(42L);
             var chunks = new List<Chunk>();
-            var positions = new List<Vector3>();
+            var positions = new List<Point3>();
             var width = 5;
             var height = 5;
             for (int x = 0; x < width; ++x)
             {
                 for (int z = 0; z < height; ++z)
                 {
-                    positions.Add(chunkSize * new Vector3(x, 0.0f, z));
+                    positions.Add(chunkSize * new Point3(x, 0, z));
                     var chunk = Chunk.CreateNoisy(
                         size: chunkSize,
                         palette: palette,
@@ -295,7 +296,7 @@ namespace Helveg
                 }
             }
 
-            var world = new World(chunkSize, chunks.ToArray(), positions.ToArray());
+            var world = new World(chunks.ToArray(), positions.ToArray());
             Vku.HelloWorld(world);
         }
 
@@ -303,7 +304,6 @@ namespace Helveg
         {
             const int iterationCount = 200;
             const int noOverlapIterationCount = 400;
-            const int chunkSize = 64;
             var (names, weights) = RunAnalysis(project.FullName, overwriteCache);
             var positions = Array.Empty<Vector2>();
             if (File.Exists("positions.json") && !overwriteCache)
@@ -342,13 +342,12 @@ namespace Helveg
             // }
             // var world = new World(chunkSize, builder.ToImmutable());
             var world = Terrain.GenerateIsland(positions).Build();
-            for (int i = 0; i < world.Positions.Length; ++i)
+            foreach (var chunk in world.Chunks)
             {
-                if (world.Chunks[i].IsAir())
-                {
-                    Console.WriteLine(world.Positions[i]);
-                }
+                chunk.HollowOut(new Block { Flags = BlockFlags.IsAir });
             }
+            // world.Chunks = world.Chunks.Take(10).ToArray();
+            // world.Positions = world.Positions.Take(10).ToArray();
             Vku.HelloWorld(world);
         }
 

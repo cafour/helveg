@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -11,45 +10,30 @@ namespace Helveg.Render
         private GCHandle chunksHandle;
         private GCHandle positionsHandle;
         private Chunk.Raw[] rawChunks;
-        private readonly ImmutableDictionary<Vector3, Chunk> chunkMap;
-        private readonly int chunkSize;
 
-        public World(int chunkSize, Chunk[] chunks, Vector3[] positions)
+        public World(Chunk[] chunks, Point3[] positions)
+            : this(chunks, positions.Select(p => (Vector3)p).ToArray())
+        {
+        }
+
+
+        public World(Chunk[] chunks, Vector3[] positions)
         {
             if (chunks.Length != positions.Length)
             {
                 throw new ArgumentException("For every chunk there must be a position.");
             }
 
-            this.chunkSize = chunkSize;
             Chunks = chunks;
             chunksHandle = default;
             Positions = positions;
             positionsHandle = default;
             rawChunks = Array.Empty<Chunk.Raw>();
-
-            var chunkIndicesBuilder = ImmutableDictionary.CreateBuilder<Vector3, Chunk>();
-            for (int i = 0; i < positions.Length; ++i)
-            {
-                chunkIndicesBuilder.Add(positions[i], chunks[i]);
-            }
-            chunkMap = chunkIndicesBuilder.ToImmutable();
         }
 
-        public World(int chunkSize, ImmutableDictionary<Vector3, Chunk> chunkMap)
-        {
-            this.chunkSize = chunkSize;
-            Chunks = chunkMap.Values.ToArray();
-            chunksHandle = default;
-            Positions = chunkMap.Keys.ToArray();
-            positionsHandle = default;
-            rawChunks = Array.Empty<Chunk.Raw>();
-            this.chunkMap = chunkMap;
-        }
+        public Chunk[] Chunks;
 
-        public Chunk[] Chunks { get; }
-
-        public Vector3[] Positions { get; }
+        public Vector3[] Positions;
 
         public unsafe Raw GetRaw()
         {
@@ -74,15 +58,6 @@ namespace Helveg.Render
                 Positions = (Vector3*)positionsHandle.AddrOfPinnedObject().ToPointer(),
                 ChunkCount = (uint)Chunks.Length
             };
-        }
-
-        public bool TryGetChunkAt(Vector3 position, out Chunk chunk)
-        {
-            var chunkStart = new Vector3(
-                x: position.X - position.X % chunkSize,
-                y: position.Y - position.Y % chunkSize,
-                z: position.Z - position.Z % chunkSize);
-            return chunkMap.TryGetValue(chunkStart, out chunk);
         }
 
         public unsafe struct Raw

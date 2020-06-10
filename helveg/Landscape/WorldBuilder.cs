@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Numerics;
@@ -7,96 +8,144 @@ namespace Helveg.Landscape
 {
     public class WorldBuilder
     {
-        private readonly int chunkSize;
         private readonly Block defaultFill;
         private readonly Vector3[] palette;
 
         public WorldBuilder(int chunkSize, Block defaultFill, Vector3[] palette)
         {
-            this.chunkSize = chunkSize;
+            ChunkSize = chunkSize;
             this.defaultFill = defaultFill;
             this.palette = palette;
         }
 
-        public ImmutableDictionary<Vector3, Chunk>.Builder Chunks { get; }
-            = ImmutableDictionary.CreateBuilder<Vector3, Chunk>();
+        public ImmutableDictionary<Point3, Chunk>.Builder Chunks { get; }
+            = ImmutableDictionary.CreateBuilder<Point3, Chunk>();
 
-        public (int x, int y, int z) GetChunkLocalPosition(Vector3 at)
+        public int ChunkSize { get; }
+
+        public Chunk GetChunkAt(Point3 position)
         {
-            var x = ((int)at.X % chunkSize + chunkSize) % chunkSize;
-            var y = ((int)at.Y % chunkSize + chunkSize) % chunkSize;
-            var z = ((int)at.Z % chunkSize + chunkSize) % chunkSize;
-            return (x, y, z);
-        }
+            var chunkStart = position - position % ChunkSize;
 
-        public (int x, int y, int z) GetChunkStart(Vector3 at)
-        {
-            var x = (int)at.X;
-            var y = (int)at.Y;
-            var z = (int)at.Z;
-            x -= x % chunkSize;
-            y -= y % chunkSize;
-            z -= z % chunkSize;
-            return (x, y, z);
-        }
-
-        public (Chunk chunk, Vector3 start) GetChunkAt(Vector3 position)
-        {
-            var (x, y, z) = GetChunkStart(position);
-            var at = new Vector3(x, y, z);
-
-            if (Chunks.TryGetValue(at, out var chunk))
+            if (Chunks.TryGetValue(chunkStart, out var chunk))
             {
-                return (chunk, at);
+                return chunk;
             }
 
-            chunk = Chunk.CreateEmpty(chunkSize, defaultFill, palette);
-            Chunks.Add(at, chunk);
-            return (chunk, at);
+            chunk = Chunk.CreateEmpty(ChunkSize, defaultFill, palette);
+            Chunks.Add(chunkStart, chunk);
+            return chunk;
         }
 
-        public void SetBlock(Vector3 at, Block block)
+        public Block this[Point3 at]
         {
-            var (x, y, z) = GetChunkLocalPosition(at);
-            var (chunk, _) = GetChunkAt(at);
-            chunk.Voxels[x, y, z] = block;
+            get
+            {
+                var chunk = GetChunkAt(at);
+                var local = (at % ChunkSize + new Point3(ChunkSize)) % ChunkSize;
+                return chunk.Voxels[local.X, local.Y, local.Z];
+            }
+            set
+            {
+                var chunk = GetChunkAt(at);
+                var local = (at % ChunkSize + new Point3(ChunkSize)) % ChunkSize;
+                chunk.Voxels[local.X, local.Y, local.Z] = value;
+            }
         }
 
-        public Block GetBlock(Vector3 at)
+        public Block this[int x, int y, int z]
         {
-            var (x, y, z) = GetChunkLocalPosition(at);
-
-            var (chunk, _) = GetChunkAt(at);
-            return chunk.Voxels[x, y, z];
+            get => this[new Point3(x, y, z)];
+            set => this[new Point3(x, y, z)] = value;
         }
 
-        public (Vector3 min, Vector3 max) GetBoundingBox()
+        public (Point3 min, Point3 max) GetBoundingBox()
         {
-            var min = new Vector3(
+            var min = new Point3(
                 Chunks.Keys.Min(k => k.X),
                 Chunks.Keys.Min(k => k.Y),
                 Chunks.Keys.Min(k => k.Z));
-            var max = new Vector3(
-                Chunks.Keys.Max(k => k.X),
-                Chunks.Keys.Max(k => k.Y),
-                Chunks.Keys.Max(k => k.Z));
-            max += new Vector3(chunkSize, chunkSize, chunkSize);
+            var max = new Point3(
+                Chunks.Keys.Max(k => k.X) + ChunkSize,
+                Chunks.Keys.Max(k => k.Y) + ChunkSize,
+                Chunks.Keys.Max(k => k.Z) + ChunkSize);
             return (min, max);
         }
 
-        public void FillColumnTo(Vector2 xz, Block block, int to)
+        public void FillLine(Point3 from, Point3 to, Block fill)
         {
-            var chunkHeight = to / chunkSize;
-            var (x, _, z) = GetChunkLocalPosition(new Vector3(xz.X, 0, xz.Y));
-            for (int i = 0; i < chunkHeight; ++i)
+            // just bresenham in 3d
+            var diff = to - from;
+            var sign = Point3.Sign(diff);
+            var max = Point3.Max(diff);
+            var length = Math.Abs(max);
+            var error = 2 * diff - new Point3(max);
+
+            this[from] = fill;
+            if (max == diff.X)
             {
-                var (chunk, _) = GetChunkAt(new Vector3(xz.X, i * chunkSize, xz.Y));
-                for (int j = 0; j < chunkSize; ++j)
+                for (int dx = 0; dx < length; ++dx)
                 {
-                    if (chunk.Voxels[x, j, z].Flags.HasFlag(BlockFlags.IsAir))
+                    from.X += sign.X;
+                    if (error.Y >= 0)
                     {
-                        chunk.Voxels[x, j, z] = block;
+                        from.Y += sign.Y;
+                        error.Y -= 2 * diff.X;
                     }
+
+                    if (error.Z >= 0)
+                    {
+                        from.Z += sign.Z;
+                        error.Z -= 2 * diff.X;
+                    }
+
+                    error.Y += 2 * diff.Y;
+                    error.Z += 2 * diff.Z;
+                    this[from] = fill;
+                }
+            }
+            else if(max == diff.Y)
+            {
+                for (int dy = 0; dy < length; ++dy)
+                {
+                    from.Y += sign.Y;
+                    if (error.X >= 0)
+                    {
+                        from.X += sign.X;
+                        error.X -= 2 * diff.Y;
+                    }
+
+                    if (error.Z >= 0)
+                    {
+                        from.Z += sign.Z;
+                        error.Z -= 2 * diff.X;
+                    }
+
+                    error.X += 2 * diff.X;
+                    error.Z += 2 * diff.Z;
+                    this[from] = fill;
+                }
+            }
+            else
+            {
+                for (int dz = 0; dz < length; ++dz)
+                {
+                    from.Z += sign.Z;
+                    if (error.Y >= 0)
+                    {
+                        from.Y += sign.Y;
+                        error.Y -= 2 * diff.X;
+                    }
+
+                    if (error.X >= 0)
+                    {
+                        from.X += sign.X;
+                        error.X -= 2 * diff.Y;
+                    }
+
+                    error.Y += 2 * diff.Y;
+                    error.X += 2 * diff.X;
+                    this[from] = fill;
                 }
             }
         }
@@ -112,10 +161,10 @@ namespace Helveg.Landscape
                 }
                 else
                 {
-                    Chunks[key].HollowOut(new Block {Flags = BlockFlags.IsAir});
+                    Chunks[key].HollowOut(new Block { Flags = BlockFlags.IsAir });
                 }
             }
-            return new World(chunkSize, Chunks.ToImmutable());
+            return new World(Chunks.Values.ToArray(), Chunks.Keys.ToArray());
         }
     }
 }
