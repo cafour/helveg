@@ -25,7 +25,7 @@ namespace Helveg.Landscape
 
         public Chunk GetChunkAt(Point3 position)
         {
-            var chunkStart = position - position % ChunkSize;
+            var chunkStart = position - ((position % ChunkSize) + new Point3(ChunkSize)) % ChunkSize;
 
             if (Chunks.TryGetValue(chunkStart, out var chunk))
             {

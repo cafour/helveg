@@ -270,33 +270,7 @@ namespace Helveg
 
         public static void DrawNoisyWorld()
         {
-            var palette = new[]
-            {
-                new Vector3(0.3f, 0.3f, 0.3f),
-            };
-            const int chunkSize = 64;
-            var openSimplex = new OpenSimplexNoise.Data(42L);
-            var chunks = new List<Chunk>();
-            var positions = new List<Point3>();
-            var width = 5;
-            var height = 5;
-            for (int x = 0; x < width; ++x)
-            {
-                for (int z = 0; z < height; ++z)
-                {
-                    positions.Add(chunkSize * new Point3(x, 0, z));
-                    var chunk = Chunk.CreateNoisy(
-                        size: chunkSize,
-                        palette: palette,
-                        stoneIndex: 0,
-                        openSimplex: openSimplex,
-                        frequency: 0.025,
-                        offset: new Vector2(x, z) * chunkSize);
-                    chunks.Add(chunk);
-                }
-            }
-
-            var world = new World(chunks.ToArray(), positions.ToArray());
+            var world = Terrain.GenerateNoise(100).Build();
             Vku.HelloWorld(world);
         }
 
