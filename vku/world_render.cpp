@@ -207,7 +207,7 @@ void vku::WorldRender::onUpdate(vku::SwapchainFrame &frame)
     float time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
 
     glm::vec3 worldSize = _boxMax - _boxMin;
-    float scale = 1.0f / std::max({ worldSize.x, worldSize.y, worldSize.z });
+    float scale = 2.0f / std::max({ worldSize.x, worldSize.y, worldSize.z });
     glm::vec3 offset = (_boxMax + _boxMin) / -2.0f;
 
     UBO ubo = {};

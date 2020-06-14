@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using Helveg.Render;
 
@@ -25,49 +26,60 @@ namespace Helveg.Landscape
             return world;
         }
 
-        public static WorldBuilder GenerateIsland(
+        public static float[,] GenerateIslandHeightmap(
             IEnumerable<Vector2> positions,
-            long seed = 42,
-            double frequency = 0.025,
-            int radius = 4,
-            int heightUnit = 1,
-            int waterLevel = 32)
+            int radius,
+            int padding = 50)
         {
-            var palette = new Vector3[] {
-                new Vector3(0.8f, 0.8f, 0.8f)
-            };
-            var world = new WorldBuilder(128, new Block { Flags = BlockFlags.IsAir }, palette);
+            var (minX, minY) = ((int)(positions.Min(p => p.X) - padding), (int)(positions.Min(p => p.Y) - padding));
+            var (maxX, maxY) = ((int)(positions.Max(p => p.X) + padding), (int)(positions.Max(p => p.Y) + padding));
+            var height = new float[Math.Abs(maxX - minX), Math.Abs(maxY - minY)];
             foreach (var position in positions)
             {
                 for (int x = -radius; x <= radius; ++x)
                 {
-                    for (int z = -radius; z <= radius; ++z)
+                    for (int y = -radius; y <= radius; ++y)
                     {
-                        var distance = MathF.Sqrt(x * x + z * z);
-                        var current = new Point3(position.X + x, 0, position.Y);
-                        world[current] = new Block
-                        {
-                            // PaletteIndex = (byte)(radius - (int)distance)
-                            PaletteIndex = 0
-                        };
+                        var posX = (int)position.X + x - minX;
+                        var posY = (int)position.Y + y - minY;
+                        var e = MathF.Sqrt(x * x + y * y) / radius;
+                        height[posX, posY] += 36 * MathF.Exp(-(e * e));
                     }
                 }
             }
+            return height;
+        }
 
-            var noise = new OpenSimplexNoise.Data(seed);
-            var (min, max) = world.GetBoundingBox();
-            for (int x = min.X; x < max.X; ++x)
+        public static WorldBuilder GenerateIsland(IEnumerable<Vector2> positions)
+        {
+            var heightmap = GenerateIslandHeightmap(positions, 16);
+            var width = heightmap.GetLength(0);
+            var height = heightmap.GetLength(1);
+            var palette = new Vector3[] {
+                new Vector3(146, 146, 146) / 255, // stone
+                new Vector3(109, 182, 73) / 255, // grass
+                new Vector3(219, 182, 146) / 255, // sand
+                new Vector3(109, 73, 36) / 255, // wood
+                new Vector3(0, 146, 219) / 255 // water
+            };
+            var world = new WorldBuilder(128, new Block { Flags = BlockFlags.IsAir }, palette);
+            for (int x = 0; x < width; ++x)
             {
-                for (int z = min.Z; z < max.Z; ++z)
+                for (int z = 0; z < height; ++z)
                 {
-                    // var block = world[x, 0, z];
-                    // world[x, 0, z] = new Block{Flags = BlockFlags.IsAir};
-                    var value = (OpenSimplexNoise.Evaluate(noise, x * frequency, z * frequency) + 1) * 16;
-                    // + block.PaletteIndex * heightUnit;
-                    world.FillLine(new Point3(x, 0, z), new Point3(x, (int)value, z), new Block { PaletteIndex = 0 });
+                    var y = (int)heightmap[x, z];
+                    var surface = y <= 36
+                        ? new Block { PaletteIndex = 2 }
+                        : new Block { PaletteIndex = 1};
+                    var rockLevel = Math.Max(y - 4, 0);
+                    world.FillLine(new Point3(x, 0, z), new Point3(x, rockLevel, z), new Block{PaletteIndex = 0});
+                    world.FillLine(new Point3(x, rockLevel, z), new Point3(x, y, z), surface);
+                    if (y <= 32)
+                    {
+                        world.FillLine(new Point3(x, y + 1, z), new Point3(x, 32, z), new Block {PaletteIndex = 4});
+                    }
                 }
             }
-
             return world;
         }
     }

@@ -142,12 +142,26 @@ namespace Helveg
             }
         }
 
-        public static void DrawGraphVku(Fdg.State state, int iterationCount, int noOverlapIterationCount, long time)
+        public static void DrawGraphVku(
+            Fdg.State state,
+            int iterationCount,
+            int noOverlapIterationCount,
+            long time,
+            float nodeSize)
         {
             var render = Vku.CreateGraphRender(new InteropGraph(state.Positions, state.Weights));
             Vku.StepGraphRender(render);
             var stopwatch = new Stopwatch();
             var end = false;
+            state.NodeSize = nodeSize;
+            // state.IsGravityStrong = true;
+            // for (int i = 0; i < iterationCount && !end; ++i)
+            // {
+            //     Fdg.Step(ref state);
+            //     end = Vku.StepGraphRender(render);
+            //     Thread.Sleep((int)(time - stopwatch.ElapsedMilliseconds % time));
+            // }
+            state.IsGravityStrong = false;
             for (int i = 0; i < iterationCount && !end; ++i)
             {
                 Fdg.Step(ref state);
@@ -203,7 +217,8 @@ namespace Helveg
             int noOverlapIterationCount,
             bool overwriteCache,
             int every,
-            long time)
+            long time,
+            float nodeSize)
         {
             var (names, weights) = RunAnalysis(project.FullName, overwriteCache);
             var state = Fdg.State.Create(weights);
@@ -211,7 +226,7 @@ namespace Helveg
             switch (kind)
             {
                 case ProjectRenderKind.Vku:
-                    DrawGraphVku(state, iterationCount, noOverlapIterationCount, time);
+                    DrawGraphVku(state, iterationCount, noOverlapIterationCount, time, nodeSize);
                     break;
                 case ProjectRenderKind.Graphviz:
                     DrawGraphGraphviz(state, names, weights, iterationCount, noOverlapIterationCount, every);
@@ -254,7 +269,7 @@ namespace Helveg
         {
             var palette = new[]
             {
-                new Vector3(0.3f, 0.3f, 0.3f),
+                new Vector3(0.3f, 0.3f, 0.3f)
             };
 
             var openSimplex = new OpenSimplexNoise.Data(42L);
@@ -276,10 +291,10 @@ namespace Helveg
 
         public static void DrawGraphWorld(FileSystemInfo project, bool overwriteCache)
         {
-            const int iterationCount = 200;
-            const int noOverlapIterationCount = 400;
-            var (names, weights) = RunAnalysis(project.FullName, overwriteCache);
-            var positions = Array.Empty<Vector2>();
+            const int iterationCount = 1000;
+            const int noOverlapIterationCount = 800;
+            var (_, weights) = RunAnalysis(project.FullName, overwriteCache);
+            Vector2[] positions;
             if (File.Exists("positions.json") && !overwriteCache)
             {
                 var positionsText = File.ReadAllText("positions.json");
@@ -288,10 +303,17 @@ namespace Helveg
             else
             {
                 var state = Fdg.State.Create(weights);
+                state.NodeSize = 16;
                 for (int i = 0; i < iterationCount; ++i)
                 {
                     Fdg.Step(ref state);
                 }
+                state.IsGravityStrong = true;
+                for (int i = 0; i < iterationCount; ++i)
+                {
+                    Fdg.Step(ref state);
+                }
+                state.IsGravityStrong = false;
                 state.PreventOverlapping = true;
                 for (int i = 0; i < noOverlapIterationCount; ++i)
                 {
@@ -303,25 +325,11 @@ namespace Helveg
                 positions = state.Positions;
             }
 
-            // var builder = ImmutableDictionary.CreateBuilder<Vector3, Chunk>();
-            // for (float x = boxMin.X; x < boxMax.X; x += chunkSize)
-            // {
-            //     for (float z = boxMin.Y; z < boxMax.Y; z += chunkSize)
-            //     {
-            //         builder.Add(new Vector3(x, 0, z), Chunk.CreateHorizontalPlane(
-            //             size: chunkSize,
-            //             palette: palette,
-            //             planeBlock: new Block { PaletteIndex = 0 }));
-            //     }
-            // }
-            // var world = new World(chunkSize, builder.ToImmutable());
             var world = Terrain.GenerateIsland(positions).Build();
             foreach (var chunk in world.Chunks)
             {
                 chunk.HollowOut(new Block { Flags = BlockFlags.IsAir });
             }
-            // world.Chunks = world.Chunks.Take(10).ToArray();
-            // world.Positions = world.Positions.Take(10).ToArray();
             Vku.HelloWorld(world);
         }
 
@@ -357,10 +365,10 @@ namespace Helveg
                 new Argument<int>("noOverlapIterationCount", "Overlap-preventing step count"),
                 new Option<bool>(new []{"-o", "--overwrite-cache"}, "Overwrite a cached project analysis"),
                 new Option<int>("--every", () => 1000, "Generate a graphviz file every # steps (Graphviz kind only)"),
-                new Option<long>("--time", () => 100, "Minimum time spent on one frame")
+                new Option<long>("--time", () => 100, "Minimum time spent on one frame"),
+                new Option<float>("--node-size", () => 1, "The size of nodes")
             };
-            projectCommand.Handler = CommandHandler
-                .Create<FileSystemInfo, ProjectRenderKind, int, int, bool, int, long>(AnalyzeProject);
+            projectCommand.Handler = CommandHandler.Create(typeof(Program).GetMethod(nameof(AnalyzeProject)));
             rootCommand.AddCommand(projectCommand);
             rootCommand.AddCommand(new Command("chunk", "Draw a single chunk")
             {
