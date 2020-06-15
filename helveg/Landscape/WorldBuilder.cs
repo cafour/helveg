@@ -72,7 +72,7 @@ namespace Helveg.Landscape
             return (min, max);
         }
 
-        public void FillLine(Point3 from, Point3 to, Block fill)
+        public void OverLine(Point3 from, Point3 to, Action<Point3> action)
         {
             // just bresenham in 3d
             var diff = to - from;
@@ -85,7 +85,7 @@ namespace Helveg.Landscape
             }
 
             var error = 2 * diff - new Point3(max);
-            this[from] = fill;
+            action(from);
             if (max == diff.X)
             {
                 for (int dx = 0; dx < length; ++dx)
@@ -105,10 +105,10 @@ namespace Helveg.Landscape
 
                     error.Y += 2 * diff.Y;
                     error.Z += 2 * diff.Z;
-                    this[from] = fill;
+                    action(from);
                 }
             }
-            else if(max == diff.Y)
+            else if (max == diff.Y)
             {
                 for (int dy = 0; dy < length; ++dy)
                 {
@@ -127,7 +127,7 @@ namespace Helveg.Landscape
 
                     error.X += 2 * diff.X;
                     error.Z += 2 * diff.Z;
-                    this[from] = fill;
+                    action(from);
                 }
             }
             else
@@ -149,9 +149,43 @@ namespace Helveg.Landscape
 
                     error.Y += 2 * diff.Y;
                     error.X += 2 * diff.X;
-                    this[from] = fill;
+                    action(from);
                 }
             }
+        }
+
+        public void FillLine(Point3 from, Point3 to, Block fill)
+        {
+            OverLine(from, to, p => this[p] = fill);
+        }
+
+        public void FillSphere(Point3 position, Block fill, int radius)
+        {
+            for (int x = 0; x < radius; ++x)
+            {
+                for (int y = 0; y < radius; ++y)
+                {
+                    for (int z = 0; z < radius; ++z)
+                    {
+                        if (x * x + y * y + z * z <= radius * radius * radius)
+                        {
+                            this[new Point3(x, y, z) + position] = fill;
+                            this[new Point3(x, y, -z) + position] = fill;
+                            this[new Point3(x, -y, z) + position] = fill;
+                            this[new Point3(x, -y, -z) + position] = fill;
+                            this[new Point3(-x, y, z) + position] = fill;
+                            this[new Point3(-x, y, -z) + position] = fill;
+                            this[new Point3(-x, -y, z) + position] = fill;
+                            this[new Point3(-x, -y, -z) + position] = fill;
+                        }
+                    }
+                }
+            }
+        }
+
+        public void FillPipe(Point3 from, Point3 to, Block fill, int radius)
+        {
+            OverLine(from, to, p => FillSphere(p, fill, radius));
         }
 
         public World Build()

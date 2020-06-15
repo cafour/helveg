@@ -129,6 +129,97 @@ namespace Helveg.Landscape
             return src.ToArray();
         }
 
+        public static void PlaceStructure(WorldBuilder world, Point3 position, Block wood, Symbol[] sentence)
+        {
+            var orientation = Quaternion.CreateFromYawPitchRoll(0f, -MathF.PI / 2f, 0f);
+
+            var stack = new Queue<(Quaternion orientation, Vector3 position, int index)>();
+            stack.Enqueue((orientation, Vector3.Zero, 0));
+            while (stack.Count != 0)
+            {
+                var state = stack.Dequeue();
+                for (; state.index < sentence.Length; ++state.index)
+                {
+                    var current = sentence[state.index];
+                    bool shouldPop = false;
+                    var forwardQ = state.orientation * new Quaternion(Vector3.UnitZ, 0)
+                                * Quaternion.Conjugate(state.orientation);
+                    var forward = new Vector3(forwardQ.X, forwardQ.Y, forwardQ.Z);
+
+                    void AdjustOrientation(float yaw, float pitch, float roll)
+                    {
+                        state.orientation *= Quaternion.CreateFromYawPitchRoll(yaw, pitch, roll);
+                    }
+
+                    switch (current.Kind)
+                    {
+                        case Kind.Forward:
+                            var length = 4 << current.Int;
+                            var lastPosition = state.position;
+                            state.position += forward * length;
+                            world.FillPipe(
+                                from: position + (Point3)lastPosition,
+                                to: position + (Point3)state.position,
+                                fill: wood,
+                                radius: current.Int);
+                            break;
+                        case Kind.TurnLeft:
+                            AdjustOrientation(current.Float, 0f, 0f);
+                            break;
+                        case Kind.TurnRight:
+                            AdjustOrientation(-current.Float, 0f, 0f);
+                            break;
+                        case Kind.PitchUp:
+                            AdjustOrientation(0f, -current.Float, 0f);
+                            break;
+                        case Kind.PitchDown:
+                            AdjustOrientation(0f, current.Float, 0f);
+                            break;
+                        case Kind.RollRight:
+                            AdjustOrientation(0f, 0f, current.Float);
+                            break;
+                        case Kind.RollLeft:
+                            AdjustOrientation(0f, 0f, -current.Float);
+                            break;
+                        case Kind.Push:
+                            state.index++;
+                            stack.Enqueue(state);
+                            int nest = 1;
+                            for (int i = state.index; i < sentence.Length; ++i)
+                            {
+                                if (sentence[i].Kind == Kind.Push)
+                                {
+                                    nest++;
+                                }
+                                else if (sentence[i].Kind == Kind.Pop)
+                                {
+                                    nest--;
+                                    if (nest == 0)
+                                    {
+                                        state.index = i;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (nest != 0)
+                            {
+                                throw new InvalidOperationException($"Push at {state.index} is missing a Pop.");
+                            }
+                            break;
+                        case Kind.Pop:
+                            shouldPop = true;
+                            break;
+                        default:
+                            break;
+                    }
+                    if (shouldPop)
+                    {
+                        break;
+                    }
+                }
+            }
+        }
+
         public static Mesh GenerateMesh(Symbol[] sentence)
         {
             const int edgeCount = 12;
@@ -171,7 +262,7 @@ namespace Helveg.Landscape
                                 edgeCount,
                                 current.Int,
                                 state.orientation * state.correction,
-                                state.position + forward * length * 0.667f );
+                                state.position + forward * length * 0.667f);
                             state.position += forward * length;
                             colors.AddRange(Enumerable.Repeat(color, edgeCount));
                             StitchPolygons(

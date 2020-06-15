@@ -13,7 +13,7 @@ namespace Helveg.Landscape
     public static class Graph
     {
 
-        public static void StepEades(Vector2[] forces, Vector2[] positions, float[,] weights)
+        public static void StepEades(Vector2[] forces, Vector2[] positions, int[,] weights)
         {
             int nodeCount = positions.Length;
             for (int from = 0; from < nodeCount; ++from)
@@ -39,7 +39,7 @@ namespace Helveg.Landscape
             }
         }
 
-        public static void RunEades(Vector2[] positions, float[,] weights, int iterationCount)
+        public static void RunEades(Vector2[] positions, int[,] weights, int iterationCount)
         {
             int nodeCount = positions.Length;
             if (nodeCount != weights.GetLength(0)
@@ -266,7 +266,7 @@ namespace Helveg.Landscape
         }
 
 
-        public static string ToGraphviz(Vector2[] positions, float[,] weights, string[] labels)
+        public static string ToGraphviz(Vector2[] positions, int[,] weights, string[] labels)
         {
             var sb = new StringBuilder();
             sb.AppendLine("digraph test {");
@@ -281,7 +281,7 @@ namespace Helveg.Landscape
                 {
                     if (weights[i, j] != 0)
                     {
-                        sb.AppendLine($"{i} -> {j} [weight={(int)MathF.Round(weights[i, j])}]");
+                        sb.AppendLine($"{i} -> {j} [weight={weights[i, j]}]");
                     }
                 }
             }

@@ -10,6 +10,8 @@ namespace Helveg.Render
         public int Y;
         public int Z;
 
+        public static readonly Point3 Zero = new Point3(0, 0, 0);
+
         public Point3(int value)
         {
             X = value;

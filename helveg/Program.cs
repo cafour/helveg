@@ -19,6 +19,8 @@ using Helveg.Analysis;
 using Helveg.Render;
 using Microsoft.Build.Locator;
 using System.Drawing;
+using Newtonsoft.Json;
+using System.Threading.Tasks;
 
 namespace Helveg
 {
@@ -121,13 +123,13 @@ namespace Helveg
             Vku.DestroyGraphRender(render);
         }
 
-        public static (string[] names, float[,] weights) RunAnalysis(string projectPath, bool overwriteCache)
+        public static (string[] names, int[,] weights) RunAnalysis(string projectPath, bool overwriteCache)
         {
             var formatter = new BinaryFormatter();
             if (File.Exists("project.bin") && !overwriteCache)
             {
                 using var stream = File.OpenRead("project.bin");
-                return ((string[], float[,]))formatter.Deserialize(stream);
+                return ((string[], int[,]))formatter.Deserialize(stream);
             }
             else
             {
@@ -140,6 +142,31 @@ namespace Helveg
                 }
                 return graph;
             }
+        }
+
+        public static async Task<AnalyzedProject> RunBetterAnalysis(string csprojPath)
+        {
+            const string cacheFile = "analysis.json";
+
+            if (File.Exists(cacheFile))
+            {
+                var text = await File.ReadAllTextAsync(cacheFile);
+                var project = JsonConvert.DeserializeObject<SerializedProject>(text);
+                if (project.CsprojPath == csprojPath)
+                {
+                    return project.Project;
+                }
+            }
+
+            MSBuildLocator.RegisterDefaults();
+            var analyzedProject = await Analyze.AnalyzeProject(csprojPath);
+            var serializedProject = new SerializedProject
+            {
+                CsprojPath = csprojPath,
+                Project = analyzedProject
+            };
+            // await File.WriteAllTextAsync(cacheFile, JsonConvert.SerializeObject(serializedProject));
+            return analyzedProject;
         }
 
         public static void DrawGraphVku(
@@ -181,7 +208,7 @@ namespace Helveg
         public static void DrawGraphGraphviz(
             Fdg.State state,
             string[] names,
-            float[,] weights,
+            int[,] weights,
             int iterationCount,
             int noOverlapIterationCount,
             int every)
@@ -289,16 +316,17 @@ namespace Helveg
             Vku.HelloWorld(world);
         }
 
-        public static void DrawGraphWorld(FileSystemInfo project, bool overwriteCache)
+        public static async Task DrawGraphWorld(FileSystemInfo project, bool overwriteCache)
         {
             const int iterationCount = 1000;
             const int noOverlapIterationCount = 800;
-            var (_, weights) = RunAnalysis(project.FullName, overwriteCache);
+            var analyzedProject = await RunBetterAnalysis(project.FullName);
+            var (names, weights) = analyzedProject.GetWeightMatrix();
             Vector2[] positions;
             if (File.Exists("positions.json") && !overwriteCache)
             {
                 var positionsText = File.ReadAllText("positions.json");
-                positions = JsonSerializer.Deserialize<Vector2[]>(positionsText, Serialize.JsonOptions);
+                positions = System.Text.Json.JsonSerializer.Deserialize<Vector2[]>(positionsText, Serialize.JsonOptions);
             }
             else
             {
@@ -321,11 +349,20 @@ namespace Helveg
                 }
                 var stream = new FileStream("positions.json", FileMode.Create);
                 var writer = new Utf8JsonWriter(stream);
-                JsonSerializer.Serialize(writer, state.Positions, Serialize.JsonOptions);
+                System.Text.Json.JsonSerializer.Serialize(writer, state.Positions, Serialize.JsonOptions);
                 positions = state.Positions;
             }
 
-            var world = Terrain.GenerateIsland(positions).Build();
+            var sizes = new List<int>();
+            var seeds = new List<int>();
+            foreach(var name in names)
+            {
+                var type = analyzedProject.Types[name];
+                sizes.Add(type.Members.Length);
+                seeds.Add(type.GetSeed());
+            }
+
+            var world = Terrain.GenerateIsland(positions, sizes.ToArray(), seeds.ToArray()).Build();
             foreach (var chunk in world.Chunks)
             {
                 chunk.HollowOut(new Block { Flags = BlockFlags.IsAir });

@@ -52,7 +52,7 @@ namespace Helveg.Landscape
                 TraSwgRatio = DefaultTraSwgRatio,
             };
 
-            public static State Create(float[,] directedWeights)
+            public static State Create(int[,] directedWeights)
             {
                 if (directedWeights.GetLength(0) != directedWeights.GetLength(1))
                 {
@@ -114,10 +114,10 @@ namespace Helveg.Landscape
                 state.Forces[i] = force * unit;
             }
 
-            int current = 0;
+            int weightIndex = 0;
             for (int from = 0; from < nodeCount; ++from)
             {
-                for (int to = from + 1; to < nodeCount; ++to, ++current)
+                for (int to = from + 1; to < nodeCount; ++to, ++weightIndex)
                 {
                     var direction = state.Positions[to] - state.Positions[from];
                     var length = direction.Length();
@@ -132,7 +132,7 @@ namespace Helveg.Landscape
                     float repulsion = 0;
                     if (length > 0)
                     {
-                        attraction = state.Weights[current] * length;
+                        attraction = state.Weights[weightIndex] * length;
                         repulsion = state.RepulsionFactor * (state.Degrees[from] + 1)
                             * (state.Degrees[to] + 1) / length;
                     }
@@ -173,7 +173,14 @@ namespace Helveg.Landscape
                 }
                 float speed = state.GlobalSpeedFactor * state.GlobalSpeed 
                     / (1 + state.GlobalSpeed * MathF.Sqrt(state.Swinging[i]));
-                speed = MathF.Min(speed, state.MaxSpeedConstant / state.Forces[i].Length());
+                var length = state.Forces[i].Length();
+                if (state.PreventOverlapping)
+                {
+                    speed /= 10;
+                    speed = MathF.Min(speed * length, 10) / (length + 1);
+                }
+                speed = MathF.Min(speed, state.MaxSpeedConstant / length);
+
                 state.Positions[i] += state.Forces[i] * speed;
             }
         }
