@@ -22,42 +22,79 @@ namespace Helveg
 
         public static void AddGraphCommands(Command parent)
         {
+            var csprojArg = new Argument<FileInfo>("csproj", "Path to an MSBuild C# project");
+            var formatOpt = new Option<GraphFormat>(
+                aliases: new[] { "-f", "--format" },
+                getDefaultValue: () => GraphFormat.Vku,
+                description: "The format of the animation");
+            var iterationsOpt = new Option<int>(
+                aliases: new[] { "-i", "--iterations" },
+                getDefaultValue: () => 1000,
+                description: "The number of iterations");
+            var speedOpt = new Option<int>(
+                aliases: new[] { "-s", "--speed" },
+                getDefaultValue: () => 100,
+                description: "The length of a single frame in ms (Vku)");
+            var everyOpt = new Option<int>(
+                aliases: new[] { "-e", "--every" },
+                getDefaultValue: () => 100,
+                description: "Save node positions every n iterations (GraphViz)");
+            var ignoreCacheOpt = new Option<bool>(
+                alias: "--ignore-cache",
+                getDefaultValue: () => false,
+                description: "Ignore cached analysis results");
+
             var eadesCmd = new Command("eades", "Animates the Eades'84 algorithm")
             {
-                new Argument<FileInfo>("csproj", "Path to an MSBuild C# project"),
-                new Option<GraphFormat>(new []{"-f", "--format"}, "The format of the animation"),
-                new Option<int>(new [] {"-i", "--iterations"}, "The number of iterations" ),
-                new Option<int>(new [] {"-s", "--speed"}, "The length of a single frame in ms (Vku)"),
-                new Option<int>(new [] {"-e", "--every"}, "Save node positions after every n iterations (GraphViz)"),
-                new Option<bool>("--ignore-cache", "Ignore cached analysis results")
+                csprojArg,
+                formatOpt,
+                iterationsOpt,
+                speedOpt,
+                everyOpt,
+                ignoreCacheOpt
             };
             eadesCmd.Handler = CommandHandler.Create(typeof(DebugGraph).GetMethod(nameof(RunEades))!);
             parent.AddCommand(eadesCmd);
 
             var frCmd = new Command("fr", "Animates the Fruchterman-Reingold algorithm")
             {
-                new Argument<FileInfo>("csproj", "Path to an MSBuild C# project"),
-                new Option<GraphFormat>(new []{"-f", "--format"}, "The format of the animation"),
-                new Option<int>(new [] {"-i", "--iterations"}, "The number of iterations" ),
-                new Option<float>(new [] {"-w", "--width"}, "The width of the graph space" ),
-                new Option<float>(new [] {"-h", "--height"}, "The height of the graph space" ),
-                new Option<int>(new [] {"-s", "--speed"}, "The length of a single frame in ms (Vku)"),
-                new Option<int>(new [] {"-e", "--every"}, "Save node positions after every n iterations (GraphViz)"),
-                new Option<bool>("--ignore-cache", "Ignore cached analysis results")
+                csprojArg,
+                formatOpt,
+                iterationsOpt,
+                new Option<float>(
+                    aliases: new [] {"-w", "--width"},
+                    getDefaultValue: () => 1024.0f,
+                    description: "The width of the graph space" ),
+                new Option<float>(
+                    aliases: new [] {"-h", "--height"},
+                    getDefaultValue: () => 1024.0f,
+                    description: "The height of the graph space" ),
+                speedOpt,
+                everyOpt,
+                ignoreCacheOpt
             };
             frCmd.Handler = CommandHandler.Create(typeof(DebugGraph).GetMethod(nameof(RunFruchtermanReingold))!);
             parent.AddCommand(frCmd);
 
             var fdgCmd = new Command("fdg", "Animates the ForceAtlas2-inspired algorithm")
             {
-                new Argument<FileInfo>("csproj", "Path to an MSBuild C# project"),
-                new Option<GraphFormat>(new []{"-f", "--format"}, "The format of the animation"),
-                new Option<int>(new [] {"-r", "--regular"}, "The number of regular iterations" ),
-                new Option<int>(new [] {"-g", "--strong-gravity"}, "The number of strong gravity iterations" ),
-                new Option<int>(new [] {"-o", "--no-overlap"}, "The number of overlap preventing iterations" ),
-                new Option<int>(new [] {"-s", "--speed"}, "The length of a single frame in ms (Vku)"),
-                new Option<int>(new [] {"-e", "--every"}, "Save node positions after every n iterations (GraphViz)"),
-                new Option<bool>("--ignore-cache", "Ignore cached analysis results")
+                csprojArg,
+                formatOpt,
+                new Option<int>(
+                    aliases: new [] {"-r", "--regular"},
+                    getDefaultValue: () => 1000,
+                    description: "The number of regular iterations"),
+                new Option<int>(
+                    aliases: new [] {"-g", "--strong-gravity"},
+                    getDefaultValue: () => 500,
+                    description: "The number of strong gravity iterations"),
+                new Option<int>(
+                    aliases: new [] {"-o", "--no-overlap"},
+                    getDefaultValue: () => 500,
+                    description: "The number of overlap preventing iterations"),
+                speedOpt,
+                everyOpt,
+                ignoreCacheOpt
             };
             fdgCmd.Handler = CommandHandler.Create(typeof(DebugGraph).GetMethod(nameof(RunFdg))!);
             parent.AddCommand(fdgCmd);
@@ -69,14 +106,14 @@ namespace Helveg
             int iterations,
             int speed,
             int every,
-            bool ignoreCache = false)
+            bool ignoreCache)
         {
             Eades.State state = default;
             await DrawGraph(
                 csproj: csproj,
                 init: g =>
                 {
-                    state = Eades.Create(g.Positions.Length, g.Weights);
+                    state = Eades.Create(g.Positions, g.Weights);
                 },
                 step: (i, g) =>
                 {
@@ -93,20 +130,20 @@ namespace Helveg
 
         public static async Task RunFruchtermanReingold(
             FileInfo csproj,
-            GraphFormat format = GraphFormat.Vku,
-            int iterations = 1000,
-            float width = 1024.0f,
-            float height = 1024.0f,
-            int speed = 100,
-            int every = 100,
-            bool ignoreCache = false)
+            GraphFormat format,
+            int iterations,
+            float width,
+            float height,
+            int speed,
+            int every,
+            bool ignoreCache)
         {
             FR.State state = default;
             await DrawGraph(
                 csproj: csproj,
                 init: g =>
                 {
-                    state = FR.Create(g.Positions.Length, g.Weights, width, height);
+                    state = FR.Create(g.Positions, g.Weights, width, height);
                 },
                 step: (i, g) =>
                 {
@@ -123,20 +160,20 @@ namespace Helveg
 
         public static async Task RunFdg(
             FileInfo csproj,
-            GraphFormat format = GraphFormat.Vku,
-            int regular = 1000,
-            int strongGravity = 500,
-            int noOverlap = 500,
-            int speed = 100,
-            int every = 100,
-            bool ignoreCache = false)
+            GraphFormat format,
+            int regular,
+            int strongGravity,
+            int noOverlap,
+            int speed,
+            int every,
+            bool ignoreCache)
         {
             Fdg.State state = default;
             var graph = await DrawGraph(
                 csproj: csproj,
                 init: g =>
                 {
-                    state = Fdg.Create(g.Positions.Length, g.Weights);
+                    state = Fdg.Create(g.Positions, g.Weights);
                 },
                 step: (i, g) =>
                 {
@@ -214,7 +251,7 @@ namespace Helveg
             int every,
             int speed)
         {
-            switch(format)
+            switch (format)
             {
                 case GraphFormat.Vku:
                     DrawVku(graph, step, iterationCount, speed);

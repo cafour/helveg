@@ -12,13 +12,13 @@ namespace Helveg.Landscape
             public Vector2[] Positions;
         }
 
-        public static State Create(int nodeCount, float[] weights)
+        public static State Create(Vector2[] positions, float[] weights)
         {
             return new State
             {
                 Weights = weights,
-                Forces = new Vector2[nodeCount],
-                Positions = new Vector2[nodeCount]
+                Forces = new Vector2[positions.Length],
+                Positions = positions
             };
         }
 

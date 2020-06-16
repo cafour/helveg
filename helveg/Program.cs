@@ -74,7 +74,8 @@ namespace Helveg
 
             var (names, matrix) = project.GetWeightMatrix();
             var weights = Graph.UndirectWeights(matrix);
-            var state = Fdg.Create(names.Length, weights);
+            var positions = new Vector2[names.Length];
+            var state = Fdg.Create(positions, weights);
             state.NodeSize = 16;
             for (int i = 0; i < RegularIterationCount; ++i)
             {
@@ -92,17 +93,17 @@ namespace Helveg
                 Fdg.Step(ref state);
             }
 
-            var positions = names.Zip(state.Positions).ToImmutableDictionary(p => p.First, p => p.Second);
+            var results = names.Zip(positions).ToImmutableDictionary(p => p.First, p => p.Second);
             {
                 var stream = new FileStream(FdgCacheFilename, FileMode.Create);
                 var graph = new SerializableGraph
                 {
                     Name = project.Name,
-                    Positions = positions.ToDictionary(p => p.Key.ToString(), p => p.Value)
+                    Positions = results.ToDictionary(p => p.Key.ToString(), p => p.Value)
                 };
                 await JsonSerializer.SerializeAsync(stream, state.Positions, Serialize.JsonOptions);
             }
-            return positions;
+            return results;
         }
 
         public static async Task RunPipeline(FileSystemInfo project, bool ignoreCache = false)

@@ -53,14 +53,16 @@ namespace Helveg.Landscape
             };
         }
 
-        public static State Create(int nodeCount, float[] weights)
+        public static State Create(Vector2[] positions, float[] weights)
         {
+            var nodeCount = positions.Length;
+            
             var state = State.Default;
             state.PreviousForces = new Vector2[nodeCount];
             state.Forces = new Vector2[nodeCount];
             state.Swinging = new float[nodeCount];
 
-            state.Positions = new Vector2[nodeCount];
+            state.Positions = positions;
             for (int i = 0; i < nodeCount; ++i)
             {
                 var angle = 2f * MathF.PI / nodeCount * i;

@@ -16,18 +16,18 @@ namespace Helveg.Landscape
             public Vector2[] Displacement;
         }
 
-        public static State Create(int nodeCount, float[] weights, float width, float height)
+        public static State Create(Vector2[] positions, float[] weights, float width, float height)
         {
             var area = width * height;
             return new State
             {
                 Width = width,
                 Height = height,
-                K = MathF.Sqrt(area / nodeCount) / 3f,
+                K = MathF.Sqrt(area / positions.Length) / 3f,
                 Temperature = area / 100f,
                 Weights = weights,
-                Positions = new Vector2[nodeCount],
-                Displacement = new Vector2[nodeCount]
+                Positions = positions,
+                Displacement = new Vector2[positions.Length]
             };
         }
 
