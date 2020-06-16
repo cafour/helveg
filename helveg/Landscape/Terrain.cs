@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Numerics;
+using Helveg.Analysis;
 using Helveg.Render;
 
 namespace Helveg.Landscape
@@ -50,9 +52,11 @@ namespace Helveg.Landscape
             return heightmap;
         }
 
-        public static WorldBuilder GenerateIsland(Vector2[] positions, int[] sizes, int[] seeds)
+        public static WorldBuilder GenerateIsland(
+            AnalyzedProject project,
+            ImmutableDictionary<AnalyzedTypeId, Vector2> positions)
         {
-            var heightmap = GenerateIslandHeightmap(positions, 16);
+            var heightmap = GenerateIslandHeightmap(positions.Values, 16);
             var palette = new Vector3[] {
                 new Vector3(146, 146, 146) / 255, // stone
                 new Vector3(109, 182, 73) / 255, // grass
@@ -79,13 +83,13 @@ namespace Helveg.Landscape
                 }
             }
 
-            for (int i = 0; i < positions.Length; ++i)
+            foreach (var (id, position) in positions)
             {
-                var center = new Point3(positions[i].X, heightmap[positions[i].X, positions[i].Y], positions[i].Y);
+                var center = new Point3(position.X, heightmap[position.X, position.Y], position.Y);
                 var sentence = Spruce.Rewrite(
                     axiom: new[] { new Spruce.Symbol(Spruce.Kind.Canopy) },
-                    seed: seeds[i],
-                    branchCount: Math.Clamp(sizes[i], 0, 9),
+                    seed: project.Types[id].GetSeed(),
+                    branchCount: Math.Clamp(project.Types[id].Members.Length, 0, 9),
                     maxBranching: 6,
                     minBranching: 3,
                     initialBranching: 4,

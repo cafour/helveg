@@ -51,45 +51,37 @@ namespace Helveg.Landscape
                 NodeSize = DefaultNodeSize,
                 TraSwgRatio = DefaultTraSwgRatio,
             };
+        }
 
-            public static State Create(int[,] directedWeights)
+        public static State Create(int nodeCount, float[] weights)
+        {
+            var state = State.Default;
+            state.PreviousForces = new Vector2[nodeCount];
+            state.Forces = new Vector2[nodeCount];
+            state.Swinging = new float[nodeCount];
+
+            state.Positions = new Vector2[nodeCount];
+            for (int i = 0; i < nodeCount; ++i)
             {
-                if (directedWeights.GetLength(0) != directedWeights.GetLength(1))
-                {
-                    throw new ArgumentException("The weights matrix must be a square one.");
-                }
+                var angle = 2f * MathF.PI / nodeCount * i;
+                state.Positions[i] = nodeCount * new Vector2(MathF.Cos(angle), MathF.Sin(angle));
+            }
 
-                int nodeCount = directedWeights.GetLength(0);
-                var state = Default;
-                state.PreviousForces = new Vector2[nodeCount];
-                state.Forces = new Vector2[nodeCount];
-                state.Swinging = new float[nodeCount];
-
-                state.Positions = new Vector2[nodeCount];
-                for (int i = 0; i < nodeCount; ++i)
+            state.Degrees = new int[nodeCount];
+            state.Weights = weights;
+            int weightIndex = 0;
+            for (int from = 0; from < nodeCount; ++from)
+            {
+                for (int to = from + 1; to < nodeCount; ++to, ++weightIndex)
                 {
-                    var angle = 2f * MathF.PI / nodeCount * i;
-                    state.Positions[i] = nodeCount * new Vector2(MathF.Cos(angle), MathF.Sin(angle));
-                }
-
-                state.Degrees = new int[nodeCount];
-                int weightCount = nodeCount * (nodeCount - 1) / 2;
-                state.Weights = new float[weightCount];
-                int current = 0;
-                for (int from = 0; from < nodeCount; ++from)
-                {
-                    for (int to = from + 1; to < nodeCount; ++to, ++current)
+                    if (state.Weights[weightIndex] > 0)
                     {
-                        state.Weights[current] = directedWeights[from, to] + directedWeights[to, from];
-                        if (state.Weights[current] > 0)
-                        {
-                            state.Degrees[from]++;
-                            state.Degrees[to]++;
-                        }
+                        state.Degrees[from]++;
+                        state.Degrees[to]++;
                     }
                 }
-                return state;
             }
+            return state;
         }
 
         public static void Step(ref State state)
@@ -171,7 +163,7 @@ namespace Helveg.Landscape
                 {
                     Debugger.Break();
                 }
-                float speed = state.GlobalSpeedFactor * state.GlobalSpeed 
+                float speed = state.GlobalSpeedFactor * state.GlobalSpeed
                     / (1 + state.GlobalSpeed * MathF.Sqrt(state.Swinging[i]));
                 var length = state.Forces[i].Length();
                 if (state.PreventOverlapping)

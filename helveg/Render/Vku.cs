@@ -14,7 +14,7 @@ namespace Helveg.Render
         private static unsafe extern int helloMesh(Mesh.Raw mesh);
 
         [DllImport("vku", CallingConvention = CallingConvention.Cdecl)]
-        private static unsafe extern int createGraphRender(InteropGraph.Raw graph, void** ptr);
+        private static unsafe extern int createGraphRender(Graph.Raw graph, void** ptr);
 
         [DllImport("vku", CallingConvention = CallingConvention.Cdecl)]
         private static unsafe extern int stepGraphRender(void* ptr);
@@ -55,14 +55,14 @@ namespace Helveg.Render
             }
         }
 
-        public static unsafe GraphRender CreateGraphRender(InteropGraph graph)
+        public static unsafe GraphRender CreateGraphRender(Graph graph)
         {
             var render = new GraphRender
             {
                 PositionsPin = GCHandle.Alloc(graph.Positions, GCHandleType.Pinned),
                 WeightsPin = GCHandle.Alloc(graph.Weights, GCHandleType.Pinned),
             };
-            render.Graph = new InteropGraph.Raw
+            render.Graph = new Graph.Raw
             {
                 Positions = (Vector2*)render.PositionsPin.AddrOfPinnedObject().ToPointer(),
                 Weights = (float*)render.WeightsPin.AddrOfPinnedObject().ToPointer(),

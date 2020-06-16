@@ -6,7 +6,7 @@ namespace Helveg.Render
     {
         public GCHandle PositionsPin;
         public GCHandle WeightsPin;
-        public InteropGraph.Raw Graph;
+        public Graph.Raw Graph;
         public void *Render;
     }
 }
