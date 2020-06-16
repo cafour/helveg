@@ -22,6 +22,16 @@ namespace Helveg
         {
         }
 
+        public static AnalyzedTypeId Parse(string value)
+        {
+            var parts = value.Split("::");
+            if (parts.Length != 2)
+            {
+                throw new ArgumentException($"'{value}' could not be parsed as a type ID.");
+            }
+            return new AnalyzedTypeId(parts[1], parts[0]);
+        }
+
         public static bool operator ==(AnalyzedTypeId left, AnalyzedTypeId right)
             => left.Equals(right);
 
@@ -48,7 +58,7 @@ namespace Helveg
             return HashCode.Combine(Name, Namespace);
         }
 
-        public override string? ToString()
+        public override string ToString()
         {
             return $"{Namespace}::{Name}";
         }

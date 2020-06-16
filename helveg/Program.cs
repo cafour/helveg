@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Buffers;
-using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Numerics;
-using System.Runtime.InteropServices;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text.Json;
 using System.Threading;
@@ -18,14 +15,17 @@ using Helveg.Landscape;
 using Helveg.Analysis;
 using Helveg.Render;
 using Microsoft.Build.Locator;
-using System.Drawing;
-using Newtonsoft.Json;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Helveg
 {
     public class Program
     {
+        public static ILoggerFactory Logging = new NullLoggerFactory();
+        public static ILogger Logger = NullLogger.Instance;
+
         public enum ProjectRenderKind
         {
             Vku,
@@ -150,22 +150,22 @@ namespace Helveg
 
             if (File.Exists(cacheFile))
             {
-                var text = await File.ReadAllTextAsync(cacheFile);
-                var project = JsonConvert.DeserializeObject<SerializedProject>(text);
+                using var stream = new FileStream(cacheFile, FileMode.Open);
+                var project = await JsonSerializer.DeserializeAsync<SerializableProject>(stream);
                 if (project.CsprojPath == csprojPath)
                 {
-                    return project.Project;
+                    return project.ToAnalyzed();
                 }
             }
 
             MSBuildLocator.RegisterDefaults();
             var analyzedProject = await Analyze.AnalyzeProject(csprojPath);
-            var serializedProject = new SerializedProject
             {
-                CsprojPath = csprojPath,
-                Project = analyzedProject
-            };
-            // await File.WriteAllTextAsync(cacheFile, JsonConvert.SerializeObject(serializedProject));
+                using var stream = new FileStream(cacheFile, FileMode.Create);
+                await JsonSerializer.SerializeAsync(
+                    stream,
+                    SerializableProject.FromAnalyzed(csprojPath, analyzedProject));
+            }
             return analyzedProject;
         }
 
@@ -372,6 +372,11 @@ namespace Helveg
 
         public static unsafe int Main(string[] args)
         {
+            Logging = LoggerFactory.Create(b => {
+                b.AddConsole();
+            });
+            Logger = Logging.CreateLogger(string.Empty);
+
             var rootCommand = new RootCommand("A software visualization tool")
             {
                 new Argument<FileSystemInfo>("project", "Path to an MSBuild project"),
