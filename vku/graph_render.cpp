@@ -155,26 +155,27 @@ vku::GraphRender::GraphRender(int width, int height, Graph graph)
     size_t current = 0;
     for (size_t from = 0; from < graph.count; ++from) {
         for (size_t to = from + 1; to < graph.count; ++to, ++current) {
-            if (graph.weights[current])
-            {
+            if (graph.weights[current]) {
                 edges.push_back(static_cast<uint32_t>(from));
                 edges.push_back(static_cast<uint32_t>(to));
             }
         }
     }
-    _edgeBuffer = vku::Buffer::exclusive(
-        _displayCore.device(),
-        edges.size() * sizeof(uint32_t),
-        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
-    _edgeBufferMemory = vku::DeviceMemory::deviceLocalData(
-        _displayCore.physicalDevice(),
-        _displayCore.device(),
-        _renderCore.commandPool(),
-        _displayCore.queue(),
-        _edgeBuffer,
-        edges.data(),
-        edges.size() * sizeof(uint32_t));
     _edgeCount = edges.size();
+    if (_edgeCount) {
+        _edgeBuffer = vku::Buffer::exclusive(
+            _displayCore.device(),
+            edges.size() * sizeof(uint32_t),
+            VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
+        _edgeBufferMemory = vku::DeviceMemory::deviceLocalData(
+            _displayCore.physicalDevice(),
+            _displayCore.device(),
+            _renderCore.commandPool(),
+            _displayCore.queue(),
+            _edgeBuffer,
+            edges.data(),
+            edges.size() * sizeof(uint32_t));
+    }
 }
 
 void vku::GraphRender::flushPositions()
@@ -218,19 +219,18 @@ void vku::GraphRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::S
 
     vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _edgePipeline);
-    vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-    vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
-
     VkDeviceSize offsets[] = { 0 };
-    vkCmdBindVertexBuffers(commandBuffer, 0, 1, _nodeBuffer, offsets);
-    vkCmdBindIndexBuffer(commandBuffer, _edgeBuffer, 0, VK_INDEX_TYPE_UINT32);
-    vkCmdDrawIndexed(commandBuffer, _edgeCount, 1, 0, 0, 0);
-
+    if (_edgeCount) {
+        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _edgePipeline);
+        vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+        vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+        vkCmdBindVertexBuffers(commandBuffer, 0, 1, _nodeBuffer, offsets);
+        vkCmdBindIndexBuffer(commandBuffer, _edgeBuffer, 0, VK_INDEX_TYPE_UINT32);
+        vkCmdDrawIndexed(commandBuffer, _edgeCount, 1, 0, 0, 0);
+    }
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _nodePipeline);
     vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
-
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, _nodeBuffer, offsets);
     vkCmdDraw(commandBuffer, _graph.count, 1, 0, 0);
 

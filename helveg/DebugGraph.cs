@@ -5,10 +5,14 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Helveg.Analysis;
 using Helveg.Landscape;
 using Helveg.Render;
+using Helveg.Serialization;
+using Microsoft.Extensions.Logging;
 
 namespace Helveg
 {
@@ -22,7 +26,7 @@ namespace Helveg
 
         public static void AddGraphCommands(Command parent)
         {
-            var csprojArg = new Argument<FileInfo>("csproj", "Path to an MSBuild C# project");
+            var inputArg = new Argument<FileInfo>("input", "Path to a C# project or a serialized analysis file");
             var formatOpt = new Option<GraphFormat>(
                 aliases: new[] { "-f", "--format" },
                 getDefaultValue: () => GraphFormat.Vku,
@@ -46,7 +50,7 @@ namespace Helveg
 
             var eadesCmd = new Command("eades", "Animates the Eades'84 algorithm")
             {
-                csprojArg,
+                inputArg,
                 formatOpt,
                 iterationsOpt,
                 speedOpt,
@@ -58,7 +62,7 @@ namespace Helveg
 
             var frCmd = new Command("fr", "Animates the Fruchterman-Reingold algorithm")
             {
-                csprojArg,
+                inputArg,
                 formatOpt,
                 iterationsOpt,
                 new Option<float>(
@@ -78,7 +82,7 @@ namespace Helveg
 
             var fdgCmd = new Command("fdg", "Animates the ForceAtlas2-inspired algorithm")
             {
-                csprojArg,
+                inputArg,
                 formatOpt,
                 new Option<int>(
                     aliases: new [] {"-r", "--regular"},
@@ -101,7 +105,7 @@ namespace Helveg
         }
 
         public static async Task RunEades(
-            FileInfo csproj,
+            FileInfo input,
             GraphFormat format,
             int iterations,
             int speed,
@@ -110,7 +114,7 @@ namespace Helveg
         {
             Eades.State state = default;
             await DrawGraph(
-                csproj: csproj,
+                input: input,
                 init: g =>
                 {
                     state = Eades.Create(g.Positions, g.Weights);
@@ -129,7 +133,7 @@ namespace Helveg
         }
 
         public static async Task RunFruchtermanReingold(
-            FileInfo csproj,
+            FileInfo input,
             GraphFormat format,
             int iterations,
             float width,
@@ -140,7 +144,7 @@ namespace Helveg
         {
             FR.State state = default;
             await DrawGraph(
-                csproj: csproj,
+                input: input,
                 init: g =>
                 {
                     state = FR.Create(g.Positions, g.Weights, width, height);
@@ -159,7 +163,7 @@ namespace Helveg
         }
 
         public static async Task RunFdg(
-            FileInfo csproj,
+            FileInfo input,
             GraphFormat format,
             int regular,
             int strongGravity,
@@ -168,55 +172,70 @@ namespace Helveg
             int every,
             bool ignoreCache)
         {
+            var logger = Program.Logging.CreateLogger("Debug Fdg");
             Fdg.State state = default;
-            var graph = await DrawGraph(
-                csproj: csproj,
+            var graph = await SetUpGraph(
+                input: input,
                 init: g =>
                 {
                     state = Fdg.Create(g.Positions, g.Weights);
                 },
-                step: (i, g) =>
-                {
-                    Fdg.Step(ref state);
-                    return g;
-                },
-                format: format,
-                iterationCount: regular,
-                prefix: "fdg-regular",
-                every: every,
-                speed: speed,
                 ignoreCache: ignoreCache);
-            state.IsGravityStrong = true;
-            graph = DrawGraph(
-                graph: graph,
-                step: (i, g) =>
-                {
-                    Fdg.Step(ref state);
-                    return g;
-                },
-                format: format,
-                iterationCount: strongGravity,
-                prefix: "fdg-strong-gravity",
-                every: every,
-                speed: speed);
-            state.IsGravityStrong = false;
-            state.PreventOverlapping = true;
-            DrawGraph(
-                graph: graph,
-                step: (i, g) =>
-                {
-                    Fdg.Step(ref state);
-                    return g;
-                },
-                format: format,
-                iterationCount: noOverlap,
-                prefix: "fdg-no-overlap",
-                every: every,
-                speed: speed);
+            if (regular > 0)
+            {
+                logger.LogInformation("Processing regular iterations.");
+                graph = DrawGraph(
+                    graph: graph,
+                    step: (i, g) =>
+                    {
+                        Fdg.Step(ref state);
+                        return g;
+                    },
+                    format: format,
+                    iterationCount: regular,
+                    prefix: "fdg-regular",
+                    every: every,
+                    speed: speed);
+            }
+            if (strongGravity > 0)
+            {
+                logger.LogInformation("Processing strong gravity iterations.");
+                state.IsGravityStrong = true;
+                graph = DrawGraph(
+                    graph: graph,
+                    step: (i, g) =>
+                    {
+                        Fdg.Step(ref state);
+                        return g;
+                    },
+                    format: format,
+                    iterationCount: strongGravity,
+                    prefix: "fdg-strong-gravity",
+                    every: every,
+                    speed: speed);
+            }
+            if (noOverlap > 0)
+            {
+                logger.LogInformation("Processing overlap prevention iterations.");
+                state.IsGravityStrong = false;
+                state.PreventOverlapping = true;
+                DrawGraph(
+                    graph: graph,
+                    step: (i, g) =>
+                    {
+                        Fdg.Step(ref state);
+                        return g;
+                    },
+                    format: format,
+                    iterationCount: noOverlap,
+                    prefix: "fdg-no-overlap",
+                    every: every,
+                    speed: speed);
+            }
         }
 
         private static async Task<Graph> DrawGraph(
-            FileInfo csproj,
+            FileInfo input,
             Action<Graph> init,
             Func<int, Graph, Graph> step,
             GraphFormat format,
@@ -226,7 +245,27 @@ namespace Helveg
             int speed,
             bool ignoreCache)
         {
-            var project = await Program.RunAnalysis(csproj.FullName, ignoreCache);
+            var graph = await SetUpGraph(input, init, ignoreCache);
+            DrawGraph(graph, step, format, iterationCount, prefix, every, speed);
+            return graph;
+        }
+
+        private static async Task<Graph> SetUpGraph(
+            FileInfo input,
+            Action<Graph> init,
+            bool ignoreCache)
+        {
+            AnalyzedProject project;
+            if (input.Extension == ".csproj")
+            {
+                project = await Program.RunAnalysis(input.FullName, ignoreCache);
+            }
+            else
+            {
+                using var stream = new FileStream(input.FullName, FileMode.Open);
+                project = (await JsonSerializer.DeserializeAsync<SerializableProject>(stream, Serialize.JsonOptions))
+                    .ToAnalyzed();
+            }
             var (names, matrix) = project.GetWeightMatrix();
             var weights = Graph.UndirectWeights(matrix);
             var labels = names.Select(n => n.ToString()).ToArray();
@@ -237,8 +276,6 @@ namespace Helveg
                 var angle = 2 * MathF.PI / graph.Positions.Length * i;
                 graph.Positions[i] = 64f * new Vector2(MathF.Cos(angle), MathF.Sin(angle));
             }
-
-            DrawGraph(graph, step, format, iterationCount, prefix, every, speed);
             return graph;
         }
 

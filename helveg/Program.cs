@@ -129,7 +129,7 @@ namespace Helveg
             var rootCmd = new RootCommand("A software visualization tool")
             {
                 new Argument<FileSystemInfo>("project", "Path to an MSBuild project"),
-                new Option<bool>(new []{"-o", "--overwrite-cache"}, "Overwrite a cached project analysis")
+                new Option<bool>("--ignore-cache", "Ignored cached results")
             };
             rootCmd.Handler = CommandHandler.Create<FileSystemInfo, bool>(RunPipeline);
 

@@ -58,7 +58,7 @@ namespace Helveg.Analysis
                     while (typeStack.Count > 0)
                     {
                         var currentType = typeStack.Pop();
-                        var analyzedType = AnalyzeType(type);
+                        var analyzedType = AnalyzeType(currentType);
                         types.Add(analyzedType.Id, analyzedType);
                         foreach (var nestedType in currentType.GetTypeMembers())
                         {
