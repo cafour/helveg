@@ -179,6 +179,7 @@ namespace Helveg
                 init: g =>
                 {
                     state = Fdg.Create(g.Positions, g.Weights);
+                    state.NodeSize = 2;
                 },
                 ignoreCache: ignoreCache);
             if (regular > 0)

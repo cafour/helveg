@@ -11,10 +11,10 @@ namespace Helveg.Analysis
 {
     public static class Analyze
     {
-        public const int BaseTypeWeight = 100;
-        public const int NestedTypeWeight = 100;
-        public const int InterfaceImplementationWeight = 50;
-        public const int CompositionWeight = 10;
+        public const int BaseTypeWeight = 8;
+        public const int NestedTypeWeight = 8;
+        public const int InterfaceImplementationWeight = 4;
+        public const int CompositionWeight = 2;
         public const int ReferenceWeight = 1;
 
         public static async Task<AnalyzedProject> AnalyzeProject(string csprojPath)

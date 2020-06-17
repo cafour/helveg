@@ -58,7 +58,7 @@ namespace Helveg.Analysis
         public (AnalyzedTypeId[] names, int[,] weights) GetWeightMatrix()
         {
             var matrix = new int[Types.Count, Types.Count];
-            var ids = Types.Keys.ToArray();
+            var ids = Types.Keys.OrderBy(k => k.ToString()).ToArray();
             for (int i = 0; i < ids.Length; ++i)
             {
                 var type = Types[ids[i]];

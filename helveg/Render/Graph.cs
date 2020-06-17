@@ -40,23 +40,23 @@ namespace Helveg.Render
             return weights;
         }
 
-        public string ToGraphviz()
+        public string ToGraphviz(int scale = 72, int size = 36, int nodeWidth = 2)
         {
             var sb = new StringBuilder();
-            sb.AppendLine("digraph test {");
+            sb.AppendLine("graph test {");
             sb.AppendLine("splines=\"line\"");
-            sb.AppendLine("scale=72");
-            sb.AppendLine("size=36");
-            sb.AppendLine("node[shape=circle fixedsize=true width=2]");
+            sb.AppendLine($"scale={scale}");
+            sb.AppendLine($"size={size}");
+            sb.AppendLine($"node[shape=circle fixedsize=true width={nodeWidth}]");
             int weightIndex = 0;
-            for (int i = 0; i < Positions.Length; ++i, ++weightIndex)
+            for (int from = 0; from < Positions.Length; ++from)
             {
-                sb.AppendLine($"{i} [pos=\"{Positions[i].X:0.0000000},{Positions[i].Y:0.0000000}!\" label=\"{Labels[i]}\"]");
-                for (int j = i + 1; j < Positions.Length; ++j)
+                sb.AppendLine($"{from} [pos=\"{Positions[from].X:0.0000000},{Positions[from].Y:0.0000000}!\" label=\"{Labels[from]}\"]");
+                for (int to = from + 1; to < Positions.Length; ++to, ++weightIndex)
                 {
                     if (Weights[weightIndex] != 0)
                     {
-                        sb.AppendLine($"{i} -- {j} [weight={Weights[weightIndex]}]");
+                        sb.AppendLine($"{from} -- {to} [weight={Weights[weightIndex]}]");
                     }
                 }
             }

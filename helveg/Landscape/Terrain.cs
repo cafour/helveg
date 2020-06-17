@@ -44,8 +44,10 @@ namespace Helveg.Landscape
                     {
                         var posX = (int)position.X + x;
                         var posY = (int)position.Y + y;
-                        var e = MathF.Sqrt(x * x + y * y) / radius;
-                        heightmap[posX, posY] += 36 * MathF.Exp(-(e * e));
+                        if (heightmap.TryGetValue(posX, posY, out _))
+                        {
+                            heightmap[posX, posY] += 36 * MathF.Exp(-4 * (x * x + y * y) / (float)(radius * radius));
+                        }
                     }
                 }
             }
@@ -56,7 +58,7 @@ namespace Helveg.Landscape
             AnalyzedProject project,
             ImmutableDictionary<AnalyzedTypeId, Vector2> positions)
         {
-            var heightmap = GenerateIslandHeightmap(positions.Values, 16);
+            var heightmap = GenerateIslandHeightmap(positions.Values, 48, 96);
             var palette = new Vector3[] {
                 new Vector3(146, 146, 146) / 255, // stone
                 new Vector3(109, 182, 73) / 255, // grass

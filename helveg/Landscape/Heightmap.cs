@@ -46,5 +46,17 @@ namespace Helveg.Landscape
                 data[(y - MinY) * SizeX + (x - MinX)] = value;
             }
         }
+
+        public bool TryGetValue(int x, int y, out float value)
+        {
+            if (x >= MinX && x < MaxX && y >= MinY && y < MaxY)
+            {
+                value = this[x, y];
+                return true;
+            }
+
+            value = -1f;
+            return false;
+        }
     }
 }

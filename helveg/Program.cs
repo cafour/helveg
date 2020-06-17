@@ -21,9 +21,9 @@ namespace Helveg
     {
         public const string AnalysisCacheFilename = "helveg-analysis.json";
         public const string FdgCacheFilename = "helveg-fdg.json";
-        public const int RegularIterationCount = 1000;
+        public const int RegularIterationCount = 5000;
         public const int StrongGravityIterationCount = 500;
-        public const int NoOverlapIterationCount = 500;
+        public const int NoOverlapIterationCount = 5000;
 
         public static ILoggerFactory Logging = new NullLoggerFactory();
 
@@ -58,6 +58,8 @@ namespace Helveg
             AnalyzedProject project,
             bool ignoreCache = false)
         {
+            var logger = Logging.CreateLogger("Fdg");
+
             if (File.Exists(FdgCacheFilename) && !ignoreCache)
             {
                 using var stream = new FileStream(FdgCacheFilename, FileMode.Open);
@@ -66,6 +68,7 @@ namespace Helveg
                     Serialize.JsonOptions);
                 if (graph.Name == project.Name)
                 {
+                    logger.LogInformation("Using cached positional results.");
                     return graph.Positions.ToImmutableDictionary(
                         p => AnalyzedTypeId.Parse(p.Key),
                         p => p.Value);
@@ -77,15 +80,18 @@ namespace Helveg
             var positions = new Vector2[names.Length];
             var state = Fdg.Create(positions, weights);
             state.NodeSize = 16;
+            logger.LogInformation("Processing regular iterations.");
             for (int i = 0; i < RegularIterationCount; ++i)
             {
                 Fdg.Step(ref state);
             }
+            logger.LogInformation("Processing strong gravity iterations.");
             state.IsGravityStrong = true;
             for (int i = 0; i < StrongGravityIterationCount; ++i)
             {
                 Fdg.Step(ref state);
             }
+            logger.LogInformation("Processing overlap prevention iterations.");
             state.IsGravityStrong = false;
             state.PreventOverlapping = true;
             for (int i = 0; i < NoOverlapIterationCount; ++i)
@@ -101,7 +107,7 @@ namespace Helveg
                     Name = project.Name,
                     Positions = results.ToDictionary(p => p.Key.ToString(), p => p.Value)
                 };
-                await JsonSerializer.SerializeAsync(stream, state.Positions, Serialize.JsonOptions);
+                await JsonSerializer.SerializeAsync(stream, graph, Serialize.JsonOptions);
             }
             return results;
         }
