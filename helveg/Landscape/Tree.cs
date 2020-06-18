@@ -86,9 +86,9 @@ namespace Helveg.Landscape
 
             });
             rules.Add(Kind.Trunk, p => ImmutableArray.Create(
-                new LSymbol<Kind>(Kind.Trunk, p[0] * 1.5f, p[1] * 1.2f)));
+                new LSymbol<Kind>(Kind.Trunk, p[0] * 1.3f, p[1] * 1.1f)));
             rules.Add(Kind.Canopy, p => ImmutableArray.Create(
-                new LSymbol<Kind>(Kind.Canopy, p[0] * 1.5f)));
+                new LSymbol<Kind>(Kind.Canopy, p[0] * 1.2f)));
             var lsystem = new LSystem<Kind>(rules.ToImmutable());
             var sentence = ImmutableArray.Create(new LSymbol<Kind>(Kind.TrunkBranching, size));
             while (sentence.Any(s => s.Kind == Kind.TrunkBranching || s.Kind == Kind.StemBranching))
@@ -114,7 +114,8 @@ namespace Helveg.Landscape
             });
             drawRules.Add(Kind.Canopy, (s, w) =>
             {
-                w.FillSphere(s.Position, leaves, (int)MathF.Round(s.Parameters[0]));
+                var radius = (int)MathF.Round(s.Parameters[0]);
+                w.FillCube(s.Position + new Point3(radius), leaves, radius);
                 return s.Position;
             });
             var turtle = new LTurtle<Kind>(

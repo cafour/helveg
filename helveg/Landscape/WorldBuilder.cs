@@ -183,9 +183,23 @@ namespace Helveg.Landscape
             }
         }
 
+        public void FillCube(Point3 position, Block fill, int radius)
+        {
+            for (int x = -radius; x <= radius; ++x)
+            {
+                for (int y = -radius; y <= radius; ++y)
+                {
+                    for (int z = -radius; z <= radius; ++z)
+                    {
+                        this[position + new Point3(x, y, z)] = fill;
+                    }
+                }
+            }
+        }
+
         public void FillPipe(Point3 from, Point3 to, Block fill, int radius)
         {
-            OverLine(from, to, p => FillSphere(p, fill, radius));
+            OverLine(from, to, p => FillCube(p, fill, radius));
         }
 
         public World Build()

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Numerics;
 using Helveg.Landscape;
 using Helveg.Render;
+using Microsoft.Extensions.Logging;
 
 namespace Helveg
 {
@@ -73,21 +74,14 @@ namespace Helveg
             return Vku.HelloMesh(mesh);
         }
 
-        public static int DrawTree()
+        public static void DrawTree()
         {
-            var sentence = Spruce.Rewrite(
-                axiom: new[] { new Spruce.Symbol(Spruce.Kind.Canopy) },
-                seed: 42,
-                branchCount: 12,
-                maxBranching: 6,
-                minBranching: 3,
-                initialBranching: 4,
-                branchingDiff: 2);
-            WriteSentence(sentence);
-            var spruceMesh = Spruce.GenerateMesh(sentence);
-            Console.WriteLine($"VertexCount: {spruceMesh.Vertices.Length}");
-
-            return Vku.HelloMesh(spruceMesh);
+            var logger = Program.Logging.CreateLogger("Debug Tree");
+            var sentence = Tree.Generate(42, 12);
+            logger.LogInformation(string.Concat(sentence));
+            var worldBuilder = new WorldBuilder(64, new Block { Flags = BlockFlags.IsAir }, Colours.IslandPalette);
+            Tree.Draw(sentence, worldBuilder, Point3.Zero, new Block { PaletteIndex = 3 }, new Block { PaletteIndex = 5 });
+            Vku.HelloWorld(worldBuilder.Build());
         }
 
         private static void WriteSentence(IList<Spruce.Symbol> sentence)

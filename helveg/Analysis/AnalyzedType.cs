@@ -29,10 +29,10 @@ namespace Helveg.Analysis
             Relations = relations;
         }
 
-        public static bool operator==(AnalyzedType left, AnalyzedType right)
+        public static bool operator ==(AnalyzedType left, AnalyzedType right)
             => left.Equals(right);
 
-        public static bool operator!=(AnalyzedType left, AnalyzedType right)
+        public static bool operator !=(AnalyzedType left, AnalyzedType right)
             => !left.Equals(right);
 
         public override bool Equals(object? obj)
@@ -75,7 +75,15 @@ namespace Helveg.Analysis
 
         public int GetSeed()
         {
-            return Id.Name.GetHashCode();
+            unchecked
+            {
+                int agg = 1846725036;
+                for(int i = 0; i < Id.Name.Length; ++i)
+                {
+                    agg += Id.Name[i];
+                }
+                return agg;
+            }
         }
     }
 }
