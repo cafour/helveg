@@ -45,6 +45,11 @@ namespace Helveg.Render
             return new Point3(Math.Sign(point.X), Math.Sign(point.Y), Math.Sign(point.Z));
         }
 
+        public static Point3 Round(Vector3 vector)
+        {
+            return new Point3(MathF.Round(vector.X), MathF.Round(vector.Y), MathF.Round(vector.Z));
+        }
+
         public static int Max(Point3 point)
         {
             return Math.Max(point.X, Math.Max(point.Y, point.Z));

@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Numerics;
+using Helveg.Render;
 
 namespace Helveg.Landscape
 {
@@ -19,7 +21,7 @@ namespace Helveg.Landscape
             Pop,
         }
 
-        public static ImmutableArray<LSymbol<Kind>> GenerateSentence(int seed, int size)
+        public static ImmutableArray<LSymbol<Kind>> Generate(int seed, int size)
         {
             var random = new Random(seed);
             var rules = ImmutableDictionary.CreateBuilder<Kind, LRule<Kind>>();
@@ -94,6 +96,36 @@ namespace Helveg.Landscape
                 sentence = lsystem.Rewrite(sentence);
             }
             return sentence;
+        }
+
+        public static void Draw(
+            ImmutableArray<LSymbol<Kind>> sentence,
+            WorldBuilder world,
+            Point3 position,
+            Block wood,
+            Block leaves)
+        {
+            var drawRules = ImmutableDictionary.CreateBuilder<Kind, LDraw>();
+            drawRules.Add(Kind.Trunk, (s, w) =>
+            {
+                var to = s.Position + Point3.Round(s.Forward * s.Parameters[0]);
+                w.FillPipe(s.Position, to, wood, (int)MathF.Round(s.Parameters[1]));
+                return to;
+            });
+            drawRules.Add(Kind.Canopy, (s, w) =>
+            {
+                w.FillSphere(s.Position, leaves, (int)MathF.Round(s.Parameters[0]));
+                return s.Position;
+            });
+            var turtle = new LTurtle<Kind>(
+                push: Kind.Push,
+                pop: Kind.Pop,
+                yawChange: Kind.YawChange,
+                pitchChange: Kind.PitchChange,
+                rollChange: Kind.RollChange,
+                drawRules: drawRules.ToImmutable());
+            var orientation = Quaternion.CreateFromYawPitchRoll(0f, -MathF.PI / 2f, 0f);
+            turtle.Draw(sentence, world, position, orientation);
         }
     }
 }

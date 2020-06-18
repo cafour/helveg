@@ -64,7 +64,8 @@ namespace Helveg.Landscape
                 new Vector3(109, 182, 73) / 255, // grass
                 new Vector3(219, 182, 146) / 255, // sand
                 new Vector3(109, 73, 36) / 255, // wood
-                new Vector3(0, 146, 219) / 255 // water
+                new Vector3(0, 146, 219) / 255, // water
+                new Vector3(0, 42, 0) / 255 // leaves
             };
             var world = new WorldBuilder(128, new Block { Flags = BlockFlags.IsAir }, palette);
             for (int x = heightmap.MinX; x < heightmap.MaxX; ++x)
@@ -88,15 +89,17 @@ namespace Helveg.Landscape
             foreach (var (id, position) in positions)
             {
                 var center = new Point3(position.X, heightmap[position.X, position.Y], position.Y);
-                var sentence = Spruce.Rewrite(
-                    axiom: new[] { new Spruce.Symbol(Spruce.Kind.Canopy) },
-                    seed: project.Types[id].GetSeed(),
-                    branchCount: Math.Clamp(project.Types[id].Members.Length, 0, 9),
-                    maxBranching: 6,
-                    minBranching: 3,
-                    initialBranching: 4,
-                    branchingDiff: 2);
-                Spruce.PlaceStructure(world, center, new Block { PaletteIndex = 3 }, sentence);
+                // var sentence = Spruce.Rewrite(
+                //     axiom: new[] { new Spruce.Symbol(Spruce.Kind.Canopy) },
+                //     seed: project.Types[id].GetSeed(),
+                //     branchCount: Math.Clamp(project.Types[id].Members.Length, 0, 9),
+                //     maxBranching: 6,
+                //     minBranching: 3,
+                //     initialBranching: 4,
+                //     branchingDiff: 2);
+                // Spruce.PlaceStructure(world, center, new Block { PaletteIndex = 3 }, sentence);
+                var sentence = Tree.Generate(project.Types[id].GetSeed(), project.Types[id].Members.Length);
+                Tree.Draw(sentence, world, center, new Block { PaletteIndex = 3 }, new Block {PaletteIndex = 5});
             }
             return world;
         }
