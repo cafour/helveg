@@ -7,6 +7,13 @@
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
     <AssemblyName>helveg</AssemblyName>
+    <Version>0.1.0</Version>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>helveg</ToolCommandName>
+    <PackageOutputPath>./pack</PackageOutputPath>
+    <PackageDescription>A software visualization tool</PackageDescription>
+    <Authors>cafstep</Authors>
+    <RepositoryUrl>https://gitlab.com/helveg/helveg</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,6 +27,13 @@
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.20303.1" />
     <!-- NuGet.ProjectModel generates a conflict which the following dependency resolves -->
     <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="4.7.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="../artifacts/lib/libvku.so" >
+      <Pack>true</Pack>
+      <PackagePath>tools/netcoreapp3.1/any</PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>
