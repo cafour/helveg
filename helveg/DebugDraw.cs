@@ -14,38 +14,61 @@ namespace Helveg
     {
         public static void AddDrawCommands(Command parent)
         {
-            parent.AddCommand(new Command("triangle", "Draw a triangle")
+            var vkDebugOpt = new Option<bool>(
+                alias: "--vk-debug",
+                description: "Enable/disable Vulkan validation layers",
+                getDefaultValue: () => true);
+
+            var triangleCmd = new Command("triangle", "Draw a triangle")
             {
-                Handler = CommandHandler.Create(DrawTriangle)
-            });
-            parent.AddCommand(new Command("cube", "Draw a cube")
+                vkDebugOpt
+            };
+            triangleCmd.Handler = CommandHandler.Create(typeof(DebugDraw).GetMethod(nameof(DrawTriangle))!);
+            parent.AddCommand(triangleCmd);
+
+            var cubeCmd = new Command("cube", "Draw a cube")
             {
-                Handler = CommandHandler.Create(DrawCube)
-            });
-            parent.AddCommand(new Command("tree", "Draw a tree")
+                vkDebugOpt
+            };
+            cubeCmd.Handler = CommandHandler.Create(typeof(DebugDraw).GetMethod(nameof(DrawCube))!);
+            parent.AddCommand(cubeCmd);
+
+            var treeCmd = new Command("tree", "Draw a tree")
             {
-                Handler = CommandHandler.Create(DrawTree)
-            });
-            parent.AddCommand(new Command("chunk", "Draw a single chunk")
+                vkDebugOpt
+            };
+            treeCmd.Handler = CommandHandler.Create(typeof(DebugDraw).GetMethod(nameof(DrawTree))!);
+            parent.AddCommand(treeCmd);
+
+            var chunkCmd = new Command("chunk", "Draw a single chunk")
             {
-                Handler = CommandHandler.Create(DrawChunk)
-            });
-            parent.AddCommand(new Command("opensimplex", "Draw a single chunk with OpenSimplex noise")
+                vkDebugOpt
+            };
+            chunkCmd.Handler = CommandHandler.Create(typeof(DebugDraw).GetMethod(nameof(DrawChunk))!);
+            parent.AddCommand(chunkCmd);
+
+            var opensimplexCmd = new Command("opensimplex", "Draw a single chunk with OpenSimplex noise")
             {
-                Handler = CommandHandler.Create(DrawNoisyChunk)
-            });
-            parent.AddCommand(new Command("world", "Draw multiple noisy chunks")
+                vkDebugOpt
+            };
+            opensimplexCmd.Handler = CommandHandler.Create(typeof(DebugDraw).GetMethod(nameof(DrawNoisyChunk))!);
+            parent.AddCommand(opensimplexCmd);
+
+            var worldCmd = new Command("world", "Draw multiple noisy chunks")
             {
-                Handler = CommandHandler.Create(DrawNoisyWorld)
-            });
+                vkDebugOpt
+            };
+            worldCmd.Handler = CommandHandler.Create(typeof(DebugDraw).GetMethod(nameof(DrawNoisyWorld))!);
+            parent.AddCommand(worldCmd);
         }
 
-        public static void DrawTriangle()
+        public static void DrawTriangle(bool vkDebug)
         {
+            Vku.SetDebug(vkDebug);
             Vku.HelloTriangle();
         }
 
-        public static int DrawCube()
+        public static int DrawCube(bool vkDebug)
         {
             var positions = new[]{
                 new Vector3(1, 1, 1),
@@ -71,42 +94,22 @@ namespace Helveg
             };
 
             var mesh = new Mesh(positions, colors, indices);
+            Vku.SetDebug(vkDebug);
             return Vku.HelloMesh(mesh);
         }
 
-        public static void DrawTree()
+        public static void DrawTree(bool vkDebug)
         {
             var logger = Program.Logging.CreateLogger("Debug Tree");
             var sentence = Tree.Generate(42, 12);
             logger.LogInformation(string.Concat(sentence));
             var worldBuilder = new WorldBuilder(64, new Block { Flags = BlockFlags.IsAir }, Colours.IslandPalette);
             Tree.Draw(sentence, worldBuilder, Point3.Zero, new Block { PaletteIndex = 3 }, new Block { PaletteIndex = 5 });
+            Vku.SetDebug(vkDebug);
             Vku.HelloWorld(worldBuilder.Build());
         }
 
-        private static void WriteSentence(IList<Spruce.Symbol> sentence)
-        {
-            var prefix = "";
-            foreach (var symbol in sentence)
-            {
-                if (symbol.Kind == Spruce.Kind.Push)
-                {
-                    Console.WriteLine($"{prefix}[");
-                    prefix += "\t";
-                    continue;
-                }
-                else if (symbol.Kind == Spruce.Kind.Pop)
-                {
-                    prefix = prefix[0..^1];
-                    Console.WriteLine($"{prefix}]");
-                    continue;
-                }
-                Console.WriteLine($"{prefix}Kind={symbol.Kind},Parameter={symbol.Int}");
-            }
-            Console.WriteLine($"Sentence length: {sentence.Count}");
-        }
-
-        public static void DrawChunk()
+        public static void DrawChunk(bool vkDebug)
         {
             var blockTypes = new Block[]
             {
@@ -132,10 +135,11 @@ namespace Helveg
                 }
             }
             var chunk = new Chunk(voxels, palette);
+            Vku.SetDebug(vkDebug);
             Vku.HelloChunk(chunk);
         }
 
-        public static void DrawNoisyChunk()
+        public static void DrawNoisyChunk(bool vkDebug)
         {
             var palette = new[]
             {
@@ -150,12 +154,14 @@ namespace Helveg
                 openSimplex: openSimplex,
                 frequency: 0.025,
                 offset: Vector2.Zero);
+            Vku.SetDebug(vkDebug);
             Vku.HelloChunk(chunk);
         }
 
-        public static void DrawNoisyWorld()
+        public static void DrawNoisyWorld(bool vkDebug)
         {
             var world = Terrain.GenerateNoise(100).Build();
+            Vku.SetDebug(vkDebug);
             Vku.HelloWorld(world);
         }
     }

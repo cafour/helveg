@@ -56,7 +56,7 @@ private:
     void onUpdate(vku::SwapchainFrame &frame);
 
 public:
-    MeshRender(int width, int height, Mesh mesh);
+    MeshRender(int width, int height, Mesh mesh, bool debug = false);
 
     vku::InstanceCore &instanceCore() { return _instanceCore; }
     vku::DisplayCore &displayCore() { return _displayCore; }

@@ -8,6 +8,9 @@ namespace Helveg.Render
     {
 #pragma warning disable IDE1006
         [DllImport("vku", CallingConvention = CallingConvention.Cdecl)]
+        private static extern bool setDebug(bool debug);
+
+        [DllImport("vku", CallingConvention = CallingConvention.Cdecl)]
         private static extern int helloTriangle();
 
         [DllImport("vku", CallingConvention = CallingConvention.Cdecl)]
@@ -28,6 +31,11 @@ namespace Helveg.Render
         [DllImport("vku", CallingConvention = CallingConvention.Cdecl)]
         private static unsafe extern int helloWorld(World.Raw world);
 #pragma warning restore IDE1006
+
+        public static void SetDebug(bool debug)
+        {
+            setDebug(debug);
+        }
 
         public static unsafe void HelloTriangle()
         {

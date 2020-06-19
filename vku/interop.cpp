@@ -5,6 +5,13 @@
 #include <iostream>
 #include <stdexcept>
 
+static bool isDebug = false;
+
+void setDebug(bool debug)
+{
+    isDebug = debug;
+}
+
 static int hello(std::function<void()> run)
 {
     if (volkInitialize() != VK_SUCCESS || glfwInit() == GLFW_FALSE) {
@@ -27,7 +34,7 @@ static int hello(std::function<void()> run)
 int helloTriangle()
 {
     return hello([]() {
-        vku::TriangleRender app(1280, 720);
+        vku::TriangleRender app(1280, 720, isDebug);
         app.renderCore().run();
     });
 }
@@ -35,7 +42,7 @@ int helloTriangle()
 int helloMesh(vku::MeshRender::Mesh mesh)
 {
     return hello([mesh]() {
-        vku::MeshRender app(1280, 720, mesh);
+        vku::MeshRender app(1280, 720, mesh, isDebug);
         app.renderCore().run();
     });
 }
@@ -43,7 +50,7 @@ int helloMesh(vku::MeshRender::Mesh mesh)
 int helloGraph(vku::GraphRender::Graph graph)
 {
     return hello([graph]() {
-        vku::GraphRender app(1280, 720, graph);
+        vku::GraphRender app(1280, 720, graph, isDebug);
         app.renderCore().run();
     });
 }
@@ -51,7 +58,7 @@ int helloGraph(vku::GraphRender::Graph graph)
 int createGraphRender(vku::GraphRender::Graph graph, void **ptr)
 {
     return hello([graph, ptr]() {
-        auto graphRender = new vku::GraphRender(1024, 1024, graph);
+        auto graphRender = new vku::GraphRender(1024, 1024, graph, isDebug);
         graphRender->renderCore().resize();
         *ptr = graphRender;
     });
@@ -77,7 +84,7 @@ int destroyGraphRender(void *ptr)
 int helloChunk(vku::ChunkRender::Chunk chunk)
 {
     return hello([chunk]() {
-        vku::ChunkRender app(1280, 720, chunk);
+        vku::ChunkRender app(1280, 720, chunk, isDebug);
         app.renderCore().run();
     });
 }
@@ -85,7 +92,7 @@ int helloChunk(vku::ChunkRender::Chunk chunk)
 int helloWorld(vku::WorldRender::World world)
 {
     return hello([world]() {
-        vku::WorldRender app(1280, 720, world);
+        vku::WorldRender app(1280, 720, world, isDebug);
         app.renderCore().run();
     });
 }

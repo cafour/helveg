@@ -2,8 +2,8 @@
 
 #include "display_core.hpp"
 #include "instance_core.hpp"
-#include "swapchain_core.hpp"
 #include "render_core.hpp"
+#include "swapchain_core.hpp"
 #include "wrapper.hpp"
 
 namespace vku {
@@ -22,7 +22,7 @@ private:
     vku::Framebuffer createFramebuffer(vku::SwapchainFrame &frame);
 
 public:
-    TriangleRender(int width, int height);
+    TriangleRender(int width, int height, bool debug = false);
 
     vku::InstanceCore &instanceCore() { return _instanceCore; }
     vku::DisplayCore &displayCore() { return _displayCore; }

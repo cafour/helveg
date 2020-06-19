@@ -4,8 +4,8 @@
 #include <chrono>
 #include <glm/gtc/matrix_transform.hpp>
 
-vku::MeshRender::MeshRender(int width, int height, MeshRender::Mesh mesh)
-    : _instanceCore("MeshRender", true, true)
+vku::MeshRender::MeshRender(int width, int height, MeshRender::Mesh mesh, bool debug)
+    : _instanceCore("MeshRender", true, debug)
     , _displayCore(_instanceCore.instance(), width, height, "vkdev")
     , _swapchainCore(_displayCore)
     , _renderCore(

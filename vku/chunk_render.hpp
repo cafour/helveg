@@ -66,7 +66,7 @@ private:
     void onUpdate(vku::SwapchainFrame &frame);
 
 public:
-    ChunkRender(int width, int height, Chunk chunk);
+    ChunkRender(int width, int height, Chunk chunk, bool debug = false);
 
     vku::RenderCore &renderCore() { return _renderCore; }
 

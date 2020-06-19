@@ -80,8 +80,8 @@ vku::MeshCore vku::ChunkRender::createChunkMesh(vku::TransferCore &transferCore,
     return vku::MeshCore(transferCore, vertices.data(), vertices.size(), indices.data(), indices.size(), colors.data());
 }
 
-vku::ChunkRender::ChunkRender(int width, int height, Chunk chunk)
-    : _instanceCore("ChunkRender", true, true)
+vku::ChunkRender::ChunkRender(int width, int height, Chunk chunk, bool debug)
+    : _instanceCore("ChunkRender", true, debug)
     , _displayCore(_instanceCore.instance(), width, height, "vkdev", &requiredFeatures)
     , _swapchainCore(_displayCore)
     , _renderCore(

@@ -59,7 +59,7 @@ private:
     void onUpdate(vku::SwapchainFrame &frame);
 
 public:
-    WorldRender(int width, int height, World chunk);
+    WorldRender(int width, int height, World world, bool debug = false);
 
     vku::RenderCore &renderCore() { return _renderCore; }
 };

@@ -1,8 +1,8 @@
 #include "triangle_render.hpp"
 #include "shaders.hpp"
 
-vku::TriangleRender::TriangleRender(int width, int height)
-    : _instanceCore("TriangleRender", true, true)
+vku::TriangleRender::TriangleRender(int width, int height, bool debug)
+    : _instanceCore("TriangleRender", true, debug)
     , _displayCore(_instanceCore.instance(), width, height, "vkdev")
     , _swapchainCore(_displayCore)
     , _renderCore(
@@ -51,7 +51,6 @@ void vku::TriangleRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipeline);
     vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
-    VkDeviceSize offset = 0;
     vkCmdDraw(commandBuffer, 3, 1, 0, 0);
     vkCmdEndRenderPass(commandBuffer);
 

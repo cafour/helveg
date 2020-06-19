@@ -15,6 +15,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System.Collections.Immutable;
 using System;
+using System.CommandLine.Builder;
 
 namespace Helveg
 {
@@ -113,7 +114,10 @@ namespace Helveg
             return results;
         }
 
-        public static async Task RunPipeline(FileSystemInfo project, bool ignoreCache = false)
+        public static async Task RunPipeline(
+            FileSystemInfo project,
+            bool ignoreCache = false,
+            bool vkDebug = false)
         {
             var analyzedProject = await RunAnalysis(project.FullName, ignoreCache);
             var positions = await RunFdg(analyzedProject, ignoreCache);
@@ -123,6 +127,7 @@ namespace Helveg
             {
                 chunk.HollowOut(new Block { Flags = BlockFlags.IsAir });
             }
+            Vku.SetDebug(vkDebug);
             Vku.HelloWorld(world);
         }
 
@@ -136,9 +141,10 @@ namespace Helveg
             var rootCmd = new RootCommand("A software visualization tool")
             {
                 new Argument<FileSystemInfo>("project", "Path to an MSBuild project"),
-                new Option<bool>("--ignore-cache", "Ignored cached results")
+                new Option<bool>("--ignore-cache", "Ignore cached results"),
+                new Option<bool>("--vk-debug", "Enable/disable Vulkan validation layers")
             };
-            rootCmd.Handler = CommandHandler.Create<FileSystemInfo, bool>(RunPipeline);
+            rootCmd.Handler = CommandHandler.Create<FileSystemInfo, bool, bool>(RunPipeline);
 
             var debugCmd = new Command("debug", "Runs a debug utility");
             DebugDraw.AddDrawCommands(debugCmd);

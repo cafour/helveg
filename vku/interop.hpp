@@ -13,6 +13,8 @@
 #endif
 
 extern "C" {
+    EXPORT void setDebug(bool debug);
+
     EXPORT int helloTriangle();
 
     EXPORT int helloMesh(vku::MeshRender::Mesh mesh);

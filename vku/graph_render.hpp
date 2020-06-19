@@ -40,7 +40,7 @@ private:
     vku::Framebuffer createFramebuffer(vku::SwapchainFrame &frame);
 
 public:
-    GraphRender(int width, int height, Graph graph);
+    GraphRender(int width, int height, Graph graph, bool debug = false);
 
     void flushPositions();
     vku::InstanceCore &instanceCore() { return _instanceCore; }
