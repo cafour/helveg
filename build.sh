@@ -8,29 +8,32 @@ windows=0
 install=0
 pack=0
 clean=0
+version=$(git describe --tags)
 
 while [[ $# > 0 ]]; do
     case "$1" in
     --windows)
         windows=1
-        shift 1
         ;;
 
     --install)
         install=1
-        shift 1
         ;;
 
     --pack)
         pack=1
-        shift 1
         ;;
 
     --clean)
         clean=1
-        shift 1
+        ;;
+
+    --version)
+        version=$2
+        shift
         ;;
   esac
+  shift
 done
 
 if [ $clean -eq 1 ]; then
@@ -71,5 +74,6 @@ if [ $pack -eq 1 ]; then
     dotnet msbuild "$SOURCE_DIR" \
         -target:Restore,Build,Pack \
         -property:PackageOutputPath="$ARTIFACTS_DIR" \
-        -property:Configuration=Release
+        -property:Configuration=Release \
+        -property:Version="${version#"v"}"
 fi
