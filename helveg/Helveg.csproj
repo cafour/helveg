@@ -8,7 +8,7 @@
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
     <AssemblyName>helveg</AssemblyName>
-    <Version>0.1.1</Version>
+    <Version>0.1.2</Version>
   </PropertyGroup>
   <PropertyGroup>
     <!-- Package-ish -->

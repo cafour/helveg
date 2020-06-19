@@ -5,6 +5,7 @@ BUILD_DIR="$PWD/build"
 ARTIFACTS_DIR="$PWD/artifacts"
 
 windows=0
+install=0
 pack=0
 clean=0
 
@@ -12,6 +13,11 @@ while [[ $# > 0 ]]; do
     case "$1" in
     --windows)
         windows=1
+        shift 1
+        ;;
+
+    --install)
+        install=1
         shift 1
         ;;
 
@@ -53,13 +59,17 @@ BUILD_ARGS="--config Release"
 echo "Building vku"
 cmake --build "$BUILD_DIR" $BUILD_ARGS
 
-
-if [ $pack -eq 1 ]; then
+if [ $install -eq 1 ]; then
     INSTALL_ARGS="--config Release"
 
     echo "Installing vku"
     cmake --install "$BUILD_DIR" $INSTALL_ARGS
+fi
 
+if [ $pack -eq 1 ]; then
     echo "Packing helveg"
-    dotnet msbuild "$SOURCE_DIR" -target:Restore,Build,Pack -property:PackageOutputPath="$ARTIFACTS_DIR" -property:Configuration=Release
+    dotnet msbuild "$SOURCE_DIR" \
+        -target:Restore,Build,Pack \
+        -property:PackageOutputPath="$ARTIFACTS_DIR" \
+        -property:Configuration=Release
 fi
