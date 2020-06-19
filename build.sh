@@ -8,7 +8,7 @@ windows=0
 install=0
 pack=0
 clean=0
-version=$(git describe --tags)
+version=$(git describe --tags --abbrev=0)
 
 while [[ $# > 0 ]]; do
     case "$1" in
