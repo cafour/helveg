@@ -38,7 +38,7 @@ namespace Helveg.Landscape
                 var currentBranchCount = branchCount;
                 var right = ImmutableArray.CreateBuilder<LSymbol<Kind>>();
                 right.Add(new LSymbol<Kind>(Kind.Trunk, 1.0f, 1.0f));
-                var branchConfig = random.Next(1, 17);
+                var branchConfig = random.Next(1, 16);
                 for (int i = 0; i < 4; ++i)
                 {
                     if ((branchConfig & 1 << i) == 1 << i)
@@ -68,7 +68,7 @@ namespace Helveg.Landscape
                 var currentBranchCount = branchCount;
                 var right = ImmutableArray.CreateBuilder<LSymbol<Kind>>();
                 right.Add(new LSymbol<Kind>(Kind.Trunk, 1.0f, 1.0f));
-                var branchConfig = random.Next(1, 5);
+                var branchConfig = random.Next(1, 4);
                 for (int i = 0; i < 2; ++i)
                 {
                     if ((branchConfig & 1 << i) == 1 << i)
