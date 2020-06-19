@@ -47,4 +47,5 @@ out/
 build/
 external/
 embedded/
+artifacts/
 *.gv.png
