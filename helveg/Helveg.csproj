@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <!-- Compilation-ish -->
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -8,12 +9,16 @@
     <LangVersion>latest</LangVersion>
     <AssemblyName>helveg</AssemblyName>
     <Version>0.1.0</Version>
+  </PropertyGroup>
+  <PropertyGroup>
+    <!-- Package-ish -->
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>helveg</ToolCommandName>
-    <PackageOutputPath>./pack</PackageOutputPath>
+    <PackageOutputPath>../artifacts</PackageOutputPath>
     <PackageDescription>A software visualization tool</PackageDescription>
-    <Authors>cafstep</Authors>
+    <Authors>Adam Štěpánek</Authors>
     <RepositoryUrl>https://gitlab.com/helveg/helveg</RepositoryUrl>
+    <PackageLicenseExpression>BSD-3-Clause</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
@@ -30,7 +35,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="../artifacts/lib/libvku.so" >
+    <None Include="../artifacts/libvku.so" >
+      <Pack>true</Pack>
+      <PackagePath>tools/netcoreapp3.1/any</PackagePath>
+    </None>
+    <None Include="../artifacts/vku.dll" >
       <Pack>true</Pack>
       <PackagePath>tools/netcoreapp3.1/any</PackagePath>
     </None>
