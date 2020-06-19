@@ -60,6 +60,11 @@ namespace Helveg.Render
             return Math.Min(point.X, Math.Min(point.Y, point.Z));
         }
 
+        public static Point3 Abs(Point3 point)
+        {
+            return new Point3(Math.Abs(point.X), Math.Abs(point.Y), Math.Abs(point.Z));
+        }
+
         public static bool operator ==(Point3 left, Point3 right)
             => left.Equals(right);
 
@@ -122,6 +127,11 @@ namespace Helveg.Render
             return X == coord.X &&
                    Y == coord.Y &&
                    Z == coord.Z;
+        }
+
+        public override string ToString()
+        {
+            return $"[{X}, {Y}, {Z}]";
         }
     }
 }

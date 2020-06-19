@@ -77,9 +77,9 @@ namespace Helveg.Landscape
             // just bresenham in 3d
             var diff = to - from;
             var sign = Point3.Sign(diff);
+            diff = Point3.Abs(diff);
             var max = Point3.Max(diff);
-            var length = Math.Abs(max);
-            if (length == 0)
+            if (max == 0)
             {
                 return;
             }
@@ -88,7 +88,7 @@ namespace Helveg.Landscape
             action(from);
             if (max == diff.X)
             {
-                for (int dx = 0; dx < length; ++dx)
+                for (int dx = 0; dx < max; ++dx)
                 {
                     from.X += sign.X;
                     if (error.Y >= 0)
@@ -110,7 +110,7 @@ namespace Helveg.Landscape
             }
             else if (max == diff.Y)
             {
-                for (int dy = 0; dy < length; ++dy)
+                for (int dy = 0; dy < max; ++dy)
                 {
                     from.Y += sign.Y;
                     if (error.X >= 0)
@@ -132,7 +132,7 @@ namespace Helveg.Landscape
             }
             else
             {
-                for (int dz = 0; dz < length; ++dz)
+                for (int dz = 0; dz < max; ++dz)
                 {
                     from.Z += sign.Z;
                     if (error.Y >= 0)
