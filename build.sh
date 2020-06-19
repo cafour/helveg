@@ -43,13 +43,13 @@ if [ ! -d "$ARTIFACTS_DIR" ]; then
 fi
 
 CONFIGURE_ARGS="-DCMAKE_INSTALL_PREFIX='$ARTIFACTS_DIR'"
+if [ $windows -eq 1 ]; then
+    CONFIGURE_ARGS+=" -A x64"
+fi
 echo "Configuring vku"
 cmake -S "$SOURCE_DIR" -B "$BUILD_DIR" $CONFIGURE_ARGS
 
 BUILD_ARGS="--config Release"
-if [ $windows -eq 1 ]; then
-    BUILD_ARGS+=" -A x64"
-fi
 echo "Building vku"
 cmake --build "$BUILD_DIR" $BUILD_ARGS
 
@@ -61,5 +61,5 @@ if [ $pack -eq 1 ]; then
     cmake --install "$BUILD_DIR" $INSTALL_ARGS
 
     echo "Packing helveg"
-    dotnet pack -c Release "$SOURCE_DIR" /p:PackageOutputPath="$ARTIFACTS_DIR"
+    dotnet msbuild "$SOURCE_DIR" -target:Restore,Build,Pack -property:PackageOutputPath="$ARTIFACTS_DIR" -property:Configuration=Release
 fi
