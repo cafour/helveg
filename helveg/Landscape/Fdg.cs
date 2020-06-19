@@ -171,7 +171,6 @@ namespace Helveg.Landscape
                 if (state.PreventOverlapping)
                 {
                     speed /= 10;
-                    speed = MathF.Min(speed * length, 10) / (length + 1);
                 }
                 speed = MathF.Min(speed, state.MaxSpeedConstant / length);
 
