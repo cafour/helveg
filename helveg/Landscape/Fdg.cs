@@ -1,3 +1,10 @@
+/**
+ * The following graph layout algorithm is based on the paper "ForceAtlas2, a Continuous Graph Layout Algorithm for
+ * Handy Network Visualization Designed for the Gephi Software" (https://doi.org/10.1371/journal.pone.0098679)
+ * by Jacomy M, Venturini T, Heymann S, and Bastian M, which is licensed under the CC BY 4.0 license
+ * (https://creativecommons.org/licenses/by/4.0/).
+ **/
+
 using System;
 using System.Diagnostics;
 using System.Numerics;
