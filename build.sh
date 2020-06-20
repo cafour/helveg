@@ -65,19 +65,19 @@ if $windows; then
 fi
 if $configure; then
     echo "Configuring vku"
-    cmake -S "$SOURCE_DIR" -B "$BUILD_DIR" $CONFIGURE_ARGS
+    cmake -S "$SOURCE_DIR" -B "$BUILD_DIR" $CONFIGURE_ARGS || exit 1
 fi
 
 BUILD_ARGS="--config Release"
 if $build; then
     echo "Building vku"
-    cmake --build "$BUILD_DIR" $BUILD_ARGS
+    cmake --build "$BUILD_DIR" $BUILD_ARGS || exit 1
 fi
 
 INSTALL_ARGS="--config Release"
 if $install; then
     echo "Installing vku"
-    cmake --install "$BUILD_DIR" $INSTALL_ARGS
+    cmake --install "$BUILD_DIR" $INSTALL_ARGS || exit 1
 fi
 
 if $pack; then
