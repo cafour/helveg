@@ -5,6 +5,7 @@ project(vku)
 set(VULKAN_HEADERS_DIR "" CACHE PATH "Path to the Vulkan headers")
 include_directories(${VULKAN_HEADERS_DIR})
 
+find_package(VulkanHeaders REQUIRED)
 find_package(Volk REQUIRED)
 find_package(GLFW REQUIRED)
 find_package(Glm REQUIRED)

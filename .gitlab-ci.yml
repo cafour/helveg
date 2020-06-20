@@ -2,7 +2,7 @@ vku-linux:
   image: cafstep/helveg-ci
   stage: build
   script:
-    - ./build.sh --pack
+    - ./build.sh --install --pack
   cache:
     paths:
       - build/_deps

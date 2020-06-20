@@ -1,4 +1,5 @@
 include(FetchContent)
+set(VOLK_PULL_IN_VULKAN OFF CACHE BOOL "" FORCE)
 FetchContent_Declare(fetch_volk
     GIT_REPOSITORY https://github.com/zeux/volk
 )

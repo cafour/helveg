@@ -20,7 +20,7 @@ function(target_embed_shader TARGET INPUT_GLSL EMBEDDED_NAME)
     set(_SPV ${EMBED_DIR}/${_SPV}.spv)
     add_custom_command(
         OUTPUT ${_SPV}
-        COMMAND glslc ${INPUT_GLSL} -o ${_SPV}
+        COMMAND glslangValidator -V ${INPUT_GLSL} -o ${_SPV}
         MAIN_DEPENDENCY ${INPUT_GLSL}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     )
