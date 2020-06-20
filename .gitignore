@@ -26,6 +26,8 @@
 !*.geom
 !*.sh
 !*.sln
+!*.yml
+!Dockerfile
 
 # misc
 !.clang-format

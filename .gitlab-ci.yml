@@ -1,0 +1,62 @@
+vku-linux:
+  image: microsoft-dotnet-core-sdk
+  stage: build
+  script:
+    - gem install bundle
+    - bundle config set path --local ".vendor"
+    - bundle install
+    - bundle exec jekyll build --baseurl "/preview"
+  cache:
+    paths:
+      - build/_deps
+  artifacts:
+    paths:
+      - artifacts/
+  only:
+    - ci
+
+jekyll-master:
+  image: ruby:2.7
+  stage: build
+  script:
+    - gem install bundle
+    - bundle config set path --local ".vendor"
+    - bundle install
+    - bundle exec jekyll build
+  cache:
+    paths:
+      - .vendor/
+      - _site/generated
+  artifacts:
+    paths:
+      - _site/
+  only:
+    - master
+
+ftp-preview:
+  image: ubuntu:latest
+  stage: deploy
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - apt-get update
+    - apt-get -y install ca-certificates lftp
+    - echo 'set ssl:ca-file "/etc/ssl/certs/ca-certificates.crt"' >> /etc/lftp.conf
+    - lftp -u gamerpie_wtf,$FTP_PASSWORD ftp.web4ce.cz -e "mirror --ignore-time -v -R ./_site public_html/www/preview ; quit"
+  only:
+    - preview
+  resource_group: ftp
+
+ftp-master:
+  image: ubuntu:latest
+  stage: deploy
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - apt-get update
+    - apt-get -y install ca-certificates lftp
+    - echo 'set ssl:ca-file "/etc/ssl/certs/ca-certificates.crt"' >> /etc/lftp.conf
+    - lftp -u gamerpie_wtf,$FTP_PASSWORD ftp.web4ce.cz -e "mirror --ignore-time -v -R ./_site public_html/www ; quit"
+  only:
+    - master
+  resource_group: ftp
