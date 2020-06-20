@@ -1,5 +1,5 @@
 vku-linux:
-  image: microsoft-dotnet-core-sdk
+  image: cafstep/helveg-ci
   stage: build
   script:
     - ./build.sh --pack
