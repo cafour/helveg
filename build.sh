@@ -77,7 +77,7 @@ fi
 INSTALL_ARGS="--config Release"
 if $install; then
     echo "Installing vku"
-    cmake --install "$BUILD_DIR" $INSTALL_ARGS || exit 1
+    cmake --build "$BUILD_DIR" --target install $INSTALL_ARGS || exit 1
 fi
 
 if $pack; then
