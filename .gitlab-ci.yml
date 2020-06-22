@@ -20,6 +20,7 @@ build-windows:
     - office-windows
   only:
     - master
+    - /^v\d+\.\d+\.\d+$/
 
 build-linux:
   dependencies:
@@ -36,6 +37,7 @@ build-linux:
       - artifacts/
   only:
     - master
+    - /^v\d+\.\d+\.\d+$/
 
 deploy-nuget:
   dependencies:
