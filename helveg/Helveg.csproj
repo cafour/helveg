@@ -9,6 +9,8 @@
     <LangVersion>latest</LangVersion>
     <AssemblyName>helveg</AssemblyName>
     <Version>0.0.0-dev</Version>
+    <!-- Well this doesn't work -->
+    <!-- <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences> -->
   </PropertyGroup>
   <PropertyGroup>
     <!-- Package-ish -->
@@ -32,15 +34,16 @@
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.20303.1" />
     <!-- NuGet.ProjectModel generates a conflict which the following dependency resolves -->
     <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="4.7.0" />
+    <PackageReference Include="System.Text.Json" Version="4.7.2" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="../artifacts/*.so" >
+    <None Include="../artifacts/*.so">
       <CopyToOutputDirectory>always</CopyToOutputDirectory>
       <Pack>true</Pack>
       <PackagePath>tools/netcoreapp3.1/linux-x64</PackagePath>
     </None>
-    <None Include="../artifacts/*.dll" >
+    <None Include="../artifacts/*.dll">
       <CopyToOutputDirectory>always</CopyToOutputDirectory>
       <Pack>true</Pack>
       <PackagePath>tools/netcoreapp3.1/win-x64</PackagePath>
