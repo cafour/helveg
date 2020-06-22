@@ -19,7 +19,7 @@ build-windows:
   tags:
     - office-windows
   only:
-    - ci
+    - master
 
 build-linux:
   dependencies:
@@ -35,7 +35,7 @@ build-linux:
     paths:
       - artifacts/
   only:
-    - ci
+    - master
 
 deploy-nuget:
   dependencies:
@@ -46,4 +46,4 @@ deploy-nuget:
   script:
     - dotnet nuget push ./artifacts/helveg*.nupkg --source nuget.org --api-key $NUGET_API_KEY
   only:
-    - ci
+    - /^v\d+\.\d+\.\d+$/
