@@ -1,9 +1,13 @@
+stages:
+  - prebuild
+  - build
+
 build-windows:
   image: cafstep/helveg-ci:windows
-  stage: build
+  stage: prebuild
   script:
     - '& c:/BuildTools/Common7/Tools/Launch-VsDevShell.ps1'
-    - './build.ps1'
+    - '& ./build.ps1'
   cache:
     paths:
       - build/_deps
@@ -13,7 +17,7 @@ build-windows:
   only:
     - ci
 
-windows-linux:
+build-linux:
   dependencies:
     - build-windows
   image: cafstep/helveg-ci
