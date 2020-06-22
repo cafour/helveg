@@ -9,6 +9,7 @@ build-windows:
   stage: prebuild
   script:
     - '& c:/BuildTools/Common7/Tools/Launch-VsDevShell.ps1'
+    - '& c:/BuildTools/VC/Auxiliary/Build/vcvarsall.bat x64'
     - '& ./build.ps1'
   cache:
     paths:

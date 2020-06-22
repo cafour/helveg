@@ -35,11 +35,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="../artifacts/libvku.so" >
-      <Pack>true</Pack>
-      <PackagePath>tools/netcoreapp3.1/any</PackagePath>
-    </None>
-    <None Include="../artifacts/vku.dll" >
+    <None Include="../artifacts/*.so;../artifacts/*.dll" >
+      <CopyToOutputDirectory>always</CopyToOutputDirectory>
       <Pack>true</Pack>
       <PackagePath>tools/netcoreapp3.1/any</PackagePath>
     </None>
