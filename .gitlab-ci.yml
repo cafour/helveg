@@ -37,7 +37,7 @@ build-linux:
   only:
     - ci
 
-build-linux:
+deploy-nuget:
   dependencies:
     - build-windows
     - build-linux
