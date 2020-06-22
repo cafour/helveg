@@ -28,6 +28,7 @@
 !*.sln
 !*.yml
 !Dockerfile
+!*.ps1
 
 # misc
 !.clang-format

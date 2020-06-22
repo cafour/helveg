@@ -1,4 +1,21 @@
-vku-linux:
+build-windows:
+  image: cafstep/helveg-ci:windows
+  stage: build
+  script:
+    - '& c:/BuildTools/Common7/Tools/Launch-VsDevShell.ps1'
+    - './build.ps1'
+  cache:
+    paths:
+      - build/_deps
+  artifacts:
+    paths:
+      - artifacts/
+  only:
+    - ci
+
+windows-linux:
+  dependencies:
+    - build-windows
   image: cafstep/helveg-ci
   stage: build
   script:
@@ -11,3 +28,5 @@ vku-linux:
       - artifacts/
   only:
     - ci
+
+    
