@@ -27,7 +27,7 @@ build-windows:
     - office-windows
   only:
     - master
-    - /^v\d+\.\d+\.\d+$/
+    - /^v0\.\d+\.\d+$/
 
 build-linux:
   dependencies:
@@ -44,15 +44,30 @@ build-linux:
       - artifacts/
   only:
     - master
-    - /^v\d+\.\d+\.\d+$/
+
+build-linux-tag:
+  dependencies:
+    - build-windows
+  image: cafstep/helveg-ci
+  stage: build
+  script:
+    - ./build.sh --install --pack --tag-version
+  cache:
+    paths:
+      - build/_deps
+  artifacts:
+    paths:
+      - artifacts/
+  only:
+    - /^v0\.\d+\.\d+$/
 
 deploy-nuget:
   dependencies:
     - build-windows
-    - build-linux
+    - build-linux-tag
   image: mcr.microsoft.com/dotnet/core/sdk:3.1
   stage: deploy
   script:
     - dotnet nuget push ./artifacts/helveg*.nupkg --source nuget.org --api-key $NUGET_API_KEY
   only:
-    - /^v\d+\.\d+\.\d+$/
+    - /^v0\.\d+\.\d+$/

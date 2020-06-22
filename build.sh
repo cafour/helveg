@@ -10,7 +10,7 @@ build=true
 install=false
 pack=false
 clean=false
-version=$(git describe --tags --abbrev=0)
+version=""
 
 while [[ $# > 0 ]]; do
     case "$1" in
@@ -38,8 +38,8 @@ while [[ $# > 0 ]]; do
         clean=true
         ;;
 
-    --version)
-        version=$2
+    --tag-version)
+        version=$(git describe --tags --abbrev=0)
         shift
         ;;
   esac
@@ -81,10 +81,13 @@ if $install; then
 fi
 
 if $pack; then
+    PACK_ARGS="-property:PackageOutputPath=\"$ARTIFACTS_DIR\""
+    PACK_ARGS+=" -property:Configuration=Release"
+    if [ ! -n $version ]; then
+        PACK_ARGS+=" -property:Version=\"${version#"v"}\""
+    fi
     echo "Packing helveg"
     dotnet msbuild "$SOURCE_DIR" \
         -target:Restore,Build,Pack \
-        -property:PackageOutputPath="$ARTIFACTS_DIR" \
-        -property:Configuration=Release \
-        -property:Version="${version#"v"}"
+        $PACK_ARGS
 fi
