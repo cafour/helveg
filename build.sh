@@ -83,7 +83,7 @@ fi
 if $pack; then
     PACK_ARGS="-property:PackageOutputPath=\"$ARTIFACTS_DIR\""
     PACK_ARGS+=" -property:Configuration=Release"
-    if [ ! -n $version ]; then
+    if [ -n "$version" ]; then
         PACK_ARGS+=" -property:Version=\"${version#"v"}\""
     fi
     echo "Packing helveg"
