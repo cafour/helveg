@@ -8,6 +8,7 @@ build-windows:
   image: cafstep/helveg-ci:windows
   stage: prebuild
   script:
+    - 'c:/BuildTools/Common7/Tools/Launch-VsDevShell.ps1'
     - 'cmd /K c:/BuildTools/VC/Auxiliary/Build/vcvars64.bat'
     - 'powershell'
     - '& ./build.ps1'
