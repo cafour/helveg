@@ -2,16 +2,6 @@ stages:
   - prebuild
   - build
 
-build-test:
-  image: mcr.microsoft.com/windows/servercore:1909-amd64
-  stage: prebuild
-  script:
-    - echo "It works?"
-  tags:
-    - office-windows
-  only:
-    - ci
-
 build-windows:
   image: cafstep/helveg-ci:windows
   stage: prebuild

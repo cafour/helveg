@@ -12,6 +12,6 @@ if (Test-Path $artifactsDir) {
 }
 New-Item $artifactsDir -ItemType "directory"
 
-cmake -S $sourceDir -B $buildDir -DCMAKE_INSTALL_PREFIX=$artifactsDir
+cmake -S $sourceDir -B $buildDir -DCMAKE_INSTALL_PREFIX=$artifactsDir -G Ninja
 cmake --build $buildDir --config Release
 cmake --build $buildDir --target install --config Release
