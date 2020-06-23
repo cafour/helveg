@@ -1,43 +1,12 @@
 #pragma once
 
-#include "instance_core.hpp"
-#include "display_core.hpp"
-#include "swapchain_core.hpp"
-#include "render_core.hpp"
-#include "depth_core.hpp"
-#include "transfer_core.hpp"
-#include "mesh_core.hpp"
-#include "wrapper.hpp"
+#include "cores.hpp"
+#include "data.hpp"
 
 #include <glm/glm.hpp>
 
 namespace vku {
 class ChunkRender {
-public:
-    enum BlockFlags
-    {
-        IS_AIR = 1 << 0
-    };
-
-    struct Block
-    {
-        uint8_t paletteIndex;
-        uint8_t flags;
-    };
-
-    struct Chunk
-    {
-        Block *voxels;
-        glm::vec3 *palette;
-        uint32_t size;
-    };
-
-    struct UBO {
-        alignas(16) glm::mat4 model;
-        alignas(16) glm::mat4 view;
-        alignas(16) glm::mat4 projection;
-    };
-
 private:
     vku::InstanceCore _instanceCore;
     vku::DisplayCore _displayCore;
@@ -58,7 +27,7 @@ private:
     std::vector<vku::DeviceMemory> _uboBufferMemories;
     std::vector<VkDescriptorSet> _descriptorSets;
 
-    Chunk _chunk;
+    vku::Chunk _chunk;
 
     void recordCommandBuffer(VkCommandBuffer commandBuffer, vku::SwapchainFrame &frame);
     vku::Framebuffer createFramebuffer(vku::SwapchainFrame &frame);
@@ -69,7 +38,5 @@ public:
     ChunkRender(int width, int height, Chunk chunk, bool debug = false);
 
     vku::RenderCore &renderCore() { return _renderCore; }
-
-    static vku::MeshCore createChunkMesh(vku::TransferCore &transferCore, vku::ChunkRender::Chunk chunk);
 };
 }

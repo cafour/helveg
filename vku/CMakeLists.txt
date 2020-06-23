@@ -18,6 +18,7 @@ set(VKU_SOURCES
     # interop
     interop.hpp
     interop.cpp
+    data.hpp
 
     # wrappers & utils
     base.hpp
@@ -42,6 +43,7 @@ set(VKU_SOURCES
     wrapper.hpp
     
     # cores
+    cores.hpp
     instance_core.hpp
     instance_core.cpp
     display_core.hpp

@@ -27,7 +27,7 @@ extern "C" {
 
     EXPORT int destroyGraphRender(void *ptr);
 
-    EXPORT int helloChunk(vku::ChunkRender::Chunk chunk);
+    EXPORT int helloChunk(vku::Chunk chunk);
 
-    EXPORT int helloWorld(vku::WorldRender::World world);
+    EXPORT int helloWorld(vku::World world);
 }

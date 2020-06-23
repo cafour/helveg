@@ -14,72 +14,6 @@ static VkPhysicalDeviceFeatures getRequiredFeatures()
 
 static const VkPhysicalDeviceFeatures requiredFeatures = getRequiredFeatures();
 
-static void pushCube(
-    std::vector<glm::vec3> &vertices,
-    std::vector<glm::vec3> &colors,
-    std::vector<uint32_t> &indices,
-    glm::vec3 position,
-    glm::vec3 color)
-{
-    static const glm::vec3 cubeVertices[] = {
-        glm::vec3(0.0f, 0.0f, 0.0f),
-        glm::vec3(1.0f, 0.0f, 0.0f),
-        glm::vec3(1.0f, 0.0f, 1.0f),
-        glm::vec3(0.0f, 0.0f, 1.0f),
-        glm::vec3(0.0f, 1.0f, 0.0f),
-        glm::vec3(1.0f, 1.0f, 0.0f),
-        glm::vec3(1.0f, 1.0f, 1.0f),
-        glm::vec3(0.0f, 1.0f, 1.0f)
-    };
-
-    // clang-format off
-    static const uint32_t cubeIndices[] = { //
-        0, 1, 3, 1, 2, 3,
-        7, 5, 4, 7, 6, 5,
-        4, 1, 0, 4, 5, 1,
-        3, 2, 7, 2, 6, 7,
-        5, 2, 1, 5, 6, 2,
-        0, 3, 4, 3, 7, 4,
-    };
-    // clang-format on
-
-    uint32_t last = vertices.size();
-    for (size_t i = 0; i < sizeof(cubeVertices) / sizeof(glm::vec3); ++i) {
-        vertices.push_back(cubeVertices[i] + position);
-        colors.push_back(color);
-    }
-
-    for (size_t i = 0; i < sizeof(cubeIndices) / sizeof(uint32_t); ++i) {
-        indices.push_back(cubeIndices[i] + last);
-    }
-}
-
-vku::MeshCore vku::ChunkRender::createChunkMesh(vku::TransferCore &transferCore, vku::ChunkRender::Chunk chunk)
-{
-    if (!chunk.palette || !chunk.voxels || !chunk.size) {
-        throw std::invalid_argument("the chunk is not valid");
-    }
-    std::vector<glm::vec3> vertices;
-    std::vector<glm::vec3> colors;
-    std::vector<uint32_t> indices;
-
-    size_t plane = chunk.size * chunk.size;
-    for (size_t x = 0; x < chunk.size; ++x) {
-        for (size_t y = 0; y < chunk.size; ++y) {
-            for (size_t z = 0; z < chunk.size; ++z) {
-                size_t i = z + y * chunk.size + x * plane;
-                auto block = chunk.voxels[i];
-                if (block.flags & vku::ChunkRender::BlockFlags::IS_AIR) {
-                    continue;
-                }
-                pushCube(vertices, colors, indices, glm::vec3(x, y, z), chunk.palette[block.paletteIndex]);
-            }
-        }
-    }
-
-    return vku::MeshCore(transferCore, vertices.data(), vertices.size(), indices.data(), indices.size(), colors.data());
-}
-
 vku::ChunkRender::ChunkRender(int width, int height, Chunk chunk, bool debug)
     : _instanceCore("ChunkRender", true, debug)
     , _displayCore(_instanceCore.instance(), width, height, "vkdev", &requiredFeatures)
@@ -91,7 +25,7 @@ vku::ChunkRender::ChunkRender(int width, int height, Chunk chunk, bool debug)
           [this](auto cb, auto &f) { recordCommandBuffer(cb, f); })
     , _depthCore(_displayCore, _renderCore)
     , _transferCore(_displayCore.physicalDevice(), _displayCore.device())
-    , _meshCore(createChunkMesh(_transferCore, chunk))
+    , _meshCore(vku::MeshCore::fromChunk(_transferCore, chunk))
     , _chunk(chunk)
 {
     VkDescriptorSetLayoutBinding bindings[] = {
@@ -211,7 +145,7 @@ void vku::ChunkRender::onResize(size_t imageCount, VkExtent2D)
     _uboBuffers.resize(imageCount);
     _uboBufferMemories.resize(imageCount);
     for (size_t i = 0; i < imageCount; ++i) {
-        _uboBuffers[i] = vku::Buffer::exclusive(_displayCore.device(), sizeof(UBO), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
+        _uboBuffers[i] = vku::Buffer::exclusive(_displayCore.device(), sizeof(vku::SimpleView), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
         _uboBufferMemories[i] = vku::DeviceMemory::hostCoherentBuffer(
             _displayCore.physicalDevice(),
             _displayCore.device(),
@@ -243,7 +177,7 @@ void vku::ChunkRender::onUpdate(vku::SwapchainFrame &frame)
     float scale = 1.0f / _chunk.size;
     float offset = static_cast<float>(_chunk.size) / -2.0f;
 
-    UBO ubo = {};
+    vku::SimpleView ubo = {};
     ubo.model = glm::identity<glm::mat4>();
     ubo.model = glm::rotate(ubo.model, time * glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
     ubo.model = glm::scale(ubo.model, glm::vec3(scale));
@@ -257,5 +191,5 @@ void vku::ChunkRender::onUpdate(vku::SwapchainFrame &frame)
         0.1f,
         100.0f);
     ubo.projection[1][1] *= -1;
-    vku::hostDeviceCopy(_displayCore.device(), &ubo, _uboBufferMemories[frame.index], sizeof(UBO));
+    vku::hostDeviceCopy(_displayCore.device(), &ubo, _uboBufferMemories[frame.index], sizeof(vku::SimpleView));
 }

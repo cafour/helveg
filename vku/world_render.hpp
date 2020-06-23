@@ -1,34 +1,12 @@
 #pragma once
 
-#include "chunk_render.hpp"
-#include "instance_core.hpp"
-#include "display_core.hpp"
-#include "swapchain_core.hpp"
-#include "render_core.hpp"
-#include "depth_core.hpp"
-#include "transfer_core.hpp"
-#include "mesh_core.hpp"
-#include "wrapper.hpp"
+#include "cores.hpp"
+#include "data.hpp"
 
 #include <glm/glm.hpp>
 
 namespace vku {
 class WorldRender {
-public:
-
-    struct World
-    {
-        vku::ChunkRender::Chunk *chunks;
-        glm::vec3 *positions;
-        uint32_t count;
-    };
-
-    struct UBO {
-        alignas(16) glm::mat4 model;
-        alignas(16) glm::mat4 view;
-        alignas(16) glm::mat4 projection;
-    };
-
 private:
     vku::InstanceCore _instanceCore;
     vku::DisplayCore _displayCore;
@@ -49,7 +27,7 @@ private:
     std::vector<vku::DeviceMemory> _uboBufferMemories;
     std::vector<VkDescriptorSet> _descriptorSets;
 
-    World _world;
+    vku::World _world;
     glm::vec3 _boxMin = {};
     glm::vec3 _boxMax = {};
 

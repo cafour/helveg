@@ -3,9 +3,9 @@
 
 #include <chrono>
 #include <glm/gtc/matrix_transform.hpp>
+#include <iostream>
 #include <tuple>
 #include <vector>
-#include <iostream>
 
 static VkPhysicalDeviceFeatures getRequiredFeatures()
 {
@@ -33,7 +33,7 @@ vku::WorldRender::WorldRender(int width, int height, World world, bool debug)
     std::cout << "Device name: " << properties.deviceName << std::endl;
 
     for (size_t i = 0; i < world.count; ++i) {
-        _meshes.push_back(vku::ChunkRender::createChunkMesh(_transferCore, _world.chunks[i]));
+        _meshes.push_back(vku::MeshCore::fromChunk(_transferCore, _world.chunks[i]));
 
         float chunkSize = static_cast<float>(world.chunks[i].size);
         glm::vec3 chunkPosition = world.positions[i];
@@ -177,7 +177,10 @@ void vku::WorldRender::onResize(size_t imageCount, VkExtent2D)
     _uboBuffers.resize(imageCount);
     _uboBufferMemories.resize(imageCount);
     for (size_t i = 0; i < imageCount; ++i) {
-        _uboBuffers[i] = vku::Buffer::exclusive(_displayCore.device(), sizeof(UBO), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
+        _uboBuffers[i] = vku::Buffer::exclusive(
+            _displayCore.device(),
+            sizeof(vku::SimpleView),
+            VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
         _uboBufferMemories[i] = vku::DeviceMemory::hostCoherentBuffer(
             _displayCore.physicalDevice(),
             _displayCore.device(),
@@ -207,10 +210,10 @@ void vku::WorldRender::onUpdate(vku::SwapchainFrame &frame)
     float time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
 
     glm::vec3 worldSize = _boxMax - _boxMin;
-    float scale = 2.0f / std::max({ worldSize.x, worldSize.y, worldSize.z });
+    float scale = 1.0f / std::max({ worldSize.x, worldSize.y, worldSize.z });
     glm::vec3 offset = (_boxMax + _boxMin) / -2.0f;
 
-    UBO ubo = {};
+    vku::SimpleView ubo = {};
     ubo.model = glm::identity<glm::mat4>();
     ubo.model = glm::rotate(ubo.model, time * glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
     ubo.model = glm::scale(ubo.model, glm::vec3(scale));
@@ -224,5 +227,5 @@ void vku::WorldRender::onUpdate(vku::SwapchainFrame &frame)
         0.1f,
         100.0f);
     ubo.projection[1][1] *= -1;
-    vku::hostDeviceCopy(_displayCore.device(), &ubo, _uboBufferMemories[frame.index], sizeof(UBO));
+    vku::hostDeviceCopy(_displayCore.device(), &ubo, _uboBufferMemories[frame.index], sizeof(vku::SimpleView));
 }

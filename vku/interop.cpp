@@ -81,7 +81,7 @@ int destroyGraphRender(void *ptr)
     return EXIT_SUCCESS;
 }
 
-int helloChunk(vku::ChunkRender::Chunk chunk)
+int helloChunk(vku::Chunk chunk)
 {
     return hello([chunk]() {
         vku::ChunkRender app(1280, 720, chunk, isDebug);
@@ -89,7 +89,7 @@ int helloChunk(vku::ChunkRender::Chunk chunk)
     });
 }
 
-int helloWorld(vku::WorldRender::World world)
+int helloWorld(vku::World world)
 {
     return hello([world]() {
         vku::WorldRender app(1280, 720, world, isDebug);
