@@ -12,6 +12,7 @@ private:
     vku::DisplayCore _displayCore;
     vku::SwapchainCore _swapchainCore;
     vku::RenderCore _renderCore;
+    vku::CameraCore _cameraCore;
     vku::DepthCore _depthCore;
     vku::TransferCore _transferCore;
     std::vector<vku::MeshCore> _meshes;

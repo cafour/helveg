@@ -47,7 +47,7 @@ namespace vku {
     struct CameraView {
         alignas(16) glm::mat4 view;
         alignas(16) glm::mat4 projection;
-        glm::vec4 position;
+        glm::vec3 position;
     };
 
     struct Model {

@@ -6,6 +6,7 @@
 #include <GLFW/glfw3.h>
 
 #include <string>
+#include <functional>
 
 struct GLFWwindow;
 
@@ -15,6 +16,13 @@ private:
     static size_t count;
 
     GLFWwindow *_raw;
+    std::vector<std::function<void (double x, double y)>> _mouseMoveHandlers;
+    std::vector<std::function<void (int button, int action, int mods)>> _mousePressHandlers;
+    std::vector<std::function<void (int key, int scancode, int action, int mods)>> _keyPressHandlers;
+
+    static void handleMouseMove(GLFWwindow *raw, double x, double y);
+    static void handleMousePress(GLFWwindow *raw, int button, int action, int mods);
+    static void handleKeyPress(GLFWwindow *raw, int key, int scancode, int action, int mods);
 
 public:
     Window()
@@ -27,9 +35,14 @@ public:
     Window &operator=(const Window &other) = delete;
     Window &operator=(Window &&other) noexcept;
 
+    static Window noApi(int width, int height, const std::string &title);
+
+    void onMouseMove(std::function<void (double x, double y)> handler);
+    void onMousePress(std::function<void (int button, int action, int mods)> handler);
+    void onKeyPress(std::function<void (int key, int scancode, int action, int mods)> handler);
+
     operator GLFWwindow *() { return _raw; }
     GLFWwindow *raw() { return _raw; }
 
-    static Window noApi(int width, int height, const std::string &title);
 };
 }

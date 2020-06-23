@@ -27,7 +27,7 @@ private:
     std::function<vku::Framebuffer (vku::SwapchainFrame &)> _createFramebuffer;
     std::function<void (VkCommandBuffer, vku::SwapchainFrame &)> _recordCommandBuffer;
     std::vector<std::function<void (vku::SwapchainFrame &)>> _updateHandlers;
-    std::vector<std::function<void (size_t, VkExtent2D)>> _resizeHandlers;
+    std::vector<std::function<void (size_t imageCount, VkExtent2D extent)>> _resizeHandlers;
 
 public:
     RenderCore(
@@ -41,7 +41,7 @@ public:
     vku::CommandBuffers &commandBuffers() { return _commandBuffers; }
 
     void onUpdate(std::function<void (vku::SwapchainFrame &)> handler);
-    void onResize(std::function<void (size_t, VkExtent2D)> handler);
+    void onResize(std::function<void (size_t imageCount, VkExtent2D extent)> handler);
 
     void run();
     void resize();

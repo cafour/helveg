@@ -61,6 +61,8 @@ set(VKU_SOURCES
     inline_cube.cpp
     mesh_core.hpp
     mesh_core.cpp
+    camera_core.hpp
+    camera_core.cpp
     
     # renders
     triangle_render.hpp

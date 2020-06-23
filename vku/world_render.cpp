@@ -24,6 +24,7 @@ vku::WorldRender::WorldRender(int width, int height, World world, bool debug)
           _swapchainCore,
           [this](auto &f) { return createFramebuffer(f); },
           [this](auto cb, auto &f) { recordCommandBuffer(cb, f); })
+    , _cameraCore(_displayCore, _renderCore)
     , _depthCore(_displayCore, _renderCore)
     , _transferCore(_displayCore.physicalDevice(), _displayCore.device())
     , _world(world)
@@ -47,9 +48,10 @@ vku::WorldRender::WorldRender(int width, int height, World world, bool debug)
     }
 
     VkDescriptorSetLayoutBinding bindings[] = {
-        vku::descriptorBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT)
+        vku::descriptorBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT),
+        vku::descriptorBinding(1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT)
     };
-    _setLayout = vku::DescriptorSetLayout::basic(_displayCore.device(), bindings, 1);
+    _setLayout = vku::DescriptorSetLayout::basic(_displayCore.device(), bindings, 2);
     std::vector<VkDescriptorSetLayout> setLayouts { _setLayout };
 
     _renderPass = vku::RenderPass::basic(
@@ -179,7 +181,7 @@ void vku::WorldRender::onResize(size_t imageCount, VkExtent2D)
     for (size_t i = 0; i < imageCount; ++i) {
         _uboBuffers[i] = vku::Buffer::exclusive(
             _displayCore.device(),
-            sizeof(vku::SimpleView),
+            sizeof(glm::mat4),
             VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
         _uboBufferMemories[i] = vku::DeviceMemory::hostCoherentBuffer(
             _displayCore.physicalDevice(),
@@ -199,33 +201,24 @@ void vku::WorldRender::onResize(size_t imageCount, VkExtent2D)
             _uboBuffers[i],
             _descriptorSets[i],
             0);
+        vku::writeWholeBufferDescriptor(
+            _displayCore.device(),
+            VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            _cameraCore.cameraBuffers()[i],
+            _descriptorSets[i],
+            1);
     }
 }
 
 void vku::WorldRender::onUpdate(vku::SwapchainFrame &frame)
 {
-    static auto start = std::chrono::high_resolution_clock::now();
-
-    auto now = std::chrono::high_resolution_clock::now();
-    float time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
-
     glm::vec3 worldSize = _boxMax - _boxMin;
     float scale = 1.0f / std::max({ worldSize.x, worldSize.y, worldSize.z });
     glm::vec3 offset = (_boxMax + _boxMin) / -2.0f;
 
-    vku::SimpleView ubo = {};
-    ubo.model = glm::identity<glm::mat4>();
-    ubo.model = glm::rotate(ubo.model, time * glm::radians(90.f), glm::vec3(0.0f, 1.0f, 0.0f));
-    ubo.model = glm::scale(ubo.model, glm::vec3(scale));
-    ubo.model = glm::translate(ubo.model, offset);
-    ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 model = glm::identity<glm::mat4>();
+    model = glm::scale(model, glm::vec3(scale));
+    model = glm::translate(model, offset);
 
-    auto extent = _swapchainCore.extent();
-    ubo.projection = glm::perspective(
-        glm::radians(45.0f),
-        static_cast<float>(extent.width) / static_cast<float>(extent.height),
-        0.1f,
-        100.0f);
-    ubo.projection[1][1] *= -1;
-    vku::hostDeviceCopy(_displayCore.device(), &ubo, _uboBufferMemories[frame.index], sizeof(vku::SimpleView));
+    vku::hostDeviceCopy(_displayCore.device(), &model, _uboBufferMemories[frame.index], sizeof(glm::mat4));
 }
