@@ -4,6 +4,7 @@
 #include <volk.h>
 
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
 
 #include <string>
 #include <functional>
@@ -40,6 +41,8 @@ public:
     void onMouseMove(std::function<void (double x, double y)> handler);
     void onMousePress(std::function<void (int button, int action, int mods)> handler);
     void onKeyPress(std::function<void (int key, int scancode, int action, int mods)> handler);
+    glm::dvec2 mousePosition();
+    void disableCursor();
 
     operator GLFWwindow *() { return _raw; }
     GLFWwindow *raw() { return _raw; }

@@ -89,3 +89,15 @@ void vku::Window::onKeyPress(std::function<void(int key, int scancode, int actio
 {
     _keyPressHandlers.push_back(handler);
 }
+
+glm::dvec2 vku::Window::mousePosition()
+{
+    glm::dvec2 pos;
+    glfwGetCursorPos(_raw, &pos.x, &pos.y);
+    return pos;
+}
+
+void vku::Window::disableCursor()
+{
+    glfwSetInputMode(_raw, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+}

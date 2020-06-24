@@ -5,6 +5,13 @@
 
 #include <glm/glm.hpp>
 
+#include <cmath>
+
+/**
+ * Simple camera with yaw and pitch.
+ * Based on https://learnopengl.com/Getting-started/Camera.
+ **/
+
 namespace vku {
 
 class RenderCore;
@@ -17,10 +24,16 @@ private:
     std::vector<vku::Buffer> _cameraBuffers;
     std::vector<vku::DeviceMemory> _cameraMemories;
     vku::CameraView _view = {};
-    glm::vec3 _eye = glm::vec3(0.0f, 0.0f, 1.0f);
-    float _lastX = -1.0;
-    float _lastY = -1.0;
-    float _sensitivity = 0.005;
+    glm::vec3 _front = {};
+    glm::vec3 _right = {};
+    glm::vec3 _up = {};
+    const glm::vec3 _worldUp = glm::vec3(0.0f, 1.0f, 0.0f);
+    float _yaw = M_PI_2f32;
+    float _pitch = 0.0f;
+    float _speed = 0.005f;
+    float _lastX = 0.0f;
+    float _lastY = 0.0f;
+    float _sensitivity = 0.005f;
 
     void onMouseMove(double x, double y);
     void onKeyPress(int key, int scancode, int action, int mods);
