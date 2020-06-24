@@ -84,8 +84,7 @@ CXX_STANDARD 17
 CXX_STANDARD_REQUIRED True)
 
 if(WIN32)
-    message(${CMAKE_CXX_FLAGS})
-    string(REGEX REPLACE "/W[3|4]" "/w" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+message(${CMAKE_CXX_FLAGS})
 else()
     target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -pedantic)
 endif()
