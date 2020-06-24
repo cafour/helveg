@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 3.10)
-
 project(vku)
 
 set(VULKAN_HEADERS_DIR "" CACHE PATH "Path to the Vulkan headers")
@@ -9,10 +8,8 @@ find_package(VulkanHeaders REQUIRED)
 find_package(Volk REQUIRED)
 find_package(GLFW REQUIRED)
 find_package(Glm REQUIRED)
-add_compile_definitions(GLM_FORCE_RADIANS GLM_FORCE_DEPTH_ZERO_TO_ONE)
 
 include(Embed)
-
 
 set(VKU_SOURCES
     # interop
@@ -80,21 +77,23 @@ add_library(${PROJECT_NAME} SHARED ${VKU_SOURCES})
 target_link_libraries(${PROJECT_NAME} PUBLIC volk glfw glm)
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 set_target_properties(${PROJECT_NAME} PROPERTIES
-    POSITION_INDEPENDENT_CODE ON
-    C_VISIBILITY_PRESET hidden
-    CXX_VISIBILITY_PRESET hidden
-    CXX_STANDARD 17
-    CXX_STANDARD_REQUIRED True)
+POSITION_INDEPENDENT_CODE ON
+C_VISIBILITY_PRESET hidden
+CXX_VISIBILITY_PRESET hidden
+CXX_STANDARD 17
+CXX_STANDARD_REQUIRED True)
 
 if(WIN32)
-    target_compile_options(${PROJECT_NAME} PRIVATE /Wall)
+    message(${CMAKE_CXX_FLAGS})
+    string(REGEX REPLACE "/W[3|4]" "/w" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 else()
     target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -pedantic)
 endif()
 
 string(LENGTH "${CMAKE_SOURCE_DIR}/" ROOT_PATH_LENGTH)
 target_compile_definitions(${PROJECT_NAME} PUBLIC ROOT_PATH_LENGTH=${ROOT_PATH_LENGTH})
-target_compile_definitions(${PROJECT_NAME} PRIVATE _USE_MATH_DEFINES)
+target_compile_definitions(${PROJECT_NAME} PUBLIC _USE_MATH_DEFINES)
+target_compile_definitions(${PROJECT_NAME} PRIVATE GLM_FORCE_RADIANS GLM_FORCE_DEPTH_ZERO_TO_ONE)
 
 target_embed_shader(${PROJECT_NAME} shaders/triangle.frag TRIANGLE_FRAG)
 target_embed_shader(${PROJECT_NAME} shaders/triangle.vert TRIANGLE_VERT)
