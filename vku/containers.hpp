@@ -36,7 +36,7 @@ public:
     ~CommandBuffers()
     {
         if (_device != VK_NULL_HANDLE && _commandPool != VK_NULL_HANDLE) {
-            vkFreeCommandBuffers(_device, _commandPool, _raw.size(), _raw.data());
+            vkFreeCommandBuffers(_device, _commandPool, static_cast<uint32_t>(_raw.size()), _raw.data());
         }
     }
     CommandBuffers(const CommandBuffers &other) = delete;
@@ -81,8 +81,8 @@ public:
     const_reference front() const { return _raw.front(); }
     reference back() { return _raw.back(); }
     const_reference back() const { return _raw.back(); }
-    reference operator[](int i) { return _raw[i]; }
-    const_reference operator[](int i) const { return _raw[i]; }
+    reference operator[](size_t i) { return _raw[i]; }
+    const_reference operator[](size_t i) const { return _raw[i]; }
     reference at(size_t i) { return _raw.at(i); }
     const_reference at(size_t i) const { return _raw.at(i); }
 

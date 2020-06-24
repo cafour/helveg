@@ -126,8 +126,8 @@ void vku::MeshRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::Sw
     renderPassInfo.pClearValues = clearValues;
 
     VkViewport viewport = {};
-    viewport.width = extent.width;
-    viewport.height = extent.height;
+    viewport.width = static_cast<float>(extent.width);
+    viewport.height = static_cast<float>(extent.height);
     viewport.maxDepth = 1.0f;
 
     VkRect2D scissor = {};

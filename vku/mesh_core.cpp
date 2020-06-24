@@ -87,7 +87,7 @@ static void pushCube(
     };
     // clang-format on
 
-    uint32_t last = vertices.size();
+    uint32_t last = static_cast<uint32_t>(vertices.size());
     for (size_t i = 0; i < sizeof(cubeVertices) / sizeof(glm::vec3); ++i) {
         vertices.push_back(cubeVertices[i] + position);
         colors.push_back(color);

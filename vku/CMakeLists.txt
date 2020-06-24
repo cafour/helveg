@@ -77,14 +77,14 @@ add_library(${PROJECT_NAME} SHARED ${VKU_SOURCES})
 target_link_libraries(${PROJECT_NAME} PUBLIC volk glfw glm)
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 set_target_properties(${PROJECT_NAME} PROPERTIES
-POSITION_INDEPENDENT_CODE ON
-C_VISIBILITY_PRESET hidden
-CXX_VISIBILITY_PRESET hidden
-CXX_STANDARD 17
-CXX_STANDARD_REQUIRED True)
+    POSITION_INDEPENDENT_CODE ON
+    C_VISIBILITY_PRESET hidden
+    CXX_VISIBILITY_PRESET hidden
+    CXX_STANDARD 17
+    CXX_STANDARD_REQUIRED True)
 
 if(WIN32)
-message(${CMAKE_CXX_FLAGS})
+    string(REGEX REPLACE "/W3" "/W4" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 else()
     target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -pedantic)
 endif()

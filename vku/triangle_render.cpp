@@ -40,8 +40,8 @@ void vku::TriangleRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku
     renderPassInfo.pClearValues = &clearColor;
 
     VkViewport viewport = {};
-    viewport.width = extent.width;
-    viewport.height = extent.height;
+    viewport.width = static_cast<float>(extent.width);
+    viewport.height = static_cast<float>(extent.height);
     viewport.maxDepth = 1.0f;
 
     VkRect2D scissor = {};

@@ -113,8 +113,8 @@ void vku::WorldRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::S
     renderPassInfo.pClearValues = clearValues;
 
     VkViewport viewport = {};
-    viewport.width = extent.width;
-    viewport.height = extent.height;
+    viewport.width = static_cast<float>(extent.width);
+    viewport.height = static_cast<float>(extent.height);
     viewport.maxDepth = 1.0f;
 
     VkRect2D scissor = {};
@@ -147,7 +147,7 @@ void vku::WorldRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::S
             0, // offset
             sizeof(glm::vec3), // size
             &_world.positions[i]);
-        vkCmdDrawIndexed(commandBuffer, mesh.indexCount(), 1, 0, 0, 0);
+        vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(mesh.indexCount()), 1, 0, 0, 0);
     }
     vkCmdEndRenderPass(commandBuffer);
 

@@ -89,8 +89,8 @@ void vku::ChunkRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::S
     renderPassInfo.pClearValues = clearValues;
 
     VkViewport viewport = {};
-    viewport.width = extent.width;
-    viewport.height = extent.height;
+    viewport.width = static_cast<float>(extent.width);
+    viewport.height = static_cast<float>(extent.height);
     viewport.maxDepth = 1.0f;
 
     VkRect2D scissor = {};
@@ -114,7 +114,7 @@ void vku::ChunkRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::S
         &_descriptorSets[frame.index],
         0, // dynamic offset count
         nullptr); // dynamic offsets
-    vkCmdDrawIndexed(commandBuffer, _meshCore.indexCount(), 1, 0, 0, 0);
+    vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(_meshCore.indexCount()), 1, 0, 0, 0);
     vkCmdEndRenderPass(commandBuffer);
 
     ENSURE(vkEndCommandBuffer(commandBuffer));

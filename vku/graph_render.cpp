@@ -210,8 +210,8 @@ void vku::GraphRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::S
     renderPassInfo.pClearValues = clearValues;
 
     VkViewport viewport = {};
-    viewport.width = extent.width;
-    viewport.height = extent.height;
+    viewport.width = static_cast<float>(extent.width);
+    viewport.height = static_cast<float>(extent.height);
     viewport.maxDepth = 1.0f;
 
     VkRect2D scissor = {};
@@ -226,7 +226,7 @@ void vku::GraphRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::S
         vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
         vkCmdBindVertexBuffers(commandBuffer, 0, 1, _nodeBuffer, offsets);
         vkCmdBindIndexBuffer(commandBuffer, _edgeBuffer, 0, VK_INDEX_TYPE_UINT32);
-        vkCmdDrawIndexed(commandBuffer, _edgeCount, 1, 0, 0, 0);
+        vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(_edgeCount), 1, 0, 0, 0);
     }
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _nodePipeline);
     vkCmdSetViewport(commandBuffer, 0, 1, &viewport);

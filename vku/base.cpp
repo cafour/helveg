@@ -6,6 +6,7 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
+#include <limits>
 
 void vku::log(VkResult result, const char *filename, int line, const char *what)
 {
@@ -139,7 +140,7 @@ uint32_t vku::findQueueFamily(
             return i;
         }
     }
-    return -1;
+    return std::numeric_limits<uint32_t>::max();
 }
 
 VkPhysicalDevice vku::findDevice(

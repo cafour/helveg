@@ -19,7 +19,7 @@ VkDescriptorSetLayoutBinding vku::descriptorBinding(
 VkDescriptorPoolSize vku::descriptorPoolSize(VkDescriptorType type, size_t descriptorCount)
 {
     VkDescriptorPoolSize size = {};
-    size.descriptorCount = descriptorCount;
+    size.descriptorCount = static_cast<uint32_t>(descriptorCount);
     size.type = type;
     return size;
 }
@@ -86,7 +86,7 @@ vku::DescriptorPool vku::DescriptorPool::basic(
     VkDescriptorPoolCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
     createInfo.maxSets = static_cast<uint32_t>(maxSets);
-    createInfo.poolSizeCount = sizeCount;
+    createInfo.poolSizeCount = static_cast<uint32_t>(sizeCount);
     createInfo.pPoolSizes = sizes;
     return vku::DescriptorPool(device, createInfo);
 }

@@ -160,7 +160,7 @@ vku::PipelineLayout vku::PipelineLayout::basic(
     }
     if (pushConstantRanges) {
         createInfo.pPushConstantRanges = pushConstantRanges->data();
-        createInfo.pushConstantRangeCount = pushConstantRanges->size();
+        createInfo.pushConstantRangeCount = static_cast<uint32_t>(pushConstantRanges->size());
     }
     return vku::PipelineLayout(device, createInfo);
 }
