@@ -27,7 +27,7 @@ void vku::CameraCore::onMouseMove(double x, double y)
 
     _yaw += _sensitivity * dx;
     _pitch += _sensitivity * dy;
-    _pitch = std::clamp(_pitch, -M_PI_2f32 + 0.05f, M_PI_2f32 - 0.05f);
+    _pitch = std::clamp(_pitch, -piHalf + 0.05f, piHalf - 0.05f);
 }
 
 void vku::CameraCore::onKeyPress(int key, int scancode, int action, int mods)

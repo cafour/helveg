@@ -87,13 +87,14 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
     CXX_STANDARD_REQUIRED True)
 
 if(WIN32)
-    target_compile_options(${PROJECT_NAME} PRIVATE /W4)
+    target_compile_options(${PROJECT_NAME} PRIVATE /Wall)
 else()
     target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -pedantic)
 endif()
 
 string(LENGTH "${CMAKE_SOURCE_DIR}/" ROOT_PATH_LENGTH)
 target_compile_definitions(${PROJECT_NAME} PUBLIC ROOT_PATH_LENGTH=${ROOT_PATH_LENGTH})
+target_compile_definitions(${PROJECT_NAME} PRIVATE _USE_MATH_DEFINES)
 
 target_embed_shader(${PROJECT_NAME} shaders/triangle.frag TRIANGLE_FRAG)
 target_embed_shader(${PROJECT_NAME} shaders/triangle.vert TRIANGLE_VERT)
