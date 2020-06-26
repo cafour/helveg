@@ -39,16 +39,23 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="../artifacts/*.so">
+    <None Include="$(PackageOutputPath)/*vku*.so">
       <CopyToOutputDirectory>always</CopyToOutputDirectory>
       <Pack>true</Pack>
       <PackagePath>tools/netcoreapp3.1/linux-x64</PackagePath>
     </None>
-    <None Include="../artifacts/*.dll">
+    <None Include="$(PackageOutputPath)/*vku*.dll">
       <CopyToOutputDirectory>always</CopyToOutputDirectory>
       <Pack>true</Pack>
       <PackagePath>tools/netcoreapp3.1/win-x64</PackagePath>
     </None>
   </ItemGroup>
+
+  <Target Name="CheckVkuExists" BeforeTargets="Build">
+    <Warning Text="The Windows version of vku ('vku.dll') is not available."
+      Condition="!Exists('$(PackageOutputPath)/vku.dll')"/>
+    <Warning Text="The Linux version of vku ('libvku.so') is not available."
+      Condition="!Exists('$(PackageOutputPath)/libvku.so')"/>
+  </Target>
 
 </Project>
