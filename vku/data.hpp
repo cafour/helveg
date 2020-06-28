@@ -35,7 +35,9 @@ namespace vku {
     struct Light
     {
         glm::vec4 position;
-        glm::vec4 color;
+        glm::vec4 ambientColor;
+        glm::vec4 diffuseColor;
+        glm::vec4 specularColor;
     };
 
     struct SimpleView {

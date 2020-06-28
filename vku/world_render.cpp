@@ -13,6 +13,13 @@ static VkPhysicalDeviceFeatures getRequiredFeatures()
     return features;
 }
 
+static const vku::Light sun = vku::Light {
+    glm::vec4(-1.0f, -1.0f, -1.0f, 0.0f),
+    glm::vec4(1.0f, 1.0f, 1.0f, 0.0f),
+    glm::vec4(1.0f, 1.0f, 1.0f, 0.0f),
+    glm::vec4(1.0f, 1.0f, 1.0f, 0.0f),
+};
+
 static const VkPhysicalDeviceFeatures requiredFeatures = getRequiredFeatures();
 
 vku::WorldRender::WorldRender(int width, int height, World world, bool debug)
@@ -49,7 +56,7 @@ vku::WorldRender::WorldRender(int width, int height, World world, bool debug)
 
     VkDescriptorSetLayoutBinding bindings[] = {
         vku::descriptorBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT),
-        vku::descriptorBinding(1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT)
+        vku::descriptorBinding(1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT)
     };
     _setLayout = vku::DescriptorSetLayout::basic(_displayCore.device(), bindings, 2);
     std::vector<VkDescriptorSetLayout> setLayouts { _setLayout };
@@ -60,7 +67,8 @@ vku::WorldRender::WorldRender(int width, int height, World world, bool debug)
         _depthCore.depthFormat());
 
     std::vector<VkPushConstantRange> pushConstantRanges {
-        VkPushConstantRange { VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::vec3) }
+        VkPushConstantRange { VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(glm::vec3) },
+        VkPushConstantRange { VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(glm::vec3), sizeof(vku::Light) }
     };
 
     _pipelineLayout = vku::PipelineLayout::basic(_displayCore.device(), &setLayouts, &pushConstantRanges);
@@ -134,6 +142,13 @@ void vku::WorldRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::S
         &_descriptorSets[frame.index],
         0, // dynamic offset count
         nullptr); // dynamic offsets
+    vkCmdPushConstants(
+        commandBuffer,
+        _pipelineLayout,
+        VK_SHADER_STAGE_FRAGMENT_BIT,
+        sizeof(glm::vec3), // offset
+        sizeof(vku::Light), // size
+        &sun);
     for (size_t i = 0; i < _meshes.size(); ++i) {
         auto &mesh = _meshes[i];
         VkDeviceSize offsets[] = { 0, mesh.vertexCount() * sizeof(glm::vec3) };

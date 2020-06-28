@@ -59,15 +59,7 @@ namespace Helveg.Landscape
             ImmutableDictionary<AnalyzedTypeId, Vector2> positions)
         {
             var heightmap = GenerateIslandHeightmap(positions.Values, 48, 96);
-            var palette = new Vector3[] {
-                new Vector3(146, 146, 146) / 255, // stone
-                new Vector3(109, 182, 73) / 255, // grass
-                new Vector3(219, 182, 146) / 255, // sand
-                new Vector3(109, 73, 36) / 255, // wood
-                new Vector3(0, 146, 219) / 255, // water
-                new Vector3(0, 42, 0) / 255 // leaves
-            };
-            var world = new WorldBuilder(128, new Block { Flags = BlockFlags.IsAir }, palette);
+            var world = new WorldBuilder(128, new Block { Flags = BlockFlags.IsAir }, Colours.IslandPalette);
             for (int x = heightmap.MinX; x < heightmap.MaxX; ++x)
             {
                 for (int z = heightmap.MinY; z < heightmap.MaxY; ++z)

@@ -47,10 +47,6 @@ void vku::CameraCore::onKeyPress(int key, int scancode, int action, int mods)
         _lastPress = glfwGetTime();
     }
 
-    if (action == GLFW_RELEASE) {
-        std::cout << "Released " << key << std::endl;
-    }
-
     int value = action == GLFW_PRESS || action == GLFW_REPEAT ? 1 : 0;
     switch (key) {
     case GLFW_KEY_W:
