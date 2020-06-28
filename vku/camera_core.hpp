@@ -20,7 +20,11 @@ struct SwapchainFrame;
 
 class CameraCore {
 private:
-    const float piHalf = static_cast<float>(M_PI_2);
+    static const float piHalf;
+    static const float maxSpeed;
+    static const float acceleration;
+    static const glm::vec3 worldUp;
+
     vku::DisplayCore &_displayCore;
     std::vector<vku::Buffer> _cameraBuffers;
     std::vector<vku::DeviceMemory> _cameraMemories;
@@ -28,10 +32,12 @@ private:
     glm::vec3 _front = {};
     glm::vec3 _right = {};
     glm::vec3 _up = {};
-    const glm::vec3 _worldUp = glm::vec3(0.0f, 1.0f, 0.0f);
+    glm::ivec2 _move = {};
+    double _lastPress = 0.0f;
+    double _lastUpdate = 0.0f;
+    float _speed = 0.0f;
     float _yaw = piHalf;
     float _pitch = 0.0f;
-    float _speed = 0.005f;
     float _lastX = 0.0f;
     float _lastY = 0.0f;
     float _sensitivity = 0.005f;

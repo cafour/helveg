@@ -4,6 +4,13 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
+#include <iostream>
+
+const float vku::CameraCore::piHalf = static_cast<float>(M_PI_2);
+const float vku::CameraCore::maxSpeed = 0.125f;
+const float vku::CameraCore::acceleration = 0.0625f;
+const glm::vec3 vku::CameraCore::worldUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
 vku::CameraCore::CameraCore(vku::DisplayCore &displayCore, vku::RenderCore &renderCore)
     : _displayCore(displayCore)
 {
@@ -15,6 +22,8 @@ vku::CameraCore::CameraCore(vku::DisplayCore &displayCore, vku::RenderCore &rend
     glm::dvec2 mousePosition = displayCore.window().mousePosition();
     _lastX = static_cast<float>(mousePosition.x);
     _lastY = static_cast<float>(mousePosition.y);
+    _lastPress = glfwGetTime();
+    _lastUpdate = _lastPress;
     displayCore.window().disableCursor();
 }
 
@@ -33,24 +42,32 @@ void vku::CameraCore::onMouseMove(double x, double y)
 void vku::CameraCore::onKeyPress(int key, int scancode, int action, int mods)
 {
     (void)scancode;
-    (void)action;
     (void)mods;
+    if (action == GLFW_PRESS && _move == glm::ivec2(0)) {
+        _lastPress = glfwGetTime();
+    }
+
+    if (action == GLFW_RELEASE) {
+        std::cout << "Released " << key << std::endl;
+    }
+
+    int value = action == GLFW_PRESS || action == GLFW_REPEAT ? 1 : 0;
     switch (key) {
-    case GLFW_KEY_UP:
     case GLFW_KEY_W:
-        _view.position += _speed * _front;
+    case GLFW_KEY_UP:
+        _move.x = value;
         break;
-    case GLFW_KEY_DOWN:
     case GLFW_KEY_S:
-        _view.position -= _speed * _front;
+    case GLFW_KEY_DOWN:
+        _move.x = -value;
         break;
-    case GLFW_KEY_LEFT:
     case GLFW_KEY_A:
-        _view.position -= _speed * _right;
+    case GLFW_KEY_LEFT:
+        _move.y = -value;
         break;
-    case GLFW_KEY_RIGHT:
     case GLFW_KEY_D:
-        _view.position += _speed * _right;
+    case GLFW_KEY_RIGHT:
+        _move.y = value;
         break;
     }
 }
@@ -73,7 +90,7 @@ void vku::CameraCore::onResize(size_t imageCount, VkExtent2D extent)
     _cameraMemories.resize(imageCount);
 
     _view.projection = glm::perspective(
-        glm::radians(45.0f),
+        glm::radians(60.0f),
         static_cast<float>(extent.width) / static_cast<float>(extent.height),
         0.01f,
         1000.0f);
@@ -86,8 +103,16 @@ void vku::CameraCore::onUpdate(vku::SwapchainFrame &frame)
     _front.y = std::sin(_pitch);
     _front.z = std::sin(_yaw) * std::cos(_pitch);
     _front = glm::normalize(_front);
-    _right = glm::normalize(glm::cross(_front, _worldUp));
+    _right = glm::normalize(glm::cross(_front, worldUp));
     _up = glm::normalize(glm::cross(_right, _front));
+
+    float duration = static_cast<float>(glfwGetTime() - _lastPress);
+    float speed = std::clamp(duration * acceleration, 0.0f, maxSpeed);
+    double time = glfwGetTime();
+    float diff = static_cast<float>(time - _lastUpdate);
+    _lastUpdate = time;
+    _view.position += (_front * static_cast<float>(_move.x) + _right * static_cast<float>(_move.y)) * speed * diff;
+
     _view.view = glm::lookAt(_view.position, _view.position + _front, _up);
     vku::hostDeviceCopy(_displayCore.device(), &_view, _cameraMemories[frame.index], sizeof(vku::CameraView));
 }
