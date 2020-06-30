@@ -23,8 +23,7 @@ struct Light {
 
 layout(push_constant) uniform Constants
 {
-    vec3 offset;
-    Light light;
+    layout(offset = 16) Light light;
 };
 
 void main()

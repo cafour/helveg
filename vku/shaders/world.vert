@@ -16,17 +16,9 @@ camera;
 layout(location = 0) in vec3 inPosition;
 layout(location = 1) in vec3 inColor;
 
-struct Light {
-    vec4 position;
-    vec4 ambientColor;
-    vec4 diffuseColor;
-    vec4 specularColor;
-};
-
 layout(push_constant) uniform Constants
 {
-    vec3 offset;
-    Light light;
+    layout(offset = 0) vec3 offset;
 };
 
 layout(location = 0) out vec3 fragColor;

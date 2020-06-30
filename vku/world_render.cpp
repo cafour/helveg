@@ -67,8 +67,8 @@ vku::WorldRender::WorldRender(int width, int height, World world, bool debug)
         _depthCore.depthFormat());
 
     std::vector<VkPushConstantRange> pushConstantRanges {
-        VkPushConstantRange { VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(glm::vec3) },
-        VkPushConstantRange { VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(glm::vec3), sizeof(vku::Light) }
+        VkPushConstantRange { VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::vec4)}, // vec3 is vec4 (see 14.5.4.)
+        VkPushConstantRange { VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(glm::vec4), sizeof(vku::Light)}
     };
 
     _pipelineLayout = vku::PipelineLayout::basic(_displayCore.device(), &setLayouts, &pushConstantRanges);
@@ -146,7 +146,7 @@ void vku::WorldRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::S
         commandBuffer,
         _pipelineLayout,
         VK_SHADER_STAGE_FRAGMENT_BIT,
-        sizeof(glm::vec3), // offset
+        sizeof(glm::vec4), // offset
         sizeof(vku::Light), // size
         &sun);
     for (size_t i = 0; i < _meshes.size(); ++i) {
