@@ -4,7 +4,6 @@ SOURCE_DIR="$PWD"
 BUILD_DIR="$PWD/build"
 ARTIFACTS_DIR="$PWD/artifacts"
 
-windows=false
 configure=true
 build=true
 install=false
@@ -14,9 +13,6 @@ version=""
 
 while [[ $# > 0 ]]; do
     case "$1" in
-    --windows)
-        windows=true
-        ;;
 
     --no-configure)
         configure=false
@@ -60,9 +56,6 @@ if [ ! -d "$ARTIFACTS_DIR" ]; then
 fi
 
 CONFIGURE_ARGS="-DCMAKE_INSTALL_PREFIX='$ARTIFACTS_DIR'"
-if $windows; then
-    CONFIGURE_ARGS+=" -A x64"
-fi
 if $configure; then
     echo "Configuring vku"
     cmake -S "$SOURCE_DIR" -B "$BUILD_DIR" $CONFIGURE_ARGS || exit 1
