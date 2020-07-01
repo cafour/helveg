@@ -35,13 +35,6 @@ if ($vsDir -eq $null -or $vsDir -eq "") {
     $vsDir = & vswhere -property installationPath
 }
 
-# if (-not (Test-Path "$vsDir\Common7\Tools\Launch-VsDevShell.ps1")) {
-#     Write-Host "Launch-VsDevShell does not exist"
-#     exit 1
-# }
-# . "$vsDir\Common7\Tools\Launch-VsDevShell.ps1"
-# Set-Location $sourceDir
-
 # Urgh.
 # https://stackoverflow.com/questions/2124753/how-can-i-use-powershell-with-the-visual-studio-command-prompt
 cmd /c """$vsDir\VC\Auxiliary\Build\vcvars64.bat"" & set" | foreach {
