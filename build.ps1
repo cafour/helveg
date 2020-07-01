@@ -5,37 +5,14 @@ Param(
     [switch] $noBuild = $false,
     [switch] $install = $false,
     [switch] $pack = $false,
+    [switch] $tagVersion = $false,
     [switch] $clean = $false,
-    [string] $vsDir = $null,
-    [string] $version = $null
+    [string] $vsDir = $null
 )
 
 $sourceDir = $(Get-Location)
 $buildDir = "$sourceDir/build"
 $artifactsDir = "$sourceDir/artifacts"
-
-if ($vsDir -eq $null -or $vsDir -eq "") {
-    if (-not (Get-Command "vswhere" -ErrorAction SilentlyContinue)) {
-        Write-Host "Either install vswhere or set the -vsDir option"
-    }
-    $vsDir = & vswhere -property installationPath
-}
-
-if (-not (Test-Path "$vsDir\Common7\Tools\Launch-VsDevShell.ps1")) {
-    Write-Host "Launch-VsDevShell does not exist"
-    exit 1
-}
-
-. "$vsDir\Common7\Tools\Launch-VsDevShell.ps1"
-Set-Location $sourceDir
-
-# Urgh.
-# https://stackoverflow.com/questions/2124753/how-can-i-use-powershell-with-the-visual-studio-command-prompt
-cmd /c """$vsDir\VC\Auxiliary\Build\vcvars64.bat"" & set" | foreach {
-    if ($_ -match "=") {
-        $v = $_.split("="); set-item -force -path "ENV:\$($v[0])" -value "$($v[1])"
-    }
-}
 
 if ($clean) {
     if (Test-Path $buildDir) {
@@ -49,6 +26,28 @@ if ($clean) {
         Remove-Item -Recurse -Force -Path $artifactsDir
     }
     New-Item $artifactsDir -ItemType "directory"
+}
+
+if ($vsDir -eq $null -or $vsDir -eq "") {
+    if (-not (Get-Command "vswhere" -ErrorAction SilentlyContinue)) {
+        Write-Host "Either install vswhere or set the -vsDir option"
+    }
+    $vsDir = & vswhere -property installationPath
+}
+
+# if (-not (Test-Path "$vsDir\Common7\Tools\Launch-VsDevShell.ps1")) {
+#     Write-Host "Launch-VsDevShell does not exist"
+#     exit 1
+# }
+# . "$vsDir\Common7\Tools\Launch-VsDevShell.ps1"
+# Set-Location $sourceDir
+
+# Urgh.
+# https://stackoverflow.com/questions/2124753/how-can-i-use-powershell-with-the-visual-studio-command-prompt
+cmd /c """$vsDir\VC\Auxiliary\Build\vcvars64.bat"" & set" | foreach {
+    if ($_ -match "=") {
+        $v = $_.split("="); set-item -force -path "ENV:\$($v[0])" -value "$($v[1])"
+    }
 }
 
 if (-not $noConfigure) {
@@ -76,10 +75,14 @@ if ($install) {
 }
 
 if ($pack) {
-    $packArgs = "-property:PackageOutputPath=""$artifactsDir"""
-    $packArgs += " -property:Configuration=Release"
-    if ("$version" -ne $null) {
-        $packArgs += " -property:Version=""$(version.Trim('v'))"""
+    [string[]] $packArgs = "-property:PackageOutputPath=""$artifactsDir"""
+    $packArgs += "-property:Configuration=Release"
+    if ($tagVersion) {
+        $version = & git describe --tags --abbrev=0
+        $version = $version.Trim('v')
+    }
+    if ($version -ne $null) {
+        $packArgs += "-property:Version=""$version"""
     }
     Write-Host "Packing helveg"
     dotnet msbuild "$sourceDir" `
