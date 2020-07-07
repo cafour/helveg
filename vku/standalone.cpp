@@ -49,7 +49,7 @@ vku::Instance vku::Instance::basic(
     if (isDebug) {
         extensionNames.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
         layerNames.push_back("VK_LAYER_KHRONOS_validation");
-        messengerCreateInfo = vku::DebugMessenger::cerrCreateInfo();
+        messengerCreateInfo = vku::DebugMessenger::vkuLogCreateInfo();
         createInfo.pNext = &messengerCreateInfo;
     }
 
@@ -63,7 +63,7 @@ vku::Instance vku::Instance::basic(
 
     auto instance = vku::Instance(createInfo);
     if (isDebug && messenger) {
-        *messenger = vku::DebugMessenger::cerr(instance);
+        *messenger = vku::DebugMessenger::vkuLog(instance);
     }
     return instance;
 }

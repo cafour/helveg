@@ -1,5 +1,7 @@
 #include "base.hpp"
+
 #include "containers.hpp"
+#include "log.hpp"
 
 #include <algorithm>
 #include <cstring>
@@ -13,7 +15,9 @@ void vku::log(VkResult result, const char *filename, int line, const char *what)
     if (result == VK_SUCCESS) {
         return;
     }
-    std::cerr << "[" << resultString(result) << "] " << filename << ":" << line << ": " << what << std::endl;
+    std::stringstream ss;
+    ss << "[" << resultString(result) << "] " << filename << ":" << line << ": " << what;
+    logError(ss.str());
 }
 
 void vku::ensure(VkResult result, const char *filename, int line, const char *what)

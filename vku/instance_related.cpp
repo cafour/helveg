@@ -1,26 +1,34 @@
 #include "instance_related.hpp"
 
+#include "log.hpp"
+
 #include <iostream>
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
-    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-    VkDebugUtilsMessageTypeFlagsEXT messageType,
-    const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
+    VkDebugUtilsMessageSeverityFlagBitsEXT severity,
+    VkDebugUtilsMessageTypeFlagsEXT type,
+    const VkDebugUtilsMessengerCallbackDataEXT *data,
     void *pUserData)
 {
-    (void)messageSeverity;
-    (void)messageType;
+    (void)type;
     (void)pUserData;
-    std::cerr << "[" << pCallbackData->pMessageIdName << "] " << pCallbackData->pMessage << std::endl;
+    if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
+        vku::logError(data->pMessage);
+    } else if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
+        vku::logWarning(data->pMessage);
+    } else if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT) {
+        vku::logInformation(data->pMessage);
+    } else {
+        vku::logDebug(data->pMessage);
+    }
     return VK_FALSE;
 }
 
-VkDebugUtilsMessengerCreateInfoEXT vku::DebugMessenger::cerrCreateInfo()
+VkDebugUtilsMessengerCreateInfoEXT vku::DebugMessenger::vkuLogCreateInfo()
 {
     VkDebugUtilsMessengerCreateInfoEXT createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-    createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT
-        | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT
+    createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT
         | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
     createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT
         | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT
@@ -29,9 +37,9 @@ VkDebugUtilsMessengerCreateInfoEXT vku::DebugMessenger::cerrCreateInfo()
     return createInfo;
 }
 
-vku::DebugMessenger vku::DebugMessenger::cerr(VkInstance instance)
+vku::DebugMessenger vku::DebugMessenger::vkuLog(VkInstance instance)
 {
-    auto createInfo = cerrCreateInfo();
+    auto createInfo = vkuLogCreateInfo();
     return vku::DebugMessenger(instance, createInfo);
 }
 

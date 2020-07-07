@@ -16,8 +16,8 @@ class DebugMessenger : public InstanceConstructible<
 public:
     using InstanceConstructible::InstanceConstructible;
 
-    static VkDebugUtilsMessengerCreateInfoEXT cerrCreateInfo();
-    static DebugMessenger cerr(VkInstance instance);
+    static VkDebugUtilsMessengerCreateInfoEXT vkuLogCreateInfo();
+    static DebugMessenger vkuLog(VkInstance instance);
 };
 
 class Surface : public InstanceRelated<VkSurfaceKHR> {

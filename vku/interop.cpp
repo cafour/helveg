@@ -32,14 +32,10 @@ static int hello(std::function<void()> run)
     try {
         run();
     } catch (const std::exception &e) {
-        std::cerr << std::string(e.what()) << std::endl;
-        std::cout.flush();
-        std::cerr.flush();
+        vku::logCritical(e.what());
         return EXIT_FAILURE;
     }
 
-    std::cout.flush();
-    std::cerr.flush();
     return EXIT_SUCCESS;
 }
 
