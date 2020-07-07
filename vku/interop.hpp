@@ -15,6 +15,8 @@
 extern "C" {
     EXPORT void setDebug(bool debug);
 
+    EXPORT void setLogCallback(void (*callback)(int level, const char *message));
+
     EXPORT int helloTriangle();
 
     EXPORT int helloMesh(vku::MeshRender::Mesh mesh);

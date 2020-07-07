@@ -15,7 +15,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System.Collections.Immutable;
 using System;
-using System.CommandLine.Builder;
 
 namespace Helveg
 {
@@ -137,6 +136,8 @@ namespace Helveg
             {
                 b.AddConsole();
             });
+            var renderLogger = Logging.CreateLogger("Renderer");
+            Vku.SetLogCallback((l, m) => renderLogger.Log((LogLevel)l, m));
 
             var rootCmd = new RootCommand("A software visualization tool")
             {

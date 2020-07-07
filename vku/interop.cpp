@@ -1,4 +1,5 @@
 #include "interop.hpp"
+#include "log.hpp"
 
 #include <cstdlib>
 #include <functional>
@@ -10,6 +11,17 @@ static bool isDebug = false;
 void setDebug(bool debug)
 {
     isDebug = debug;
+}
+
+void setLogCallback(void (*callback)(int level, const char *message))
+{
+    if (!callback) {
+        throw std::invalid_argument("The logging callback must not be false-ish.");
+    }
+
+    vku::onLog([callback](vku::LogLevel l, const std::string& m) {
+        callback(l, m.c_str());
+    });
 }
 
 static int hello(std::function<void()> run)

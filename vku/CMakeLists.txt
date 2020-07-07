@@ -38,6 +38,8 @@ set(VKU_SOURCES
     render_pass.hpp
     render_pass.cpp
     wrapper.hpp
+    log.hpp
+    log.cpp
     
     # cores
     cores.hpp

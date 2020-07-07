@@ -6,9 +6,15 @@ namespace Helveg.Render
 {
     public static class Vku
     {
+        public delegate void LogHandler(int level, string message);
+
 #pragma warning disable IDE1006
         [DllImport("vku", CallingConvention = CallingConvention.Cdecl)]
         private static extern bool setDebug(bool debug);
+
+
+        [DllImport("vku", CallingConvention = CallingConvention.Cdecl)]
+        private static extern bool setLogCallback(LogHandler handler);
 
         [DllImport("vku", CallingConvention = CallingConvention.Cdecl)]
         private static extern int helloTriangle();
@@ -35,6 +41,11 @@ namespace Helveg.Render
         public static void SetDebug(bool debug)
         {
             setDebug(debug);
+        }
+
+        public static void SetLogCallback(LogHandler handler)
+        {
+            setLogCallback(handler);
         }
 
         public static unsafe void HelloTriangle()
