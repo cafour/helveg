@@ -42,7 +42,7 @@ vku::WorldRender::WorldRender(int width, int height, World world, bool debug)
     vkGetPhysicalDeviceProperties(_displayCore.physicalDevice(), &properties);
     std::stringstream ss;
     ss << "Using device '" << properties.deviceName << "'.";
-    vku::logInformation(ss.str());
+    vku::logDebug(ss.str());
 
     for (size_t i = 0; i < world.count; ++i) {
         _meshes.push_back(vku::MeshCore::fromChunk(_transferCore, _world.chunks[i]));

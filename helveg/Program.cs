@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.CommandLine;
+﻿using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.IO;
 using System.Linq;
@@ -15,6 +14,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System.Collections.Immutable;
 using System;
+using System.CommandLine.Builder;
 
 namespace Helveg
 {
@@ -25,55 +25,81 @@ namespace Helveg
         public const int RegularIterationCount = 5000;
         public const int StrongGravityIterationCount = 500;
         public const int NoOverlapIterationCount = 5000;
+        public const string VkDebugAlias = "--vk-debug";
+        public const string VerboseAlias = "--verbose";
+        public const string ForceAlias = "--force";
 
         public static ILoggerFactory Logging = new NullLoggerFactory();
+        public static bool IsForced = false;
 
-        public static async Task<AnalyzedProject> RunAnalysis(string csprojPath, bool ignoreCache = false)
+        public static async Task<T?> GetCache<T>(string path, ILogger logger)
+            where T : class
+        {
+            if (File.Exists(path) && !IsForced)
+            {
+                try
+                {
+                    using var stream = new FileStream(path, FileMode.Open);
+                    return await JsonSerializer.DeserializeAsync<T>(stream, Serialize.JsonOptions);
+                }
+                catch(JsonException e)
+                {
+                    logger.LogDebug(e, $"Failed to read the '{path}' cache.");
+                }
+            }
+            return null;
+        }
+
+        public static async Task<AnalyzedProject?> RunAnalysis(FileSystemInfo source)
         {
             var logger = Logging.CreateLogger("Analysis");
-            if (File.Exists(AnalysisCacheFilename) && !ignoreCache)
+            FileInfo? csprojFile = source switch
             {
-                using var stream = new FileStream(AnalysisCacheFilename, FileMode.Open);
-                var project = await JsonSerializer.DeserializeAsync<SerializableProject>(stream, Serialize.JsonOptions);
-                if (project.CsprojPath == csprojPath)
-                {
-                    logger.LogInformation("Using cached analysis results.");
-                    return project.ToAnalyzed();
-                }
+                FileInfo f => f.Extension == ".csproj" ? f : null,
+                DirectoryInfo d => d.EnumerateFiles("*.csproj").FirstOrDefault(),
+                _ => throw new NotImplementedException()
+            };
+
+            if (csprojFile is null)
+            {
+                logger.LogCritical($"No '.csproj' file could be located in the '{source}' directory.");
+                return null;
+            }
+
+            logger.LogDebug($"Found '{csprojFile.FullName}'.");
+
+            var serializableProject = await GetCache<SerializableProject>(AnalysisCacheFilename, logger);
+            if (serializableProject is object && serializableProject.CsprojPath == csprojFile.FullName)
+            {
+                logger.LogInformation("Using cached analysis results.");
+                return serializableProject.ToAnalyzed();
             }
 
             logger.LogInformation("Analyzing project.");
-            MSBuildLocator.RegisterDefaults();
-            var analyzedProject = await Analyze.AnalyzeProject(csprojPath);
+            var vsInstance = MSBuildLocator.RegisterDefaults();
+            logger.LogDebug($"Using MSBuild at '{vsInstance.MSBuildPath}'.");
+
+            var analyzedProject = await Analyze.AnalyzeProject(csprojFile.FullName);
             {
                 using var stream = new FileStream(AnalysisCacheFilename, FileMode.Create);
                 await JsonSerializer.SerializeAsync(
                     stream,
-                    SerializableProject.FromAnalyzed(csprojPath, analyzedProject),
+                    SerializableProject.FromAnalyzed(csprojFile.FullName, analyzedProject),
                     Serialize.JsonOptions);
             }
             return analyzedProject;
         }
 
-        public static async Task<ImmutableDictionary<AnalyzedTypeId, Vector2>> RunFdg(
-            AnalyzedProject project,
-            bool ignoreCache = false)
+        public static async Task<ImmutableDictionary<AnalyzedTypeId, Vector2>> RunFdg(AnalyzedProject project)
         {
             var logger = Logging.CreateLogger("Fdg");
-
-            if (File.Exists(FdgCacheFilename) && !ignoreCache)
+            var serializableGraph = await GetCache<SerializableGraph>(FdgCacheFilename, logger);
+            if (serializableGraph is object && serializableGraph.Name == project.Name)
             {
-                using var stream = new FileStream(FdgCacheFilename, FileMode.Open);
-                var graph = await JsonSerializer.DeserializeAsync<SerializableGraph>(
-                    stream,
-                    Serialize.JsonOptions);
-                if (graph.Name == project.Name)
-                {
-                    logger.LogInformation("Using cached positional results.");
-                    return graph.Positions.ToImmutableDictionary(
-                        p => AnalyzedTypeId.Parse(p.Key),
-                        p => p.Value);
-                }
+                logger.LogInformation("Using cached positional results.");
+                return serializableGraph.Positions.ToImmutableDictionary(
+                    p => AnalyzedTypeId.Parse(p.Key),
+                    p => p.Value);
             }
 
             var (names, matrix) = project.GetWeightMatrix();
@@ -113,45 +139,67 @@ namespace Helveg
             return results;
         }
 
-        public static async Task RunPipeline(
-            FileSystemInfo project,
-            bool ignoreCache = false,
-            bool vkDebug = false)
+        public static async Task RunPipeline(FileSystemInfo source)
         {
-            var analyzedProject = await RunAnalysis(project.FullName, ignoreCache);
-            var positions = await RunFdg(analyzedProject, ignoreCache);
+            var analyzedProject = await RunAnalysis(source);
+            if (analyzedProject is null)
+            {
+                return;
+            }
 
-            var world = Terrain.GenerateIsland(analyzedProject, positions).Build();
+            var positions = await RunFdg(analyzedProject.Value);
+
+            var world = Terrain.GenerateIsland(analyzedProject.Value, positions).Build();
             foreach (var chunk in world.Chunks)
             {
                 chunk.HollowOut(new Block { Flags = BlockFlags.IsAir });
             }
-            Vku.SetDebug(vkDebug);
             Vku.HelloWorld(world);
         }
 
         public static unsafe int Main(string[] args)
         {
-            Logging = LoggerFactory.Create(b =>
-            {
-                b.AddConsole();
-            });
-            var renderLogger = Logging.CreateLogger("Renderer");
-            Vku.SetLogCallback((l, m) => renderLogger.Log((LogLevel)l, m));
-
             var rootCmd = new RootCommand("A software visualization tool")
             {
-                new Argument<FileSystemInfo>("project", "Path to an MSBuild project"),
-                new Option<bool>("--ignore-cache", "Ignore cached results"),
-                new Option<bool>("--vk-debug", "Enable/disable Vulkan validation layers")
+                Handler = CommandHandler.Create<FileSystemInfo>(RunPipeline)
             };
-            rootCmd.Handler = CommandHandler.Create<FileSystemInfo, bool, bool>(RunPipeline);
+            rootCmd.AddGlobalOption(new Option<bool>(VkDebugAlias, "Enable Vulkan validation layers"));
+            rootCmd.AddGlobalOption(new Option<bool>(new[] { "-v", VerboseAlias }, "Set logging level to Debug"));
+            rootCmd.AddGlobalOption(new Option<bool>(new[] { "-f", ForceAlias}, "Overwrite cached results"));
+            rootCmd.AddArgument(new Argument<FileSystemInfo>(
+                name: "SOURCE",
+                description: "Path to a project or a solution",
+                getDefaultValue: () => new DirectoryInfo(Environment.CurrentDirectory)));
 
             var debugCmd = new Command("debug", "Runs a debug utility");
             DebugDraw.AddDrawCommands(debugCmd);
             DebugGraph.AddGraphCommands(debugCmd);
             rootCmd.AddCommand(debugCmd);
 
+
+            var builder = new CommandLineBuilder(rootCmd);
+            builder.UseDefaults();
+            builder.UseMiddleware(c =>
+            {
+                IsForced = c.ParseResult.ValueForOption<bool>(ForceAlias);
+
+                if (c.ParseResult.ValueForOption<bool>(VkDebugAlias))
+                {
+                    Vku.SetDebug(true);
+                }
+
+                LogLevel minimumLevel = c.ParseResult.ValueForOption<bool>(VerboseAlias)
+                    ? LogLevel.Debug
+                    : LogLevel.Information;
+                Logging = LoggerFactory.Create(b =>
+                {
+                    b.AddConsole();
+                    b.SetMinimumLevel(minimumLevel);
+                });
+                var renderLogger = Logging.CreateLogger("Renderer");
+                Vku.SetLogCallback((l, m) => renderLogger.Log((LogLevel)l, m));
+            });
+            builder.Build(); // Sets ImplicitParser inside the root command. Yes, it's weird, I know.
             return rootCmd.Invoke(args);
         }
     }

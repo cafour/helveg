@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
@@ -7,6 +8,8 @@ namespace Helveg.Render
     public static class Vku
     {
         public delegate void LogHandler(int level, string message);
+        // it's necessary to keep a reference to the logging handlers so that they don't get GC'd
+        private static readonly List<LogHandler> logHandlers = new List<LogHandler>();
 
 #pragma warning disable IDE1006
         [DllImport("vku", CallingConvention = CallingConvention.Cdecl)]
@@ -45,6 +48,7 @@ namespace Helveg.Render
 
         public static void SetLogCallback(LogHandler handler)
         {
+            logHandlers.Add(handler);
             setLogCallback(handler);
         }
 

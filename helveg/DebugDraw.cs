@@ -16,8 +16,7 @@ namespace Helveg
         {
             var vkDebugOpt = new Option<bool>(
                 alias: "--vk-debug",
-                description: "Enable/disable Vulkan validation layers",
-                getDefaultValue: () => true);
+                description: "Enable Vulkan validation layers");
 
             var triangleCmd = new Command("triangle", "Draw a triangle")
             {

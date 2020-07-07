@@ -26,7 +26,6 @@ namespace Helveg
 
         public static void AddGraphCommands(Command parent)
         {
-            var inputArg = new Argument<FileInfo>("input", "Path to a C# project or a serialized analysis file");
             var formatOpt = new Option<GraphFormat>(
                 aliases: new[] { "-f", "--format" },
                 getDefaultValue: () => GraphFormat.Vku,
@@ -43,14 +42,12 @@ namespace Helveg
                 aliases: new[] { "-e", "--every" },
                 getDefaultValue: () => 100,
                 description: "Save node positions every n iterations (GraphViz)");
-            var ignoreCacheOpt = new Option<bool>(
-                alias: "--ignore-cache",
-                getDefaultValue: () => false,
-                description: "Ignore cached analysis results");
+            var ignoreCacheOpt = new Option<FileInfo>(
+                alias: "--json",
+                description: "Path to a JSON document with results of an analysis");
 
             var eadesCmd = new Command("eades", "Animates the Eades'84 algorithm")
             {
-                inputArg,
                 formatOpt,
                 iterationsOpt,
                 speedOpt,
@@ -62,7 +59,6 @@ namespace Helveg
 
             var frCmd = new Command("fr", "Animates the Fruchterman-Reingold algorithm")
             {
-                inputArg,
                 formatOpt,
                 iterationsOpt,
                 new Option<float>(
@@ -82,7 +78,6 @@ namespace Helveg
 
             var fdgCmd = new Command("fdg", "Animates the ForceAtlas2-inspired algorithm")
             {
-                inputArg,
                 formatOpt,
                 new Option<int>(
                     aliases: new [] {"-r", "--regular"},
@@ -105,16 +100,17 @@ namespace Helveg
         }
 
         public static async Task RunEades(
-            FileInfo input,
+            FileSystemInfo source,
+            FileInfo json,
             GraphFormat format,
             int iterations,
             int speed,
-            int every,
-            bool ignoreCache)
+            int every)
         {
             Eades.State state = default;
             await DrawGraph(
-                input: input,
+                source: source,
+                json: json,
                 init: g =>
                 {
                     state = Eades.Create(g.Positions, g.Weights);
@@ -128,23 +124,23 @@ namespace Helveg
                 iterationCount: iterations,
                 prefix: "eades",
                 every: every,
-                speed: speed,
-                ignoreCache: ignoreCache);
+                speed: speed);
         }
 
         public static async Task RunFruchtermanReingold(
-            FileInfo input,
+            FileSystemInfo source,
+            FileInfo json,
             GraphFormat format,
             int iterations,
             float width,
             float height,
             int speed,
-            int every,
-            bool ignoreCache)
+            int every)
         {
             FR.State state = default;
             await DrawGraph(
-                input: input,
+                source: source,
+                json: json,
                 init: g =>
                 {
                     state = FR.Create(g.Positions, g.Weights, width, height);
@@ -158,35 +154,39 @@ namespace Helveg
                 iterationCount: iterations,
                 prefix: "eades",
                 every: every,
-                speed: speed,
-                ignoreCache: ignoreCache);
+                speed: speed);
         }
 
         public static async Task RunFdg(
-            FileInfo input,
+            FileSystemInfo source,
+            FileInfo json,
             GraphFormat format,
             int regular,
             int strongGravity,
             int noOverlap,
             int speed,
-            int every,
-            bool ignoreCache)
+            int every)
         {
             var logger = Program.Logging.CreateLogger("Debug Fdg");
             Fdg.State state = default;
             var graph = await SetUpGraph(
-                input: input,
+                source: source,
+                json: json,
                 init: g =>
                 {
                     state = Fdg.Create(g.Positions, g.Weights);
                     state.NodeSize = 2;
-                },
-                ignoreCache: ignoreCache);
+                });
+            if (graph is null)
+            {
+                return;
+            }
+
             if (regular > 0)
             {
                 logger.LogInformation("Processing regular iterations.");
                 graph = DrawGraph(
-                    graph: graph,
+                    graph: graph.Value,
                     step: (i, g) =>
                     {
                         Fdg.Step(ref state);
@@ -203,7 +203,7 @@ namespace Helveg
                 logger.LogInformation("Processing strong gravity iterations.");
                 state.IsGravityStrong = true;
                 graph = DrawGraph(
-                    graph: graph,
+                    graph: graph.Value,
                     step: (i, g) =>
                     {
                         Fdg.Step(ref state);
@@ -221,7 +221,7 @@ namespace Helveg
                 state.IsGravityStrong = false;
                 state.PreventOverlapping = true;
                 DrawGraph(
-                    graph: graph,
+                    graph: graph.Value,
                     step: (i, g) =>
                     {
                         Fdg.Step(ref state);
@@ -235,39 +235,49 @@ namespace Helveg
             }
         }
 
-        private static async Task<Graph> DrawGraph(
-            FileInfo input,
+        private static async Task<Graph?> DrawGraph(
+            FileSystemInfo source,
+            FileInfo json,
             Action<Graph> init,
             Func<int, Graph, Graph> step,
             GraphFormat format,
             int iterationCount,
             string prefix,
             int every,
-            int speed,
-            bool ignoreCache)
+            int speed)
         {
-            var graph = await SetUpGraph(input, init, ignoreCache);
-            DrawGraph(graph, step, format, iterationCount, prefix, every, speed);
+            var graph = await SetUpGraph(source, json, init);
+            if (graph is null)
+            {
+                return null;
+            }
+
+            DrawGraph(graph.Value, step, format, iterationCount, prefix, every, speed);
             return graph;
         }
 
-        private static async Task<Graph> SetUpGraph(
-            FileInfo input,
-            Action<Graph> init,
-            bool ignoreCache)
+        private static async Task<Graph?> SetUpGraph(
+            FileSystemInfo source,
+            FileInfo? json,
+            Action<Graph> init)
         {
-            AnalyzedProject project;
-            if (input.Extension == ".csproj")
+            AnalyzedProject? project;
+            if (json is object)
             {
-                project = await Program.RunAnalysis(input.FullName, ignoreCache);
-            }
-            else
-            {
-                using var stream = new FileStream(input.FullName, FileMode.Open);
+                using var stream = new FileStream(json.FullName, FileMode.Open);
                 project = (await JsonSerializer.DeserializeAsync<SerializableProject>(stream, Serialize.JsonOptions))
                     .ToAnalyzed();
             }
-            var (names, matrix) = project.GetWeightMatrix();
+            else
+            {
+                project = await Program.RunAnalysis(source);
+            }
+            if (project is null)
+            {
+                return null;
+            }
+
+            var (names, matrix) = project.Value.GetWeightMatrix();
             var weights = Graph.UndirectWeights(matrix);
             var labels = names.Select(n => n.ToString()).ToArray();
             var graph = new Graph(new Vector2[matrix.GetLength(0)], weights, labels);
