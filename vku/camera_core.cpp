@@ -90,6 +90,8 @@ void vku::CameraCore::onFocus(int focused)
 
 void vku::CameraCore::onMouseButton(int button, int action, int mods)
 {
+    (void)button;
+    (void)mods;
     if (action == GLFW_PRESS) {
         _displayCore.window().disableCursor();
     }
