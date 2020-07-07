@@ -18,12 +18,14 @@ private:
 
     GLFWwindow *_raw;
     std::vector<std::function<void (double x, double y)>> _mouseMoveHandlers;
-    std::vector<std::function<void (int button, int action, int mods)>> _mousePressHandlers;
-    std::vector<std::function<void (int key, int scancode, int action, int mods)>> _keyPressHandlers;
+    std::vector<std::function<void (int button, int action, int mods)>> _mouseButtonHandlers;
+    std::vector<std::function<void (int key, int scancode, int action, int mods)>> _keyHandlers;
+    std::vector<std::function<void (int focused)>> _focusHandlers;
 
     static void handleMouseMove(GLFWwindow *raw, double x, double y);
-    static void handleMousePress(GLFWwindow *raw, int button, int action, int mods);
-    static void handleKeyPress(GLFWwindow *raw, int key, int scancode, int action, int mods);
+    static void handleMouseButton(GLFWwindow *raw, int button, int action, int mods);
+    static void handleKey(GLFWwindow *raw, int key, int scancode, int action, int mods);
+    static void handleFocus(GLFWwindow *raw, int focused);
 
 public:
     Window()
@@ -39,10 +41,12 @@ public:
     static Window noApi(int width, int height, const std::string &title);
 
     void onMouseMove(std::function<void (double x, double y)> handler);
-    void onMousePress(std::function<void (int button, int action, int mods)> handler);
-    void onKeyPress(std::function<void (int key, int scancode, int action, int mods)> handler);
+    void onMouseButton(std::function<void (int button, int action, int mods)> handler);
+    void onKey(std::function<void (int key, int scancode, int action, int mods)> handler);
+    void onFocus(std::function<void (int focused)> handler);
     glm::dvec2 mousePosition();
     void disableCursor();
+    void resetCursor();
 
     operator GLFWwindow *() { return _raw; }
     GLFWwindow *raw() { return _raw; }

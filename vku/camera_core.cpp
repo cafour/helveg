@@ -18,7 +18,9 @@ vku::CameraCore::CameraCore(vku::DisplayCore &displayCore, vku::RenderCore &rend
     renderCore.onUpdate(std::bind(&vku::CameraCore::onUpdate, this, _1));
     renderCore.onResize(std::bind(&vku::CameraCore::onResize, this, _1, _2));
     displayCore.window().onMouseMove(std::bind(&vku::CameraCore::onMouseMove, this, _1, _2));
-    displayCore.window().onKeyPress(std::bind(&vku::CameraCore::onKeyPress, this, _1, _2, _3, _4));
+    displayCore.window().onKey(std::bind(&vku::CameraCore::onKey, this, _1, _2, _3, _4));
+    displayCore.window().onFocus(std::bind(&vku::CameraCore::onFocus, this, _1));
+    displayCore.window().onMouseButton(std::bind(&vku::CameraCore::onMouseButton, this, _1, _2, _3));
     glm::dvec2 mousePosition = displayCore.window().mousePosition();
     _lastX = static_cast<float>(mousePosition.x);
     _lastY = static_cast<float>(mousePosition.y);
@@ -39,7 +41,7 @@ void vku::CameraCore::onMouseMove(double x, double y)
     _pitch = std::clamp(_pitch, -piHalf + 0.05f, piHalf - 0.05f);
 }
 
-void vku::CameraCore::onKeyPress(int key, int scancode, int action, int mods)
+void vku::CameraCore::onKey(int key, int scancode, int action, int mods)
 {
     (void)scancode;
     (void)mods;
@@ -71,6 +73,25 @@ void vku::CameraCore::onKeyPress(int key, int scancode, int action, int mods)
     case GLFW_KEY_LEFT_SHIFT:
         _move.y = -value;
         break;
+    case GLFW_KEY_ESCAPE:
+        _displayCore.window().resetCursor();
+        break;
+    }
+}
+
+void vku::CameraCore::onFocus(int focused)
+{
+    if (focused) {
+        _displayCore.window().disableCursor();
+    } else {
+        _displayCore.window().resetCursor();
+    }
+}
+
+void vku::CameraCore::onMouseButton(int button, int action, int mods)
+{
+    if (action == GLFW_PRESS) {
+        _displayCore.window().disableCursor();
     }
 }
 

@@ -13,19 +13,27 @@ void vku::Window::handleMouseMove(GLFWwindow *raw, double x, double y)
     }
 }
 
-void vku::Window::handleMousePress(GLFWwindow *raw, int button, int action, int mods)
+void vku::Window::handleMouseButton(GLFWwindow *raw, int button, int action, int mods)
 {
     vku::Window *window = (vku::Window *)glfwGetWindowUserPointer(raw);
-    for (auto handler : window->_mousePressHandlers) {
+    for (auto handler : window->_mouseButtonHandlers) {
         handler(button, action, mods);
     }
 }
 
-void vku::Window::handleKeyPress(GLFWwindow *raw, int key, int scancode, int action, int mods)
+void vku::Window::handleKey(GLFWwindow *raw, int key, int scancode, int action, int mods)
 {
     vku::Window *window = (vku::Window *)glfwGetWindowUserPointer(raw);
-    for (auto handler : window->_keyPressHandlers) {
+    for (auto handler : window->_keyHandlers) {
         handler(key, scancode, action, mods);
+    }
+}
+
+void vku::Window::handleFocus(GLFWwindow *raw, int focused)
+{
+    vku::Window *window = (vku::Window *)glfwGetWindowUserPointer(raw);
+    for (auto handler : window->_focusHandlers) {
+        handler(focused);
     }
 }
 
@@ -35,8 +43,9 @@ vku::Window::Window(GLFWwindow *raw)
     count++;
     glfwSetWindowUserPointer(_raw, this);
     glfwSetCursorPosCallback(_raw, vku::Window::handleMouseMove);
-    glfwSetMouseButtonCallback(_raw, vku::Window::handleMousePress);
-    glfwSetKeyCallback(_raw, vku::Window::handleKeyPress);
+    glfwSetMouseButtonCallback(_raw, vku::Window::handleMouseButton);
+    glfwSetKeyCallback(_raw, vku::Window::handleKey);
+    glfwSetWindowFocusCallback(_raw, vku::Window::handleFocus);
 }
 
 vku::Window::~Window()
@@ -80,14 +89,19 @@ void vku::Window::onMouseMove(std::function<void(double x, double y)> handler)
     _mouseMoveHandlers.push_back(handler);
 }
 
-void vku::Window::onMousePress(std::function<void(int button, int action, int mods)> handler)
+void vku::Window::onMouseButton(std::function<void(int button, int action, int mods)> handler)
 {
-    _mousePressHandlers.push_back(handler);
+    _mouseButtonHandlers.push_back(handler);
 }
 
-void vku::Window::onKeyPress(std::function<void(int key, int scancode, int action, int mods)> handler)
+void vku::Window::onKey(std::function<void(int key, int scancode, int action, int mods)> handler)
 {
-    _keyPressHandlers.push_back(handler);
+    _keyHandlers.push_back(handler);
+}
+
+void vku::Window::onFocus(std::function<void (int focused)> handler)
+{
+    _focusHandlers.push_back(handler);
 }
 
 glm::dvec2 vku::Window::mousePosition()
@@ -100,4 +114,9 @@ glm::dvec2 vku::Window::mousePosition()
 void vku::Window::disableCursor()
 {
     glfwSetInputMode(_raw, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+}
+
+void vku::Window::resetCursor()
+{
+    glfwSetInputMode(_raw, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 }

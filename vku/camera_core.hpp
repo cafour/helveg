@@ -43,7 +43,9 @@ private:
     float _sensitivity = 0.005f;
 
     void onMouseMove(double x, double y);
-    void onKeyPress(int key, int scancode, int action, int mods);
+    void onMouseButton(int button, int action, int mods);
+    void onKey(int key, int scancode, int action, int mods);
+    void onFocus(int focused);
     void onResize(size_t imageCount, VkExtent2D extent);
     void onUpdate(vku::SwapchainFrame &frame);
 
