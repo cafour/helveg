@@ -29,10 +29,10 @@ private:
     std::vector<vku::Buffer> _cameraBuffers;
     std::vector<vku::DeviceMemory> _cameraMemories;
     vku::CameraView _view = {};
-    glm::vec3 _front = {};
-    glm::vec3 _right = {};
-    glm::vec3 _up = {};
-    glm::ivec2 _move = {};
+    glm::vec3 _front = glm::vec3(0.0f);
+    glm::vec3 _right = glm::vec3(0.0f);
+    glm::vec3 _up = glm::vec3(0.0f);
+    glm::vec3 _move = glm::vec3(0.0f);
     double _lastPress = 0.0f;
     double _lastUpdate = 0.0f;
     float _speed = 0.0f;

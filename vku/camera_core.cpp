@@ -43,11 +43,11 @@ void vku::CameraCore::onKeyPress(int key, int scancode, int action, int mods)
 {
     (void)scancode;
     (void)mods;
-    if (action == GLFW_PRESS && _move == glm::ivec2(0)) {
+    if (action == GLFW_PRESS && _move == glm::vec3(0.0f)) {
         _lastPress = glfwGetTime();
     }
 
-    int value = action == GLFW_PRESS || action == GLFW_REPEAT ? 1 : 0;
+    int value = action == GLFW_PRESS || action == GLFW_REPEAT ? 1.0f : 0.0f;
     switch (key) {
     case GLFW_KEY_W:
     case GLFW_KEY_UP:
@@ -59,11 +59,17 @@ void vku::CameraCore::onKeyPress(int key, int scancode, int action, int mods)
         break;
     case GLFW_KEY_A:
     case GLFW_KEY_LEFT:
-        _move.y = -value;
+        _move.z = -value;
         break;
     case GLFW_KEY_D:
     case GLFW_KEY_RIGHT:
+        _move.z = value;
+        break;
+    case GLFW_KEY_SPACE:
         _move.y = value;
+        break;
+    case GLFW_KEY_LEFT_SHIFT:
+        _move.y = -value;
         break;
     }
 }
@@ -107,7 +113,11 @@ void vku::CameraCore::onUpdate(vku::SwapchainFrame &frame)
     double time = glfwGetTime();
     float diff = static_cast<float>(time - _lastUpdate);
     _lastUpdate = time;
-    _view.position += (_front * static_cast<float>(_move.x) + _right * static_cast<float>(_move.y)) * speed * diff;
+    glm::vec3 direction = glm::vec3(0.0f);
+    if (_move != glm::vec3(0.0f)) {
+        direction = glm::normalize(_front * _move.x + _right * _move.z + worldUp * _move.y);
+    }
+    _view.position += direction * speed * diff;
 
     _view.view = glm::lookAt(_view.position, _view.position + _front, _up);
     vku::hostDeviceCopy(_displayCore.device(), &_view, _cameraMemories[frame.index], sizeof(vku::CameraView));

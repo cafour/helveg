@@ -43,10 +43,10 @@ void main()
     float NdotH = max(dot(N, H), 0.0f);
 
     float distance2 = light.position.w == 1.0f ? pow(length(lightVector), 2) : 1.0f;
-    float spec = pow(NdotH, 1.0f);
+    float spec = pow(NdotH, light.specularColor.w);
 
     vec3 color = fragColor * light.ambientColor.rgb
-        + NdotL * fragColor * light.diffuseColor.rgb
+        + NdotL * fragColor * light.diffuseColor.rgb;
         + spec * fragColor * light.specularColor.rgb;
     outColor = vec4(color / distance2, 1.0f);
 }
