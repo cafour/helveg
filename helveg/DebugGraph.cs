@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.Diagnostics;
@@ -102,6 +103,7 @@ namespace Helveg
         public static async Task RunEades(
             FileSystemInfo source,
             FileInfo json,
+            Dictionary<string, string> properties,
             GraphFormat format,
             int iterations,
             int speed,
@@ -111,6 +113,7 @@ namespace Helveg
             await DrawGraph(
                 source: source,
                 json: json,
+                properties: properties,
                 init: g =>
                 {
                     state = Eades.Create(g.Positions, g.Weights);
@@ -130,6 +133,7 @@ namespace Helveg
         public static async Task RunFruchtermanReingold(
             FileSystemInfo source,
             FileInfo json,
+            Dictionary<string, string> properties,
             GraphFormat format,
             int iterations,
             float width,
@@ -141,6 +145,7 @@ namespace Helveg
             await DrawGraph(
                 source: source,
                 json: json,
+                properties: properties,
                 init: g =>
                 {
                     state = FR.Create(g.Positions, g.Weights, width, height);
@@ -160,6 +165,7 @@ namespace Helveg
         public static async Task RunFdg(
             FileSystemInfo source,
             FileInfo json,
+            Dictionary<string, string> properties,
             GraphFormat format,
             int regular,
             int strongGravity,
@@ -172,6 +178,7 @@ namespace Helveg
             var graph = await SetUpGraph(
                 source: source,
                 json: json,
+                properties: properties,
                 init: g =>
                 {
                     state = Fdg.Create(g.Positions, g.Weights);
@@ -238,6 +245,7 @@ namespace Helveg
         private static async Task<Graph?> DrawGraph(
             FileSystemInfo source,
             FileInfo json,
+            IDictionary<string, string> properties,
             Action<Graph> init,
             Func<int, Graph, Graph> step,
             GraphFormat format,
@@ -246,7 +254,7 @@ namespace Helveg
             int every,
             int speed)
         {
-            var graph = await SetUpGraph(source, json, init);
+            var graph = await SetUpGraph(source, json, properties, init);
             if (graph is null)
             {
                 return null;
@@ -259,6 +267,7 @@ namespace Helveg
         private static async Task<Graph?> SetUpGraph(
             FileSystemInfo source,
             FileInfo? json,
+            IDictionary<string, string> properties,
             Action<Graph> init)
         {
             AnalyzedProject? project;
@@ -270,7 +279,7 @@ namespace Helveg
             }
             else
             {
-                project = await Program.RunAnalysis(source);
+                project = await Program.RunAnalysis(source, properties);
             }
             if (project is null)
             {

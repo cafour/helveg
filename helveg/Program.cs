@@ -15,6 +15,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using System.Collections.Immutable;
 using System;
 using System.CommandLine.Builder;
+using System.Collections.Generic;
 
 namespace Helveg
 {
@@ -50,7 +51,9 @@ namespace Helveg
             return null;
         }
 
-        public static async Task<AnalyzedProject?> RunAnalysis(FileSystemInfo source)
+        public static async Task<AnalyzedProject?> RunAnalysis(
+            FileSystemInfo source,
+            IDictionary<string, string> properties)
         {
             var logger = Logging.CreateLogger("Analysis");
             FileInfo? csprojFile = source switch
@@ -79,7 +82,7 @@ namespace Helveg
             logger.LogDebug($"Using MSBuild at '{vsInstance.MSBuildPath}'.");
 
             logger.LogInformation("Analyzing project.");
-            var analyzedProject = await Analyze.AnalyzeProject(csprojFile, logger);
+            var analyzedProject = await Analyze.AnalyzeProject(csprojFile, properties, logger);
             if (analyzedProject is object)
             {
                 using var stream = new FileStream(AnalysisCacheFilename, FileMode.Create);
@@ -140,9 +143,9 @@ namespace Helveg
             return results;
         }
 
-        public static async Task RunPipeline(FileSystemInfo source)
+        public static async Task RunPipeline(FileSystemInfo source, Dictionary<string, string> properties)
         {
-            var analyzedProject = await RunAnalysis(source);
+            var analyzedProject = await RunAnalysis(source, properties);
             if (analyzedProject is null)
             {
                 return;
@@ -162,7 +165,7 @@ namespace Helveg
         {
             var rootCmd = new RootCommand("A software visualization tool")
             {
-                Handler = CommandHandler.Create<FileSystemInfo>(RunPipeline)
+                Handler = CommandHandler.Create(typeof(Program).GetMethod(nameof(RunPipeline))!)
             };
             rootCmd.AddGlobalOption(new Option<bool>(VkDebugAlias, "Enable Vulkan validation layers"));
             rootCmd.AddGlobalOption(new Option<bool>(new[] { "-v", VerboseAlias }, "Set logging level to Debug"));
@@ -171,6 +174,24 @@ namespace Helveg
                 name: "SOURCE",
                 description: "Path to a project or a solution",
                 getDefaultValue: () => new DirectoryInfo(Environment.CurrentDirectory)));
+            var propertyOption = new Option<Dictionary<string, string>>(
+                aliases: new [] {"-p", "--properties"},
+                parseArgument: a => a.Tokens
+                    .Select(t => t.Value.Split('=', 2))
+                    .ToDictionary(p => p[0], p => p[1]),
+                description: "Set an MSBuild property for the loading of projects");
+            propertyOption.Argument.AddValidator(r =>
+            {
+                foreach(var token in r.Tokens)
+                {
+                    if (!token.Value.Contains('='))
+                    {
+                        return "MSBuild properties must follow the '<n>=<v>' format.";
+                    }
+                }
+                return null;
+            });
+            rootCmd.AddOption(propertyOption);
 
             var debugCmd = new Command("debug", "Runs a debug utility");
             DebugDraw.AddDrawCommands(debugCmd);

@@ -19,18 +19,27 @@ namespace Helveg.Analysis
         public const int CompositionWeight = 2;
         public const int ReferenceWeight = 1;
 
-        public static async Task<AnalyzedProject?> AnalyzeProject(FileInfo csprojFile, ILogger? logger = null)
+        public static async Task<AnalyzedProject?> AnalyzeProject(
+            FileInfo csprojFile,
+            IDictionary<string, string> properties,
+            ILogger? logger = null)
         {
-            var workspace = MSBuildWorkspace.Create();
+            var workspace = MSBuildWorkspace.Create(properties);
             var project = await workspace.OpenProjectAsync(csprojFile.FullName);
             if (workspace.Diagnostics.Count != 0)
             {
-                logger?.LogCritical($"Failed to load the '{csprojFile.Name}' project. " +
-                    "Make sure it can be built with 'dotnet build'.");
+                logger.LogDebug("MSBuildWorkspace reported the following diagnostics while loading the "
+                    + $"'{csprojFile.Name}' project:");
                 for (int i = 0; i < workspace.Diagnostics.Count; ++i)
                 {
-                    logger?.LogDebug(new EventId(i), workspace.Diagnostics[i].Message);
+                    logger?.LogDebug(new EventId(0, "MSBuildWorkspace"), workspace.Diagnostics[i].Message);
                 }
+            }
+
+            if (workspace.Diagnostics.Any(d => d.Kind == WorkspaceDiagnosticKind.Failure))
+            {
+                logger?.LogCritical($"Failed to load the '{csprojFile.Name}' project. " +
+                    "Make sure it can be built with 'dotnet build'.");
                 return null;
             }
 
