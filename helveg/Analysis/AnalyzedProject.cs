@@ -65,7 +65,10 @@ namespace Helveg.Analysis
                 foreach (var (friend, weight) in type.Relations)
                 {
                     var friendIndex = Array.IndexOf(ids, friend);
-                    matrix[i, friendIndex] += weight;
+                    if (friendIndex != -1)
+                    {
+                        matrix[i, friendIndex] += weight;
+                    }
                 }
             }
             return (ids, matrix);
