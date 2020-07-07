@@ -87,6 +87,8 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 
 if(WIN32)
     string(REGEX REPLACE "/W3" "/W4" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MT")
+    target_compile_options(${PROJECT_NAME} PRIVATE /MT)
 else()
     target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -pedantic)
 endif()
