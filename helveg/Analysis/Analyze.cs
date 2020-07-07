@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
+using Microsoft.Extensions.Logging;
 
 namespace Helveg.Analysis
 {
@@ -17,21 +19,19 @@ namespace Helveg.Analysis
         public const int CompositionWeight = 2;
         public const int ReferenceWeight = 1;
 
-        public static async Task<AnalyzedProject> AnalyzeProject(string csprojPath)
+        public static async Task<AnalyzedProject?> AnalyzeProject(FileInfo csprojFile, ILogger? logger = null)
         {
             var workspace = MSBuildWorkspace.Create();
-            var project = await workspace.OpenProjectAsync(csprojPath);
+            var project = await workspace.OpenProjectAsync(csprojFile.FullName);
             if (workspace.Diagnostics.Count != 0)
             {
-                var sb = new StringBuilder("The project failed to load with the following MSBuild diagnostics:");
-                sb.AppendLine();
-
+                logger?.LogCritical($"Failed to load the '{csprojFile.Name}' project. " +
+                    "Make sure it can be built with 'dotnet build'.");
                 for (int i = 0; i < workspace.Diagnostics.Count; ++i)
                 {
-                    sb.AppendLine($"[{i}]: {workspace.Diagnostics[i].Kind}:");
-                    sb.AppendLine($"\t{workspace.Diagnostics[i].Message}");
+                    logger?.LogDebug(new EventId(i), workspace.Diagnostics[i].Message);
                 }
-                throw new InvalidOperationException(sb.ToString());
+                return null;
             }
 
             return await AnalyzeProject(project);

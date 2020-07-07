@@ -75,16 +75,17 @@ namespace Helveg
                 return serializableProject.ToAnalyzed();
             }
 
-            logger.LogInformation("Analyzing project.");
             var vsInstance = MSBuildLocator.RegisterDefaults();
             logger.LogDebug($"Using MSBuild at '{vsInstance.MSBuildPath}'.");
 
-            var analyzedProject = await Analyze.AnalyzeProject(csprojFile.FullName);
+            logger.LogInformation("Analyzing project.");
+            var analyzedProject = await Analyze.AnalyzeProject(csprojFile, logger);
+            if (analyzedProject is object)
             {
                 using var stream = new FileStream(AnalysisCacheFilename, FileMode.Create);
                 await JsonSerializer.SerializeAsync(
                     stream,
-                    SerializableProject.FromAnalyzed(csprojFile.FullName, analyzedProject),
+                    SerializableProject.FromAnalyzed(csprojFile.FullName, analyzedProject.Value),
                     Serialize.JsonOptions);
             }
             return analyzedProject;
