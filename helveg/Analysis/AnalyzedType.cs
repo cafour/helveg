@@ -75,15 +75,7 @@ namespace Helveg.Analysis
 
         public int GetSeed()
         {
-            unchecked
-            {
-                int agg = 1846725036;
-                for(int i = 0; i < Id.Name.Length; ++i)
-                {
-                    agg += Id.Name[i];
-                }
-                return agg;
-            }
+            return Checksum.GetCrc32(Id.Name) ^ ISeedable.Arbitrary;
         }
     }
 }
