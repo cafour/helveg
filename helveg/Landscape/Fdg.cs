@@ -158,29 +158,26 @@ namespace Helveg.Landscape
                 globalTraction += (state.Degrees[i] + 1) * (state.Forces[i] + state.PreviousForces[i]).Length() / 2f;
             }
 
-            var globalSpeedDiff = MathF.Min(
-                state.TraSwgRatio * globalTraction / globalSwinging - state.GlobalSpeed,
-                state.GlobalSpeed / 2f);
             state.GlobalSpeed = Math.Clamp(
+                state.TraSwgRatio * globalTraction / globalSwinging,
+                0.5f * state.GlobalSpeed,
+                1.5f * state.GlobalSpeed);
+            state.GlobalSpeed = Math.Clamp(
+                state.GlobalSpeed,
                 state.MinGlobalSpeed,
-                state.GlobalSpeed + globalSpeedDiff,
                 state.MaxGlobalSpeed);
 
             for (int i = 0; i < nodeCount; ++i)
             {
-                if (float.IsNaN(state.Forces[i].X) || float.IsNaN(state.Forces[i].X))
-                {
-                    Debugger.Break();
-                }
                 float speed = state.GlobalSpeedFactor * state.GlobalSpeed
                     / (1 + state.GlobalSpeed * MathF.Sqrt(state.Swinging[i]));
                 var length = state.Forces[i].Length();
                 if (state.PreventOverlapping)
                 {
-                    speed /= 10;
+                    // overlap prevention messes things up, so slow it down preventively
+                    speed *= 0.1f;
                 }
                 speed = MathF.Min(speed, state.MaxSpeedConstant / length);
-
                 state.Positions[i] += state.Forces[i] * speed;
             }
         }
