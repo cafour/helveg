@@ -90,8 +90,8 @@ namespace Helveg.Landscape
                 //     initialBranching: 4,
                 //     branchingDiff: 2);
                 // Spruce.PlaceStructure(world, center, new Block { PaletteIndex = 3 }, sentence);
-                var sentence = Tree.Generate(project.Types[id].GetSeed(), project.Types[id].Members.Length);
-                Tree.Draw(sentence, world, center, new Block { PaletteIndex = 3 }, new Block {PaletteIndex = 5});
+                var sentence = Spruce.Generate(project.Types[id].GetSeed(), project.Types[id].Members.Length);
+                Spruce.Draw(sentence, world, center, new Block { PaletteIndex = 3 }, new Block {PaletteIndex = 5});
             }
             return world;
         }

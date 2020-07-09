@@ -23,14 +23,13 @@ namespace Helveg.Landscape
 
         public static ImmutableArray<LSymbol<Kind>> Generate(int seed, int size)
         {
-            const float length0 = 24f;
-            const float length1 = 16f;
-            const float length2 = 12f;
-            const float length3 = 8f;
+            const float length0 = 6f;
+            const float length1 = 4f;
+            const float length2 = 3f;
+            const float length3 = 2f;
             const float defaultRadius = 0.5f;
-            const float volTransfer0 = 0.18f;
-            const float volTransfer1 = 0.95f;
-
+            const float volTransfer0 = 0.09f;
+            const float volTransfer1 = 0.75f;
 
             var rules = ImmutableDictionary.CreateBuilder<Kind, LRule<Kind>>();
             rules.Add(Kind.ZerothOrder, p =>
@@ -50,6 +49,7 @@ namespace Helveg.Landscape
                         builder.Add(new LSymbol<Kind>(Kind.Pop));
                     }
                 }
+                builder.Add(new LSymbol<Kind>(Kind.RollChange, MathF.PI / 6f));
                 builder.Add(new LSymbol<Kind>(Kind.ZerothOrder));
                 return builder.ToImmutable();
             });
@@ -145,7 +145,8 @@ namespace Helveg.Landscape
             drawRules.Add(Kind.Forward, (s, w) =>
             {
                 var to = s.Position + Point3.Round(s.Forward * s.Parameters[0]);
-                w.OverLine(s.Position, to, p => w.FillSphere(p, wood, (int)MathF.Round(s.Parameters[1] + 0.01f)));
+                var fill = s.Parameters[1] < 1.0f ? leaves : wood;
+                w.OverLine(s.Position, to, p => w.FillSphere(p, fill, (int)MathF.Round(s.Parameters[1] + 0.01f)));
                 return to;
             });
             var turtle = new LTurtle<Kind>(
