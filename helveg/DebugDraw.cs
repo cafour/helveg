@@ -100,10 +100,11 @@ namespace Helveg
         public static void DrawTree(bool vkDebug)
         {
             var logger = Program.Logging.CreateLogger("Debug Tree");
-            var sentence = Tree.Generate(42, 12);
+            var sentence = Spruce.Generate(42, 42);
             logger.LogInformation(string.Concat(sentence));
             var worldBuilder = new WorldBuilder(64, new Block { Flags = BlockFlags.IsAir }, Colours.IslandPalette);
-            Tree.Draw(sentence, worldBuilder, Point3.Zero, new Block { PaletteIndex = 3 }, new Block { PaletteIndex = 5 });
+            // worldBuilder.FillSphere(Point3.Zero, new Block {PaletteIndex = 3}, 3);
+            Spruce.Draw(sentence, worldBuilder, Point3.Zero, new Block { PaletteIndex = 3 }, new Block { PaletteIndex = 5 });
             Vku.SetDebug(vkDebug);
             Vku.HelloWorld(worldBuilder.Build());
         }

@@ -122,7 +122,7 @@ namespace Helveg.Landscape
                     if (error.Z >= 0)
                     {
                         from.Z += sign.Z;
-                        error.Z -= 2 * diff.X;
+                        error.Z -= 2 * diff.Y;
                     }
 
                     error.X += 2 * diff.X;
@@ -138,13 +138,13 @@ namespace Helveg.Landscape
                     if (error.Y >= 0)
                     {
                         from.Y += sign.Y;
-                        error.Y -= 2 * diff.X;
+                        error.Y -= 2 * diff.Z;
                     }
 
                     if (error.X >= 0)
                     {
                         from.X += sign.X;
-                        error.X -= 2 * diff.Y;
+                        error.X -= 2 * diff.Z;
                     }
 
                     error.Y += 2 * diff.Y;
@@ -167,7 +167,7 @@ namespace Helveg.Landscape
                 {
                     for (int z = 0; z < radius; ++z)
                     {
-                        if (x * x + y * y + z * z <= radius * radius * radius)
+                        if (x * x + y * y + z * z < radius * radius)
                         {
                             this[new Point3(x, y, z) + position] = fill;
                             this[new Point3(x, y, -z) + position] = fill;
