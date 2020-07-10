@@ -13,12 +13,19 @@ vku::TriangleRender::TriangleRender(int width, int height, bool debug)
     , _renderPass(vku::RenderPass::basic(_displayCore.device(), _displayCore.surfaceFormat().format))
     , _pipelineLayout(vku::PipelineLayout::basic(_displayCore.device()))
 {
+    auto vertexShader = vku::ShaderModule::inlined(_displayCore.device(), TRIANGLE_VERT, TRIANGLE_VERT_LENGTH);
+    auto fragmentShader = vku::ShaderModule::inlined(_displayCore.device(), TRIANGLE_FRAG, TRIANGLE_FRAG_LENGTH);
+    auto shaderStages = {
+        vku::shaderStage(VK_SHADER_STAGE_VERTEX_BIT, vertexShader),
+        vku::shaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, fragmentShader)
+    };
+
     _pipeline = vku::GraphicsPipeline::basic(
         _displayCore.device(),
         _pipelineLayout,
         _renderPass,
-        vku::ShaderModule::inlined(_displayCore.device(), TRIANGLE_VERT, TRIANGLE_VERT_LENGTH),
-        vku::ShaderModule::inlined(_displayCore.device(), TRIANGLE_FRAG, TRIANGLE_FRAG_LENGTH));
+        shaderStages.begin(),
+        shaderStages.size());
 }
 
 void vku::TriangleRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::SwapchainFrame &frame)

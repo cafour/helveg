@@ -19,9 +19,9 @@ VkVertexInputAttributeDescription vertexInputAttribute(
     uint32_t offset);
 
 VkPipelineVertexInputStateCreateInfo vertexInputState(
-    VkVertexInputBindingDescription *bindings,
+    const VkVertexInputBindingDescription *bindings,
     size_t bindingCount,
-    VkVertexInputAttributeDescription *attributes,
+    const VkVertexInputAttributeDescription *attributes,
     size_t attributeCount);
 
 VkPipelineInputAssemblyStateCreateInfo inputAssemblyState(VkPrimitiveTopology topology);
@@ -34,7 +34,7 @@ VkPipelineRasterizationStateCreateInfo rasterizationState(
 VkPipelineMultisampleStateCreateInfo multisampleState(VkSampleCountFlagBits sampleCount);
 
 VkPipelineColorBlendStateCreateInfo colorBlendState(
-    VkPipelineColorBlendAttachmentState *attachments,
+    const VkPipelineColorBlendAttachmentState *attachments,
     size_t attachmentCount);
 
 VkPipelineColorBlendAttachmentState colorBlendAttachment(
@@ -45,9 +45,9 @@ VkPipelineColorBlendAttachmentState colorBlendAttachment(
         | VK_COLOR_COMPONENT_A_BIT);
 
 VkPipelineViewportStateCreateInfo viewportState(
-    VkViewport *viewports,
+    const VkViewport *viewports,
     size_t viewportCount,
-    VkRect2D *scissors,
+    const VkRect2D *scissors,
     size_t scissorCount);
 
 VkPipelineShaderStageCreateInfo shaderStage(
@@ -58,7 +58,7 @@ VkPipelineShaderStageCreateInfo shaderStage(
 VkPipelineDepthStencilStateCreateInfo depthStencilState(bool useDepthTest);
 
 VkPipelineDynamicStateCreateInfo dynamicState(
-    VkDynamicState *dynamicStates,
+    const VkDynamicState *dynamicStates,
     size_t dynamicStateCount);
 
 class PipelineLayout : public DeviceConstructible<
@@ -70,8 +70,10 @@ public:
     using DeviceConstructible::DeviceConstructible;
     static PipelineLayout basic(
         VkDevice device,
-        const std::vector<VkDescriptorSetLayout> *setLayouts = nullptr,
-        const std::vector<VkPushConstantRange> *pushConstantRanges = nullptr);
+        const VkDescriptorSetLayout *setLayouts = nullptr,
+        size_t setLayoutCount = 0,
+        const VkPushConstantRange *pushConstantRanges = nullptr,
+        size_t pushConstantRangeCount = 0);
 };
 
 class GraphicsPipeline : public DeviceRelated<VkPipeline> {
@@ -96,13 +98,33 @@ public:
         VkDevice device,
         VkPipelineLayout pipelineLayout,
         VkRenderPass renderPass,
-        VkShaderModule vertexShader,
-        VkShaderModule fragmentShader,
-        VkVertexInputBindingDescription *vertexBindings = nullptr,
+        const VkPipelineShaderStageCreateInfo *shaderStages,
+        size_t shaderStageCount,
+        const VkVertexInputBindingDescription *vertexBindings = nullptr,
         size_t vertexBindingCount = 0,
-        VkVertexInputAttributeDescription *vertexAttributes = nullptr,
+        const VkVertexInputAttributeDescription *vertexAttributes = nullptr,
         size_t vertexAttributeCount = 0,
         VkFrontFace frontFace = VK_FRONT_FACE_CLOCKWISE,
+        VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
         bool hasDepthStencil = true);
+};
+
+class ComputePipeline : public DeviceRelated<VkPipeline> {
+public:
+    using DeviceRelated::DeviceRelated;
+
+    ComputePipeline(VkDevice device, VkComputePipelineCreateInfo &createInfo)
+        : DeviceRelated(device, VK_NULL_HANDLE)
+    {
+        ENSURE(vkCreateComputePipelines(device, VK_NULL_HANDLE, 1, &createInfo, nullptr, &_raw));
+    }
+    ~ComputePipeline()
+    {
+        if (_device != VK_NULL_HANDLE && _raw != VK_NULL_HANDLE) {
+            vkDestroyPipeline(_device, _raw, nullptr);
+        }
+    }
+    ComputePipeline(ComputePipeline &&other) noexcept = default;
+    ComputePipeline &operator=(ComputePipeline &&other) noexcept = default;
 };
 }

@@ -34,8 +34,8 @@ vku::MeshRender::MeshRender(int width, int height, MeshRender::Mesh mesh, bool d
         _displayCore.surfaceFormat().format,
         _depthCore.depthFormat());
 
-    std::vector<VkDescriptorSetLayout> setLayouts { _setLayout };
-    _pipelineLayout = vku::PipelineLayout::basic(_displayCore.device(), &setLayouts);
+    auto setLayouts = { _setLayout.raw() };
+    _pipelineLayout = vku::PipelineLayout::basic(_displayCore.device(), setLayouts.begin(), setLayouts.size());
 
     VkVertexInputBindingDescription vertexBindings[] = {
         vku::vertexInputBinding(0, sizeof(glm::vec3), VK_VERTEX_INPUT_RATE_VERTEX),
@@ -47,12 +47,19 @@ vku::MeshRender::MeshRender(int width, int height, MeshRender::Mesh mesh, bool d
         vku::vertexInputAttribute(1, 1, VK_FORMAT_R32G32B32_SFLOAT, 0)
     };
 
+    auto vertexShader = vku::ShaderModule::inlined(_displayCore.device(), MESH_VERT, MESH_VERT_LENGTH);
+    auto fragmentShader = vku::ShaderModule::inlined(_displayCore.device(), MESH_FRAG, MESH_FRAG_LENGTH);
+    auto shaderStages = {
+        vku::shaderStage(VK_SHADER_STAGE_VERTEX_BIT, vertexShader),
+        vku::shaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, fragmentShader)
+    };
+
     _pipeline = vku::GraphicsPipeline::basic(
         _displayCore.device(),
         _pipelineLayout,
         _renderPass,
-        vku::ShaderModule::inlined(_displayCore.device(), MESH_VERT, MESH_VERT_LENGTH),
-        vku::ShaderModule::inlined(_displayCore.device(), MESH_FRAG, MESH_FRAG_LENGTH),
+        shaderStages.begin(),
+        shaderStages.size(),
         vertexBindings,
         2,
         vertexAttributes,

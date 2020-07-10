@@ -60,6 +60,14 @@ void hostDeviceCopy(
     size_t size,
     size_t offset = 0);
 
+void fillBuffer(
+    VkDevice device,
+    VkCommandPool commandPool,
+    VkQueue transferQueue,
+    VkBuffer dst,
+    VkDeviceSize size,
+    uint32_t data);
+
 VkFormat findSupportedFormat(
     VkPhysicalDevice physicalDevice,
     const std::vector<VkFormat> &candidates,

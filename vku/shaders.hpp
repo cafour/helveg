@@ -41,3 +41,15 @@ extern const uint32_t *WORLD_VERT;
 
 extern const size_t WORLD_FRAG_LENGTH;
 extern const uint32_t *WORLD_FRAG;
+
+extern const size_t FIRE_COMP_LENGTH;
+extern const uint32_t *FIRE_COMP;
+
+extern const size_t FIRE_VERT_LENGTH;
+extern const uint32_t *FIRE_VERT;
+
+extern const size_t FIRE_GEOM_LENGTH;
+extern const uint32_t *FIRE_GEOM;
+
+extern const size_t FIRE_FRAG_LENGTH;
+extern const uint32_t *FIRE_FRAG;

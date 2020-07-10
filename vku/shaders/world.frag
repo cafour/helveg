@@ -31,8 +31,6 @@ void main()
     vec3 dx = dFdx(fragPosition);
     vec3 dy = dFdy(fragPosition);
     vec3 N = normalize(cross(dx, dy));
-    // float light = max(0.0f, dot(lightDirection, N));
-    // outColor = light * vec4(fragColor, 1.0f);
 
     vec3 lightVector = light.position.xyz - fragPosition * light.position.w;
     vec3 L = normalize(lightVector);

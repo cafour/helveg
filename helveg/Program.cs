@@ -131,8 +131,8 @@ namespace Helveg
             }
 
             var results = names.Zip(positions).ToImmutableDictionary(p => p.First, p => p.Second);
+            using (var stream = new FileStream(FdgCacheFilename, FileMode.Create))
             {
-                var stream = new FileStream(FdgCacheFilename, FileMode.Create);
                 var graph = new SerializableGraph
                 {
                     Name = project.Name,

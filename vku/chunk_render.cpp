@@ -32,14 +32,14 @@ vku::ChunkRender::ChunkRender(int width, int height, Chunk chunk, bool debug)
         vku::descriptorBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT)
     };
     _setLayout = vku::DescriptorSetLayout::basic(_displayCore.device(), bindings, 1);
-    std::vector<VkDescriptorSetLayout> setLayouts { _setLayout };
+    auto setLayouts = { _setLayout.raw() };
 
     _renderPass = vku::RenderPass::basic(
         _displayCore.device(),
         _displayCore.surfaceFormat().format,
         _depthCore.depthFormat());
 
-    _pipelineLayout = vku::PipelineLayout::basic(_displayCore.device(), &setLayouts);
+    _pipelineLayout = vku::PipelineLayout::basic(_displayCore.device(), setLayouts.begin(), setLayouts.size());
 
     VkVertexInputBindingDescription vertexBindings[] = {
         vku::vertexInputBinding(0, sizeof(glm::vec3), VK_VERTEX_INPUT_RATE_VERTEX),
@@ -51,12 +51,19 @@ vku::ChunkRender::ChunkRender(int width, int height, Chunk chunk, bool debug)
         vku::vertexInputAttribute(1, 1, VK_FORMAT_R32G32B32_SFLOAT, 0)
     };
 
+    auto vertexShader = vku::ShaderModule::inlined(_displayCore.device(), CHUNK_VERT, CHUNK_VERT_LENGTH);
+    auto fragmentShader = vku::ShaderModule::inlined(_displayCore.device(), CHUNK_FRAG, CHUNK_FRAG_LENGTH);
+    auto shaderStages = {
+        vku::shaderStage(VK_SHADER_STAGE_VERTEX_BIT, vertexShader),
+        vku::shaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, fragmentShader)
+    };
+
     _pipeline = vku::GraphicsPipeline::basic(
         _displayCore.device(),
         _pipelineLayout,
         _renderPass,
-        vku::ShaderModule::inlined(_displayCore.device(), CHUNK_VERT, CHUNK_VERT_LENGTH),
-        vku::ShaderModule::inlined(_displayCore.device(), CHUNK_FRAG, CHUNK_FRAG_LENGTH),
+        shaderStages.begin(),
+        shaderStages.size(),
         vertexBindings,
         2,
         vertexAttributes,

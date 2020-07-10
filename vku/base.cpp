@@ -299,6 +299,39 @@ void vku::deviceDeviceCopy(
     ENSURE(vkQueueWaitIdle(transferQueue));
 }
 
+void vku::fillBuffer(
+    VkDevice device,
+    VkCommandPool commandPool,
+    VkQueue transferQueue,
+    VkBuffer dst,
+    VkDeviceSize size,
+    uint32_t data)
+{
+    VkCommandBufferAllocateInfo allocateInfo = {};
+    allocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    allocateInfo.commandPool = commandPool;
+    allocateInfo.commandBufferCount = 1;
+    allocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    vku::CommandBuffers commandBuffers(device, allocateInfo);
+
+    VkCommandBufferBeginInfo beginInfo = {};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    ENSURE(vkBeginCommandBuffer(commandBuffers[0], &beginInfo));
+
+    vkCmdFillBuffer(commandBuffers[0], dst, 0, size, data);
+
+    ENSURE(vkEndCommandBuffer(commandBuffers[0]));
+
+    VkSubmitInfo submitInfo = {};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = commandBuffers;
+    ENSURE(vkQueueSubmit(transferQueue, 1, &submitInfo, VK_NULL_HANDLE));
+
+    ENSURE(vkQueueWaitIdle(transferQueue));
+}
+
 void vku::hostDeviceCopy(
     VkDevice device,
     const void *src,

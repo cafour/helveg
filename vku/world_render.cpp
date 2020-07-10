@@ -1,17 +1,22 @@
 #include "world_render.hpp"
-#include "shaders.hpp"
 #include "log.hpp"
+#include "shaders.hpp"
 
 #include <chrono>
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
+#include <sstream>
 #include <tuple>
 #include <vector>
-#include <sstream>
+
+// If you change this, don't forget about fire.comp as well.
+const size_t emitterParticleCount = 32 * 32;
+const glm::vec4 skyColor = glm::vec4(0.533f, 0.808f, 0.925f, 1.0f);
 
 static VkPhysicalDeviceFeatures getRequiredFeatures()
 {
     VkPhysicalDeviceFeatures features = {};
+    features.geometryShader = VK_TRUE;
     return features;
 }
 
@@ -19,7 +24,7 @@ static const vku::Light sun = vku::Light {
     glm::vec4(-1.0f, -1.0f, -1.0f, 0.0f),
     glm::vec4(0.7f, 0.6f, 0.5f, 0.0f),
     glm::vec4(1.0f, 0.8f, 0.6f, 0.0f),
-    glm::vec4(1.0f, 0.8f, 0.6f, 1.0f),
+    glm::vec4(1.0f, 0.8f, 0.6f, 0.0f),
 };
 
 static const VkPhysicalDeviceFeatures requiredFeatures = getRequiredFeatures();
@@ -41,14 +46,42 @@ vku::WorldRender::WorldRender(int width, int height, World world, bool debug)
     VkPhysicalDeviceProperties properties;
     vkGetPhysicalDeviceProperties(_displayCore.physicalDevice(), &properties);
     std::stringstream ss;
-    ss << "Using device '" << properties.deviceName << "'.";
+    ss << "Using device '" << properties.deviceName << sizeof(vku::Particle) << "'.";
     vku::logDebug(ss.str());
 
-    for (size_t i = 0; i < world.count; ++i) {
+    _renderCore.onResize([this](auto s, auto e) { onResize(s, e); });
+    _renderCore.onUpdate([this](auto &f) { onUpdate(f); });
+
+    _renderPass = vku::RenderPass::basic(
+        _displayCore.device(),
+        _displayCore.surfaceFormat().format,
+        _depthCore.depthFormat());
+
+    _timeBuffer = vku::Buffer::exclusive(
+        _displayCore.device(),
+        sizeof(vku::Time),
+        VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
+    _timeMemory = vku::DeviceMemory::hostCoherentBuffer(
+        _displayCore.physicalDevice(),
+        _displayCore.device(),
+        _timeBuffer);
+
+    // TODO: Hook emitters to helveg
+    _emitters = std::vector<vku::Emitter> { vku::Emitter { glm::vec3(0.0f, 100.0f, 0.0f), 16.0f } };
+
+    createMeshes();
+    createWorldGP();
+    createFireGP();
+    createFireCP();
+}
+
+void vku::WorldRender::createMeshes()
+{
+    for (size_t i = 0; i < _world.count; ++i) {
         _meshes.push_back(vku::MeshCore::fromChunk(_transferCore, _world.chunks[i]));
 
-        float chunkSize = static_cast<float>(world.chunks[i].size);
-        glm::vec3 chunkPosition = world.positions[i];
+        float chunkSize = static_cast<float>(_world.chunks[i].size);
+        glm::vec3 chunkPosition = _world.positions[i];
         _boxMax.x = std::max(_boxMax.x, chunkPosition.x + chunkSize);
         _boxMax.y = std::max(_boxMax.y, chunkPosition.y + chunkSize);
         _boxMax.z = std::max(_boxMax.z, chunkPosition.z + chunkSize);
@@ -57,50 +90,179 @@ vku::WorldRender::WorldRender(int width, int height, World world, bool debug)
         _boxMin.y = std::min(_boxMin.y, chunkPosition.y);
         _boxMin.z = std::min(_boxMin.z, chunkPosition.z);
     }
+}
 
-    VkDescriptorSetLayoutBinding bindings[] = {
-        vku::descriptorBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT),
-        vku::descriptorBinding(1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT)
+void vku::WorldRender::createWorldGP()
+{
+    auto bindings = {
+        vku::descriptorBinding(
+            0,
+            VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            1,
+            VK_SHADER_STAGE_VERTEX_BIT),
+        vku::descriptorBinding(
+            1,
+            VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            1,
+            VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT)
     };
-    _setLayout = vku::DescriptorSetLayout::basic(_displayCore.device(), bindings, 2);
-    std::vector<VkDescriptorSetLayout> setLayouts { _setLayout };
 
-    _renderPass = vku::RenderPass::basic(
+    _worldDSL = vku::DescriptorSetLayout::basic(_displayCore.device(), bindings.begin(), bindings.size());
+    auto setLayouts = { _worldDSL.raw() };
+
+    auto pushConstantRanges = {
+        VkPushConstantRange { VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::vec4) }, // vec3 is vec4 (see 14.5.4.)
+        VkPushConstantRange { VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(glm::vec4), sizeof(vku::Light) }
+    };
+
+    _worldPL = vku::PipelineLayout::basic(
         _displayCore.device(),
-        _displayCore.surfaceFormat().format,
-        _depthCore.depthFormat());
+        setLayouts.begin(),
+        setLayouts.size(),
+        pushConstantRanges.begin(),
+        pushConstantRanges.size());
 
-    std::vector<VkPushConstantRange> pushConstantRanges {
-        VkPushConstantRange { VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::vec4)}, // vec3 is vec4 (see 14.5.4.)
-        VkPushConstantRange { VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(glm::vec4), sizeof(vku::Light)}
-    };
-
-    _pipelineLayout = vku::PipelineLayout::basic(_displayCore.device(), &setLayouts, &pushConstantRanges);
-
-    VkVertexInputBindingDescription vertexBindings[] = {
+    auto vertexBindings = {
         vku::vertexInputBinding(0, sizeof(glm::vec3), VK_VERTEX_INPUT_RATE_VERTEX),
         vku::vertexInputBinding(1, sizeof(glm::vec3), VK_VERTEX_INPUT_RATE_VERTEX),
     };
 
-    VkVertexInputAttributeDescription vertexAttributes[] = {
+    auto vertexAttributes = {
         vku::vertexInputAttribute(0, 0, VK_FORMAT_R32G32B32_SFLOAT, 0),
         vku::vertexInputAttribute(1, 1, VK_FORMAT_R32G32B32_SFLOAT, 0)
     };
 
-    _pipeline = vku::GraphicsPipeline::basic(
-        _displayCore.device(),
-        _pipelineLayout,
-        _renderPass,
-        vku::ShaderModule::inlined(_displayCore.device(), WORLD_VERT, WORLD_VERT_LENGTH),
-        vku::ShaderModule::inlined(_displayCore.device(), WORLD_FRAG, WORLD_FRAG_LENGTH),
-        vertexBindings,
-        2,
-        vertexAttributes,
-        2,
-        VK_FRONT_FACE_COUNTER_CLOCKWISE);
+    auto vertexShader = vku::ShaderModule::inlined(_displayCore.device(), WORLD_VERT, WORLD_VERT_LENGTH);
+    auto fragmentShader = vku::ShaderModule::inlined(_displayCore.device(), WORLD_FRAG, WORLD_FRAG_LENGTH);
+    auto shaderStages = {
+        vku::shaderStage(VK_SHADER_STAGE_VERTEX_BIT, vertexShader),
+        vku::shaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, fragmentShader)
+    };
 
-    _renderCore.onResize([this](auto s, auto e) { onResize(s, e); });
-    _renderCore.onUpdate([this](auto &f) { onUpdate(f); });
+    _worldGP = vku::GraphicsPipeline::basic(
+        _displayCore.device(),
+        _worldPL,
+        _renderPass,
+        shaderStages.begin(),
+        shaderStages.size(),
+        vertexBindings.begin(),
+        vertexBindings.size(),
+        vertexAttributes.begin(),
+        vertexAttributes.size(),
+        VK_FRONT_FACE_COUNTER_CLOCKWISE);
+}
+
+void vku::WorldRender::createFireGP()
+{
+    auto vertexShader = vku::ShaderModule::inlined(_displayCore.device(), FIRE_VERT, FIRE_VERT_LENGTH);
+    auto geometryShader = vku::ShaderModule::inlined(_displayCore.device(), FIRE_GEOM, FIRE_GEOM_LENGTH);
+    auto fragmentShader = vku::ShaderModule::inlined(_displayCore.device(), FIRE_FRAG, FIRE_FRAG_LENGTH);
+    auto shaderStages = {
+        vku::shaderStage(VK_SHADER_STAGE_VERTEX_BIT, vertexShader),
+        vku::shaderStage(VK_SHADER_STAGE_GEOMETRY_BIT, geometryShader),
+        vku::shaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, fragmentShader)
+    };
+
+    auto vertexBindings = {
+        vku::vertexInputBinding(0, sizeof(vku::Particle), VK_VERTEX_INPUT_RATE_VERTEX),
+    };
+
+    auto vertexAttributes = {
+        vku::vertexInputAttribute(0, 0, VK_FORMAT_R32G32B32_SFLOAT, 0),
+        vku::vertexInputAttribute(1, 0, VK_FORMAT_R32G32B32A32_SFLOAT, sizeof(glm::vec4))
+    };
+
+    _fireGP = vku::GraphicsPipeline::basic(
+        _displayCore.device(),
+        _worldPL,
+        _renderPass,
+        shaderStages.begin(),
+        shaderStages.size(),
+        vertexBindings.begin(),
+        vertexBindings.size(),
+        vertexAttributes.begin(),
+        vertexAttributes.size(),
+        VK_FRONT_FACE_COUNTER_CLOCKWISE,
+        VK_PRIMITIVE_TOPOLOGY_POINT_LIST);
+}
+
+void vku::WorldRender::createFireCP()
+{
+    _emitterBuffer = vku::Buffer::exclusive(
+        _displayCore.device(),
+        sizeof(vku::Emitter) * _emitters.size(),
+        VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
+    _emitterMemory = vku::DeviceMemory::deviceLocalData(
+        _transferCore.physicalDevice(),
+        _transferCore.device(),
+        _transferCore.transferPool(),
+        _transferCore.transferQueue(),
+        _emitterBuffer,
+        _emitters.data(),
+        _emitters.size() * sizeof(vku::Emitter));
+
+    _particleBuffer = vku::Buffer::exclusive(
+        _displayCore.device(),
+        sizeof(vku::Particle) * _emitters.size() * emitterParticleCount,
+        VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
+    _particleMemory = vku::DeviceMemory::deviceLocalBuffer(
+        _displayCore.physicalDevice(),
+        _displayCore.device(),
+        _particleBuffer);
+    vku::fillBuffer(
+        _transferCore.device(),
+        _transferCore.transferPool(),
+        _transferCore.transferQueue(),
+        _particleBuffer,
+        VK_WHOLE_SIZE,
+        0u);
+
+    auto bindings = {
+        vku::descriptorBinding(0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, VK_SHADER_STAGE_COMPUTE_BIT),
+        vku::descriptorBinding(1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, VK_SHADER_STAGE_COMPUTE_BIT),
+        vku::descriptorBinding(2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_COMPUTE_BIT),
+    };
+    _fireDSL = vku::DescriptorSetLayout::basic(_displayCore.device(), bindings.begin(), bindings.size());
+    auto setLayouts = { _fireDSL.raw() };
+
+    auto poolSizes = {
+        vku::descriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 2),
+        vku::descriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1)
+    };
+    _fireDP = vku::DescriptorPool::basic(_displayCore.device(), 1, poolSizes.begin(), poolSizes.size());
+    _fireDS = vku::allocateDescriptorSets(_displayCore.device(), _fireDP, _fireDSL, 1)[0];
+    vku::writeWholeBufferDescriptor(
+        _displayCore.device(),
+        VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+        _particleBuffer,
+        _fireDS,
+        0);
+    vku::writeWholeBufferDescriptor(
+        _displayCore.device(),
+        VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+        _emitterBuffer,
+        _fireDS,
+        1);
+    vku::writeWholeBufferDescriptor(
+        _displayCore.device(),
+        VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+        _timeBuffer,
+        _fireDS,
+        2);
+
+    _firePL = vku::PipelineLayout::basic(
+        _displayCore.device(),
+        setLayouts.begin(),
+        setLayouts.size());
+
+    auto computeShader = vku::ShaderModule::inlined(_displayCore.device(), FIRE_COMP, FIRE_COMP_LENGTH);
+
+    VkComputePipelineCreateInfo createInfo = {};
+    createInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
+    createInfo.layout = _firePL;
+    createInfo.stage = vku::shaderStage(VK_SHADER_STAGE_COMPUTE_BIT, computeShader);
+
+    _fireCP = vku::ComputePipeline(_displayCore.device(), createInfo);
 }
 
 void vku::WorldRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::SwapchainFrame &frame)
@@ -108,6 +270,18 @@ void vku::WorldRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::S
     VkCommandBufferBeginInfo beginInfo = {};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     ENSURE(vkBeginCommandBuffer(commandBuffer, &beginInfo));
+
+    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, _fireCP);
+    vkCmdBindDescriptorSets(
+        commandBuffer,
+        VK_PIPELINE_BIND_POINT_COMPUTE,
+        _firePL,
+        0, // first set
+        1, // set count
+        &_fireDS,
+        0,
+        nullptr);
+    vkCmdDispatch(commandBuffer, _emitters.size(), 1, 1);
 
     VkRenderPassBeginInfo renderPassInfo = {};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -119,7 +293,7 @@ void vku::WorldRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::S
     renderPassInfo.renderArea.extent = extent;
 
     VkClearValue clearValues[2];
-    clearValues[0].color = { 0.0f, 0.0f, 0.0f, 1.0f };
+    clearValues[0].color = { skyColor.r, skyColor.g, skyColor.b, skyColor.a };
     clearValues[1].depthStencil = { 1.0f, 0 };
     renderPassInfo.clearValueCount = 2;
     renderPassInfo.pClearValues = clearValues;
@@ -133,41 +307,47 @@ void vku::WorldRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::S
     scissor.extent = extent;
 
     vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipeline);
+    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _worldGP);
     vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
     vkCmdBindDescriptorSets(
         commandBuffer,
         VK_PIPELINE_BIND_POINT_GRAPHICS,
-        _pipelineLayout,
+        _worldPL,
         0, // first set number
         1, // setCount
-        &_descriptorSets[frame.index],
+        &_worldDSs[frame.index],
         0, // dynamic offset count
         nullptr); // dynamic offsets
     vkCmdPushConstants(
         commandBuffer,
-        _pipelineLayout,
+        _worldPL,
         VK_SHADER_STAGE_FRAGMENT_BIT,
         sizeof(glm::vec4), // offset
         sizeof(vku::Light), // size
         &sun);
     for (size_t i = 0; i < _meshes.size(); ++i) {
         auto &mesh = _meshes[i];
-        VkDeviceSize offsets[] = { 0, mesh.vertexCount() * sizeof(glm::vec3) };
-        VkBuffer vertexBuffers[] { mesh.vertexBuffer(), mesh.vertexBuffer() };
-        vkCmdBindVertexBuffers(commandBuffer, 0, 2, vertexBuffers, offsets);
+        std::initializer_list<VkDeviceSize> offsets = { 0, mesh.vertexCount() * sizeof(glm::vec3) };
+        auto vertexBuffers = { mesh.vertexBuffer().raw(), mesh.vertexBuffer().raw() };
+        vkCmdBindVertexBuffers(commandBuffer, 0, vertexBuffers.size(), vertexBuffers.begin(), offsets.begin());
         vkCmdBindIndexBuffer(commandBuffer, mesh.indexBuffer(), 0, VK_INDEX_TYPE_UINT32);
         vkCmdPushConstants(
             commandBuffer,
-            _pipelineLayout,
+            _worldPL,
             VK_SHADER_STAGE_VERTEX_BIT,
             0, // offset
             sizeof(glm::vec3), // size
             &_world.positions[i]);
         vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(mesh.indexCount()), 1, 0, 0, 0);
     }
+
+    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _fireGP);
+
+    VkDeviceSize particlesOffset = 0;
+    vkCmdBindVertexBuffers(commandBuffer, 0, 1, _particleBuffer, &particlesOffset);
+    vkCmdDraw(commandBuffer, _emitters.size() * emitterParticleCount, 1, 0, 0);
     vkCmdEndRenderPass(commandBuffer);
 
     ENSURE(vkEndCommandBuffer(commandBuffer));
@@ -211,20 +391,20 @@ void vku::WorldRender::onResize(size_t imageCount, VkExtent2D)
     VkDescriptorPoolSize poolSizes[] = {
         vku::descriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 2 * imageCount)
     };
-    _descriptorPool = vku::DescriptorPool::basic(_displayCore.device(), imageCount, poolSizes, 1);
-    _descriptorSets = vku::allocateDescriptorSets(_displayCore.device(), _descriptorPool, _setLayout, imageCount);
+    _worldDP = vku::DescriptorPool::basic(_displayCore.device(), imageCount, poolSizes, 1);
+    _worldDSs = vku::allocateDescriptorSets(_displayCore.device(), _worldDP, _worldDSL, imageCount);
     for (size_t i = 0; i < imageCount; ++i) {
         vku::writeWholeBufferDescriptor(
             _displayCore.device(),
             VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
             _uboBuffers[i],
-            _descriptorSets[i],
+            _worldDSs[i],
             0);
         vku::writeWholeBufferDescriptor(
             _displayCore.device(),
             VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
             _cameraCore.cameraBuffers()[i],
-            _descriptorSets[i],
+            _worldDSs[i],
             1);
     }
 }
@@ -240,4 +420,9 @@ void vku::WorldRender::onUpdate(vku::SwapchainFrame &frame)
     model = glm::translate(model, offset);
 
     vku::hostDeviceCopy(_displayCore.device(), &model, _uboBufferMemories[frame.index], sizeof(glm::mat4));
+
+    float currentTime = static_cast<float>(glfwGetTime());
+    _time.secDelta = currentTime - _time.sec;
+    _time.sec = currentTime;
+    vku::hostDeviceCopy(_displayCore.device(), &_time, _timeMemory, sizeof(vku::Time));
 }

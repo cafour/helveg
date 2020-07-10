@@ -40,6 +40,25 @@ namespace vku {
         glm::vec4 specularColor;
     };
 
+    struct Emitter
+    {
+        glm::vec3 position;
+        float size;
+    };
+
+    struct Particle
+    {
+        glm::vec3 position;
+        float pad;
+        glm::vec4 color;
+    };
+
+    struct Time
+    {
+        float sec;
+        float secDelta;
+    };
+
     struct SimpleView {
         alignas(16) glm::mat4 model;
         alignas(16) glm::mat4 view;

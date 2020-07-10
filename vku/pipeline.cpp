@@ -27,9 +27,9 @@ VkVertexInputAttributeDescription vku::vertexInputAttribute(
 }
 
 VkPipelineVertexInputStateCreateInfo vku::vertexInputState(
-    VkVertexInputBindingDescription *bindings,
+    const VkVertexInputBindingDescription *bindings,
     size_t bindingCount,
-    VkVertexInputAttributeDescription *attributes,
+    const VkVertexInputAttributeDescription *attributes,
     size_t attributeCount)
 {
     VkPipelineVertexInputStateCreateInfo createInfo = {};
@@ -86,7 +86,7 @@ VkPipelineColorBlendAttachmentState vku::colorBlendAttachment(
 }
 
 VkPipelineColorBlendStateCreateInfo vku::colorBlendState(
-    VkPipelineColorBlendAttachmentState *attachments,
+    const VkPipelineColorBlendAttachmentState *attachments,
     size_t attachmentCount)
 {
     VkPipelineColorBlendStateCreateInfo createInfo = {};
@@ -97,9 +97,9 @@ VkPipelineColorBlendStateCreateInfo vku::colorBlendState(
 }
 
 VkPipelineViewportStateCreateInfo vku::viewportState(
-    VkViewport *viewports,
+    const VkViewport *viewports,
     size_t viewportCount,
-    VkRect2D *scissors,
+    const VkRect2D *scissors,
     size_t scissorCount)
 {
     VkPipelineViewportStateCreateInfo createInfo = {};
@@ -125,7 +125,7 @@ VkPipelineShaderStageCreateInfo vku::shaderStage(
 }
 
 VkPipelineDynamicStateCreateInfo vku::dynamicState(
-    VkDynamicState *dynamicStates,
+    const VkDynamicState *dynamicStates,
     size_t dynamicStateCount)
 {
     VkPipelineDynamicStateCreateInfo createInfo = {};
@@ -149,18 +149,20 @@ VkPipelineDepthStencilStateCreateInfo vku::depthStencilState(bool useDepthTest)
 
 vku::PipelineLayout vku::PipelineLayout::basic(
     VkDevice device,
-    const std::vector<VkDescriptorSetLayout> *setLayouts,
-    const std::vector<VkPushConstantRange> *pushConstantRanges)
+    const VkDescriptorSetLayout *setLayouts,
+    size_t setLayoutCount,
+    const VkPushConstantRange *pushConstantRanges,
+    size_t pushConstantRangeCount)
 {
     VkPipelineLayoutCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     if (setLayouts) {
-        createInfo.pSetLayouts = setLayouts->data();
-        createInfo.setLayoutCount = static_cast<uint32_t>(setLayouts->size());
+        createInfo.pSetLayouts = setLayouts;
+        createInfo.setLayoutCount = static_cast<uint32_t>(setLayoutCount);
     }
     if (pushConstantRanges) {
-        createInfo.pPushConstantRanges = pushConstantRanges->data();
-        createInfo.pushConstantRangeCount = static_cast<uint32_t>(pushConstantRanges->size());
+        createInfo.pPushConstantRanges = pushConstantRanges;
+        createInfo.pushConstantRangeCount = static_cast<uint32_t>(pushConstantRangeCount);
     }
     return vku::PipelineLayout(device, createInfo);
 }
@@ -169,13 +171,14 @@ vku::GraphicsPipeline vku::GraphicsPipeline::basic(
     VkDevice device,
     VkPipelineLayout pipelineLayout,
     VkRenderPass renderPass,
-    VkShaderModule vertexShader,
-    VkShaderModule fragmentShader,
-    VkVertexInputBindingDescription *vertexBindings,
+    const VkPipelineShaderStageCreateInfo *shaderStages,
+    size_t shaderStageCount,
+    const VkVertexInputBindingDescription *vertexBindings,
     size_t vertexBindingCount,
-    VkVertexInputAttributeDescription *vertexAttributes,
+    const VkVertexInputAttributeDescription *vertexAttributes,
     size_t vertexAttributeCount,
     VkFrontFace frontFace,
+    VkPrimitiveTopology topology,
     bool hasDepthStencil)
 {
     VkGraphicsPipelineCreateInfo createInfo = {};
@@ -188,7 +191,7 @@ vku::GraphicsPipeline vku::GraphicsPipeline::basic(
         vertexAttributeCount);
     createInfo.pVertexInputState = &vertexInputState;
 
-    auto inputAssemblyState = vku::inputAssemblyState(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+    auto inputAssemblyState = vku::inputAssemblyState(topology);
     createInfo.pInputAssemblyState = &inputAssemblyState;
 
     auto rasterizationState = vku::rasterizationState(
@@ -213,12 +216,8 @@ vku::GraphicsPipeline vku::GraphicsPipeline::basic(
         createInfo.pDepthStencilState = &depthStencil;
     }
 
-    VkPipelineShaderStageCreateInfo shaderStages[] = {
-        vku::shaderStage(VK_SHADER_STAGE_VERTEX_BIT, vertexShader),
-        vku::shaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, fragmentShader)
-    };
     createInfo.pStages = shaderStages;
-    createInfo.stageCount = 2;
+    createInfo.stageCount = static_cast<uint32_t>(shaderStageCount);
 
     VkDynamicState dynamicStates[] = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
     auto dynamicState = vku::dynamicState(dynamicStates, 2);
