@@ -3,11 +3,10 @@
 #extension GL_ARB_separate_shader_objects : enable
 // #extension GL_ARB_shading_language_420pack : enable
 
-const float height = 16.0f;
+const float maxHeight = 16.0f;
 const vec4 lowColor = vec4(0.8f, 0.0f, 0.0f, 1.0f);
 const vec4 midColor = vec4(1.0f, 0.5f, 0.0f, 1.0f);
 const vec4 topColor = vec4(0.0f, 0.0f, 0.0f, 1.0f);
-
 
 struct Particle {
     vec3 position;
@@ -20,7 +19,7 @@ struct Emitter {
     float size;
 };
 
-layout(local_size_x = 32, local_size_y = 32) in;
+layout(local_size_x = 32, local_size_z = 32) in;
 
 layout(std430, binding = 0) buffer Particles
 {
@@ -52,7 +51,7 @@ float noise(float v)
     return mix(rand(i), rand(i + 1.0f), smoothstep(0.0f, 1.0f, f));
 }
 
-float modHeight(float v)
+float modHeight(float v, float height)
 {
     return v - floor(v * (1.0f / height)) * height;
 }
@@ -63,12 +62,24 @@ void main()
     uint index = gl_WorkGroupID.x * (gl_WorkGroupSize.x * gl_WorkGroupSize.y) + gl_LocalInvocationIndex;
     vec3 localPos = particles[index].position - emitter.position;
     float snowflake = rand(index);
-    float offsetY = modHeight(snowflake * height + sec * (snowflake + 1.0f) * 4.0f);
-    float offsetX = (noise(gl_LocalInvocationID.x + sec) * 2.0f - 1.0f) * emitter.size;
-    float offsetZ = (noise(gl_LocalInvocationID.z + sec) * 2.0f - 1.0f) * emitter.size;
-    offsetX = gl_LocalInvocationID.x;
-    offsetZ = gl_LocalInvocationID.y;
+
+    float life = (1.0f - pow(snowflake, 4.0f));
+
+    float height = life * maxHeight;
+    float initialHeight = snowflake * height;
+    float velocity = (snowflake + 1.0f) * 4.0f;
+    float offsetY = modHeight(initialHeight + sec * velocity, height);
+
+    float lateral = pow(smoothstep(0.0f, height, offsetY), 0.25f) * life;
+    float radius = pow(rand(gl_LocalInvocationID.x), 2.0f) * emitter.size;
+    float angle = 3.14159f * (rand(gl_LocalInvocationID.z) * 2.0f - 1.0f);
+    float wiggleX = (noise(gl_LocalInvocationID.x * 123.99 + sec) * 2.0f - 1.0f) * 2.0f;
+    float wiggleZ = (noise(gl_LocalInvocationID.z * 98.2002 + sec) * 2.0f - 1.0f) * 2.0f;
+    float offsetX = cos(angle) * radius * lateral + wiggleX;
+    float offsetZ = sin(angle) * radius * lateral + wiggleZ;
+
     particles[index].position = emitter.position + vec3(offsetX, offsetY, offsetZ);
+
     particles[index].color = mix(
         mix(
             lowColor,

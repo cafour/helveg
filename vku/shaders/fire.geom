@@ -7,6 +7,11 @@ layout(location = 0) in vec4[] inColor;
 
 layout(location = 0) out vec4 outColor;
 
+layout(push_constant) uniform Constants
+{
+    layout(offset = 80) float aspect;
+};
+
 void main()
 {
     const vec2 coordinates[] = vec2[](
@@ -17,7 +22,7 @@ void main()
 
     for (int i = 0; i < 4; i++) {
         outColor = inColor[0];
-        gl_Position = gl_in[0].gl_Position + vec4(coordinates[i], 0.0f, 0.0f) * 0.001;
+        gl_Position = gl_in[0].gl_Position + vec4(coordinates[i].x, coordinates[i].y * aspect, 0.0f, 0.0f);
         EmitVertex();
     }
 

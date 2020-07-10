@@ -49,6 +49,8 @@ vku::WorldRender::WorldRender(int width, int height, World world, bool debug)
     ss << "Using device '" << properties.deviceName << sizeof(vku::Particle) << "'.";
     vku::logDebug(ss.str());
 
+    _cameraCore.view().position = glm::vec3(0.0f, 128.0f, 0.0f);
+
     _renderCore.onResize([this](auto s, auto e) { onResize(s, e); });
     _renderCore.onUpdate([this](auto &f) { onUpdate(f); });
 
@@ -112,7 +114,8 @@ void vku::WorldRender::createWorldGP()
 
     auto pushConstantRanges = {
         VkPushConstantRange { VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::vec4) }, // vec3 is vec4 (see 14.5.4.)
-        VkPushConstantRange { VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(glm::vec4), sizeof(vku::Light) }
+        VkPushConstantRange { VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(glm::vec4), sizeof(vku::Light) },
+        VkPushConstantRange { VK_SHADER_STAGE_GEOMETRY_BIT, sizeof(glm::vec4) + sizeof(vku::Light), sizeof(float) }
     };
 
     _worldPL = vku::PipelineLayout::basic(
@@ -327,6 +330,14 @@ void vku::WorldRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::S
         sizeof(glm::vec4), // offset
         sizeof(vku::Light), // size
         &sun);
+    float aspect = viewport.width / viewport.height;
+    vkCmdPushConstants(
+        commandBuffer,
+        _worldPL,
+        VK_SHADER_STAGE_GEOMETRY_BIT,
+        sizeof(glm::vec4) + sizeof(vku::Light), // offset
+        sizeof(float), // size
+        &aspect);
     for (size_t i = 0; i < _meshes.size(); ++i) {
         auto &mesh = _meshes[i];
         std::initializer_list<VkDeviceSize> offsets = { 0, mesh.vertexCount() * sizeof(glm::vec3) };
@@ -411,12 +422,8 @@ void vku::WorldRender::onResize(size_t imageCount, VkExtent2D)
 
 void vku::WorldRender::onUpdate(vku::SwapchainFrame &frame)
 {
-    glm::vec3 worldSize = _boxMax - _boxMin;
-    float scale = 1.0f / std::max({ worldSize.x, worldSize.y, worldSize.z });
     glm::vec3 offset = (_boxMax + _boxMin) / -2.0f;
-
     glm::mat4 model = glm::identity<glm::mat4>();
-    model = glm::scale(model, glm::vec3(scale));
     model = glm::translate(model, offset);
 
     vku::hostDeviceCopy(_displayCore.device(), &model, _uboBufferMemories[frame.index], sizeof(glm::mat4));

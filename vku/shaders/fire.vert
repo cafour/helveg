@@ -22,5 +22,5 @@ layout(location = 0) out vec4 outColor;
 void main()
 {
     outColor = inColor;
-    gl_Position = camera.proj * camera.view * model * vec4(inPosition, 1.0f);
+    gl_Position = camera.proj * camera.view * vec4(inPosition, 1.0f);
 }

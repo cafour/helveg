@@ -7,8 +7,8 @@
 #include <iostream>
 
 const float vku::CameraCore::piHalf = static_cast<float>(M_PI_2);
-const float vku::CameraCore::maxSpeed = 0.125f;
-const float vku::CameraCore::acceleration = 0.0625f;
+const float vku::CameraCore::maxSpeed = 32.0f;
+const float vku::CameraCore::acceleration = 8.0f;
 const glm::vec3 vku::CameraCore::worldUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
 vku::CameraCore::CameraCore(vku::DisplayCore &displayCore, vku::RenderCore &renderCore)
