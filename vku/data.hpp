@@ -25,11 +25,19 @@ namespace vku {
         uint32_t size;
     };
 
+    struct Emitter
+    {
+        glm::vec3 position;
+        float size;
+    };
+
     struct World
     {
         Chunk *chunks;
-        glm::vec3 *positions;
-        uint32_t count;
+        glm::vec3 *chunkOffsets;
+        uint32_t chunkCount;
+        Emitter *fires;
+        uint32_t fireCount;
     };
 
     struct Light
@@ -38,12 +46,6 @@ namespace vku {
         glm::vec4 ambientColor;
         glm::vec4 diffuseColor;
         glm::vec4 specularColor;
-    };
-
-    struct Emitter
-    {
-        glm::vec3 position;
-        float size;
     };
 
     struct Particle

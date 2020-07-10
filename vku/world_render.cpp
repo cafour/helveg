@@ -68,9 +68,6 @@ vku::WorldRender::WorldRender(int width, int height, World world, bool debug)
         _displayCore.device(),
         _timeBuffer);
 
-    // TODO: Hook emitters to helveg
-    _emitters = std::vector<vku::Emitter> { vku::Emitter { glm::vec3(0.0f, 100.0f, 0.0f), 16.0f } };
-
     createMeshes();
     createWorldGP();
     createFireGP();
@@ -79,11 +76,11 @@ vku::WorldRender::WorldRender(int width, int height, World world, bool debug)
 
 void vku::WorldRender::createMeshes()
 {
-    for (size_t i = 0; i < _world.count; ++i) {
+    for (size_t i = 0; i < _world.chunkCount; ++i) {
         _meshes.push_back(vku::MeshCore::fromChunk(_transferCore, _world.chunks[i]));
 
         float chunkSize = static_cast<float>(_world.chunks[i].size);
-        glm::vec3 chunkPosition = _world.positions[i];
+        glm::vec3 chunkPosition = _world.chunkOffsets[i];
         _boxMax.x = std::max(_boxMax.x, chunkPosition.x + chunkSize);
         _boxMax.y = std::max(_boxMax.y, chunkPosition.y + chunkSize);
         _boxMax.z = std::max(_boxMax.z, chunkPosition.z + chunkSize);
@@ -157,6 +154,10 @@ void vku::WorldRender::createWorldGP()
 
 void vku::WorldRender::createFireGP()
 {
+    if (_world.fireCount == 0) {
+        return;
+    }
+
     auto vertexShader = vku::ShaderModule::inlined(_displayCore.device(), FIRE_VERT, FIRE_VERT_LENGTH);
     auto geometryShader = vku::ShaderModule::inlined(_displayCore.device(), FIRE_GEOM, FIRE_GEOM_LENGTH);
     auto fragmentShader = vku::ShaderModule::inlined(_displayCore.device(), FIRE_FRAG, FIRE_FRAG_LENGTH);
@@ -191,9 +192,13 @@ void vku::WorldRender::createFireGP()
 
 void vku::WorldRender::createFireCP()
 {
+    if (_world.fireCount == 0) {
+        return;
+    }
+
     _emitterBuffer = vku::Buffer::exclusive(
         _displayCore.device(),
-        sizeof(vku::Emitter) * _emitters.size(),
+        sizeof(vku::Emitter) * _world.fireCount,
         VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
     _emitterMemory = vku::DeviceMemory::deviceLocalData(
         _transferCore.physicalDevice(),
@@ -201,12 +206,12 @@ void vku::WorldRender::createFireCP()
         _transferCore.transferPool(),
         _transferCore.transferQueue(),
         _emitterBuffer,
-        _emitters.data(),
-        _emitters.size() * sizeof(vku::Emitter));
+        _world.fires,
+        _world.fireCount * sizeof(vku::Emitter));
 
     _particleBuffer = vku::Buffer::exclusive(
         _displayCore.device(),
-        sizeof(vku::Particle) * _emitters.size() * emitterParticleCount,
+        sizeof(vku::Particle) * _world.fireCount * emitterParticleCount,
         VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
     _particleMemory = vku::DeviceMemory::deviceLocalBuffer(
         _displayCore.physicalDevice(),
@@ -274,17 +279,19 @@ void vku::WorldRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::S
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     ENSURE(vkBeginCommandBuffer(commandBuffer, &beginInfo));
 
-    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, _fireCP);
-    vkCmdBindDescriptorSets(
-        commandBuffer,
-        VK_PIPELINE_BIND_POINT_COMPUTE,
-        _firePL,
-        0, // first set
-        1, // set count
-        &_fireDS,
-        0,
-        nullptr);
-    vkCmdDispatch(commandBuffer, _emitters.size(), 1, 1);
+    if (_world.fireCount > 0) {
+        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, _fireCP);
+        vkCmdBindDescriptorSets(
+            commandBuffer,
+            VK_PIPELINE_BIND_POINT_COMPUTE,
+            _firePL,
+            0, // first set
+            1, // set count
+            &_fireDS,
+            0,
+            nullptr);
+        vkCmdDispatch(commandBuffer, _world.fireCount, 1, 1);
+    }
 
     VkRenderPassBeginInfo renderPassInfo = {};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -350,15 +357,17 @@ void vku::WorldRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::S
             VK_SHADER_STAGE_VERTEX_BIT,
             0, // offset
             sizeof(glm::vec3), // size
-            &_world.positions[i]);
+            &_world.chunkOffsets[i]);
         vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(mesh.indexCount()), 1, 0, 0, 0);
     }
 
-    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _fireGP);
+    if (_world.fireCount > 0) {
+        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _fireGP);
+        VkDeviceSize particlesOffset = 0;
+        vkCmdBindVertexBuffers(commandBuffer, 0, 1, _particleBuffer, &particlesOffset);
+        vkCmdDraw(commandBuffer, _world.fireCount * emitterParticleCount, 1, 0, 0);
+    }
 
-    VkDeviceSize particlesOffset = 0;
-    vkCmdBindVertexBuffers(commandBuffer, 0, 1, _particleBuffer, &particlesOffset);
-    vkCmdDraw(commandBuffer, _emitters.size() * emitterParticleCount, 1, 0, 0);
     vkCmdEndRenderPass(commandBuffer);
 
     ENSURE(vkEndCommandBuffer(commandBuffer));

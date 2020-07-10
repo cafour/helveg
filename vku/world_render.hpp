@@ -24,7 +24,6 @@ private:
     vku::DeviceMemory _timeMemory;
 
     // Fire Compute
-    std::vector<vku::Emitter> _emitters;
     vku::PipelineLayout _firePL;
     vku::DescriptorSetLayout _fireDSL;
     vku::DescriptorPool _fireDP;

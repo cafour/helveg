@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Numerics;
@@ -18,8 +19,9 @@ namespace Helveg.Landscape
             this.palette = palette;
         }
 
-        public ImmutableDictionary<Point3, Chunk>.Builder Chunks { get; }
-            = ImmutableDictionary.CreateBuilder<Point3, Chunk>();
+        public Dictionary<Point3, Chunk> Chunks { get; } = new Dictionary<Point3, Chunk>();
+
+        public List<Emitter> Fires { get; } = new List<Emitter>();
 
         public int ChunkSize { get; }
 
@@ -202,6 +204,11 @@ namespace Helveg.Landscape
             OverLine(from, to, p => FillCube(p, fill, radius));
         }
 
+        public void Burn(Point3 what, float radius)
+        {
+            Fires.Add(new Emitter { Position = (Vector3)what, Radius = radius });
+        }
+
         public World Build()
         {
             var keys = Chunks.Keys.ToImmutableArray();
@@ -216,7 +223,7 @@ namespace Helveg.Landscape
                     Chunks[key].HollowOut(new Block { Flags = BlockFlags.IsAir });
                 }
             }
-            return new World(Chunks.Values.ToArray(), Chunks.Keys.ToArray());
+            return new World(Chunks.Values.ToArray(), Chunks.Keys.ToArray(), Fires.ToArray());
         }
     }
 }
