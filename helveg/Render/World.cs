@@ -58,14 +58,16 @@ namespace Helveg.Render
 
             if (!firesHandle.IsAllocated)
             {
-                firesHandle = GCHandle.Alloc(firesHandle, GCHandleType.Pinned);
+                firesHandle = GCHandle.Alloc(Fires, GCHandleType.Pinned);
             }
 
             return new Raw
             {
                 Chunks = (Chunk.Raw*)chunksHandle.AddrOfPinnedObject().ToPointer(),
                 ChunkOffsets = (Vector3*)positionsHandle.AddrOfPinnedObject().ToPointer(),
-                ChunkCount = (uint)Chunks.Length
+                ChunkCount = (uint)Chunks.Length,
+                Fires = (Emitter*)firesHandle.AddrOfPinnedObject().ToPointer(),
+                FireCount = (uint)Fires.Length
             };
         }
 

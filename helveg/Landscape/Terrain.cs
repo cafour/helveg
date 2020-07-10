@@ -90,9 +90,13 @@ namespace Helveg.Landscape
                 //     initialBranching: 4,
                 //     branchingDiff: 2);
                 // Spruce.PlaceStructure(world, center, new Block { PaletteIndex = 3 }, sentence);
-                var sentence = Spruce.Generate(project.Types[id].GetSeed(), project.Types[id].Members.Length);
-                Spruce.Draw(sentence, world, center, new Block { PaletteIndex = 3 }, new Block {PaletteIndex = 5});
+                var memberCount = project.Types[id].Members.Length;
+                var sentence = Spruce.Generate(project.Types[id].GetSeed(), memberCount);
+                Spruce.Draw(sentence, world, center, new Block { PaletteIndex = 3 }, new Block { PaletteIndex = 5 });
+                world.Burn(center + new Point3(0, 6, 0), MathF.Log2(memberCount) * 2);
             }
+            // world.Burn(new Point3(50, 100, 0), 8);
+            // world.Burn(new Point3(-50, 100, 0), 8);
             return world;
         }
     }

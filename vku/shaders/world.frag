@@ -44,7 +44,7 @@ void main()
     float spec = pow(NdotH, light.specularColor.w);
 
     vec3 color = fragColor * light.ambientColor.rgb
-        + NdotL * fragColor * light.diffuseColor.rgb;
+        + NdotL * fragColor * light.diffuseColor.rgb
         + spec * fragColor * light.specularColor.rgb;
     outColor = vec4(color / distance2, 1.0f);
 }

@@ -3,7 +3,6 @@
 #extension GL_ARB_separate_shader_objects : enable
 // #extension GL_ARB_shading_language_420pack : enable
 
-const float maxHeight = 16.0f;
 const vec4 lowColor = vec4(0.8f, 0.0f, 0.0f, 1.0f);
 const vec4 midColor = vec4(1.0f, 0.5f, 0.0f, 1.0f);
 const vec4 topColor = vec4(0.0f, 0.0f, 0.0f, 1.0f);
@@ -16,7 +15,7 @@ struct Particle {
 
 struct Emitter {
     vec3 position;
-    float size;
+    float radius;
 };
 
 layout(local_size_x = 32, local_size_z = 32) in;
@@ -58,8 +57,10 @@ float modHeight(float v, float height)
 
 void main()
 {
+
     Emitter emitter = emitters[gl_WorkGroupID.x];
-    uint index = gl_WorkGroupID.x * (gl_WorkGroupSize.x * gl_WorkGroupSize.y) + gl_LocalInvocationIndex;
+    float maxHeight = 4.0f * emitter.radius;
+    uint index = gl_WorkGroupID.x * (gl_WorkGroupSize.x * gl_WorkGroupSize.z) + gl_LocalInvocationIndex;
     vec3 localPos = particles[index].position - emitter.position;
     float snowflake = rand(index);
 
@@ -71,7 +72,7 @@ void main()
     float offsetY = modHeight(initialHeight + sec * velocity, height);
 
     float lateral = pow(smoothstep(0.0f, height, offsetY), 0.25f) * life;
-    float radius = pow(rand(gl_LocalInvocationID.x), 2.0f) * emitter.size;
+    float radius = pow(rand(gl_LocalInvocationID.x), 2.0f) * emitter.radius;
     float angle = 3.14159f * (rand(gl_LocalInvocationID.z) * 2.0f - 1.0f);
     float wiggleX = (noise(gl_LocalInvocationID.x * 123.99 + sec) * 2.0f - 1.0f) * 2.0f;
     float wiggleZ = (noise(gl_LocalInvocationID.z * 98.2002 + sec) * 2.0f - 1.0f) * 2.0f;

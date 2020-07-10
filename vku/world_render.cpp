@@ -24,7 +24,7 @@ static const vku::Light sun = vku::Light {
     glm::vec4(-1.0f, -1.0f, -1.0f, 0.0f),
     glm::vec4(0.7f, 0.6f, 0.5f, 0.0f),
     glm::vec4(1.0f, 0.8f, 0.6f, 0.0f),
-    glm::vec4(1.0f, 0.8f, 0.6f, 0.0f),
+    glm::vec4(1.0f, 0.8f, 0.6f, 10.0f),
 };
 
 static const VkPhysicalDeviceFeatures requiredFeatures = getRequiredFeatures();
@@ -46,7 +46,7 @@ vku::WorldRender::WorldRender(int width, int height, World world, bool debug)
     VkPhysicalDeviceProperties properties;
     vkGetPhysicalDeviceProperties(_displayCore.physicalDevice(), &properties);
     std::stringstream ss;
-    ss << "Using device '" << properties.deviceName << sizeof(vku::Particle) << "'.";
+    ss << "Using device '" << properties.deviceName << "'.";
     vku::logDebug(ss.str());
 
     _cameraCore.view().position = glm::vec3(0.0f, 128.0f, 0.0f);
@@ -432,6 +432,7 @@ void vku::WorldRender::onResize(size_t imageCount, VkExtent2D)
 void vku::WorldRender::onUpdate(vku::SwapchainFrame &frame)
 {
     glm::vec3 offset = (_boxMax + _boxMin) / -2.0f;
+    offset.y = 0.0f; // 0 is always the bottom
     glm::mat4 model = glm::identity<glm::mat4>();
     model = glm::translate(model, offset);
 

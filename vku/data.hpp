@@ -28,7 +28,7 @@ namespace vku {
     struct Emitter
     {
         glm::vec3 position;
-        float size;
+        float radius;
     };
 
     struct World
