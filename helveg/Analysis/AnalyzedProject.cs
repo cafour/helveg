@@ -1,21 +1,26 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
 
 namespace Helveg.Analysis
 {
-    public struct AnalyzedProject : IEquatable<AnalyzedProject>
+    public struct AnalyzedProject : IEquatable<AnalyzedProject>, ISeedable
     {
         public readonly string Name;
         public readonly ImmutableDictionary<AnalyzedTypeId, AnalyzedType> Types;
+        public readonly ImmutableHashSet<string> ProjectReferences;
+        public readonly ImmutableHashSet<string> PackageReferences;
 
         public AnalyzedProject(
             string name,
-            ImmutableDictionary<AnalyzedTypeId, AnalyzedType> types)
+            ImmutableDictionary<AnalyzedTypeId, AnalyzedType> types,
+            ImmutableHashSet<string> projectReferences,
+            ImmutableHashSet<string> packageReferences)
         {
             Name = name;
             Types = types;
+            ProjectReferences = projectReferences;
+            PackageReferences = packageReferences;
         }
 
         public static bool operator ==(AnalyzedProject left, AnalyzedProject right)
@@ -46,13 +51,7 @@ namespace Helveg.Analysis
 
         public override string? ToString()
         {
-            var sb = new StringBuilder();
-            sb.Append("[P");
-            sb.Append(" #");
-            sb.Append(Types.Count);
-            sb.Append("] ");
-            sb.Append(Name);
-            return sb.ToString();
+            return $"{Name} [prj,typ={Types.Count},ref={ProjectReferences.Count},pkg={PackageReferences.Count}]";
         }
 
         public (AnalyzedTypeId[] names, int[,] weights) GetWeightMatrix()
@@ -72,6 +71,11 @@ namespace Helveg.Analysis
                 }
             }
             return (ids, matrix);
+        }
+
+        public int GetSeed()
+        {
+            return Checksum.GetCrc32(Name) ^ ISeedable.Arbitrary;
         }
     }
 }

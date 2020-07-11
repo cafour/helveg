@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
-using Helveg.Landscape;
 
 namespace Helveg.Analysis
 {
@@ -11,21 +9,20 @@ namespace Helveg.Analysis
         public readonly AnalyzedTypeId Id;
         public readonly AnalyzedTypeKind Kind;
         public readonly Diagnosis Health;
-        public readonly ImmutableArray<AnalyzedMember> Members;
+        public readonly int MemberCount;
         public readonly ImmutableDictionary<AnalyzedTypeId, int> Relations;
-
 
         public AnalyzedType(
             AnalyzedTypeId id,
             AnalyzedTypeKind kind,
             Diagnosis health,
-            ImmutableArray<AnalyzedMember> members,
+            int memberCount,
             ImmutableDictionary<AnalyzedTypeId, int> relations)
         {
             Id = id;
             Kind = kind;
             Health = health;
-            Members = members;
+            MemberCount = memberCount;
             Relations = relations;
         }
 
@@ -49,33 +46,23 @@ namespace Helveg.Analysis
             return Id.Equals(other.Id)
                 && Kind.Equals(other.Kind)
                 && Health.Equals(other.Health)
-                && Enumerable.SequenceEqual(Members, other.Members)
+                && MemberCount.Equals(other.MemberCount)
                 && Enumerable.SequenceEqual(Relations, other.Relations);
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(Id, Health, Members.Length, Relations.Count);
+            return HashCode.Combine(Id, Health, MemberCount, Relations.Count);
         }
 
         public override string? ToString()
         {
-            var sb = new StringBuilder();
-            sb.Append("[T");
-            sb.Append(Health.ToDebuggerString());
-            sb.Append(Kind.ToDebuggerString());
-            sb.Append(" #");
-            sb.Append(Members.Length);
-            sb.Append(" |");
-            sb.Append(Relations.Count);
-            sb.Append("] ");
-            sb.Append(Id);
-            return sb.ToString();
+            return $"{Id} [typ,{Kind},{Health},mmb={MemberCount},rel={Relations.Count}]";
         }
 
         public int GetSeed()
         {
-            return Checksum.GetCrc32(Id.Name) ^ ISeedable.Arbitrary;
+            return Id.GetSeed();
         }
     }
 }

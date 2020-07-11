@@ -1,4 +1,4 @@
-namespace Helveg.Landscape
+namespace Helveg
 {
     public interface ISeedable
     {

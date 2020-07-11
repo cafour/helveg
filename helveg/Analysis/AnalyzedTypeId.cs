@@ -2,13 +2,12 @@ using System;
 
 namespace Helveg
 {
-    public struct AnalyzedTypeId
+    public struct AnalyzedTypeId : IEquatable<AnalyzedTypeId>, ISeedable
     {
         public readonly string Name;
         public readonly string Namespace;
 
         public static readonly AnalyzedTypeId Dynamic = new AnalyzedTypeId("dynamic", "global");
-
         public static readonly AnalyzedTypeId Error = new AnalyzedTypeId("error", "global");
 
         public AnalyzedTypeId(string name, string @namespace, int arity = 0)
@@ -61,6 +60,11 @@ namespace Helveg
         public override string ToString()
         {
             return $"{Namespace}::{Name}";
+        }
+
+        public int GetSeed()
+        {
+            return Checksum.GetCrc32(Name) ^ ISeedable.Arbitrary;
         }
     }
 }

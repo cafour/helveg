@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
-using Helveg.Landscape;
 
 namespace Helveg.Analysis
 {
@@ -10,6 +8,12 @@ namespace Helveg.Analysis
     {
         public readonly string Name;
         public readonly ImmutableDictionary<string, AnalyzedProject> Projects;
+
+        public AnalyzedSolution(string name, ImmutableDictionary<string, AnalyzedProject> projects)
+        {
+            Name = name;
+            Projects = projects;
+        }
 
         public static bool operator ==(AnalyzedSolution left, AnalyzedSolution right)
             => left.Equals(right);
@@ -39,13 +43,7 @@ namespace Helveg.Analysis
 
         public override string? ToString()
         {
-            var sb = new StringBuilder();
-            sb.Append("[S");
-            sb.Append(" #");
-            sb.Append(Projects.Count);
-            sb.Append("] ");
-            sb.Append(Name);
-            return sb.ToString();
+            return $"{Name} [sln,prj={Projects.Count}]";
         }
 
         public int GetSeed()
