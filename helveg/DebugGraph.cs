@@ -270,7 +270,7 @@ namespace Helveg
             IDictionary<string, string> properties,
             Action<Graph> init)
         {
-            AnalyzedProject? project;
+            AnalyzedProject? project = null;
             if (json is object)
             {
                 using var stream = new FileStream(json.FullName, FileMode.Open);
@@ -279,7 +279,11 @@ namespace Helveg
             }
             else
             {
-                project = await Program.RunAnalysis(source, properties);
+                var solution = await Program.RunAnalysis(source, properties);
+                if (solution is object)
+                {
+                    project = solution.Value.Projects.First().Value;
+                }
             }
             if (project is null)
             {

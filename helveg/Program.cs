@@ -33,72 +33,50 @@ namespace Helveg
         public static ILoggerFactory Logging = new NullLoggerFactory();
         public static bool IsForced = false;
 
-        public static async Task<T?> GetCache<T>(string path, ILogger logger)
-            where T : class
-        {
-            if (File.Exists(path) && !IsForced)
-            {
-                try
-                {
-                    using var stream = new FileStream(path, FileMode.Open);
-                    return await JsonSerializer.DeserializeAsync<T>(stream, Serialize.JsonOptions);
-                }
-                catch(JsonException e)
-                {
-                    logger.LogDebug(e, $"Failed to read the '{path}' cache.");
-                }
-            }
-            return null;
-        }
-
-        public static async Task<AnalyzedProject?> RunAnalysis(
+        public static async Task<AnalyzedSolution?> RunAnalysis(
             FileSystemInfo source,
             IDictionary<string, string> properties)
         {
             var logger = Logging.CreateLogger("Analysis");
-            FileInfo? csprojFile = source switch
+            FileInfo? file = source switch
             {
-                FileInfo f => f.Extension == ".csproj" ? f : null,
-                DirectoryInfo d => d.EnumerateFiles("*.csproj").FirstOrDefault(),
-                _ => throw new NotImplementedException()
+                FileInfo f => f.Extension == ".sln" || f.Extension == ".csproj" ? f : null,
+                DirectoryInfo d => d.EnumerateFiles("*.sln").FirstOrDefault()
+                    ?? d.EnumerateFiles("*.csproj").FirstOrDefault(),
+                _ => throw new NotImplementedException() // this should never happen
             };
 
-            if (csprojFile is null)
+            if (file is null)
             {
-                logger.LogCritical($"No '.csproj' file could be located in the '{source}' directory.");
+                logger.LogCritical($"No solution or project could be located in the '{source}' directory.");
                 return null;
             }
 
-            logger.LogDebug($"Found '{csprojFile.FullName}'.");
+            logger.LogDebug($"Found '{file.FullName}'.");
 
-            var serializableProject = await GetCache<SerializableProject>(AnalysisCacheFilename, logger);
-            if (serializableProject is object && serializableProject.CsprojPath == csprojFile.FullName)
-            {
-                logger.LogInformation("Using cached analysis results.");
-                return serializableProject.ToAnalyzed();
-            }
-
+            var cache = IsForced ? null : await Serialize.GetCache<SerializableSolution>(AnalysisCacheFilename, logger);
             var vsInstance = MSBuildLocator.RegisterDefaults();
             logger.LogDebug($"Using MSBuild at '{vsInstance.MSBuildPath}'.");
 
-            logger.LogInformation("Analyzing project.");
-            var analyzedProject = await Analyze.AnalyzeProject(csprojFile, properties, logger);
-            if (analyzedProject is object)
+            var analyzedSolution = await Analyze.AnalyzeProjectOrSolution(file, properties, logger, cache);
+            if (analyzedSolution is object)
             {
+                logger.LogDebug($"Caching analysis results to '{AnalysisCacheFilename}'.");
                 using var stream = new FileStream(AnalysisCacheFilename, FileMode.Create);
                 await JsonSerializer.SerializeAsync(
                     stream,
-                    SerializableProject.FromAnalyzed(csprojFile.FullName, analyzedProject.Value),
+                    SerializableSolution.FromAnalyzed(analyzedSolution.Value),
                     Serialize.JsonOptions);
             }
-            return analyzedProject;
+            return analyzedSolution;
         }
 
         public static async Task<ImmutableDictionary<AnalyzedTypeId, Vector2>> RunFdg(AnalyzedProject project)
         {
             var logger = Logging.CreateLogger("Fdg");
-            var serializableGraph = await GetCache<SerializableGraph>(FdgCacheFilename, logger);
-            if (serializableGraph is object && serializableGraph.Name == project.Name)
+            var serializableGraph = await Serialize.GetCache<SerializableGraph>(FdgCacheFilename, logger);
+            if (serializableGraph is object && serializableGraph.Name == project.Name
+                && serializableGraph.TimeStamp == project.LastWriteTime)
             {
                 logger.LogInformation("Using cached positional results.");
                 return serializableGraph.Positions.ToImmutableDictionary(
@@ -135,6 +113,7 @@ namespace Helveg
             {
                 var graph = new SerializableGraph
                 {
+                    TimeStamp = project.LastWriteTime,
                     Name = project.Name,
                     Positions = results.ToDictionary(p => p.Key.ToString(), p => p.Value)
                 };
@@ -145,15 +124,17 @@ namespace Helveg
 
         public static async Task RunPipeline(FileSystemInfo source, Dictionary<string, string> properties)
         {
-            var analyzedProject = await RunAnalysis(source, properties);
-            if (analyzedProject is null)
+            var analyzedSolution = await RunAnalysis(source, properties);
+            if (analyzedSolution is null)
             {
                 return;
             }
 
-            var positions = await RunFdg(analyzedProject.Value);
+            // TODO: Handle multiple projects.
+            var analyzedProject = analyzedSolution.Value.Projects.First().Value;
+            var positions = await RunFdg(analyzedProject);
 
-            var world = Terrain.GenerateIsland(analyzedProject.Value, positions).Build();
+            var world = Terrain.GenerateIsland(analyzedProject, positions).Build();
             foreach (var chunk in world.Chunks)
             {
                 chunk.HollowOut(new Block { Flags = BlockFlags.IsAir });

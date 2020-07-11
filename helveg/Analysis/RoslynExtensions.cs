@@ -40,5 +40,15 @@ namespace Helveg.Analysis
                 _ => AnalyzedTypeKind.None
             };
         }
+
+        public static Diagnosis GetDiagnosis(this DiagnosticSeverity severity)
+        {
+            return severity switch
+            {
+                DiagnosticSeverity.Error => Diagnosis.Error,
+                DiagnosticSeverity.Warning => Diagnosis.Warning,
+                _ => Diagnosis.None
+            };
+        }
     }
 }

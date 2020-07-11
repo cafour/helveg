@@ -80,11 +80,22 @@ namespace Helveg.Landscape
 
             foreach (var (id, position) in positions)
             {
+                var type = project.Types[id];
                 var center = new Point3(position.X, heightmap[position.X, position.Y], position.Y);
-                var memberCount = project.Types[id].Members.Length;
-                var sentence = Spruce.Generate(project.Types[id].GetSeed(), memberCount);
-                Spruce.Draw(sentence, world, center, new Block { PaletteIndex = 3 }, new Block { PaletteIndex = 5 });
-                world.Burn(center + new Point3(0, 6, 0), MathF.Log2(memberCount) * 2);
+                var sentence = Spruce.Generate(
+                    seed: project.Types[id].GetSeed(),
+                    size: type.MemberCount);
+                Spruce.Draw(
+                    sentence: sentence,
+                    world: world,
+                    position: center,
+                    wood: new Block { PaletteIndex = 3 },
+                    needles: new Block { PaletteIndex = 5 },
+                    hasNeedles: !type.Health.HasFlag(Diagnosis.Warning));
+                if (type.Health.HasFlag(Diagnosis.Error))
+                {
+                    world.Burn(center + new Point3(0, 6, 0), MathF.Log2(type.MemberCount) * 2);
+                }
             }
             return world;
         }

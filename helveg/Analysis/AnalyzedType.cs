@@ -64,5 +64,10 @@ namespace Helveg.Analysis
         {
             return Id.GetSeed();
         }
+
+        public AnalyzedType WithHealth(Diagnosis health)
+        {
+            return new AnalyzedType(Id, Kind, health, MemberCount, Relations);
+        }
     }
 }

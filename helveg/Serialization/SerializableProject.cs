@@ -8,9 +8,11 @@ namespace Helveg.Serialization
 {
     public class SerializableProject
     {
-        public string? CsprojPath { get; set; }
+        public string? Path { get; set; }
 
         public string? Name { get; set; }
+
+        public DateTime LastWriteTime { get; set; }
 
         public Dictionary<string, SerializableType>? Types { get; set; }
 
@@ -18,11 +20,12 @@ namespace Helveg.Serialization
 
         public HashSet<string>? PackageReferences { get; set; }
 
-        public static SerializableProject FromAnalyzed(string? csprojPath, AnalyzedProject project)
+        public static SerializableProject FromAnalyzed(AnalyzedProject project)
         {
             return new SerializableProject
             {
-                CsprojPath = csprojPath,
+                Path = project.Path,
+                LastWriteTime = project.LastWriteTime,
                 Name = project.Name,
                 Types = project.Types.ToDictionary(
                     p => p.Key.ToString(),
@@ -34,16 +37,19 @@ namespace Helveg.Serialization
 
         public AnalyzedProject ToAnalyzed()
         {
-            if (Name is null || Types is null || ProjectReferences is null || PackageReferences is null)
+            if (Path is null || Name is null || Types is null || ProjectReferences is null
+                || PackageReferences is null || LastWriteTime == default)
             {
                 throw new NullReferenceException();
             }
 
             return new AnalyzedProject(
+                path: Path,
                 name: Name,
                 types: Types.ToImmutableDictionary(p => AnalyzedTypeId.Parse(p.Key), p => p.Value.ToAnalyzed()),
                 projectReferences: ProjectReferences.ToImmutableHashSet(),
-                packageReferences: PackageReferences.ToImmutableHashSet());
+                packageReferences: PackageReferences.ToImmutableHashSet(),
+                lastWriteTime: LastWriteTime);
         }
     }
 }

@@ -139,13 +139,14 @@ namespace Helveg.Landscape
             WorldBuilder world,
             Point3 position,
             Block wood,
-            Block leaves)
+            Block needles,
+            bool hasNeedles = true)
         {
             var drawRules = ImmutableDictionary.CreateBuilder<Kind, LDraw>();
             drawRules.Add(Kind.Forward, (s, w) =>
             {
                 var to = s.Position + Point3.Round(s.Forward * s.Parameters[0]);
-                var fill = s.Parameters[1] < 1.0f ? leaves : wood;
+                var fill = hasNeedles && s.Parameters[1] < 1.0f ? needles : wood;
                 w.OverLine(s.Position, to, p => w.FillSphere(p, fill, (int)MathF.Round(s.Parameters[1] + 0.01f)));
                 return to;
             });

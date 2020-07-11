@@ -14,26 +14,27 @@ namespace Helveg.Serialization
 
         public Dictionary<string, SerializableProject>? Projects { get; set; }
 
-        public static SerializableSolution FromAnalyzed(string? path, AnalyzedSolution solution)
+        public static SerializableSolution FromAnalyzed(AnalyzedSolution solution)
         {
             return new SerializableSolution
             {
-                Path = path,
+                Path = solution.Path,
                 Name = solution.Name,
                 Projects = solution.Projects.ToDictionary(
                     p => p.Key,
-                    p => SerializableProject.FromAnalyzed(null, p.Value))
+                    p => SerializableProject.FromAnalyzed(p.Value))
             };
         }
 
         public AnalyzedSolution ToAnalyzed()
         {
-            if (Name is null || Projects is null)
+            if (Path is null || Name is null || Projects is null)
             {
                 throw new NullReferenceException();
             }
 
             return new AnalyzedSolution(
+                path: Path,
                 name: Name,
                 projects: Projects.ToImmutableDictionary(
                     p => p.Key,

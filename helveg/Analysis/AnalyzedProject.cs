@@ -6,21 +6,27 @@ namespace Helveg.Analysis
 {
     public struct AnalyzedProject : IEquatable<AnalyzedProject>, ISeedable
     {
+        public readonly string Path;
         public readonly string Name;
         public readonly ImmutableDictionary<AnalyzedTypeId, AnalyzedType> Types;
         public readonly ImmutableHashSet<string> ProjectReferences;
         public readonly ImmutableHashSet<string> PackageReferences;
+        public readonly DateTime LastWriteTime;
 
         public AnalyzedProject(
+            string path,
             string name,
             ImmutableDictionary<AnalyzedTypeId, AnalyzedType> types,
             ImmutableHashSet<string> projectReferences,
-            ImmutableHashSet<string> packageReferences)
+            ImmutableHashSet<string> packageReferences,
+            DateTime lastWriteTime)
         {
+            Path = path;
             Name = name;
             Types = types;
             ProjectReferences = projectReferences;
             PackageReferences = packageReferences;
+            LastWriteTime = lastWriteTime;
         }
 
         public static bool operator ==(AnalyzedProject left, AnalyzedProject right)
@@ -40,18 +46,21 @@ namespace Helveg.Analysis
 
         public bool Equals(AnalyzedProject other)
         {
-            return Name.Equals(other.Name)
-                && Enumerable.SequenceEqual(Types, other.Types);
+            return Path.Equals(other.Path)
+                && Name.Equals(other.Name)
+                && Enumerable.SequenceEqual(Types, other.Types)
+                && LastWriteTime.Equals(other.LastWriteTime);
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(Name, Types.Count);
+            return HashCode.Combine(Path, Name, Types.Count);
         }
 
         public override string? ToString()
         {
-            return $"{Name} [prj,typ={Types.Count},ref={ProjectReferences.Count},pkg={PackageReferences.Count}]";
+            return $"{Name} [prj,typ={Types.Count},ref={ProjectReferences.Count},"
+                + $"pkg={PackageReferences.Count},lwt={LastWriteTime},pth={Path}]";
         }
 
         public (AnalyzedTypeId[] names, int[,] weights) GetWeightMatrix()

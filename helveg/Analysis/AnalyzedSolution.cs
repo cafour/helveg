@@ -6,11 +6,13 @@ namespace Helveg.Analysis
 {
     public struct AnalyzedSolution : IEquatable<AnalyzedSolution>, ISeedable
     {
+        public readonly string Path;
         public readonly string Name;
         public readonly ImmutableDictionary<string, AnalyzedProject> Projects;
 
-        public AnalyzedSolution(string name, ImmutableDictionary<string, AnalyzedProject> projects)
+        public AnalyzedSolution(string path, string name, ImmutableDictionary<string, AnalyzedProject> projects)
         {
+            Path = path;
             Name = name;
             Projects = projects;
         }
@@ -32,18 +34,19 @@ namespace Helveg.Analysis
 
         public bool Equals(AnalyzedSolution other)
         {
-            return Name.Equals(other.Name)
+            return Path.Equals(other.Path)
+                && Name.Equals(other.Name)
                 && Enumerable.SequenceEqual(Projects, other.Projects);
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(Name, Projects.Count);
+            return HashCode.Combine(Path, Name, Projects.Count);
         }
 
         public override string? ToString()
         {
-            return $"{Name} [sln,prj={Projects.Count}]";
+            return $"{Name} [sln,prj={Projects.Count},pth={Path}]";
         }
 
         public int GetSeed()
