@@ -14,7 +14,11 @@ namespace Helveg.Serialization
 
         public Dictionary<string, SerializableType>? Types { get; set; }
 
-        public static SerializableProject FromAnalyzed(string csprojPath, AnalyzedProject project)
+        public HashSet<string>? ProjectReferences { get; set; }
+
+        public HashSet<string>? PackageReferences { get; set; }
+
+        public static SerializableProject FromAnalyzed(string? csprojPath, AnalyzedProject project)
         {
             return new SerializableProject
             {
@@ -22,20 +26,24 @@ namespace Helveg.Serialization
                 Name = project.Name,
                 Types = project.Types.ToDictionary(
                     p => p.Key.ToString(),
-                    p => SerializableType.FromAnalyzed(p.Value))
+                    p => SerializableType.FromAnalyzed(p.Value)),
+                ProjectReferences = project.ProjectReferences.ToHashSet(),
+                PackageReferences = project.PackageReferences.ToHashSet()
             };
         }
 
         public AnalyzedProject ToAnalyzed()
         {
-            if (Name is null || Types is null)
+            if (Name is null || Types is null || ProjectReferences is null || PackageReferences is null)
             {
                 throw new NullReferenceException();
             }
-            
+
             return new AnalyzedProject(
                 name: Name,
-                types: Types.ToImmutableDictionary(p => AnalyzedTypeId.Parse(p.Key), p => p.Value.ToAnalyzed()));
+                types: Types.ToImmutableDictionary(p => AnalyzedTypeId.Parse(p.Key), p => p.Value.ToAnalyzed()),
+                projectReferences: ProjectReferences.ToImmutableHashSet(),
+                packageReferences: PackageReferences.ToImmutableHashSet());
         }
     }
 }
