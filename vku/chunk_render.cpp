@@ -90,7 +90,7 @@ void vku::ChunkRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::S
     renderPassInfo.renderArea.extent = extent;
 
     VkClearValue clearValues[2];
-    clearValues[0].color = { 0.0f, 0.0f, 0.0f, 1.0f };
+    clearValues[0].color = { 1.0f, 1.0f, 1.0f, 1.0f };
     clearValues[1].depthStencil = { 1.0f, 0 };
     renderPassInfo.clearValueCount = 2;
     renderPassInfo.pClearValues = clearValues;
