@@ -29,6 +29,7 @@ namespace Helveg.Landscape
         }
 
         public static Heightmap GenerateIslandHeightmap(
+            int seed,
             IEnumerable<Vector2> positions,
             int radius,
             int padding = 50)
@@ -38,9 +39,9 @@ namespace Helveg.Landscape
             var heightmap = new Heightmap(minX, maxX, minY, maxY);
             foreach (var position in positions)
             {
-                for (int x = -radius; x <= radius; ++x)
+                for (int y = -radius; y <= radius; ++y)
                 {
-                    for (int y = -radius; y <= radius; ++y)
+                    for (int x = -radius; x <= radius; ++x)
                     {
                         var posX = (int)position.X + x;
                         var posY = (int)position.Y + y;
@@ -51,6 +52,22 @@ namespace Helveg.Landscape
                     }
                 }
             }
+
+            const double frequency = 0.0625;
+            const double magnitude = 4.0;
+            var openSimplex = new OpenSimplexNoise.Data(seed);
+            for (int y = heightmap.MinY; y < heightmap.MaxY; ++y)
+            {
+                for (int x = heightmap.MinX; x < heightmap.MaxX; ++x)
+                {
+                    var noise = (int)Math.Round(OpenSimplexNoise.Evaluate(
+                                openSimplex,
+                                x * frequency, y * frequency) * magnitude);
+                    heightmap[x, y] += noise;
+
+                }
+            }
+
             return heightmap;
         }
 
@@ -58,7 +75,7 @@ namespace Helveg.Landscape
             AnalyzedProject project,
             ImmutableDictionary<AnalyzedTypeId, Vector2> positions)
         {
-            var heightmap = GenerateIslandHeightmap(positions.Values, 48, 96);
+            var heightmap = GenerateIslandHeightmap(project.GetSeed(), positions.Values, 48, 96);
             var world = new WorldBuilder(128, new Block { Flags = BlockFlags.IsAir }, Colours.IslandPalette);
             for (int x = heightmap.MinX; x < heightmap.MaxX; ++x)
             {
@@ -81,6 +98,7 @@ namespace Helveg.Landscape
             foreach (var (id, position) in positions)
             {
                 var type = project.Types[id];
+
                 var center = new Point3(position.X, heightmap[position.X, position.Y], position.Y);
                 var sentence = Spruce.Generate(
                     seed: project.Types[id].GetSeed(),
