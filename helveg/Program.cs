@@ -76,7 +76,8 @@ namespace Helveg
             var logger = Logging.CreateLogger("Fdg");
             var serializableGraph = await Serialize.GetCache<SerializableGraph>(FdgCacheFilename, logger);
             if (serializableGraph is object && serializableGraph.Name == project.Name
-                && serializableGraph.TimeStamp == project.LastWriteTime)
+                && serializableGraph.TimeStamp == project.LastWriteTime
+                && !IsForced)
             {
                 logger.LogInformation("Using cached positional results.");
                 return serializableGraph.Positions.ToImmutableDictionary(

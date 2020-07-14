@@ -49,7 +49,7 @@ vku::WorldRender::WorldRender(int width, int height, World world, bool debug)
     ss << "Using device '" << properties.deviceName << "'.";
     vku::logDebug(ss.str());
 
-    _cameraCore.view().position = glm::vec3(0.0f, 128.0f, 0.0f);
+    _cameraCore.view().position = glm::vec3(0.0f, 0.0f, 0.0f);
 
     _renderCore.onResize([this](auto s, auto e) { onResize(s, e); });
     _renderCore.onUpdate([this](auto &f) { onUpdate(f); });
@@ -431,10 +431,7 @@ void vku::WorldRender::onResize(size_t imageCount, VkExtent2D)
 
 void vku::WorldRender::onUpdate(vku::SwapchainFrame &frame)
 {
-    glm::vec3 offset = (_boxMax + _boxMin) / -2.0f;
-    offset.y = 0.0f; // 0 is always the bottom
     glm::mat4 model = glm::identity<glm::mat4>();
-    model = glm::translate(model, offset);
 
     vku::hostDeviceCopy(_displayCore.device(), &model, _uboBufferMemories[frame.index], sizeof(glm::mat4));
 

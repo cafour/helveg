@@ -36,7 +36,7 @@ private:
     double _lastPress = 0.0f;
     double _lastUpdate = 0.0f;
     float _speed = 0.0f;
-    float _yaw = piHalf;
+    float _yaw = 0.0f;
     float _pitch = 0.0f;
     float _lastX = 0.0f;
     float _lastY = 0.0f;

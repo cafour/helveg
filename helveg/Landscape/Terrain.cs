@@ -92,10 +92,10 @@ namespace Helveg.Landscape
                 var rockLevel = Math.Max(height - 4, 1);
                 world.FillLine(new Point3(x, 0, y), new Point3(x, rockLevel, y), new Block { PaletteIndex = 0 });
                 world.FillLine(new Point3(x, rockLevel, y), new Point3(x, height, y), surface);
-                // if (height <= 32)
-                // {
-                //     world.FillLine(new Point3(x, height + 1, y), new Point3(x, 32, y), new Block { PaletteIndex = 4 });
-                // }
+                if (height <= 32)
+                {
+                    world.FillLine(new Point3(x, height + 1, y), new Point3(x, 32, y), new Block { PaletteIndex = 4 });
+                }
             });
 
             logger.LogInformation($"Generating structures for '{project.Name}'.");

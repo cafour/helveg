@@ -218,10 +218,10 @@ namespace Helveg.Landscape
                 {
                     Chunks.TryRemove(key, out _);
                 }
-                // else
-                // {
-                //     Chunks[key].HollowOut(new Block { Flags = BlockFlags.IsAir });
-                // }
+                else
+                {
+                    Chunks[key].HollowOut(new Block { Flags = BlockFlags.IsAir });
+                }
             }
             return new World(Chunks.Values.ToArray(), Chunks.Keys.ToArray(), Fires.ToArray());
         }
