@@ -49,7 +49,7 @@ vku::WorldRender::WorldRender(int width, int height, World world, bool debug)
     ss << "Using device '" << properties.deviceName << "'.";
     vku::logDebug(ss.str());
 
-    _cameraCore.view().position = glm::vec3(0.0f, 0.0f, 0.0f);
+    _cameraCore.view().position = glm::vec3(0.0f, 128.0f, 0.0f);
 
     _renderCore.onResize([this](auto s, auto e) { onResize(s, e); });
     _renderCore.onUpdate([this](auto &f) { onUpdate(f); });
