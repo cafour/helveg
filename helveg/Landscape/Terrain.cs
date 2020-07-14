@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Numerics;
+using System.Threading.Tasks;
 using Helveg.Analysis;
 using Helveg.Render;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Helveg.Landscape
 {
@@ -37,64 +40,65 @@ namespace Helveg.Landscape
             var (minX, minY) = ((int)(positions.Min(p => p.X) - padding), (int)(positions.Min(p => p.Y) - padding));
             var (maxX, maxY) = ((int)(positions.Max(p => p.X) + padding + 1), (int)(positions.Max(p => p.Y) + padding + 1));
             var heightmap = new Heightmap(minX, maxX, minY, maxY);
-            foreach (var position in positions)
-            {
-                for (int y = -radius; y <= radius; ++y)
-                {
-                    for (int x = -radius; x <= radius; ++x)
-                    {
-                        var posX = (int)position.X + x;
-                        var posY = (int)position.Y + y;
-                        if (heightmap.TryGetValue(posX, posY, out _))
-                        {
-                            heightmap[posX, posY] += 36 * MathF.Exp(-4 * (x * x + y * y) / (float)(radius * radius));
-                        }
-                    }
-                }
-            }
-
-            const double frequency = 0.0625;
+            const double frequency = 0.05;
             const double magnitude = 4.0;
             var openSimplex = new OpenSimplexNoise.Data(seed);
-            for (int y = heightmap.MinY; y < heightmap.MaxY; ++y)
+            Parallel.For(0, heightmap.SizeX * heightmap.SizeY, index =>
             {
-                for (int x = heightmap.MinX; x < heightmap.MaxX; ++x)
+                var x = index % heightmap.SizeX + heightmap.MinX;
+                var y = index / heightmap.SizeX + heightmap.MinY;
+                var coord = new Vector2(x, y);
+                var sum = OpenSimplexNoise.Evaluate(
+                    openSimplex,
+                    x * frequency, y * frequency) * magnitude;
+                foreach (var position in positions)
                 {
-                    var noise = (int)Math.Round(OpenSimplexNoise.Evaluate(
-                                openSimplex,
-                                x * frequency, y * frequency) * magnitude);
-                    heightmap[x, y] += noise;
-
+                    var l = (position - coord).LengthSquared();
+                    sum += 36 * Math.Exp(-4 * l / (radius * radius));
                 }
-            }
-
+                heightmap[x, y] = (int)Math.Round(sum);
+            });
             return heightmap;
         }
 
         public static WorldBuilder GenerateIsland(
             AnalyzedProject project,
-            ImmutableDictionary<AnalyzedTypeId, Vector2> positions)
+            ImmutableDictionary<AnalyzedTypeId, Vector2> positions,
+            ILogger? logger = null)
         {
-            var heightmap = GenerateIslandHeightmap(project.GetSeed(), positions.Values, 48, 96);
-            var world = new WorldBuilder(128, new Block { Flags = BlockFlags.IsAir }, Colours.IslandPalette);
-            for (int x = heightmap.MinX; x < heightmap.MaxX; ++x)
-            {
-                for (int z = heightmap.MinY; z < heightmap.MaxY; ++z)
-                {
-                    var y = (int)heightmap[x, z];
-                    var surface = y <= 36
-                        ? new Block { PaletteIndex = 2 }
-                        : new Block { PaletteIndex = 1 };
-                    var rockLevel = Math.Max(y - 4, 0);
-                    world.FillLine(new Point3(x, 0, z), new Point3(x, rockLevel, z), new Block { PaletteIndex = 0 });
-                    world.FillLine(new Point3(x, rockLevel, z), new Point3(x, y, z), surface);
-                    if (y <= 32)
-                    {
-                        world.FillLine(new Point3(x, y + 1, z), new Point3(x, 32, z), new Block { PaletteIndex = 4 });
-                    }
-                }
-            }
+            const int meanSurfaceLevel = 34;
+            const double surfaceNoiseMagnitude = 4.0;
+            const double surfaceNoiseFrequency = 0.5;
 
+            logger ??= NullLogger.Instance;
+            logger.LogInformation($"Computing heightmap for '{project.Name}'.");
+            var heightmap = GenerateIslandHeightmap(project.GetSeed(), positions.Values, 48, 96);
+
+            logger.LogInformation($"Generating terrain for '{project.Name}'.");
+            var world = new WorldBuilder(128, new Block { Flags = BlockFlags.IsAir }, Colours.IslandPalette);
+            var openSimplex = new OpenSimplexNoise.Data(project.GetSeed());
+            Parallel.For(0, heightmap.SizeX * heightmap.SizeY, index =>
+            {
+                var x = index % heightmap.SizeX + heightmap.MinX;
+                var y = index / heightmap.SizeX + heightmap.MinY;
+                var height = (int)heightmap[x, y];
+                var surfaceNoise = OpenSimplexNoise.Evaluate(
+                    openSimplex, x * surfaceNoiseFrequency,
+                    y * surfaceNoiseFrequency);
+                var surfaceLevel = meanSurfaceLevel + (int)Math.Round(surfaceNoise * surfaceNoiseMagnitude);
+                var surface = height <= surfaceLevel
+                    ? new Block { PaletteIndex = 2 }
+                    : new Block { PaletteIndex = 1 };
+                var rockLevel = Math.Max(height - 4, 1);
+                world.FillLine(new Point3(x, 0, y), new Point3(x, rockLevel, y), new Block { PaletteIndex = 0 });
+                world.FillLine(new Point3(x, rockLevel, y), new Point3(x, height, y), surface);
+                // if (height <= 32)
+                // {
+                //     world.FillLine(new Point3(x, height + 1, y), new Point3(x, 32, y), new Block { PaletteIndex = 4 });
+                // }
+            });
+
+            logger.LogInformation($"Generating structures for '{project.Name}'.");
             foreach (var (id, position) in positions)
             {
                 var type = project.Types[id];

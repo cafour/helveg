@@ -134,11 +134,12 @@ namespace Helveg
             var analyzedProject = analyzedSolution.Value.Projects.First().Value;
             var positions = await RunFdg(analyzedProject);
 
-            var world = Terrain.GenerateIsland(analyzedProject, positions).Build();
-            foreach (var chunk in world.Chunks)
-            {
-                chunk.HollowOut(new Block { Flags = BlockFlags.IsAir });
-            }
+            var generatorLogger = Logging.CreateLogger("Generator");
+            var world = Terrain.GenerateIsland(analyzedProject, positions, generatorLogger).Build();
+            // foreach (var chunk in world.Chunks)
+            // {
+            //     chunk.HollowOut(new Block { Flags = BlockFlags.IsAir });
+            // }
             Vku.HelloWorld(world);
         }
 

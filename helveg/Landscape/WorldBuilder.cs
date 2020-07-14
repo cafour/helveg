@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -19,7 +20,7 @@ namespace Helveg.Landscape
             this.palette = palette;
         }
 
-        public Dictionary<Point3, Chunk> Chunks { get; } = new Dictionary<Point3, Chunk>();
+        public ConcurrentDictionary<Point3, Chunk> Chunks { get; } = new ConcurrentDictionary<Point3, Chunk>();
 
         public List<Emitter> Fires { get; } = new List<Emitter>();
 
@@ -29,13 +30,12 @@ namespace Helveg.Landscape
         {
             var chunkStart = position - ((position % ChunkSize) + new Point3(ChunkSize)) % ChunkSize;
 
-            if (Chunks.TryGetValue(chunkStart, out var chunk))
+            Chunk chunk;
+            while(!Chunks.TryGetValue(chunkStart, out chunk))
             {
-                return chunk;
+                chunk = Chunk.CreateEmpty(ChunkSize, defaultFill, palette);
+                Chunks.TryAdd(chunkStart, chunk);
             }
-
-            chunk = Chunk.CreateEmpty(ChunkSize, defaultFill, palette);
-            Chunks.Add(chunkStart, chunk);
             return chunk;
         }
 
@@ -216,12 +216,12 @@ namespace Helveg.Landscape
             {
                 if (Chunks[key].IsAir())
                 {
-                    Chunks.Remove(key);
+                    Chunks.TryRemove(key, out _);
                 }
-                else
-                {
-                    Chunks[key].HollowOut(new Block { Flags = BlockFlags.IsAir });
-                }
+                // else
+                // {
+                //     Chunks[key].HollowOut(new Block { Flags = BlockFlags.IsAir });
+                // }
             }
             return new World(Chunks.Values.ToArray(), Chunks.Keys.ToArray(), Fires.ToArray());
         }
