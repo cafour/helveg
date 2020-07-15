@@ -76,6 +76,7 @@ vku::WorldRender::WorldRender(int width, int height, World world, bool debug)
 
 void vku::WorldRender::createMeshes()
 {
+    logInformation("Creating meshes.");
     for (size_t i = 0; i < _world.chunkCount; ++i) {
         _meshes.push_back(vku::MeshCore::fromChunk(_transferCore, _world.chunks[i]));
 

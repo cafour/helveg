@@ -95,7 +95,6 @@ namespace Helveg.Render
                 }
             }
             var chunk = new Chunk(voxels, palette);
-            chunk.HollowOut(air);
             return chunk;
         }
 
