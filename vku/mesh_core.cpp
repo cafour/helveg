@@ -1,6 +1,8 @@
 #include "mesh_core.hpp"
 #include "data.hpp"
 
+#include <array>
+
 vku::MeshCore::MeshCore(
     vku::TransferCore &transferCore,
     const glm::vec3 *vertices,
