@@ -31,5 +31,5 @@ extern "C" {
 
     EXPORT int helloChunk(vku::Chunk chunk);
 
-    EXPORT int helloWorld(vku::World world);
+    EXPORT int helloWorld(vku::World world, const char *title);
 }

@@ -29,9 +29,9 @@ static const vku::Light sun = vku::Light {
 
 static const VkPhysicalDeviceFeatures requiredFeatures = getRequiredFeatures();
 
-vku::WorldRender::WorldRender(int width, int height, World world, bool debug)
+vku::WorldRender::WorldRender(int width, int height, World world, const std::string &title, bool debug)
     : _instanceCore("WorldRender", true, debug)
-    , _displayCore(_instanceCore.instance(), width, height, "vkdev", &requiredFeatures)
+    , _displayCore(_instanceCore.instance(), width, height, title, &requiredFeatures)
     , _swapchainCore(_displayCore)
     , _renderCore(
           _displayCore,

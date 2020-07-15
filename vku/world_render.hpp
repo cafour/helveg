@@ -5,6 +5,8 @@
 
 #include <glm/glm.hpp>
 
+#include <string>
+
 namespace vku {
 class WorldRender {
 private:
@@ -64,7 +66,7 @@ private:
     void createFireCP();
 
 public:
-    WorldRender(int width, int height, World world, bool debug = false);
+    WorldRender(int width, int height, World world, const std::string &title, bool debug = false);
 
     vku::RenderCore &renderCore() { return _renderCore; }
 };

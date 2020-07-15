@@ -97,10 +97,10 @@ int helloChunk(vku::Chunk chunk)
     });
 }
 
-int helloWorld(vku::World world)
+int helloWorld(vku::World world, const char *title)
 {
-    return hello([world]() {
-        vku::WorldRender app(1280, 720, world, isDebug);
+    return hello([world, title]() {
+        vku::WorldRender app(1280, 720, world, title, isDebug);
         app.renderCore().run();
     });
 }

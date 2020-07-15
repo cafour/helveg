@@ -7,6 +7,8 @@ namespace Helveg.Render
 {
     public static class Vku
     {
+        public const string HelvegWindowTitle = "Helveg";
+
         public delegate void LogHandler(int level, string message);
         // it's necessary to keep a reference to the logging handlers so that they don't get GC'd
         private static readonly List<LogHandler> logHandlers = new List<LogHandler>();
@@ -38,7 +40,7 @@ namespace Helveg.Render
         private static unsafe extern int helloChunk(Chunk.Raw chunk);
 
         [DllImport("vku", CallingConvention = CallingConvention.Cdecl)]
-        private static unsafe extern int helloWorld(World.Raw world);
+        private static unsafe extern int helloWorld(World.Raw world, string title);
 #pragma warning restore IDE1006
 
         public static void SetDebug(bool debug)
@@ -133,7 +135,7 @@ namespace Helveg.Render
         public static void HelloWorld(World world)
         {
             var raw = world.GetRaw();
-            var result = helloWorld(raw);
+            var result = helloWorld(raw, HelvegWindowTitle);
             if (result != 0)
             {
                 throw new InvalidOperationException($"The 'helloWorld' function returned {result}.");
