@@ -103,8 +103,12 @@ namespace Helveg
             var sentence = Spruce.Generate(42, 42);
             logger.LogInformation(string.Concat(sentence));
             var worldBuilder = new WorldBuilder(64, new Block { Flags = BlockFlags.IsAir }, Colours.IslandPalette);
-            // worldBuilder.FillSphere(Point3.Zero, new Block {PaletteIndex = 3}, 3);
-            Spruce.Draw(sentence, worldBuilder, Point3.Zero, new Block { PaletteIndex = 3 }, new Block { PaletteIndex = 5 });
+            Spruce.Draw(
+                sentence,
+                worldBuilder,
+                Point3.Zero,
+                new Block(Colours.Island.Wood),
+                new Block(Colours.Island.Leaves));
             Vku.SetDebug(vkDebug);
             Vku.HelloWorld(worldBuilder.Build());
         }
@@ -114,8 +118,8 @@ namespace Helveg
             var blockTypes = new Block[]
             {
                 new Block {Flags = BlockFlags.IsAir},
-                new Block {PaletteIndex = 0},
-                new Block {PaletteIndex = 1}
+                new Block(Colours.Island.Stone),
+                new Block(Colours.Island.Grass)
             };
             var palette = new[]
             {
@@ -150,7 +154,7 @@ namespace Helveg
             var chunk = Chunk.CreateNoisy(
                 size: 64,
                 palette: palette,
-                stoneIndex: 0,
+                fill: new Block { PaletteIndex = 0 },
                 openSimplex: openSimplex,
                 frequency: 0.025,
                 offset: Vector2.Zero);

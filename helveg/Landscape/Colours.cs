@@ -4,6 +4,16 @@ namespace Helveg.Landscape
 {
     public static class Colours
     {
+        public enum Island : byte
+        {
+            Stone,
+            Grass,
+            Sand,
+            Wood,
+            Water,
+            Leaves
+        }
+
         public static readonly Vector3[] IslandPalette = new Vector3[]
         {
             new Vector3(146, 146, 146) / 255, // stone

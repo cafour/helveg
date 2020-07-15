@@ -10,6 +10,12 @@ namespace Helveg.Render
         public byte PaletteIndex;
         public BlockFlags Flags;
 
+        public Block(Enum paletteValue)
+        {
+            Flags = BlockFlags.None;
+            PaletteIndex = Convert.ToByte(paletteValue);
+        }
+
         public static bool operator ==(Block left, Block right)
         {
             return left.Equals(right);

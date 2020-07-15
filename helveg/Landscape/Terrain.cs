@@ -31,7 +31,7 @@ namespace Helveg.Landscape
                 for (int z = -radius; z <= radius; ++z)
                 {
                     var y = (int)(OpenSimplexNoise.Evaluate(openSimplex, x * 0.025, z * 0.025) * 32 + 32);
-                    world[x, y, z] = new Block { PaletteIndex = 0 };
+                    world[x, y, z] = new Block(Colours.Island.Stone);
                 }
             }
             return world;
@@ -97,16 +97,16 @@ namespace Helveg.Landscape
                     y * surfaceNoiseFrequency);
                 var currentSandLevel = SandLevel + (int)Math.Round(surfaceNoise * surfaceNoiseMagnitude);
                 var surface = height <= currentSandLevel
-                    ? new Block { PaletteIndex = 2 }
-                    : new Block { PaletteIndex = 1 };
+                    ? new Block(Colours.Island.Sand)
+                    : new Block(Colours.Island.Grass);
                 var rockLevel = Math.Max(height - 4, 1);
                 var ox = x + offset.x;
                 var oy = y + offset.y;
-                world.FillLine(new Point3(ox, 0, oy), new Point3(ox, rockLevel, oy), new Block { PaletteIndex = 0 });
+                world.FillLine(new Point3(ox, 0, oy), new Point3(ox, rockLevel, oy), new Block(Colours.Island.Stone));
                 world.FillLine(new Point3(ox, rockLevel, oy), new Point3(ox, height, oy), surface);
                 if (height < WaterLevel)
                 {
-                    world.FillLine(new Point3(ox, height + 1, oy), new Point3(ox, 32, oy), new Block { PaletteIndex = 4 });
+                    world.FillLine(new Point3(ox, height + 1, oy), new Point3(ox, 32, oy), new Block(Colours.Island.Water));
                 }
             });
 
@@ -123,8 +123,8 @@ namespace Helveg.Landscape
                     sentence: sentence,
                     world: world,
                     position: center,
-                    wood: new Block { PaletteIndex = 3 },
-                    needles: new Block { PaletteIndex = 5 },
+                    wood: new Block(Colours.Island.Wood),
+                    needles: new Block(Colours.Island.Leaves),
                     hasNeedles: !type.Health.HasFlag(Diagnosis.Warning));
                 if (type.Health.HasFlag(Diagnosis.Error))
                 {

@@ -63,13 +63,12 @@ namespace Helveg.Render
         public static Chunk CreateNoisy(
             int size,
             Vector3[] palette,
-            byte stoneIndex,
+            Block fill,
             OpenSimplexNoise.Data openSimplex,
             double frequency,
             Vector2 offset)
         {
             var air = new Block { Flags = BlockFlags.IsAir };
-            var stone = new Block { PaletteIndex = stoneIndex };
             var terrain = new double[size, size];
             for (int x = 0; x < size; ++x)
             {
@@ -90,7 +89,7 @@ namespace Helveg.Render
                 {
                     for (int z = 0; z < size; ++z)
                     {
-                        voxels[x, y, z] = y > terrain[x, z] ? air : stone;
+                        voxels[x, y, z] = y > terrain[x, z] ? air : fill;
                     }
                 }
             }
