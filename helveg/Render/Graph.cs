@@ -6,11 +6,12 @@ namespace Helveg.Render
 {
     public struct Graph
     {
-        public Graph(Vector2[] positions, float[] weights, string[] labels)
+        public Graph(Vector2[] positions, float[] weights, string[] labels, float[] sizes)
         {
             Positions = positions;
             Weights = weights;
             Labels = labels;
+            Sizes = sizes;
         }
 
         public Vector2[] Positions { get; }
@@ -18,6 +19,8 @@ namespace Helveg.Render
         public float[] Weights { get; }
 
         public string[] Labels { get; }
+
+        public float[] Sizes { get; }
 
         public static float[] UndirectWeights(int[,] directedWeights)
         {

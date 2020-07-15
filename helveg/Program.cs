@@ -23,9 +23,9 @@ namespace Helveg
     {
         public const string AnalysisCacheFilename = "helveg-analysis.json";
         public const string FdgCacheFilename = "helveg-fdg.json";
-        public const int RegularIterationCount = 5000;
-        public const int StrongGravityIterationCount = 500;
-        public const int NoOverlapIterationCount = 5000;
+        public const int RegularIterationCount = 2000;
+        public const int NoOverlapIterationCount = 2000;
+        public const int StrongGravityIterationCount = 1000;
         public const string VkDebugAlias = "--vk-debug";
         public const string VerboseAlias = "--verbose";
         public const string ForceAlias = "--force";
@@ -71,56 +71,58 @@ namespace Helveg
             return analyzedSolution;
         }
 
-        public static async Task<ImmutableDictionary<AnalyzedTypeId, Vector2>> RunFdg(AnalyzedProject project)
+        public static async Task<(Vector2[] positions, float[] sizes, AnalyzedTypeId[] ids)>
+            RunFdg(AnalyzedProject project)
         {
             var logger = Logging.CreateLogger("Fdg");
             var serializableGraph = await Serialize.GetCache<SerializableGraph>(FdgCacheFilename, logger);
             if (serializableGraph is object && serializableGraph.Name == project.Name
                 && serializableGraph.TimeStamp == project.LastWriteTime
+                && serializableGraph.Positions is object
+                && serializableGraph.Sizes is object
+                && serializableGraph.Ids is object
                 && !IsForced)
             {
                 logger.LogInformation("Using cached positional results.");
-                return serializableGraph.Positions.ToImmutableDictionary(
-                    p => AnalyzedTypeId.Parse(p.Key),
-                    p => p.Value);
+                return (
+                    positions: serializableGraph.Positions,
+                    sizes: serializableGraph.Sizes,
+                    ids: serializableGraph.Ids.Select(id => AnalyzedTypeId.Parse(id)).ToArray());
             }
 
-            var (names, matrix) = project.GetWeightMatrix();
-            var weights = Graph.UndirectWeights(matrix);
-            var positions = new Vector2[names.Length];
-            var state = Fdg.Create(positions, weights);
-            state.NodeSize = 16;
+            var (graph, ids) = project.GetGraph();
+            var state = Fdg.Create(graph.Positions, graph.Weights, graph.Sizes);
             logger.LogInformation("Processing regular iterations.");
             for (int i = 0; i < RegularIterationCount; ++i)
             {
-                Fdg.Step(ref state);
+                Fdg.Step(state);
+            }
+            logger.LogInformation("Processing overlap prevention iterations.");
+            state.PreventOverlapping = true;
+            for (int i = 0; i < NoOverlapIterationCount; ++i)
+            {
+                Fdg.Step(state);
             }
             logger.LogInformation("Processing strong gravity iterations.");
             state.IsGravityStrong = true;
             for (int i = 0; i < StrongGravityIterationCount; ++i)
             {
-                Fdg.Step(ref state);
-            }
-            logger.LogInformation("Processing overlap prevention iterations.");
-            state.IsGravityStrong = false;
-            state.PreventOverlapping = true;
-            for (int i = 0; i < NoOverlapIterationCount; ++i)
-            {
-                Fdg.Step(ref state);
+                Fdg.Step(state);
             }
 
-            var results = names.Zip(positions).ToImmutableDictionary(p => p.First, p => p.Second);
             using (var stream = new FileStream(FdgCacheFilename, FileMode.Create))
             {
-                var graph = new SerializableGraph
+                serializableGraph = new SerializableGraph
                 {
                     TimeStamp = project.LastWriteTime,
                     Name = project.Name,
-                    Positions = results.ToDictionary(p => p.Key.ToString(), p => p.Value)
+                    Positions = graph.Positions,
+                    Sizes = graph.Sizes,
+                    Ids = graph.Labels,
                 };
-                await JsonSerializer.SerializeAsync(stream, graph, Serialize.JsonOptions);
+                await JsonSerializer.SerializeAsync(stream, serializableGraph, Serialize.JsonOptions);
             }
-            return results;
+            return (graph.Positions, graph.Sizes, ids);
         }
 
         public static async Task RunPipeline(FileSystemInfo source, Dictionary<string, string> properties)
@@ -133,10 +135,10 @@ namespace Helveg
 
             // TODO: Handle multiple projects.
             var analyzedProject = analyzedSolution.Value.Projects.First().Value;
-            var positions = await RunFdg(analyzedProject);
+            var (positions, sizes, ids) = await RunFdg(analyzedProject);
 
             var generatorLogger = Logging.CreateLogger("Generator");
-            var world = Terrain.GenerateIsland(analyzedProject, positions, generatorLogger).Build();
+            var world = Terrain.GenerateIsland(analyzedProject, positions, sizes, ids, generatorLogger).Build();
             // foreach (var chunk in world.Chunks)
             // {
             //     chunk.HollowOut(new Block { Flags = BlockFlags.IsAir });
@@ -152,20 +154,20 @@ namespace Helveg
             };
             rootCmd.AddGlobalOption(new Option<bool>(VkDebugAlias, "Enable Vulkan validation layers"));
             rootCmd.AddGlobalOption(new Option<bool>(new[] { "-v", VerboseAlias }, "Set logging level to Debug"));
-            rootCmd.AddGlobalOption(new Option<bool>(new[] { "-f", ForceAlias}, "Overwrite cached results"));
+            rootCmd.AddGlobalOption(new Option<bool>(new[] { "-f", ForceAlias }, "Overwrite cached results"));
             rootCmd.AddArgument(new Argument<FileSystemInfo>(
                 name: "SOURCE",
                 description: "Path to a project or a solution",
                 getDefaultValue: () => new DirectoryInfo(Environment.CurrentDirectory)));
             var propertyOption = new Option<Dictionary<string, string>>(
-                aliases: new [] {"-p", "--properties"},
+                aliases: new[] { "-p", "--properties" },
                 parseArgument: a => a.Tokens
                     .Select(t => t.Value.Split('=', 2))
                     .ToDictionary(p => p[0], p => p[1]),
                 description: "Set an MSBuild property for the loading of projects");
             propertyOption.Argument.AddValidator(r =>
             {
-                foreach(var token in r.Tokens)
+                foreach (var token in r.Tokens)
                 {
                     if (!token.Value.Contains('='))
                     {

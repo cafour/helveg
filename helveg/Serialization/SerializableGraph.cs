@@ -8,6 +8,11 @@ namespace Helveg.Serialization
     {
         public DateTime TimeStamp { get; set; }
         public string? Name { get; set; }
-        public Dictionary<string, Vector2>? Positions { get; set; }
+
+        public Vector2[]? Positions { get; set; }
+
+        public float[]? Sizes { get; set; }
+
+        public string[]? Ids { get; set; }
     }
 }

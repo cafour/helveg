@@ -81,10 +81,6 @@ namespace Helveg.Landscape
             var sign = Point3.Sign(diff);
             diff = Point3.Abs(diff);
             var max = Point3.Max(diff);
-            if (max == 0)
-            {
-                return;
-            }
 
             var error = 2 * diff - new Point3(max);
             action(from);

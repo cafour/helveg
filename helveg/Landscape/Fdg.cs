@@ -8,6 +8,7 @@
 using System;
 using System.Diagnostics;
 using System.Numerics;
+using System.Threading.Tasks;
 
 namespace Helveg.Landscape
 {
@@ -32,6 +33,7 @@ namespace Helveg.Landscape
             public float[] Swinging;
             public Vector2[] Positions;
             public float[] Weights;
+            public float[] Sizes;
             public bool PreventOverlapping;
             public bool IsGravityStrong;
             public float RepulsionFactor;
@@ -42,7 +44,6 @@ namespace Helveg.Landscape
             public float GravityFactor;
             public float GlobalSpeedFactor;
             public float MaxSpeedConstant;
-            public float NodeSize;
             public float TraSwgRatio;
 
             public static readonly State Default = new State
@@ -55,12 +56,11 @@ namespace Helveg.Landscape
                 GravityFactor = DefaultGravityFactor,
                 GlobalSpeedFactor = DefaultGlobalSpeedFactor,
                 MaxSpeedConstant = DefaultMaxSpeedConstant,
-                NodeSize = DefaultNodeSize,
                 TraSwgRatio = DefaultTraSwgRatio,
             };
         }
 
-        public static State Create(Vector2[] positions, float[] weights)
+        public static State Create(Vector2[] positions, float[] weights, float[] sizes)
         {
             var nodeCount = positions.Length;
             
@@ -90,10 +90,11 @@ namespace Helveg.Landscape
                     }
                 }
             }
+            state.Sizes = sizes;
             return state;
         }
 
-        public static void Step(ref State state)
+        public static void Step(State state)
         {
             {
                 Vector2[] tmp = state.Forces;
@@ -103,7 +104,7 @@ namespace Helveg.Landscape
 
             int nodeCount = state.Positions.Length;
 
-            for (int i = 0; i < nodeCount; ++i)
+            Parallel.For(0, nodeCount, i =>
             {
                 var direction = state.Positions[i];
                 var unit = -direction / direction.Length();
@@ -113,7 +114,7 @@ namespace Helveg.Landscape
                     force *= direction.Length();
                 }
                 state.Forces[i] = force * unit;
-            }
+            });
 
             int weightIndex = 0;
             for (int from = 0; from < nodeCount; ++from)
@@ -126,7 +127,7 @@ namespace Helveg.Landscape
 
                     if (state.PreventOverlapping)
                     {
-                        length -= 2 * state.NodeSize;
+                        length -= state.Sizes[from] + state.Sizes[to];
                     }
 
                     float attraction = 0;
@@ -151,12 +152,12 @@ namespace Helveg.Landscape
 
             float globalTraction = 0f;
             float globalSwinging = 0f;
-            for (int i = 0; i < nodeCount; ++i)
+            Parallel.For(0, nodeCount, i =>
             {
                 state.Swinging[i] = (state.Forces[i] - state.PreviousForces[i]).Length();
                 globalSwinging += (state.Degrees[i] + 1) * state.Swinging[i];
                 globalTraction += (state.Degrees[i] + 1) * (state.Forces[i] + state.PreviousForces[i]).Length() / 2f;
-            }
+            });
 
             state.GlobalSpeed = Math.Clamp(
                 state.TraSwgRatio * globalTraction / globalSwinging,
@@ -167,7 +168,7 @@ namespace Helveg.Landscape
                 state.MinGlobalSpeed,
                 state.MaxGlobalSpeed);
 
-            for (int i = 0; i < nodeCount; ++i)
+            Parallel.For(0, nodeCount, i => 
             {
                 float speed = state.GlobalSpeedFactor * state.GlobalSpeed
                     / (1 + state.GlobalSpeed * MathF.Sqrt(state.Swinging[i]));
@@ -179,7 +180,7 @@ namespace Helveg.Landscape
                 }
                 speed = MathF.Min(speed, state.MaxSpeedConstant / length);
                 state.Positions[i] += state.Forces[i] * speed;
-            }
+            });
         }
     }
 }

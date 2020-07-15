@@ -181,8 +181,7 @@ namespace Helveg
                 properties: properties,
                 init: g =>
                 {
-                    state = Fdg.Create(g.Positions, g.Weights);
-                    state.NodeSize = 2;
+                    state = Fdg.Create(g.Positions, g.Weights, g.Sizes);
                 });
             if (graph is null)
             {
@@ -196,12 +195,29 @@ namespace Helveg
                     graph: graph.Value,
                     step: (i, g) =>
                     {
-                        Fdg.Step(ref state);
+                        Fdg.Step(state);
                         return g;
                     },
                     format: format,
                     iterationCount: regular,
                     prefix: "fdg-regular",
+                    every: every,
+                    speed: speed);
+            }
+            if (noOverlap > 0)
+            {
+                logger.LogInformation("Processing overlap prevention iterations.");
+                state.PreventOverlapping = true;
+                DrawGraph(
+                    graph: graph.Value,
+                    step: (i, g) =>
+                    {
+                        Fdg.Step(state);
+                        return g;
+                    },
+                    format: format,
+                    iterationCount: noOverlap,
+                    prefix: "fdg-no-overlap",
                     every: every,
                     speed: speed);
             }
@@ -213,30 +229,12 @@ namespace Helveg
                     graph: graph.Value,
                     step: (i, g) =>
                     {
-                        Fdg.Step(ref state);
+                        Fdg.Step(state);
                         return g;
                     },
                     format: format,
                     iterationCount: strongGravity,
                     prefix: "fdg-strong-gravity",
-                    every: every,
-                    speed: speed);
-            }
-            if (noOverlap > 0)
-            {
-                logger.LogInformation("Processing overlap prevention iterations.");
-                state.IsGravityStrong = false;
-                state.PreventOverlapping = true;
-                DrawGraph(
-                    graph: graph.Value,
-                    step: (i, g) =>
-                    {
-                        Fdg.Step(ref state);
-                        return g;
-                    },
-                    format: format,
-                    iterationCount: noOverlap,
-                    prefix: "fdg-no-overlap",
                     every: every,
                     speed: speed);
             }
@@ -274,8 +272,11 @@ namespace Helveg
             if (json is object)
             {
                 using var stream = new FileStream(json.FullName, FileMode.Open);
-                project = (await JsonSerializer.DeserializeAsync<SerializableProject>(stream, Serialize.JsonOptions))
-                    .ToAnalyzed();
+                project = (await JsonSerializer.DeserializeAsync<SerializableSolution>(stream, Serialize.JsonOptions))
+                    .ToAnalyzed()
+                    .Projects
+                    .First()
+                    .Value;
             }
             else
             {
@@ -290,10 +291,7 @@ namespace Helveg
                 return null;
             }
 
-            var (names, matrix) = project.Value.GetWeightMatrix();
-            var weights = Graph.UndirectWeights(matrix);
-            var labels = names.Select(n => n.ToString()).ToArray();
-            var graph = new Graph(new Vector2[matrix.GetLength(0)], weights, labels);
+            var (graph, _) = project.Value.GetGraph();
             init(graph);
             for (int i = 0; i < graph.Positions.Length; ++i)
             {
