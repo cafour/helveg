@@ -63,7 +63,7 @@ namespace Helveg.Landscape
         public static State Create(Vector2[] positions, float[] weights, float[] sizes)
         {
             var nodeCount = positions.Length;
-            
+
             var state = State.Default;
             state.PreviousForces = new Vector2[nodeCount];
             state.Forces = new Vector2[nodeCount];
@@ -94,7 +94,7 @@ namespace Helveg.Landscape
             return state;
         }
 
-        public static void Step(State state)
+        public static void Step(ref State state)
         {
             {
                 Vector2[] tmp = state.Forces;
@@ -104,7 +104,7 @@ namespace Helveg.Landscape
 
             int nodeCount = state.Positions.Length;
 
-            Parallel.For(0, nodeCount, i =>
+            for (int i = 0; i < nodeCount; ++i)
             {
                 var direction = state.Positions[i];
                 var unit = -direction / direction.Length();
@@ -114,7 +114,7 @@ namespace Helveg.Landscape
                     force *= direction.Length();
                 }
                 state.Forces[i] = force * unit;
-            });
+            }
 
             int weightIndex = 0;
             for (int from = 0; from < nodeCount; ++from)
@@ -152,12 +152,12 @@ namespace Helveg.Landscape
 
             float globalTraction = 0f;
             float globalSwinging = 0f;
-            Parallel.For(0, nodeCount, i =>
+            for (int i = 0; i < nodeCount; ++i)
             {
                 state.Swinging[i] = (state.Forces[i] - state.PreviousForces[i]).Length();
                 globalSwinging += (state.Degrees[i] + 1) * state.Swinging[i];
                 globalTraction += (state.Degrees[i] + 1) * (state.Forces[i] + state.PreviousForces[i]).Length() / 2f;
-            });
+            }
 
             state.GlobalSpeed = Math.Clamp(
                 state.TraSwgRatio * globalTraction / globalSwinging,
@@ -168,7 +168,7 @@ namespace Helveg.Landscape
                 state.MinGlobalSpeed,
                 state.MaxGlobalSpeed);
 
-            Parallel.For(0, nodeCount, i => 
+            for (int i = 0; i < nodeCount; ++i)
             {
                 float speed = state.GlobalSpeedFactor * state.GlobalSpeed
                     / (1 + state.GlobalSpeed * MathF.Sqrt(state.Swinging[i]));
@@ -180,7 +180,7 @@ namespace Helveg.Landscape
                 }
                 speed = MathF.Min(speed, state.MaxSpeedConstant / length);
                 state.Positions[i] += state.Forces[i] * speed;
-            });
+            }
         }
     }
 }

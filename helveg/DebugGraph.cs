@@ -195,7 +195,7 @@ namespace Helveg
                     graph: graph.Value,
                     step: (i, g) =>
                     {
-                        Fdg.Step(state);
+                        Fdg.Step(ref state);
                         return g;
                     },
                     format: format,
@@ -212,7 +212,7 @@ namespace Helveg
                     graph: graph.Value,
                     step: (i, g) =>
                     {
-                        Fdg.Step(state);
+                        Fdg.Step(ref state);
                         return g;
                     },
                     format: format,
@@ -229,7 +229,7 @@ namespace Helveg
                     graph: graph.Value,
                     step: (i, g) =>
                     {
-                        Fdg.Step(state);
+                        Fdg.Step(ref state);
                         return g;
                     },
                     format: format,

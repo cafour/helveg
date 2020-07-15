@@ -60,29 +60,22 @@ namespace Helveg.Landscape
                     var l = (positions[i] - coord).Length();
                     var r = sizes[i] + NodeOverlap;
                     sum = MathF.Max(sum, GrassLevel * (1.0f - Smoothstep(0.0f, StepWidth, l - r)));
-                    // if (l < r)
-                    // {
-                    //     sum = 36;
-                    // }
-                    // else
-                    // {
-                    //     sum = Math.Max(sum, 36 / ((l - r + 1) * (l - r + 1)));
-                    // }
-                    // sum += MathF.Sqrt(r) * Math.Exp(-l / (r * r));
                 }
-                sum += (float) OpenSimplexNoise.Evaluate(
+                sum += (float)OpenSimplexNoise.Evaluate(
                     openSimplex,
                     x * frequency, y * frequency) * magnitude;
-                heightmap[x, y] = (int)Math.Round(sum);
+                heightmap[x, y] = (int)Math.Max(0.0f, Math.Round(sum));
             });
             return heightmap;
         }
 
-        public static WorldBuilder GenerateIsland(
+        public static void GenerateIsland(
+            WorldBuilder world,
             AnalyzedProject project,
             Vector2[] positions,
             float[] sizes,
             AnalyzedTypeId[] ids,
+            (int x, int y) offset,
             ILogger? logger = null)
         {
             const double surfaceNoiseMagnitude = 4.0;
@@ -93,7 +86,6 @@ namespace Helveg.Landscape
             var heightmap = GenerateIslandHeightmap(project.GetSeed(), positions, sizes);
 
             logger.LogInformation($"Generating terrain.");
-            var world = new WorldBuilder(128, new Block { Flags = BlockFlags.IsAir }, Colours.IslandPalette);
             var openSimplex = new OpenSimplexNoise.Data(project.GetSeed());
             Parallel.For(0, heightmap.SizeX * heightmap.SizeY, index =>
             {
@@ -108,11 +100,13 @@ namespace Helveg.Landscape
                     ? new Block { PaletteIndex = 2 }
                     : new Block { PaletteIndex = 1 };
                 var rockLevel = Math.Max(height - 4, 1);
-                world.FillLine(new Point3(x, 0, y), new Point3(x, rockLevel, y), new Block { PaletteIndex = 0 });
-                world.FillLine(new Point3(x, rockLevel, y), new Point3(x, height, y), surface);
+                var ox = x + offset.x;
+                var oy = y + offset.y;
+                world.FillLine(new Point3(ox, 0, oy), new Point3(ox, rockLevel, oy), new Block { PaletteIndex = 0 });
+                world.FillLine(new Point3(ox, rockLevel, oy), new Point3(ox, height, oy), surface);
                 if (height < WaterLevel)
                 {
-                    world.FillLine(new Point3(x, height + 1, y), new Point3(x, 32, y), new Block { PaletteIndex = 4 });
+                    world.FillLine(new Point3(ox, height + 1, oy), new Point3(ox, 32, oy), new Block { PaletteIndex = 4 });
                 }
             });
 
@@ -121,7 +115,7 @@ namespace Helveg.Landscape
             {
                 var type = project.Types[ids[i]];
                 var position = positions[i];
-                var center = new Point3(position.X, heightmap[position.X, position.Y], position.Y);
+                var center = new Point3(position.X + offset.x, heightmap[position.X, position.Y], position.Y + offset.y);
                 var sentence = Spruce.Generate(
                     seed: type.GetSeed(),
                     size: type.MemberCount);
@@ -137,7 +131,6 @@ namespace Helveg.Landscape
                     world.Burn(center + new Point3(0, 6, 0), MathF.Log2(type.MemberCount) * 2);
                 }
             }
-            return world;
         }
 
         private static float Smoothstep(float low, float high, float value)

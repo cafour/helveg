@@ -2,8 +2,6 @@
 using System.CommandLine.Invocation;
 using System.IO;
 using System.Linq;
-using System.Numerics;
-using System.Text.Json;
 using Helveg.Serialization;
 using Helveg.Landscape;
 using Helveg.Analysis;
@@ -12,7 +10,6 @@ using Microsoft.Build.Locator;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using System.Collections.Immutable;
 using System;
 using System.CommandLine.Builder;
 using System.Collections.Generic;
@@ -61,89 +58,97 @@ namespace Helveg
             var analyzedSolution = await Analyze.AnalyzeProjectOrSolution(file, properties, logger, cache);
             if (analyzedSolution is object)
             {
-                logger.LogDebug($"Caching analysis results to '{AnalysisCacheFilename}'.");
-                using var stream = new FileStream(AnalysisCacheFilename, FileMode.Create);
-                await JsonSerializer.SerializeAsync(
-                    stream,
+                await Serialize.SetCache(
+                    AnalysisCacheFilename,
                     SerializableSolution.FromAnalyzed(analyzedSolution.Value),
-                    Serialize.JsonOptions);
+                    logger);
             }
             return analyzedSolution;
         }
 
-        public static async Task<(Vector2[] positions, float[] sizes, AnalyzedTypeId[] ids)>
-            RunFdg(AnalyzedProject project)
+        public static Graph RunFdg(AnalyzedProject project, SerializableGraphCollection? cache = null)
         {
-            var logger = Logging.CreateLogger("Fdg");
-            var serializableGraph = await Serialize.GetCache<SerializableGraph>(FdgCacheFilename, logger);
-            if (serializableGraph is object && serializableGraph.Name == project.Name
-                && serializableGraph.TimeStamp == project.LastWriteTime
-                && serializableGraph.Positions is object
-                && serializableGraph.Sizes is object
-                && serializableGraph.Ids is object
-                && !IsForced)
+            var logger = Logging.CreateLogger($"{project.Name}: Fdg");
+            if (cache is object
+                && cache.Graphs is object
+                && cache.Graphs.TryGetValue(project.Name, out var cachedGraph)
+                && cachedGraph.TimeStamp == project.LastWriteTime)
             {
-                logger.LogInformation("Using cached positional results.");
-                return (
-                    positions: serializableGraph.Positions,
-                    sizes: serializableGraph.Sizes,
-                    ids: serializableGraph.Ids.Select(id => AnalyzedTypeId.Parse(id)).ToArray());
+                logger.LogInformation("Using cached Fdg results.");
+                return cachedGraph.ToGraph();
             }
 
-            var (graph, ids) = project.GetGraph();
+            var (graph, _) = project.GetGraph();
             var state = Fdg.Create(graph.Positions, graph.Weights, graph.Sizes);
             logger.LogInformation("Processing regular iterations.");
             for (int i = 0; i < RegularIterationCount; ++i)
             {
-                Fdg.Step(state);
+                Fdg.Step(ref state);
             }
             logger.LogInformation("Processing overlap prevention iterations.");
             state.PreventOverlapping = true;
             for (int i = 0; i < NoOverlapIterationCount; ++i)
             {
-                Fdg.Step(state);
+                Fdg.Step(ref state);
             }
             logger.LogInformation("Processing strong gravity iterations.");
             state.IsGravityStrong = true;
             for (int i = 0; i < StrongGravityIterationCount; ++i)
             {
-                Fdg.Step(state);
+                Fdg.Step(ref state);
             }
-
-            using (var stream = new FileStream(FdgCacheFilename, FileMode.Create))
-            {
-                serializableGraph = new SerializableGraph
-                {
-                    TimeStamp = project.LastWriteTime,
-                    Name = project.Name,
-                    Positions = graph.Positions,
-                    Sizes = graph.Sizes,
-                    Ids = graph.Labels,
-                };
-                await JsonSerializer.SerializeAsync(stream, serializableGraph, Serialize.JsonOptions);
-            }
-            return (graph.Positions, graph.Sizes, ids);
+            return graph;
         }
 
         public static async Task RunPipeline(FileSystemInfo source, Dictionary<string, string> properties)
         {
-            var analyzedSolution = await RunAnalysis(source, properties);
-            if (analyzedSolution is null)
+            var nullableSolution = await RunAnalysis(source, properties);
+            if (nullableSolution is null)
             {
                 return;
             }
+            var solution = nullableSolution.Value;
 
-            // TODO: Handle multiple projects.
-            var analyzedProject = analyzedSolution.Value.Projects.First().Value;
-            var (positions, sizes, ids) = await RunFdg(analyzedProject);
+            var solutionGraph = solution.GetGraph();
+            var solutionFdgLogger = Logging.CreateLogger($"{solution.Name}: Fdg");
+            var fdgCache = IsForced ? null : await Serialize.GetCache<SerializableGraphCollection>(
+                FdgCacheFilename,
+                solutionFdgLogger);
+            var fdgResults = await Task.WhenAll(solutionGraph.Labels
+                .Select(p => Task.Run(() => RunFdg(solution.Projects[p], fdgCache))));
+            var serializableGraphs = new SerializableGraphCollection
+            {
+                Graphs = solutionGraph.Labels.Zip(fdgResults)
+                    .ToDictionary(p => p.First, p => SerializableGraph
+                        .FromGraph(p.Second, solution.Projects[p.First].LastWriteTime))
+            };
+            await Serialize.SetCache(FdgCacheFilename, serializableGraphs, solutionFdgLogger);
+            var sizes = fdgResults.Select(g => 
+            {
+                var (max, min) = g.GetBoundingBox();
+                return MathF.Max(max.X - min.X, max.Y - min.Y);
+            }).ToArray();
+            var solutionFdgState = Fdg.Create(solutionGraph.Positions, solutionGraph.Weights, sizes);
+            solutionFdgState.PreventOverlapping = true;
+            for(int i = 0; i < 1000; ++i)
+            {
+                Fdg.Step(ref solutionFdgState);
+            }
 
-            var generatorLogger = Logging.CreateLogger("Generator");
-            var world = Terrain.GenerateIsland(analyzedProject, positions, sizes, ids, generatorLogger).Build();
-            // foreach (var chunk in world.Chunks)
-            // {
-            //     chunk.HollowOut(new Block { Flags = BlockFlags.IsAir });
-            // }
-            Vku.HelloWorld(world);
+            var world = new WorldBuilder(128, new Block { Flags = BlockFlags.IsAir }, Colours.IslandPalette);
+            await Task.WhenAll(Enumerable.Range(0, solutionGraph.Labels.Length).Select(i => Task.Run(() =>
+            {
+                var name = solutionGraph.Labels[i];
+                var generatorLogger = Logging.CreateLogger($"{name}: Generator");
+                var project = solution.Projects[name];
+                var graph = fdgResults[i];
+                var ids = graph.Labels.Select(l => AnalyzedTypeId.Parse(l)).ToArray();
+                var offset = ((int)solutionGraph.Positions[i].X, (int)solutionGraph.Positions[i].Y);
+                Terrain.GenerateIsland(world, project, graph.Positions, graph.Sizes, ids, offset, generatorLogger);
+            })));
+
+            var builtWorld = world.Build();
+            Vku.HelloWorld(builtWorld);
         }
 
         public static unsafe int Main(string[] args)
@@ -207,7 +212,9 @@ namespace Helveg
                 Vku.SetLogCallback((l, m) => renderLogger.Log((LogLevel)l, m));
             });
             builder.Build(); // Sets ImplicitParser inside the root command. Yes, it's weird, I know.
-            return rootCmd.Invoke(args);
+            var errorCode = rootCmd.Invoke(args);
+            Logging.Dispose();
+            return errorCode;
         }
     }
 }

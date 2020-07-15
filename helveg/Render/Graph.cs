@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Numerics;
 using System.Text;
 
@@ -41,6 +42,22 @@ namespace Helveg.Render
                 }
             }
             return weights;
+        }
+
+        public (Vector2 max, Vector2 min) GetBoundingBox()
+        {
+            var max = new Vector2(float.MinValue, float.MinValue);
+            var min = new Vector2(float.MaxValue, float.MaxValue);
+            for (int i = 0; i < Positions.Length; ++i)
+            {
+                max = new Vector2(
+                    x: MathF.Max(max.X, Positions[i].X + Sizes[i]),
+                    y: MathF.Max(max.Y, Positions[i].Y + Sizes[i]));
+                min = new Vector2(
+                    x: MathF.Min(min.Y, Positions[i].X - Sizes[i]),
+                    y: MathF.Min(min.Y, Positions[i].Y - Sizes[i]));
+            }
+            return (max, min);
         }
 
         public string ToGraphviz(int scale = 72, int size = 36, int nodeWidth = 2)

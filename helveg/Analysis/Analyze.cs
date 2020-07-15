@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Helveg.Serialization;
+using Microsoft.Build.Exceptions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.MSBuild;
@@ -32,17 +33,27 @@ namespace Helveg.Analysis
             var workspace = MSBuildWorkspace.Create(properties);
             Solution? solution = null;
             Project? project = null;
-            switch (file.Extension)
+            try
             {
-                case ".sln":
-                    solution = await workspace.OpenSolutionAsync(file.FullName);
-                    break;
-                case ".csproj":
-                    project = await workspace.OpenProjectAsync(file.FullName);
-                    break;
-                default:
-                    logger.LogCritical($"File extension '{file.Extension}' is not supported.");
-                    return null;
+                switch (file.Extension)
+                {
+                    case ".sln":
+                        solution = await workspace.OpenSolutionAsync(file.FullName);
+                        break;
+                    case ".csproj":
+                        project = await workspace.OpenProjectAsync(file.FullName);
+                        break;
+                    default:
+                        logger.LogCritical($"File extension '{file.Extension}' is not supported.");
+                        return null;
+                }
+            }
+            catch(Exception e)
+            {
+                logger.LogCritical($"MSBuild failed to load the '{file}' project or solution. "
+                    + "Run with '--verbose' for more information.");
+                logger.LogDebug(e, "MSBuildWorkspace threw an exception.");
+                return null;
             }
             LogMSBuildDiagnostics(workspace, logger);
             if (workspace.Diagnostics.Any(d => d.Kind == WorkspaceDiagnosticKind.Failure))

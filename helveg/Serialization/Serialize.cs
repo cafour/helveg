@@ -35,5 +35,12 @@ namespace Helveg.Serialization
             }
             return null;
         }
+
+        public static async Task SetCache<T>(string path, T value, ILogger? logger)
+        {
+            using var stream = new FileStream(path, FileMode.Create);
+            logger?.LogDebug($"Caching to '{path}'.");
+            await JsonSerializer.SerializeAsync(stream, value, JsonOptions);
+        }
     }
 }
