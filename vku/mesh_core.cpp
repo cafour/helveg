@@ -125,7 +125,7 @@ static void pushCube(
     }
 }
 
-vku::MeshCore vku::MeshCore::fromChunk(vku::TransferCore &transferCore, vku::Chunk chunk)
+std::optional<vku::MeshCore> vku::MeshCore::fromChunk(vku::TransferCore &transferCore, vku::Chunk chunk)
 {
     if (!chunk.palette || !chunk.voxels || !chunk.size) {
         throw std::invalid_argument("the chunk is not valid");
@@ -147,6 +147,11 @@ vku::MeshCore vku::MeshCore::fromChunk(vku::TransferCore &transferCore, vku::Chu
                 pushCube(vertices, colors, indices, chunk, glm::ivec3(x, y, z), chunk.palette[block.paletteIndex]);
             }
         }
+    }
+
+    if (indices.empty())
+    {
+        return std::nullopt;
     }
 
     return vku::MeshCore(transferCore, vertices.data(), vertices.size(), indices.data(), indices.size(), colors.data());

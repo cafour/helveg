@@ -5,6 +5,8 @@
 
 #include <glm/glm.hpp>
 
+#include <optional>
+
 namespace vku {
 
 struct Chunk;
@@ -28,7 +30,7 @@ public:
         size_t indexCount,
         const glm::vec3 *colors = nullptr);
 
-    static MeshCore fromChunk(vku::TransferCore& transferCore, vku::Chunk chunk);
+    static std::optional<MeshCore> fromChunk(vku::TransferCore& transferCore, vku::Chunk chunk);
 
     vku::Buffer &vertexBuffer() { return _vertexBuffer; }
     vku::DeviceMemory &vertexMemory() { return _vertexMemory; }

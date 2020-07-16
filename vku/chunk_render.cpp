@@ -25,7 +25,7 @@ vku::ChunkRender::ChunkRender(int width, int height, Chunk chunk, bool debug)
           [this](auto cb, auto &f) { recordCommandBuffer(cb, f); })
     , _depthCore(_displayCore, _renderCore)
     , _transferCore(_displayCore.physicalDevice(), _displayCore.device())
-    , _meshCore(vku::MeshCore::fromChunk(_transferCore, chunk))
+    , _meshCore(vku::MeshCore::fromChunk(_transferCore, chunk).value())
     , _chunk(chunk)
 {
     VkDescriptorSetLayoutBinding bindings[] = {

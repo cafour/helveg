@@ -1,4 +1,5 @@
 using System;
+using System.Drawing;
 using System.Linq;
 using System.Numerics;
 using System.Text;
@@ -108,7 +109,7 @@ namespace Helveg.Render
             return weights;
         }
 
-        public (Vector2 max, Vector2 min) GetBoundingBox()
+        public RectangleF GetBoundingBox()
         {
             var max = new Vector2(float.MinValue, float.MinValue);
             var min = new Vector2(float.MaxValue, float.MaxValue);
@@ -118,10 +119,10 @@ namespace Helveg.Render
                     x: MathF.Max(max.X, Positions[i].X + Sizes[i]),
                     y: MathF.Max(max.Y, Positions[i].Y + Sizes[i]));
                 min = new Vector2(
-                    x: MathF.Min(min.Y, Positions[i].X - Sizes[i]),
+                    x: MathF.Min(min.X, Positions[i].X - Sizes[i]),
                     y: MathF.Min(min.Y, Positions[i].Y - Sizes[i]));
             }
-            return (max, min);
+            return new RectangleF(min.X, min.Y, MathF.Abs(max.X - min.X), MathF.Abs(max.Y - min.Y));
         }
 
         public string ToGraphviz(int scale = 72, int size = 36, int nodeWidth = 2)

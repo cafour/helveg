@@ -1,6 +1,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Drawing;
+using System.IO;
+using System.Linq;
 
 namespace Helveg.Landscape
 {
@@ -16,6 +19,11 @@ namespace Helveg.Landscape
             SizeX = Math.Abs(maxX - minX);
             SizeY = Math.Abs(maxY - minY);
             data = new float[SizeX * SizeY];
+        }
+
+        public Heightmap(Rectangle rectangle)
+            : this(rectangle.X, rectangle.X + rectangle.Width, rectangle.Y, rectangle.Y + rectangle.Height)
+        {
         }
 
         public int MinX { get; }
@@ -59,6 +67,23 @@ namespace Helveg.Landscape
 
             value = -1f;
             return false;
+        }
+
+        public void Save(string path)
+        {
+            using var stream = new FileStream(path, FileMode.Create);
+            using var writer = new StreamWriter(stream);
+            writer.WriteLine("P2");
+            writer.WriteLine($"{SizeX} {SizeY}");
+            writer.WriteLine($"{(int)MathF.Round(data.Max())}");
+            for(int y = MinY; y < MaxY; ++y)
+            {
+                for(int x = MinX; x < MaxX; ++x)
+                {
+                    writer.Write($"{(int)MathF.Round(this[x, y])} ");
+                }
+                writer.WriteLine();
+            }
         }
 
         public IEnumerator<float> GetEnumerator()

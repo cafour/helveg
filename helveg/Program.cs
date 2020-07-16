@@ -126,7 +126,7 @@ namespace Helveg
                         expectedTimeStamp: project.LastWriteTime,
                         cache: cache);
                 })));
-            
+
             var serializableGraphs = new SerializableGraphCollection
             {
                 Graphs = solutionGraph.Labels.Zip(graphs)
@@ -137,19 +137,15 @@ namespace Helveg
 
             for (int i = 0; i < graphs.Length; ++i)
             {
-                var (max, min) = graphs[i].GetBoundingBox();
-                solutionGraph.Sizes[i] = MathF.Max(max.X - min.X, max.Y - min.Y);
+                var bbox = graphs[i].GetBoundingBox();
+                solutionGraph.Sizes[i] = MathF.Max(bbox.Width, bbox.Height);
             }
             logger.LogInformation("Laying out islands.");
             RunFdg(solutionGraph, 0, 0, 1000);
 
             const int margin = 64;
-            var globalBbox = solutionGraph.GetBoundingBox();
-            var heightmap = new Heightmap(
-                minX: (int)globalBbox.min.X - margin,
-                minY: (int)globalBbox.min.Y - margin,
-                maxX: (int)globalBbox.max.X + margin,
-                maxY: (int)globalBbox.max.Y + margin);
+            var globalBbox = Rectangle.Round(RectangleF.Inflate(solutionGraph.GetBoundingBox(), margin, margin));
+            var heightmap = new Heightmap(globalBbox);
             logger.LogInformation("Writing ocean heightmap.");
             Terrain.WriteOceanFloorHeightmap(heightmap, solution.GetSeed());
             for (int i = 0; i < graphs.Length; ++i)
@@ -161,12 +157,7 @@ namespace Helveg
                     graph.Positions[j] += pos;
                 }
                 var radius = solutionGraph.Sizes[i];
-                var area = new Rectangle(
-                    x: (int)MathF.Round(pos.X - radius),
-                    y: (int)MathF.Round(pos.Y - radius),
-                    width: (int)MathF.Round(2 * radius),
-                    height: (int)MathF.Round(2 * radius)
-                );
+                var area = Rectangle.Round(RectangleF.Inflate(graph.GetBoundingBox(), margin, margin));
                 var project = solution.Projects[solutionGraph.Labels[i]];
                 logger.LogInformation($"Writing island heightmap of '{project.Name}'.");
                 Terrain.WriteIslandHeightmap(heightmap, area, project.GetSeed(), graph.Positions, graph.Sizes);
@@ -176,7 +167,7 @@ namespace Helveg
             logger.LogInformation("Generating terrain.");
             Terrain.GenerateTerrain(heightmap, world);
 
-            for(int i = 0; i< graphs.Length; ++i)
+            for (int i = 0; i < graphs.Length; ++i)
             {
                 var project = solution.Projects[solutionGraph.Labels[i]];
                 logger.LogInformation($"Placing structures of '{project.Name}'.");
