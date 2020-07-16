@@ -31,6 +31,13 @@ vku::CameraCore::CameraCore(vku::DisplayCore &displayCore, vku::RenderCore &rend
 
 void vku::CameraCore::onMouseMove(double x, double y)
 {
+    if (!_enabled)
+    {
+        _lastX = static_cast<float>(x);
+        _lastY = static_cast<float>(y);
+        return;
+    }
+
     float dx = static_cast<float>(x) - _lastX;
     float dy = _lastY - static_cast<float>(y);
     _lastX = static_cast<float>(x);
@@ -75,6 +82,7 @@ void vku::CameraCore::onKey(int key, int scancode, int action, int mods)
         break;
     case GLFW_KEY_ESCAPE:
         _displayCore.window().resetCursor();
+        _enabled = false;
         break;
     }
 }
@@ -83,8 +91,10 @@ void vku::CameraCore::onFocus(int focused)
 {
     if (focused) {
         _displayCore.window().disableCursor();
+        _enabled = true;
     } else {
         _displayCore.window().resetCursor();
+        _enabled = false;
     }
 }
 
@@ -94,6 +104,7 @@ void vku::CameraCore::onMouseButton(int button, int action, int mods)
     (void)mods;
     if (action == GLFW_PRESS) {
         _displayCore.window().disableCursor();
+        _enabled = true;
     }
 }
 

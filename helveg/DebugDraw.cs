@@ -100,15 +100,22 @@ namespace Helveg
         public static void DrawTree(bool vkDebug)
         {
             var logger = Program.Logging.CreateLogger("Debug Tree");
-            var sentence = Spruce.Generate(42, 42);
+            var sentence = Spruce.Generate(42, 15);
             logger.LogInformation(string.Concat(sentence));
             var worldBuilder = new WorldBuilder(64, new Block { Flags = BlockFlags.IsAir }, Colours.IslandPalette);
-            Spruce.Draw(
-                sentence,
-                worldBuilder,
-                Point3.Zero,
-                new Block(Colours.Island.Wood),
-                new Block(Colours.Island.Leaves));
+            const int tintCount = 6;
+            for (int i = 0; i < tintCount; ++i)
+            {
+                for (int j = i; j < tintCount; ++j)
+                {
+                    Spruce.Draw(
+                    sentence,
+                    worldBuilder,
+                    new Point3(i * 20, 0, j * 20),
+                    new Block(Colours.Island.Wood),
+                    new Block { PaletteIndex = (byte)((int)Colours.Island.Needles0 + (i + j) % tintCount) });
+                }
+            }
             Vku.SetDebug(vkDebug);
             Vku.HelloWorld(worldBuilder.Build());
         }
@@ -150,12 +157,11 @@ namespace Helveg
                 new Vector3(0.3f, 0.3f, 0.3f)
             };
 
-            var openSimplex = new OpenSimplexNoise.Data(42L);
             var chunk = Chunk.CreateNoisy(
                 size: 64,
                 palette: palette,
                 fill: new Block { PaletteIndex = 0 },
-                openSimplex: openSimplex,
+                seed: 42,
                 frequency: 0.025,
                 offset: Vector2.Zero);
             Vku.SetDebug(vkDebug);
@@ -164,9 +170,23 @@ namespace Helveg
 
         public static void DrawNoisyWorld(bool vkDebug)
         {
-            var world = Terrain.GenerateNoise(100).Build();
+            const int radius = 100;
+            var palette = new Vector3[] {
+                new Vector3(0.8f, 0.8f, 0.8f)
+            };
+            var noise = OpenSimplex.Create(469242);
+            var world = new WorldBuilder(128, new Block { Flags = BlockFlags.IsAir }, palette);
+            for (int x = -radius; x <= radius; ++x)
+            {
+                for (int z = -radius; z <= radius; ++z)
+                {
+                    var y = (int)(noise.Evaluate(x * 0.025, z * 0.025) * 32 + 32);
+                    world[x, y, z] = new Block(Colours.Island.Stone);
+                }
+            }
+            var builtWorld = world.Build();
             Vku.SetDebug(vkDebug);
-            Vku.HelloWorld(world);
+            Vku.HelloWorld(builtWorld);
         }
     }
 }

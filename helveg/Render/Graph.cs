@@ -2,18 +2,22 @@ using System;
 using System.Linq;
 using System.Numerics;
 using System.Text;
+using Helveg.Analysis;
 
 namespace Helveg.Render
 {
     public struct Graph
     {
-        public Graph(Vector2[] positions, float[] weights, string[] labels, float[] sizes)
+        public Graph(string name, Vector2[] positions, float[] weights, string[] labels, float[] sizes)
         {
+            Name = name;
             Positions = positions;
             Weights = weights;
             Labels = labels;
             Sizes = sizes;
         }
+
+        public string Name { get; }
 
         public Vector2[] Positions { get; }
 
@@ -22,6 +26,66 @@ namespace Helveg.Render
         public string[] Labels { get; }
 
         public float[] Sizes { get; }
+
+        public static Graph FromAnalyzed(AnalyzedTypeGraph typeGraph)
+        {
+            return new Graph(
+                name: typeGraph.ProjectName,
+                positions: typeGraph.Positions,
+                weights: UndirectWeights(typeGraph.Weights),
+                labels: typeGraph.Ids.Select(i => i.ToString()).ToArray(),
+                sizes: typeGraph.Sizes.Select(s => (float)s).ToArray()
+            );
+        }
+
+        public static Graph FromAnalyzed(AnalyzedProject project)
+        {
+            return FromAnalyzed(Analyze.GetTypeGraph(project));
+        }
+
+        public static Graph FromAnalyzed(AnalyzedSolution solution)
+        {
+            var names = solution.Projects.Keys.OrderBy(k => k).ToArray();
+            var weights = new float[names.Length * (names.Length - 1)];
+            var weightIndex = 0;
+            for (int from = 0; from < names.Length; ++from)
+            {
+                for (int to = from + 1; to < names.Length; ++to, ++weightIndex)
+                {
+                    weights[weightIndex] = solution.Projects[names[from]].ProjectReferences.Contains(names[to])
+                        || solution.Projects[names[to]].ProjectReferences.Contains(names[from])
+                        ? 1
+                        : 0;
+                }
+            }
+
+            var sizes = names.Select(n => (float)solution.Projects[n].Types.Count).ToArray();
+            return new Graph(solution.Name, new Vector2[solution.Projects.Count], weights, names, sizes);
+        }
+
+        public AnalyzedTypeGraph ToAnalyzed()
+        {
+            var graph = new AnalyzedTypeGraph
+            {
+                Ids = Labels.Select(l => AnalyzedTypeId.Parse(l)).ToArray(),
+                Positions = Positions,
+                Sizes = Sizes.Select(s => (int)MathF.Round(s)).ToArray(),
+                ProjectName = Name,
+                Weights = new int[Positions.Length, Positions.Length]
+            };
+
+            int weightIndex = 0;
+            for (int from = 0; from < Positions.Length; ++from)
+            {
+                for (int to = from + 1; to < Positions.Length; ++to, ++weightIndex)
+                {
+                    var weight = (int)MathF.Round(Weights[weightIndex]);
+                    graph.Weights[from, to] = weight;
+                    graph.Weights[to, from] = weight;
+                }
+            }
+            return graph;
+        }
 
         public static float[] UndirectWeights(int[,] directedWeights)
         {

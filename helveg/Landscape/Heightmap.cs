@@ -1,8 +1,10 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace Helveg.Landscape
 {
-    public class Heightmap
+    public class Heightmap : IEnumerable<float>
     {
         private readonly float[] data;
         public Heightmap(int minX, int maxX, int minY, int maxY)
@@ -57,6 +59,16 @@ namespace Helveg.Landscape
 
             value = -1f;
             return false;
+        }
+
+        public IEnumerator<float> GetEnumerator()
+        {
+            return ((IEnumerable<float>)data).GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return data.GetEnumerator();
         }
     }
 }

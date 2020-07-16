@@ -40,7 +40,7 @@ using System.Runtime.CompilerServices;
 
 namespace Helveg.Landscape
 {
-    public static class OpenSimplexNoise
+    public static class OpenSimplex
     {
         // (1 / Math.Sqrt(2 + 1) - 1) / 2;
         private const double Stretch2D = -0.211324865405187;
@@ -101,6 +101,11 @@ namespace Helveg.Landscape
         private static readonly Contribution2[] lookup2D = GetLookup2D();
         private static readonly Contribution3[] lookup3D = GetLookup3D();
         private static readonly Contribution4[] lookup4D = GetLookup4D();
+
+        public static Data Create(long seed)
+        {
+            return new Data(seed);
+        }
 
         private static Contribution2[] GetLookup2D()
         {
@@ -376,188 +381,6 @@ namespace Helveg.Landscape
             return x < xi ? xi - 1 : xi;
         }
 
-        public static double Evaluate(Data data, double x, double y)
-        {
-            var stretchOffset = (x + y) * Stretch2D;
-            var xs = x + stretchOffset;
-            var ys = y + stretchOffset;
-
-            var xsb = FastFloor(xs);
-            var ysb = FastFloor(ys);
-
-            var squishOffset = (xsb + ysb) * Squish2D;
-            var dx0 = x - (xsb + squishOffset);
-            var dy0 = y - (ysb + squishOffset);
-
-            var xins = xs - xsb;
-            var yins = ys - ysb;
-
-            var inSum = xins + yins;
-
-            var hash =
-               (int)(xins - yins + 1) |
-               (int)(inSum) << 1 |
-               (int)(inSum + yins) << 2 |
-               (int)(inSum + xins) << 4;
-
-            Contribution2? c = lookup2D[hash];
-
-            var value = 0.0;
-            while (c != null)
-            {
-                var dx = dx0 + c.dx;
-                var dy = dy0 + c.dy;
-                var attn = 2 - dx * dx - dy * dy;
-                if (attn > 0)
-                {
-                    var px = xsb + c.xsb;
-                    var py = ysb + c.ysb;
-
-                    var i = data.perm2D[(data.perm[px & 0xFF] + py) & 0xFF];
-                    var valuePart = gradients2D[i] * dx + gradients2D[i + 1] * dy;
-
-                    attn *= attn;
-                    value += attn * attn * valuePart;
-                }
-                c = c.Next;
-            }
-            return value * Norm2D;
-        }
-
-        public static double Evaluate(Data data, double x, double y, double z)
-        {
-            var stretchOffset = (x + y + z) * Stretch3D;
-            var xs = x + stretchOffset;
-            var ys = y + stretchOffset;
-            var zs = z + stretchOffset;
-
-            var xsb = FastFloor(xs);
-            var ysb = FastFloor(ys);
-            var zsb = FastFloor(zs);
-
-            var squishOffset = (xsb + ysb + zsb) * Squish3D;
-            var dx0 = x - (xsb + squishOffset);
-            var dy0 = y - (ysb + squishOffset);
-            var dz0 = z - (zsb + squishOffset);
-
-            var xins = xs - xsb;
-            var yins = ys - ysb;
-            var zins = zs - zsb;
-
-            var inSum = xins + yins + zins;
-
-            var hash =
-               (int)(yins - zins + 1) |
-               (int)(xins - yins + 1) << 1 |
-               (int)(xins - zins + 1) << 2 |
-               (int)inSum << 3 |
-               (int)(inSum + zins) << 5 |
-               (int)(inSum + yins) << 7 |
-               (int)(inSum + xins) << 9;
-
-            Contribution3? c = lookup3D[hash];
-
-            var value = 0.0;
-            while (c != null)
-            {
-                var dx = dx0 + c.dx;
-                var dy = dy0 + c.dy;
-                var dz = dz0 + c.dz;
-                var attn = 2 - dx * dx - dy * dy - dz * dz;
-                if (attn > 0)
-                {
-                    var px = xsb + c.xsb;
-                    var py = ysb + c.ysb;
-                    var pz = zsb + c.zsb;
-
-                    var i = data.perm3D[(data.perm[(data.perm[px & 0xFF] + py) & 0xFF] + pz) & 0xFF];
-                    var valuePart = gradients3D[i] * dx + gradients3D[i + 1] * dy + gradients3D[i + 2] * dz;
-
-                    attn *= attn;
-                    value += attn * attn * valuePart;
-                }
-
-                c = c.Next;
-            }
-            return value * Norm3D;
-        }
-
-        public static double Evaluate(Data data, double x, double y, double z, double w)
-        {
-            var stretchOffset = (x + y + z + w) * Stretch4D;
-            var xs = x + stretchOffset;
-            var ys = y + stretchOffset;
-            var zs = z + stretchOffset;
-            var ws = w + stretchOffset;
-
-            var xsb = FastFloor(xs);
-            var ysb = FastFloor(ys);
-            var zsb = FastFloor(zs);
-            var wsb = FastFloor(ws);
-
-            var squishOffset = (xsb + ysb + zsb + wsb) * Squish4D;
-            var dx0 = x - (xsb + squishOffset);
-            var dy0 = y - (ysb + squishOffset);
-            var dz0 = z - (zsb + squishOffset);
-            var dw0 = w - (wsb + squishOffset);
-
-            var xins = xs - xsb;
-            var yins = ys - ysb;
-            var zins = zs - zsb;
-            var wins = ws - wsb;
-
-            var inSum = xins + yins + zins + wins;
-
-            var hash =
-                (int)(zins - wins + 1) |
-                (int)(yins - zins + 1) << 1 |
-                (int)(yins - wins + 1) << 2 |
-                (int)(xins - yins + 1) << 3 |
-                (int)(xins - zins + 1) << 4 |
-                (int)(xins - wins + 1) << 5 |
-                (int)inSum << 6 |
-                (int)(inSum + wins) << 8 |
-                (int)(inSum + zins) << 11 |
-                (int)(inSum + yins) << 14 |
-                (int)(inSum + xins) << 17;
-
-            Contribution4? c = lookup4D[hash];
-
-            var value = 0.0;
-            while (c != null)
-            {
-                var dx = dx0 + c.dx;
-                var dy = dy0 + c.dy;
-                var dz = dz0 + c.dz;
-                var dw = dw0 + c.dw;
-                var attn = 2 - dx * dx - dy * dy - dz * dz - dw * dw;
-                if (attn > 0)
-                {
-                    var px = xsb + c.xsb;
-                    var py = ysb + c.ysb;
-                    var pz = zsb + c.zsb;
-                    var pw = wsb + c.wsb;
-
-                    var i = data.perm4D[
-                        (data.perm[
-                            (data.perm[
-                                (data.perm[
-                                    px & 0xFF
-                                ] + py) & 0xFF
-                            ] + pz) & 0xFF
-                        ] + pw) & 0xFF];
-                    var valuePart = gradients4D[i] * dx + gradients4D[i + 1] * dy + gradients4D[i + 2] * dz
-                        + gradients4D[i + 3] * dw;
-
-                    attn *= attn;
-                    value += attn * attn * valuePart;
-                }
-
-                c = c.Next;
-            }
-            return value * Norm4D;
-        }
-
         public struct Data
         {
             public readonly byte[] perm;
@@ -598,6 +421,188 @@ namespace Helveg.Landscape
                     perm4D[i] = (byte)(perm[i] & 0xFC);
                     source[r] = source[i];
                 }
+            }
+
+            public double Evaluate(double x, double y)
+            {
+                var stretchOffset = (x + y) * Stretch2D;
+                var xs = x + stretchOffset;
+                var ys = y + stretchOffset;
+
+                var xsb = FastFloor(xs);
+                var ysb = FastFloor(ys);
+
+                var squishOffset = (xsb + ysb) * Squish2D;
+                var dx0 = x - (xsb + squishOffset);
+                var dy0 = y - (ysb + squishOffset);
+
+                var xins = xs - xsb;
+                var yins = ys - ysb;
+
+                var inSum = xins + yins;
+
+                var hash =
+                   (int)(xins - yins + 1) |
+                   (int)(inSum) << 1 |
+                   (int)(inSum + yins) << 2 |
+                   (int)(inSum + xins) << 4;
+
+                Contribution2? c = lookup2D[hash];
+
+                var value = 0.0;
+                while (c != null)
+                {
+                    var dx = dx0 + c.dx;
+                    var dy = dy0 + c.dy;
+                    var attn = 2 - dx * dx - dy * dy;
+                    if (attn > 0)
+                    {
+                        var px = xsb + c.xsb;
+                        var py = ysb + c.ysb;
+
+                        var i = perm2D[(perm[px & 0xFF] + py) & 0xFF];
+                        var valuePart = gradients2D[i] * dx + gradients2D[i + 1] * dy;
+
+                        attn *= attn;
+                        value += attn * attn * valuePart;
+                    }
+                    c = c.Next;
+                }
+                return value * Norm2D;
+            }
+
+            public double Evaluate(double x, double y, double z)
+            {
+                var stretchOffset = (x + y + z) * Stretch3D;
+                var xs = x + stretchOffset;
+                var ys = y + stretchOffset;
+                var zs = z + stretchOffset;
+
+                var xsb = FastFloor(xs);
+                var ysb = FastFloor(ys);
+                var zsb = FastFloor(zs);
+
+                var squishOffset = (xsb + ysb + zsb) * Squish3D;
+                var dx0 = x - (xsb + squishOffset);
+                var dy0 = y - (ysb + squishOffset);
+                var dz0 = z - (zsb + squishOffset);
+
+                var xins = xs - xsb;
+                var yins = ys - ysb;
+                var zins = zs - zsb;
+
+                var inSum = xins + yins + zins;
+
+                var hash =
+                   (int)(yins - zins + 1) |
+                   (int)(xins - yins + 1) << 1 |
+                   (int)(xins - zins + 1) << 2 |
+                   (int)inSum << 3 |
+                   (int)(inSum + zins) << 5 |
+                   (int)(inSum + yins) << 7 |
+                   (int)(inSum + xins) << 9;
+
+                Contribution3? c = lookup3D[hash];
+
+                var value = 0.0;
+                while (c != null)
+                {
+                    var dx = dx0 + c.dx;
+                    var dy = dy0 + c.dy;
+                    var dz = dz0 + c.dz;
+                    var attn = 2 - dx * dx - dy * dy - dz * dz;
+                    if (attn > 0)
+                    {
+                        var px = xsb + c.xsb;
+                        var py = ysb + c.ysb;
+                        var pz = zsb + c.zsb;
+
+                        var i = perm3D[(perm[(perm[px & 0xFF] + py) & 0xFF] + pz) & 0xFF];
+                        var valuePart = gradients3D[i] * dx + gradients3D[i + 1] * dy + gradients3D[i + 2] * dz;
+
+                        attn *= attn;
+                        value += attn * attn * valuePart;
+                    }
+
+                    c = c.Next;
+                }
+                return value * Norm3D;
+            }
+
+            public double Evaluate(double x, double y, double z, double w)
+            {
+                var stretchOffset = (x + y + z + w) * Stretch4D;
+                var xs = x + stretchOffset;
+                var ys = y + stretchOffset;
+                var zs = z + stretchOffset;
+                var ws = w + stretchOffset;
+
+                var xsb = FastFloor(xs);
+                var ysb = FastFloor(ys);
+                var zsb = FastFloor(zs);
+                var wsb = FastFloor(ws);
+
+                var squishOffset = (xsb + ysb + zsb + wsb) * Squish4D;
+                var dx0 = x - (xsb + squishOffset);
+                var dy0 = y - (ysb + squishOffset);
+                var dz0 = z - (zsb + squishOffset);
+                var dw0 = w - (wsb + squishOffset);
+
+                var xins = xs - xsb;
+                var yins = ys - ysb;
+                var zins = zs - zsb;
+                var wins = ws - wsb;
+
+                var inSum = xins + yins + zins + wins;
+
+                var hash =
+                    (int)(zins - wins + 1) |
+                    (int)(yins - zins + 1) << 1 |
+                    (int)(yins - wins + 1) << 2 |
+                    (int)(xins - yins + 1) << 3 |
+                    (int)(xins - zins + 1) << 4 |
+                    (int)(xins - wins + 1) << 5 |
+                    (int)inSum << 6 |
+                    (int)(inSum + wins) << 8 |
+                    (int)(inSum + zins) << 11 |
+                    (int)(inSum + yins) << 14 |
+                    (int)(inSum + xins) << 17;
+
+                Contribution4? c = lookup4D[hash];
+
+                var value = 0.0;
+                while (c != null)
+                {
+                    var dx = dx0 + c.dx;
+                    var dy = dy0 + c.dy;
+                    var dz = dz0 + c.dz;
+                    var dw = dw0 + c.dw;
+                    var attn = 2 - dx * dx - dy * dy - dz * dz - dw * dw;
+                    if (attn > 0)
+                    {
+                        var px = xsb + c.xsb;
+                        var py = ysb + c.ysb;
+                        var pz = zsb + c.zsb;
+                        var pw = wsb + c.wsb;
+
+                        var i = perm4D[
+                            (perm[
+                                (perm[
+                                    (perm[
+                                        px & 0xFF
+                                    ] + py) & 0xFF
+                                ] + pz) & 0xFF
+                            ] + pw) & 0xFF];
+                        var valuePart = gradients4D[i] * dx + gradients4D[i + 1] * dy + gradients4D[i + 2] * dz
+                            + gradients4D[i + 3] * dw;
+
+                        attn *= attn;
+                        value += attn * attn * valuePart;
+                    }
+
+                    c = c.Next;
+                }
+                return value * Norm4D;
             }
         }
 

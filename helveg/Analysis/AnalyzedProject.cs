@@ -65,32 +65,6 @@ namespace Helveg.Analysis
                 + $"pkg={PackageReferences.Count},lwt={LastWriteTime},pth={Path}]";
         }
 
-        public (Graph graph, AnalyzedTypeId[] ids) GetGraph()
-        {
-            var matrix = new int[Types.Count, Types.Count];
-            var ids = Types.Keys.OrderBy(k => k.ToString()).ToArray();
-            var sizes = new float[Types.Count];
-            for (int i = 0; i < ids.Length; ++i)
-            {
-                var type = Types[ids[i]];
-                sizes[i] = type.MemberCount;
-                foreach (var (friend, weight) in type.Relations)
-                {
-                    var friendIndex = Array.IndexOf(ids, friend);
-                    if (friendIndex != -1)
-                    {
-                        matrix[i, friendIndex] += weight;
-                    }
-                }
-            }
-            var graph = new Graph(
-                positions: new Vector2[Types.Count],
-                weights: Graph.UndirectWeights(matrix),
-                labels: ids.Select(id => id.ToString()).ToArray(),
-                sizes: sizes);
-            return (graph, ids);
-        }
-
         public int GetSeed()
         {
             return Checksum.GetCrc32(Name) ^ ISeedable.Arbitrary;

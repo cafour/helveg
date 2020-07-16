@@ -41,6 +41,7 @@ private:
     float _lastX = 0.0f;
     float _lastY = 0.0f;
     float _sensitivity = 0.005f;
+    bool _enabled = false;
 
     void onMouseMove(double x, double y);
     void onMouseButton(int button, int action, int mods);

@@ -16,10 +16,13 @@ namespace Helveg.Serialization
 
         public float[]? Sizes { get; set; }
 
+        public string? Name { get; set; }
+
         public static SerializableGraph FromGraph(Graph graph, DateTime timeStamp)
         {
             return new SerializableGraph
             {
+                Name = graph.Name,
                 TimeStamp = timeStamp,
                 Positions = graph.Positions,
                 Weights = graph.Weights,
@@ -30,12 +33,13 @@ namespace Helveg.Serialization
 
         public Graph ToGraph()
         {
-            if (TimeStamp == default || Positions is null || Weights is null || Labels is null || Sizes is null)
+            if (TimeStamp == default || Positions is null || Weights is null || Labels is null || Sizes is null
+                || Name is null)
             {
                 throw new NullReferenceException();
             }
 
-            return new Graph(Positions, Weights, Labels, Sizes);
+            return new Graph(Name, Positions, Weights, Labels, Sizes);
         }
     }
 }

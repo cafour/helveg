@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.CommandLine.Builder;
 using System.Collections.Generic;
+using System.Drawing;
 
 namespace Helveg
 {
@@ -66,89 +67,140 @@ namespace Helveg
             return analyzedSolution;
         }
 
-        public static Graph RunFdg(AnalyzedProject project, SerializableGraphCollection? cache = null)
+        public static Graph RunFdg(
+            Graph graph,
+            int regularCount,
+            int strongGravityCount,
+            int overlapPreventionCount,
+            DateTime expectedTimeStamp = default,
+            SerializableGraphCollection? cache = null)
         {
-            var logger = Logging.CreateLogger($"{project.Name}: Fdg");
+            var logger = Logging.CreateLogger($"{graph.Name}: Fdg");
             if (cache is object
                 && cache.Graphs is object
-                && cache.Graphs.TryGetValue(project.Name, out var cachedGraph)
-                && cachedGraph.TimeStamp == project.LastWriteTime)
+                && cache.Graphs.TryGetValue(graph.Name, out var cachedGraph)
+                && cachedGraph.TimeStamp == expectedTimeStamp)
             {
                 logger.LogInformation("Using cached Fdg results.");
                 return cachedGraph.ToGraph();
             }
 
-            var (graph, _) = project.GetGraph();
             var state = Fdg.Create(graph.Positions, graph.Weights, graph.Sizes);
             logger.LogInformation("Processing regular iterations.");
-            for (int i = 0; i < RegularIterationCount; ++i)
+            for (int i = 0; i < regularCount; ++i)
             {
                 Fdg.Step(ref state);
             }
             logger.LogInformation("Processing overlap prevention iterations.");
             state.PreventOverlapping = true;
-            for (int i = 0; i < NoOverlapIterationCount; ++i)
+            for (int i = 0; i < overlapPreventionCount; ++i)
             {
                 Fdg.Step(ref state);
             }
             logger.LogInformation("Processing strong gravity iterations.");
             state.IsGravityStrong = true;
-            for (int i = 0; i < StrongGravityIterationCount; ++i)
+            for (int i = 0; i < strongGravityCount; ++i)
             {
                 Fdg.Step(ref state);
             }
             return graph;
         }
 
-        public static async Task RunPipeline(FileSystemInfo source, Dictionary<string, string> properties)
+        public static async Task<World> RunLandscapeGeneration(AnalyzedSolution solution)
         {
-            var nullableSolution = await RunAnalysis(source, properties);
-            if (nullableSolution is null)
-            {
-                return;
-            }
-            var solution = nullableSolution.Value;
+            var logger = Logging.CreateLogger($"Generator");
+            var cache = IsForced
+                ? null
+                : await Serialize.GetCache<SerializableGraphCollection>(FdgCacheFilename, logger);
 
-            var solutionGraph = solution.GetGraph();
-            var solutionFdgLogger = Logging.CreateLogger($"{solution.Name}: Fdg");
-            var fdgCache = IsForced ? null : await Serialize.GetCache<SerializableGraphCollection>(
-                FdgCacheFilename,
-                solutionFdgLogger);
-            var fdgResults = await Task.WhenAll(solutionGraph.Labels
-                .Select(p => Task.Run(() => RunFdg(solution.Projects[p], fdgCache))));
+            var solutionGraph = Graph.FromAnalyzed(solution);
+            var graphs = await Task.WhenAll(solutionGraph.Labels
+                .Select(p => Task.Run(() =>
+                {
+                    var project = solution.Projects[p];
+                    return RunFdg(
+                        graph: Graph.FromAnalyzed(project),
+                        regularCount: RegularIterationCount,
+                        strongGravityCount: StrongGravityIterationCount,
+                        overlapPreventionCount: NoOverlapIterationCount,
+                        expectedTimeStamp: project.LastWriteTime,
+                        cache: cache);
+                })));
+            
             var serializableGraphs = new SerializableGraphCollection
             {
-                Graphs = solutionGraph.Labels.Zip(fdgResults)
+                Graphs = solutionGraph.Labels.Zip(graphs)
                     .ToDictionary(p => p.First, p => SerializableGraph
                         .FromGraph(p.Second, solution.Projects[p.First].LastWriteTime))
             };
-            await Serialize.SetCache(FdgCacheFilename, serializableGraphs, solutionFdgLogger);
-            var sizes = fdgResults.Select(g => 
+            await Serialize.SetCache(FdgCacheFilename, serializableGraphs, logger);
+
+            for (int i = 0; i < graphs.Length; ++i)
             {
-                var (max, min) = g.GetBoundingBox();
-                return MathF.Max(max.X - min.X, max.Y - min.Y);
-            }).ToArray();
-            var solutionFdgState = Fdg.Create(solutionGraph.Positions, solutionGraph.Weights, sizes);
-            solutionFdgState.PreventOverlapping = true;
-            for(int i = 0; i < 1000; ++i)
+                var (max, min) = graphs[i].GetBoundingBox();
+                solutionGraph.Sizes[i] = MathF.Max(max.X - min.X, max.Y - min.Y);
+            }
+            logger.LogInformation("Laying out islands.");
+            RunFdg(solutionGraph, 0, 0, 1000);
+
+            const int margin = 64;
+            var globalBbox = solutionGraph.GetBoundingBox();
+            var heightmap = new Heightmap(
+                minX: (int)globalBbox.min.X - margin,
+                minY: (int)globalBbox.min.Y - margin,
+                maxX: (int)globalBbox.max.X + margin,
+                maxY: (int)globalBbox.max.Y + margin);
+            logger.LogInformation("Writing ocean heightmap.");
+            Terrain.WriteOceanFloorHeightmap(heightmap, solution.GetSeed());
+            for (int i = 0; i < graphs.Length; ++i)
             {
-                Fdg.Step(ref solutionFdgState);
+                var graph = graphs[i];
+                var pos = solutionGraph.Positions[i];
+                for (int j = 0; j < graph.Positions.Length; ++j)
+                {
+                    graph.Positions[j] += pos;
+                }
+                var radius = solutionGraph.Sizes[i];
+                var area = new Rectangle(
+                    x: (int)MathF.Round(pos.X - radius),
+                    y: (int)MathF.Round(pos.Y - radius),
+                    width: (int)MathF.Round(2 * radius),
+                    height: (int)MathF.Round(2 * radius)
+                );
+                var project = solution.Projects[solutionGraph.Labels[i]];
+                logger.LogInformation($"Writing island heightmap of '{project.Name}'.");
+                Terrain.WriteIslandHeightmap(heightmap, area, project.GetSeed(), graph.Positions, graph.Sizes);
             }
 
             var world = new WorldBuilder(128, new Block { Flags = BlockFlags.IsAir }, Colours.IslandPalette);
-            await Task.WhenAll(Enumerable.Range(0, solutionGraph.Labels.Length).Select(i => Task.Run(() =>
-            {
-                var name = solutionGraph.Labels[i];
-                var generatorLogger = Logging.CreateLogger($"{name}: Generator");
-                var project = solution.Projects[name];
-                var graph = fdgResults[i];
-                var ids = graph.Labels.Select(l => AnalyzedTypeId.Parse(l)).ToArray();
-                var offset = ((int)solutionGraph.Positions[i].X, (int)solutionGraph.Positions[i].Y);
-                Terrain.GenerateIsland(world, project, graph.Positions, graph.Sizes, ids, offset, generatorLogger);
-            })));
+            logger.LogInformation("Generating terrain.");
+            Terrain.GenerateTerrain(heightmap, world);
 
-            var builtWorld = world.Build();
-            Vku.HelloWorld(builtWorld);
+            for(int i = 0; i< graphs.Length; ++i)
+            {
+                var project = solution.Projects[solutionGraph.Labels[i]];
+                logger.LogInformation($"Placing structures of '{project.Name}'.");
+                Terrain.PlaceStructures(heightmap, world, project, graphs[i].ToAnalyzed());
+            }
+
+            return world.Build();
+        }
+
+        public static async Task<int> RunPipeline(FileSystemInfo source, Dictionary<string, string> properties)
+        {
+            // code analysis
+            var solution = await RunAnalysis(source, properties);
+            if (solution is null)
+            {
+                return 1;
+            }
+
+            // landscape generation
+            var world = await RunLandscapeGeneration(solution.Value);
+
+            // rendering
+            Vku.HelloWorld(world);
+            return 0;
         }
 
         public static unsafe int Main(string[] args)

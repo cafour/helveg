@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Threading.Tasks;
 using Helveg.Serialization;
-using Microsoft.Build.Exceptions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.MSBuild;
@@ -308,6 +308,35 @@ namespace Helveg.Analysis
                 health: Diagnosis.None,
                 memberCount: memberCount,
                 relations: relations.ToImmutable());
+        }
+
+        public static AnalyzedTypeGraph GetTypeGraph(AnalyzedProject project)
+        {
+            var graph = new AnalyzedTypeGraph
+            {
+                Ids = project.Types.Keys.OrderBy(k => k.ToString()).ToArray(),
+                Weights = new int[project.Types.Count, project.Types.Count],
+                Sizes = new int[project.Types.Count],
+                ProjectName = project.Name,
+                Positions = new Vector2[project.Types.Count]
+            };
+
+            for (int i = 0; i < graph.Ids.Length; ++i)
+            {
+                var type = project.Types[graph.Ids[i]];
+                graph.Sizes[i] = type.MemberCount;
+                foreach (var (friend, weight) in type.Relations)
+                {
+                    // TODO: This shouldn't happen, but I don't have time to fix it right now.
+                    var friendIndex = Array.IndexOf(graph.Ids, friend);
+                    if (friendIndex != -1)
+                    {
+                        graph.Weights[i, friendIndex] += weight;
+                    }
+                }
+            }
+
+            return graph;
         }
 
         private static void LogMSBuildDiagnostics(MSBuildWorkspace workspace, ILogger logger)

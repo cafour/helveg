@@ -291,7 +291,7 @@ namespace Helveg
                 return null;
             }
 
-            var (graph, _) = project.Value.GetGraph();
+            var graph = Graph.FromAnalyzed(project.Value);
             init(graph);
             for (int i = 0; i < graph.Positions.Length; ++i)
             {

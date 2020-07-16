@@ -64,21 +64,19 @@ namespace Helveg.Render
             int size,
             Vector3[] palette,
             Block fill,
-            OpenSimplexNoise.Data openSimplex,
+            long seed,
             double frequency,
             Vector2 offset)
         {
             var air = new Block { Flags = BlockFlags.IsAir };
             var terrain = new double[size, size];
+            var noise = OpenSimplex.Create(seed);
             for (int x = 0; x < size; ++x)
             {
                 for (int y = 0; y < size; ++y)
                 {
-                    var noise = OpenSimplexNoise.Evaluate(
-                        openSimplex,
-                        frequency * (x + offset.X),
-                        frequency * (y + offset.Y));
-                    terrain[x, y] = (noise + 1.0) / 2.0 * size;
+                    var noiseValue = noise.Evaluate(frequency * (x + offset.X), frequency * (y + offset.Y));
+                    terrain[x, y] = (noiseValue + 1.0) / 2.0 * size;
                 }
             }
 
