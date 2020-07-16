@@ -180,7 +180,12 @@ namespace Helveg.Landscape
             }
         }
 
-        private static float Smoothstep(float low, float high, float value)
+        public static void PlaceBridge()
+        {
+            
+        }
+
+        public static float Smoothstep(float low, float high, float value)
         {
             // https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/smoothstep.xhtml
             value = Math.Clamp((value - low) / (high - low), 0.0f, 1.0f);

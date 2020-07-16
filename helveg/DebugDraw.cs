@@ -14,64 +14,59 @@ namespace Helveg
     {
         public static void AddDrawCommands(Command parent)
         {
-            var vkDebugOpt = new Option<bool>(
-                alias: "--vk-debug",
-                description: "Enable Vulkan validation layers");
 
             var triangleCmd = new Command("triangle", "Draw a triangle")
             {
-                vkDebugOpt
+                Handler = CommandHandler.Create(typeof(DebugDraw).GetMethod(nameof(DrawTriangle))!)
             };
-            triangleCmd.Handler = CommandHandler.Create(typeof(DebugDraw).GetMethod(nameof(DrawTriangle))!);
             parent.AddCommand(triangleCmd);
 
             var cubeCmd = new Command("cube", "Draw a cube")
             {
-                vkDebugOpt
+                Handler = CommandHandler.Create(typeof(DebugDraw).GetMethod(nameof(DrawCube))!)
             };
-            cubeCmd.Handler = CommandHandler.Create(typeof(DebugDraw).GetMethod(nameof(DrawCube))!);
             parent.AddCommand(cubeCmd);
 
             var treeCmd = new Command("tree", "Draw a tree")
             {
-                vkDebugOpt
+                Handler = CommandHandler.Create(typeof(DebugDraw).GetMethod(nameof(DrawTree))!)
             };
-            treeCmd.Handler = CommandHandler.Create(typeof(DebugDraw).GetMethod(nameof(DrawTree))!);
             parent.AddCommand(treeCmd);
 
             var cabinCmd = new Command("cabin", "Draw a log cabin")
             {
-                vkDebugOpt
+                Handler = CommandHandler.Create(typeof(DebugDraw).GetMethod(nameof(DrawCabin))!)
             };
-            cabinCmd.Handler = CommandHandler.Create(typeof(DebugDraw).GetMethod(nameof(DrawCabin))!);
             parent.AddCommand(cabinCmd);
 
             var cargoCmd = new Command("cargo", "Draw some cargo")
             {
-                vkDebugOpt
+                Handler = CommandHandler.Create(typeof(DebugDraw).GetMethod(nameof(DrawCargo))!)
             };
-            cargoCmd.Handler = CommandHandler.Create(typeof(DebugDraw).GetMethod(nameof(DrawCargo))!);
             parent.AddCommand(cargoCmd);
+
+            var bridgeCmd = new Command("bridge", "Draw a bridge")
+            {
+                Handler = CommandHandler.Create(typeof(DebugDraw).GetMethod(nameof(DrawBridge))!)
+            };
+            parent.AddCommand(bridgeCmd);
 
             var chunkCmd = new Command("chunk", "Draw a single chunk")
             {
-                vkDebugOpt
+                Handler = CommandHandler.Create(typeof(DebugDraw).GetMethod(nameof(DrawChunk))!)
             };
-            chunkCmd.Handler = CommandHandler.Create(typeof(DebugDraw).GetMethod(nameof(DrawChunk))!);
             parent.AddCommand(chunkCmd);
 
             var opensimplexCmd = new Command("opensimplex", "Draw a single chunk with OpenSimplex noise")
             {
-                vkDebugOpt
+                Handler = CommandHandler.Create(typeof(DebugDraw).GetMethod(nameof(DrawNoisyChunk))!)
             };
-            opensimplexCmd.Handler = CommandHandler.Create(typeof(DebugDraw).GetMethod(nameof(DrawNoisyChunk))!);
             parent.AddCommand(opensimplexCmd);
 
             var worldCmd = new Command("world", "Draw multiple noisy chunks")
             {
-                vkDebugOpt
+                Handler = CommandHandler.Create(typeof(DebugDraw).GetMethod(nameof(DrawNoisyWorld))!)
             };
-            worldCmd.Handler = CommandHandler.Create(typeof(DebugDraw).GetMethod(nameof(DrawNoisyWorld))!);
             parent.AddCommand(worldCmd);
         }
 
@@ -163,6 +158,18 @@ namespace Helveg
                 },
                 seed: 42,
                 containerCount: 5);
+            var world = worldBuilder.Build();
+            Vku.HelloWorld(world);
+        }
+
+        public static void DrawBridge()
+        {
+            var worldBuilder = new WorldBuilder(64, new Block { Flags = BlockFlags.IsAir }, Colours.IslandPalette);
+            Bridge.Draw(
+                world: worldBuilder,
+                from: Point3.Zero,
+                to: new Point3(23, 0, 89),
+                bridge: new [] {new Block(Colours.Island.Cargo0), new Block(Colours.Island.Cargo1)});
             var world = worldBuilder.Build();
             Vku.HelloWorld(world);
         }

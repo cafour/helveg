@@ -107,6 +107,11 @@ namespace Helveg.Render
         public static Point3 operator /(int divisor, Point3 coord)
             => coord / divisor;
 
+        public float Length()
+        {
+            return MathF.Sqrt(X * X + Y * Y + Z * Z);
+        }
+
         public override bool Equals(object? obj)
         {
             if (obj is Point3 coord)

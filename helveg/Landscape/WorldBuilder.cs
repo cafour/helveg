@@ -74,7 +74,7 @@ namespace Helveg.Landscape
             return (min, max);
         }
 
-        public void OverLine(Point3 from, Point3 to, Action<Point3> action)
+        public void OverLine(Point3 from, Point3 to, Action<Point3> action, bool corners = false)
         {
             // just bresenham in 3d
             var diff = to - from;
@@ -84,6 +84,15 @@ namespace Helveg.Landscape
 
             var error = 2 * diff - new Point3(max);
             action(from);
+
+            void actionCorner(Point3 p)
+            {
+                if (corners)
+                {
+                    action(p);
+                }
+            };
+
             if (max == diff.X)
             {
                 for (int dx = 0; dx < max; ++dx)
@@ -93,12 +102,14 @@ namespace Helveg.Landscape
                     {
                         from.Y += sign.Y;
                         error.Y -= 2 * diff.X;
+                        actionCorner(from);
                     }
 
                     if (error.Z >= 0)
                     {
                         from.Z += sign.Z;
                         error.Z -= 2 * diff.X;
+                        actionCorner(from);
                     }
 
                     error.Y += 2 * diff.Y;
@@ -115,12 +126,14 @@ namespace Helveg.Landscape
                     {
                         from.X += sign.X;
                         error.X -= 2 * diff.Y;
+                        actionCorner(from);
                     }
 
                     if (error.Z >= 0)
                     {
                         from.Z += sign.Z;
                         error.Z -= 2 * diff.Y;
+                        actionCorner(from);
                     }
 
                     error.X += 2 * diff.X;
@@ -137,12 +150,14 @@ namespace Helveg.Landscape
                     {
                         from.Y += sign.Y;
                         error.Y -= 2 * diff.Z;
+                        actionCorner(from);
                     }
 
                     if (error.X >= 0)
                     {
                         from.X += sign.X;
                         error.X -= 2 * diff.Z;
+                        actionCorner(from);
                     }
 
                     error.Y += 2 * diff.Y;
@@ -152,9 +167,9 @@ namespace Helveg.Landscape
             }
         }
 
-        public void FillLine(Point3 from, Point3 to, Block fill)
+        public void FillLine(Point3 from, Point3 to, Block fill, bool corners = false)
         {
-            OverLine(from, to, p => this[p] = fill);
+            OverLine(from, to, p => this[p] = fill, corners);
         }
 
         public void FillSphere(Point3 position, Block fill, int radius)
