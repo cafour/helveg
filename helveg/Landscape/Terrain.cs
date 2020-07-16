@@ -70,7 +70,7 @@ namespace Helveg.Landscape
             var noise = OpenSimplex.Create(ISeedable.Arbitrary);
             Parallel.For(heightmap.MinY, heightmap.MaxY, y =>
             {
-                for(int x = heightmap.MinX; x < heightmap.MaxX; ++x)
+                for (int x = heightmap.MinX; x < heightmap.MaxX; ++x)
                 {
                     var height = (int)MathF.Round(heightmap[x, y]);
                     var noiseValue = (int)(noise.Evaluate(
@@ -110,16 +110,32 @@ namespace Helveg.Landscape
                 var type = project.Types[graph.Ids[i]];
                 var position = graph.Positions[i];
                 var center = new Point3(position.X, heightmap[position.X, position.Y], position.Y);
-                var sentence = Spruce.Generate(
-                    seed: type.GetSeed(),
-                    size: type.MemberCount);
-                Spruce.Draw(
-                    sentence: sentence,
-                    world: world,
-                    position: center,
-                    wood: new Block(Colours.Island.Wood),
-                    needles: new Block(Colours.Island.Leaves),
-                    hasNeedles: !type.Health.HasFlag(Diagnosis.Warning));
+                switch (type.Kind)
+                {
+                    case AnalyzedTypeKind.Class:
+                        var sentence = Spruce.Generate(
+                            seed: type.GetSeed(),
+                            size: type.MemberCount);
+                        Spruce.Draw(
+                            sentence: sentence,
+                            world: world,
+                            position: center,
+                            wood: new Block(Colours.Island.Wood),
+                            needles: new Block(Colours.Island.Leaves),
+                            hasNeedles: !type.Health.HasFlag(Diagnosis.Warning));
+                        break;
+                    case AnalyzedTypeKind.Struct:
+                        LogCabin.Draw(
+                            world: world,
+                            position: center,
+                            wood0: new Block(Colours.Island.Wood0),
+                            wood1: new Block(Colours.Island.Wood1),
+                            roof: new Block(Colours.Island.Roof),
+                            side: (int)MathF.Round(MathF.Log2(type.MemberCount)) + 4,
+                            levelCount: type.MemberCount,
+                            hasRoof: !type.Health.HasFlag(Diagnosis.Warning));
+                        break;
+                }
                 if (type.Health.HasFlag(Diagnosis.Error))
                 {
                     world.Burn(center + new Point3(0, 6, 0), MathF.Log2(type.MemberCount) * 2);

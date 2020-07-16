@@ -39,6 +39,13 @@ namespace Helveg
             treeCmd.Handler = CommandHandler.Create(typeof(DebugDraw).GetMethod(nameof(DrawTree))!);
             parent.AddCommand(treeCmd);
 
+            var cabinCmd = new Command("cabin", "Draw a log cabin")
+            {
+                vkDebugOpt
+            };
+            cabinCmd.Handler = CommandHandler.Create(typeof(DebugDraw).GetMethod(nameof(DrawCabin))!);
+            parent.AddCommand(cabinCmd);
+
             var chunkCmd = new Command("chunk", "Draw a single chunk")
             {
                 vkDebugOpt
@@ -61,13 +68,12 @@ namespace Helveg
             parent.AddCommand(worldCmd);
         }
 
-        public static void DrawTriangle(bool vkDebug)
+        public static void DrawTriangle()
         {
-            Vku.SetDebug(vkDebug);
             Vku.HelloTriangle();
         }
 
-        public static int DrawCube(bool vkDebug)
+        public static int DrawCube()
         {
             var positions = new[]{
                 new Vector3(1, 1, 1),
@@ -93,11 +99,10 @@ namespace Helveg
             };
 
             var mesh = new Mesh(positions, colors, indices);
-            Vku.SetDebug(vkDebug);
             return Vku.HelloMesh(mesh);
         }
 
-        public static void DrawTree(bool vkDebug)
+        public static void DrawTree()
         {
             var logger = Program.Logging.CreateLogger("Debug Tree");
             var sentence = Spruce.Generate(42, 15);
@@ -116,11 +121,24 @@ namespace Helveg
                     new Block { PaletteIndex = (byte)((int)Colours.Island.Needles0 + (i + j) % tintCount) });
                 }
             }
-            Vku.SetDebug(vkDebug);
             Vku.HelloWorld(worldBuilder.Build());
         }
 
-        public static void DrawChunk(bool vkDebug)
+        public static void DrawCabin()
+        {
+            var worldBuilder = new WorldBuilder(64, new Block { Flags = BlockFlags.IsAir }, Colours.IslandPalette);
+            LogCabin.Draw(
+                worldBuilder,
+                Point3.Zero,
+                new Block(Colours.Island.Wood0),
+                new Block(Colours.Island.Wood1),
+                new Block(Colours.Island.Roof),
+                6,
+                4);
+            Vku.HelloWorld(worldBuilder.Build());
+        }
+
+        public static void DrawChunk()
         {
             var blockTypes = new Block[]
             {
@@ -146,11 +164,10 @@ namespace Helveg
                 }
             }
             var chunk = new Chunk(voxels, palette);
-            Vku.SetDebug(vkDebug);
             Vku.HelloChunk(chunk);
         }
 
-        public static void DrawNoisyChunk(bool vkDebug)
+        public static void DrawNoisyChunk()
         {
             var palette = new[]
             {
@@ -164,11 +181,10 @@ namespace Helveg
                 seed: 42,
                 frequency: 0.025,
                 offset: Vector2.Zero);
-            Vku.SetDebug(vkDebug);
             Vku.HelloChunk(chunk);
         }
 
-        public static void DrawNoisyWorld(bool vkDebug)
+        public static void DrawNoisyWorld()
         {
             const int radius = 100;
             var palette = new Vector3[] {
@@ -185,7 +201,6 @@ namespace Helveg
                 }
             }
             var builtWorld = world.Build();
-            Vku.SetDebug(vkDebug);
             Vku.HelloWorld(builtWorld);
         }
     }

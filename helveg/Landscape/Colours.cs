@@ -18,6 +18,9 @@ namespace Helveg.Landscape
             Needles3,
             Needles4,
             Needles5,
+            Wood0,
+            Wood1,
+            Roof
         }
 
         public static readonly Vector3[] IslandPalette = new Vector3[]
@@ -34,6 +37,9 @@ namespace Helveg.Landscape
             new Vector3(0, 109, 0) / 255, // needles3
             new Vector3(109, 182, 73) / 255, // needles4
             new Vector3(166, 153, 51) / 255, // needles5
+            new Vector3(0x95, 0x42, 0x01) / 0xff, // wood0
+            new Vector3(0x58, 0x28, 0x03) / 0xff, // wood1
+            new Vector3(0xa0, 0x9e, 0x91) / 0xff, // roof
         };
     }
 }
