@@ -150,12 +150,15 @@ namespace Helveg.Landscape
                         var sentence = Spruce.Generate(
                             seed: type.GetSeed(),
                             size: type.MemberCount);
+                        // the byte cast being required twice is beyond me
+                        var needles = (byte)((byte)Colours.Island.Needles0
+                            + (byte)type.Family % Colours.NeedleColourCount);
                         Spruce.Draw(
                             sentence: sentence,
                             world: world,
                             position: center,
                             wood: new Block(Colours.Island.Wood),
-                            needles: new Block(Colours.Island.Leaves),
+                            needles: new Block {PaletteIndex = needles },
                             hasNeedles: !type.Health.HasFlag(Diagnosis.Warning));
                         break;
                     case AnalyzedTypeKind.Struct:
@@ -165,7 +168,7 @@ namespace Helveg.Landscape
                             wood0: new Block(Colours.Island.Wood0),
                             wood1: new Block(Colours.Island.Wood1),
                             roof: new Block(Colours.Island.Roof),
-                            side: (int)MathF.Round(MathF.Log2(type.MemberCount)) + 4,
+                            side: (int)MathF.Round(MathF.Sqrt(type.MemberCount)) + 1,
                             levelCount: type.MemberCount,
                             hasRoof: !type.Health.HasFlag(Diagnosis.Warning));
                         break;

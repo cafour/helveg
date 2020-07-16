@@ -49,7 +49,7 @@ namespace Helveg.Analysis
                         return null;
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 logger.LogCritical($"MSBuild failed to load the '{file}' project or solution. "
                     + "Run with '--verbose' for more information.");
@@ -174,30 +174,12 @@ namespace Helveg.Analysis
             var namespaceStack = new Stack<INamespaceSymbol>();
             namespaceStack.Push(compilation.Assembly.GlobalNamespace);
             var types = ImmutableDictionary.CreateBuilder<AnalyzedTypeId, AnalyzedType>();
-            while (namespaceStack.Count > 0)
+            foreach (var type in GetAllTypes(compilation))
             {
-                var currentNamespace = namespaceStack.Pop();
-                foreach (var type in currentNamespace.GetTypeMembers())
-                {
-                    var typeStack = new Stack<INamedTypeSymbol>();
-                    typeStack.Push(type);
-                    while (typeStack.Count > 0)
-                    {
-                        var currentType = typeStack.Pop();
-                        var existingRelations = refCounter.ReferenceCounts
-                            .GetValueOrDefault(currentType.GetAnalyzedId());
-                        var analyzedType = AnalyzeType(currentType, existingRelations);
-                        types.Add(analyzedType.Id, analyzedType);
-                        foreach (var nestedType in currentType.GetTypeMembers())
-                        {
-                            typeStack.Push(nestedType);
-                        }
-                    }
-                }
-                foreach (var subnamespace in currentNamespace.GetNamespaceMembers())
-                {
-                    namespaceStack.Push(subnamespace);
-                }
+                var existingRelations = refCounter.ReferenceCounts
+                    .GetValueOrDefault(type.GetAnalyzedId());
+                var analyzedType = AnalyzeType(type, existingRelations);
+                types.Add(analyzedType.Id, analyzedType);
             }
 
             foreach (var diagnostic in diagnostics)
@@ -228,13 +210,15 @@ namespace Helveg.Analysis
                 ? GetPackageReferences(project.FilePath)
                 : ImmutableHashSet.Create<string>();
 
-            return new AnalyzedProject(
+            var analyzedProject = new AnalyzedProject(
                 project.FilePath ?? string.Empty,
                 project.Name,
                 types.ToImmutable(),
                 projectReferences,
                 packageReferences,
                 lastWriteTime: lwt);
+            // TODO: Refactor this method into chunks similar to SetTypeFamilies.
+            return SetTypeFamilies(analyzedProject, compilation);
         }
 
         public static AnalyzedType AnalyzeType(INamedTypeSymbol type, IDictionary<AnalyzedTypeId, int>? existing)
@@ -310,7 +294,8 @@ namespace Helveg.Analysis
                 kind: type.GetAnalyzedKind(),
                 health: Diagnosis.None,
                 memberCount: memberCount,
-                relations: relations.ToImmutable());
+                relations: relations.ToImmutable(),
+                family: -1);
         }
 
         public static AnalyzedTypeGraph GetTypeGraph(AnalyzedProject project)
@@ -340,6 +325,77 @@ namespace Helveg.Analysis
             }
 
             return graph;
+        }
+
+        private static IEnumerable<INamedTypeSymbol> GetAllTypes(Compilation compilation)
+        {
+            var namespaceStack = new Stack<INamespaceSymbol>();
+            namespaceStack.Push(compilation.Assembly.GlobalNamespace);
+            var typeStack = new Stack<INamedTypeSymbol>();
+            while (namespaceStack.Count > 0)
+            {
+                var @namespace = namespaceStack.Pop();
+                foreach (var subnamespace in @namespace.GetNamespaceMembers())
+                {
+                    namespaceStack.Push(subnamespace);
+                }
+                foreach (var type in @namespace.GetTypeMembers())
+                {
+                    typeStack.Push(type);
+                }
+            }
+            while (typeStack.Count > 0)
+            {
+                var type = typeStack.Pop();
+                yield return type;
+                foreach (var nestedType in type.GetTypeMembers())
+                {
+                    typeStack.Push(nestedType);
+                }
+            }
+        }
+
+        private static AnalyzedProject SetTypeFamilies(AnalyzedProject project, Compilation compilation)
+        {
+            int familyCount = 0;
+            var builder = project.Types.ToBuilder();
+            foreach (var type in GetAllTypes(compilation))
+            {
+                if (!builder.TryGetValue(type.GetAnalyzedId(), out var analyzedType)
+                    || analyzedType.Family != -1)
+                {
+                    continue;
+                }
+
+                var chain = new List<AnalyzedTypeId> { analyzedType.Id };
+                var current = type;
+                var family = -1;
+                while (current.BaseType is object)
+                {
+                    if (!SymbolEqualityComparer.Default.Equals(current.BaseType.ContainingAssembly, compilation.Assembly)
+                        || !builder.TryGetValue(current.BaseType.GetAnalyzedId(), out var analyzedBase))
+                    {
+                        break;
+                    }
+                    if (analyzedBase.Family != -1)
+                    {
+                        family = analyzedBase.Family;
+                        break;
+                    }
+                    chain.Add(analyzedBase.Id);
+                    current = current.BaseType;
+                }
+                if (family == -1)
+                {
+                    family = familyCount;
+                    familyCount++;
+                }
+                foreach (var node in chain)
+                {
+                    builder[node] = builder[node].WithFamily(family);
+                }
+            }
+            return project.WithTypes(builder.ToImmutable());
         }
 
         private static void LogMSBuildDiagnostics(MSBuildWorkspace workspace, ILogger logger)

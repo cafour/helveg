@@ -4,26 +4,29 @@ using System.Linq;
 
 namespace Helveg.Analysis
 {
-    public struct AnalyzedType : IEquatable<AnalyzedType>, ISeedable
+    public struct AnalyzedType : IEquatable<AnalyzedType>
     {
         public readonly AnalyzedTypeId Id;
         public readonly AnalyzedTypeKind Kind;
         public readonly Diagnosis Health;
         public readonly int MemberCount;
         public readonly ImmutableDictionary<AnalyzedTypeId, int> Relations;
+        public readonly int Family;
 
         public AnalyzedType(
             AnalyzedTypeId id,
             AnalyzedTypeKind kind,
             Diagnosis health,
             int memberCount,
-            ImmutableDictionary<AnalyzedTypeId, int> relations)
+            ImmutableDictionary<AnalyzedTypeId, int> relations,
+            int family)
         {
             Id = id;
             Kind = kind;
             Health = health;
             MemberCount = memberCount;
             Relations = relations;
+            Family = family;
         }
 
         public static bool operator ==(AnalyzedType left, AnalyzedType right)
@@ -47,12 +50,13 @@ namespace Helveg.Analysis
                 && Kind.Equals(other.Kind)
                 && Health.Equals(other.Health)
                 && MemberCount.Equals(other.MemberCount)
-                && Enumerable.SequenceEqual(Relations, other.Relations);
+                && !Relations.Except(other.Relations).Any()
+                && Family.Equals(other.Family);
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(Id, Health, MemberCount, Relations.Count);
+            return HashCode.Combine(Id, Health, MemberCount, Relations.Count, Family);
         }
 
         public override string? ToString()
@@ -67,7 +71,12 @@ namespace Helveg.Analysis
 
         public AnalyzedType WithHealth(Diagnosis health)
         {
-            return new AnalyzedType(Id, Kind, health, MemberCount, Relations);
+            return new AnalyzedType(Id, Kind, health, MemberCount, Relations, Family);
+        }
+
+        public AnalyzedType WithFamily(int family)
+        {
+            return new AnalyzedType(Id, Kind, Health, MemberCount, Relations, family);
         }
     }
 }

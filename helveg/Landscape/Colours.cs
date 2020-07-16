@@ -4,6 +4,8 @@ namespace Helveg.Landscape
 {
     public static class Colours
     {
+        public const byte NeedleColourCount = 6;
+
         public enum Island : byte
         {
             Stone,

@@ -1,6 +1,6 @@
 using System;
 
-namespace Helveg
+namespace Helveg.Analysis
 {
     public struct AnalyzedTypeId : IEquatable<AnalyzedTypeId>, ISeedable
     {

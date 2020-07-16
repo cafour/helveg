@@ -50,13 +50,21 @@ namespace Helveg.Analysis
         {
             return Path.Equals(other.Path)
                 && Name.Equals(other.Name)
-                && Enumerable.SequenceEqual(Types, other.Types)
+                && !Types.Except(other.Types).Any()
+                && PackageReferences.SetEquals(other.PackageReferences)
+                && ProjectReferences.SetEquals(other.ProjectReferences)
                 && LastWriteTime.Equals(other.LastWriteTime);
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(Path, Name, Types.Count);
+            return HashCode.Combine(
+                Path,
+                Name,
+                Types.Count,
+                PackageReferences.Count,
+                ProjectReferences.Count,
+                LastWriteTime);
         }
 
         public override string? ToString()
@@ -68,6 +76,11 @@ namespace Helveg.Analysis
         public int GetSeed()
         {
             return Checksum.GetCrc32(Name) ^ ISeedable.Arbitrary;
+        }
+
+        public AnalyzedProject WithTypes(ImmutableDictionary<AnalyzedTypeId, AnalyzedType> types)
+        {
+            return new AnalyzedProject(Path, Name, types, ProjectReferences, PackageReferences, LastWriteTime);
         }
     }
 }
