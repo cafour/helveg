@@ -6,6 +6,7 @@ using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
 using Helveg.Serialization;
+using Microsoft.Build.Definition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.MSBuild;
@@ -222,9 +223,11 @@ namespace Helveg.Analysis
                 .Where(p => p is object)
                 .Select(p => p!.Name)
                 .ToImmutableHashSet();
-            var packageReferences = project.MetadataReferences.Where(r => r.Display is object)
-                .Select(r => r.Display!)
-                .ToImmutableHashSet();
+
+            var packageReferences = project.FilePath is object
+                ? GetPackageReferences(project.FilePath)
+                : ImmutableHashSet.Create<string>();
+
             return new AnalyzedProject(
                 project.FilePath ?? string.Empty,
                 project.Name,
@@ -377,6 +380,14 @@ namespace Helveg.Analysis
                 }
             }
             return lastWriteTime;
+        }
+
+        private static ImmutableHashSet<string> GetPackageReferences(string csprojPath)
+        {
+            var project = Microsoft.Build.Evaluation.Project.FromFile(csprojPath, new ProjectOptions());
+            return project.GetItems("PackageReference")
+                .Select(i => i.EvaluatedInclude)
+                .ToImmutableHashSet();
         }
     }
 }

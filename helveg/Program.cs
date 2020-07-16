@@ -171,7 +171,9 @@ namespace Helveg
             {
                 var project = solution.Projects[solutionGraph.Labels[i]];
                 logger.LogInformation($"Placing structures of '{project.Name}'.");
-                Terrain.PlaceStructures(heightmap, world, project, graphs[i].ToAnalyzed());
+                var bbox = graphs[i].GetBoundingBox();
+                Terrain.PlaceDependencies(heightmap, world, project, bbox);
+                Terrain.PlaceTypeStructures(heightmap, world, project, graphs[i].ToAnalyzed());
             }
 
             return world.Build();

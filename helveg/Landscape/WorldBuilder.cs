@@ -195,6 +195,22 @@ namespace Helveg.Landscape
             }
         }
 
+        public void FillVolume(Point3 one, Point3 two, Block fill)
+        {
+            var min = new Point3(Math.Min(one.X, two.X), Math.Min(one.Y, two.Y), Math.Min(one.Z, two.Z));
+            var max = new Point3(Math.Max(one.X, two.X), Math.Max(one.Y, two.Y), Math.Max(one.Z, two.Z));
+            for (int x = min.X; x <= max.X; ++x)
+            {
+                for(int y = min.Y; y <= max.Y; ++y)
+                {
+                    for (int z = min.Z; z <= max.Z; ++z)
+                    {
+                        this[x, y, z] = fill;
+                    }
+                }
+            }
+        }
+
         public void FillPipe(Point3 from, Point3 to, Block fill, int radius)
         {
             OverLine(from, to, p => FillCube(p, fill, radius));

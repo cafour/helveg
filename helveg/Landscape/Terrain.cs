@@ -99,7 +99,41 @@ namespace Helveg.Landscape
             });
         }
 
-        public static void PlaceStructures(
+        public static void PlaceDependencies(
+            Heightmap heightmap,
+            WorldBuilder world,
+            AnalyzedProject project,
+            RectangleF boundingBox)
+        {
+            const int offset = 20;
+            var random = new Random(project.GetSeed());
+            var dockside = new Vector2[]
+            {
+                new Vector2(1, 0),
+                new Vector2(-1, 0),
+                new Vector2(0, 1),
+                new Vector2(0, -1)
+            }[random.Next() % 4];
+            var center = new Vector2(boundingBox.X + boundingBox.Width / 2, boundingBox.Y + boundingBox.Height / 2);
+            var heightmapPosition = center
+                + new Vector2(boundingBox.Width / 2 + offset, boundingBox.Height / 2 + offset) * dockside;
+            var position = new Point3(heightmapPosition.X, WaterLevel + 1, heightmapPosition.Y);
+            Cargo.Draw(
+                world: world,
+                position: position,
+                platform: new Block(Colours.Island.Wood),
+                corner: new Block(Colours.Island.Stone),
+                containers: new[]
+                {
+                    new Block(Colours.Island.Cargo0),
+                    new Block(Colours.Island.Cargo1),
+                    new Block(Colours.Island.Cargo2)
+                },
+                seed: project.GetSeed(),
+                containerCount: project.PackageReferences.Count);
+        }
+
+        public static void PlaceTypeStructures(
             Heightmap heightmap,
             WorldBuilder world,
             AnalyzedProject project,

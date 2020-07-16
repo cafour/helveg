@@ -22,9 +22,9 @@ static VkPhysicalDeviceFeatures getRequiredFeatures()
 
 static const vku::Light sun = vku::Light {
     glm::vec4(-1.0f, -1.0f, -1.0f, 0.0f),
-    glm::vec4(0.7f, 0.6f, 0.5f, 0.0f),
-    glm::vec4(1.0f, 0.8f, 0.6f, 0.0f),
-    glm::vec4(1.0f, 0.8f, 0.6f, 10.0f),
+    glm::vec4(0.4f, 0.4f, 0.4f, 0.0f),
+    glm::vec4(1.0f, 1.0f, 1.0f, 0.0f),
+    glm::vec4(0.7f, 0.7f, 0.7f, 10.0f),
 };
 
 static const VkPhysicalDeviceFeatures requiredFeatures = getRequiredFeatures();

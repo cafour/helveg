@@ -46,6 +46,13 @@ namespace Helveg
             cabinCmd.Handler = CommandHandler.Create(typeof(DebugDraw).GetMethod(nameof(DrawCabin))!);
             parent.AddCommand(cabinCmd);
 
+            var cargoCmd = new Command("cargo", "Draw some cargo")
+            {
+                vkDebugOpt
+            };
+            cargoCmd.Handler = CommandHandler.Create(typeof(DebugDraw).GetMethod(nameof(DrawCargo))!);
+            parent.AddCommand(cargoCmd);
+
             var chunkCmd = new Command("chunk", "Draw a single chunk")
             {
                 vkDebugOpt
@@ -121,7 +128,8 @@ namespace Helveg
                     new Block { PaletteIndex = (byte)((int)Colours.Island.Needles0 + (i + j) % tintCount) });
                 }
             }
-            Vku.HelloWorld(worldBuilder.Build());
+            var world = worldBuilder.Build();
+            Vku.HelloWorld(world);
         }
 
         public static void DrawCabin()
@@ -135,7 +143,28 @@ namespace Helveg
                 new Block(Colours.Island.Roof),
                 6,
                 4);
-            Vku.HelloWorld(worldBuilder.Build());
+            var world = worldBuilder.Build();
+            Vku.HelloWorld(world);
+        }
+
+        public static void DrawCargo()
+        {
+            var worldBuilder = new WorldBuilder(64, new Block { Flags = BlockFlags.IsAir }, Colours.IslandPalette);
+            Cargo.Draw(
+                world: worldBuilder,
+                position: new Point3(0, 32, 0),
+                platform: new Block(Colours.Island.Wood),
+                corner: new Block(Colours.Island.Stone),
+                containers: new Block[]
+                {
+                    new Block(Colours.Island.Cargo0),
+                    new Block(Colours.Island.Cargo1),
+                    new Block(Colours.Island.Cargo2)
+                },
+                seed: 42,
+                containerCount: 5);
+            var world = worldBuilder.Build();
+            Vku.HelloWorld(world);
         }
 
         public static void DrawChunk()
