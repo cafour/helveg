@@ -53,8 +53,10 @@ namespace Helveg.Landscape
                     var sum = 0.0f;
                     for (int i = 0; i < positions.Length; ++i)
                     {
-                        var l = (positions[i] - coord).Length();
-                        var r = sizes[i] + NodeOverlap;
+                        var st = positions[i] - coord;
+                        var l = st.Length();
+                        var a = MathF.Atan2(st.Y, st.X);
+                        var r = sizes[i] + NodeOverlap + MathF.Sin(a * 16f) * (float)noise.Evaluate(st.X * 0.1, st.Y * 0.1) * 4f;
                         sum = MathF.Max(sum, GrassLevel * (1.0f - Glsl.Smoothstep(0.0f, SlopeWidth, l - r)));
                     }
                     var noiseValue = (noise.Evaluate(x * IslandNoiseFrequency, y * IslandNoiseFrequency) + 1.0)
