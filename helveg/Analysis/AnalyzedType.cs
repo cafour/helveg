@@ -9,7 +9,7 @@ namespace Helveg.Analysis
         public readonly AnalyzedTypeId Id;
         public readonly AnalyzedTypeKind Kind;
         public readonly Diagnosis Health;
-        public readonly int MemberCount;
+        public readonly int Size;
         public readonly ImmutableDictionary<AnalyzedTypeId, int> Relations;
         public readonly int Family;
 
@@ -17,14 +17,14 @@ namespace Helveg.Analysis
             AnalyzedTypeId id,
             AnalyzedTypeKind kind,
             Diagnosis health,
-            int memberCount,
+            int size,
             ImmutableDictionary<AnalyzedTypeId, int> relations,
             int family)
         {
             Id = id;
             Kind = kind;
             Health = health;
-            MemberCount = memberCount;
+            Size = size;
             Relations = relations;
             Family = family;
         }
@@ -49,19 +49,19 @@ namespace Helveg.Analysis
             return Id.Equals(other.Id)
                 && Kind.Equals(other.Kind)
                 && Health.Equals(other.Health)
-                && MemberCount.Equals(other.MemberCount)
+                && Size.Equals(other.Size)
                 && !Relations.Except(other.Relations).Any()
                 && Family.Equals(other.Family);
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(Id, Health, MemberCount, Relations.Count, Family);
+            return HashCode.Combine(Id, Health, Size, Relations.Count, Family);
         }
 
         public override string? ToString()
         {
-            return $"{Id} [typ,{Kind},{Health},mmb={MemberCount},rel={Relations.Count}]";
+            return $"{Id} [typ,{Kind},{Health},mmb={Size},rel={Relations.Count}]";
         }
 
         public int GetSeed()
@@ -71,12 +71,12 @@ namespace Helveg.Analysis
 
         public AnalyzedType WithHealth(Diagnosis health)
         {
-            return new AnalyzedType(Id, Kind, health, MemberCount, Relations, Family);
+            return new AnalyzedType(Id, Kind, health, Size, Relations, Family);
         }
 
         public AnalyzedType WithFamily(int family)
         {
-            return new AnalyzedType(Id, Kind, Health, MemberCount, Relations, family);
+            return new AnalyzedType(Id, Kind, Health, Size, Relations, family);
         }
     }
 }

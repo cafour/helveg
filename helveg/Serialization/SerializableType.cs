@@ -11,7 +11,7 @@ namespace Helveg.Serialization
         public string? Id { get; set; }
         public AnalyzedTypeKind Kind { get; set; }
         public Diagnosis Health { get; set; }
-        public int MemberCount { get; set; }
+        public int Size { get; set; }
         public Dictionary<string, int>? Relations { get; set; }
         public int Family { get; set; }
 
@@ -22,7 +22,7 @@ namespace Helveg.Serialization
                 Id = type.Id.ToString(),
                 Kind = type.Kind,
                 Health = type.Health,
-                MemberCount = type.MemberCount,
+                Size = type.Size,
                 Relations = type.Relations.ToDictionary(p => p.Key.ToString(), p => p.Value),
                 Family = type.Family,
             };
@@ -39,7 +39,7 @@ namespace Helveg.Serialization
                 id: AnalyzedTypeId.Parse(Id),
                 kind: Kind,
                 health: Health,
-                memberCount: MemberCount,
+                size: Size,
                 relations: Relations.ToImmutableDictionary(p => AnalyzedTypeId.Parse(p.Key), p => p.Value),
                 family: Family);
         }

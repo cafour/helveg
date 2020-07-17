@@ -37,6 +37,7 @@ namespace Helveg.Analysis
                 TypeKind.Struct => AnalyzedTypeKind.Struct,
                 TypeKind.Interface => AnalyzedTypeKind.Interface,
                 TypeKind.Delegate => AnalyzedTypeKind.Delegate,
+                TypeKind.Enum => AnalyzedTypeKind.Enum,
                 _ => AnalyzedTypeKind.None
             };
         }

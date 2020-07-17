@@ -148,7 +148,7 @@ namespace Helveg.Landscape
                     case AnalyzedTypeKind.Class:
                         var sentence = Spruce.Generate(
                             seed: type.GetSeed(),
-                            size: type.MemberCount);
+                            size: type.Size);
                         // the byte cast being required twice is beyond me
                         var needles = (byte)((byte)Colours.Island.Needles0
                             + (byte)type.Family % Colours.NeedleColourCount);
@@ -167,14 +167,29 @@ namespace Helveg.Landscape
                             wood0: new Block(Colours.Island.Wood0),
                             wood1: new Block(Colours.Island.Wood1),
                             roof: new Block(Colours.Island.Roof),
-                            side: (int)MathF.Round(MathF.Sqrt(type.MemberCount)) + 1,
-                            levelCount: type.MemberCount,
+                            side: (int)MathF.Round(MathF.Sqrt(type.Size)) + 1,
+                            levelCount: type.Size,
                             hasRoof: !type.Health.HasFlag(Diagnosis.Warning));
+                        break;
+                    case AnalyzedTypeKind.Delegate:
+                        Signpost.Draw(
+                            world: world,
+                            wood: new Block(Colours.Island.Wood),
+                            arrows: new []
+                            {
+                                new Block(Colours.Island.Wood0),
+                                new Block(Colours.Island.Wood1)
+                            },
+                            position: center,
+                            arrowCount: type.Size,
+                            seed: type.GetSeed());
                         break;
                 }
                 if (type.Health.HasFlag(Diagnosis.Error))
                 {
-                    world.Burn(center + new Point3(0, 6, 0), MathF.Log2(type.MemberCount) * 2);
+                    var height = world.GetHeight(center.X, center.Y);
+                    var structureHeight = Math.Max(0, height - center.Y);
+                    world.Burn(center + new Point3(0, structureHeight / 2, 0), MathF.Sqrt(type.Size));
                 }
             }
         }

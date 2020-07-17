@@ -6,6 +6,7 @@ namespace Helveg.Analysis
         Class,
         Struct,
         Interface,
-        Delegate
+        Delegate,
+        Enum,
     }
 }

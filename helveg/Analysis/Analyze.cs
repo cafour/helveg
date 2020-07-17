@@ -257,7 +257,7 @@ namespace Helveg.Analysis
                 IncrementRelation(@interface, InterfaceImplementationWeight);
             }
 
-            int memberCount = 0;
+            int size = 0;
             foreach (var member in type.GetMembers())
             {
                 if (member.IsImplicitlyDeclared)
@@ -265,7 +265,7 @@ namespace Helveg.Analysis
                     continue;
                 }
 
-                memberCount++;
+                size++;
                 switch (member)
                 {
                     case IPropertySymbol property:
@@ -289,11 +289,19 @@ namespace Helveg.Analysis
                         break;
                 }
             }
+            if (type.TypeKind == TypeKind.Delegate && type.DelegateInvokeMethod is object)
+            {
+                size = type.DelegateInvokeMethod.Parameters.Length;
+                if(!type.DelegateInvokeMethod.ReturnsVoid)
+                {
+                    size++;
+                }
+            }
             return new AnalyzedType(
                 id: type.GetAnalyzedId(),
                 kind: type.GetAnalyzedKind(),
                 health: Diagnosis.None,
-                memberCount: memberCount,
+                size: size,
                 relations: relations.ToImmutable(),
                 family: -1);
         }
@@ -312,7 +320,7 @@ namespace Helveg.Analysis
             for (int i = 0; i < graph.Ids.Length; ++i)
             {
                 var type = project.Types[graph.Ids[i]];
-                graph.Sizes[i] = type.MemberCount;
+                graph.Sizes[i] = type.Size;
                 foreach (var (friend, weight) in type.Relations)
                 {
                     // TODO: This shouldn't happen, but I don't have time to fix it right now.

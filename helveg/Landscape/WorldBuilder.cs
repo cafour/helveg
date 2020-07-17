@@ -39,6 +39,16 @@ namespace Helveg.Landscape
             return chunk;
         }
 
+        public int GetHeight(int x, int z)
+        {
+            int y = 0;
+            while(!this[x, y, z].Flags.HasFlag(BlockFlags.IsAir))
+            {
+                y++;
+            }
+            return y - 1;
+        }
+
         public Block this[Point3 at]
         {
             get

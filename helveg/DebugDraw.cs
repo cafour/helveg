@@ -51,6 +51,12 @@ namespace Helveg
             };
             parent.AddCommand(bridgeCmd);
 
+            var signpostCmd = new Command("signpost", "Draw a signpost")
+            {
+                Handler = CommandHandler.Create(typeof(DebugDraw).GetMethod(nameof(DrawSignpost))!)
+            };
+            parent.AddCommand(signpostCmd);
+
             var chunkCmd = new Command("chunk", "Draw a single chunk")
             {
                 Handler = CommandHandler.Create(typeof(DebugDraw).GetMethod(nameof(DrawChunk))!)
@@ -171,6 +177,24 @@ namespace Helveg
                 to: new Point3(100, 0, 0),
                 bridge: new [] {new Block(Colours.Island.Cargo0), new Block(Colours.Island.Cargo1)},
                 height: 8);
+            var world = worldBuilder.Build();
+            Vku.HelloWorld(world);
+        }
+
+        public static void DrawSignpost()
+        {
+            var worldBuilder = new WorldBuilder(64, new Block { Flags = BlockFlags.IsAir }, Colours.IslandPalette);
+            Signpost.Draw(
+                world: worldBuilder,
+                wood: new Block(Colours.Island.Wood),
+                arrows: new []
+                {
+                    new Block(Colours.Island.Wood0),
+                    new Block(Colours.Island.Wood1)
+                },
+                position: Point3.Zero,
+                arrowCount: 12,
+                seed: 42);
             var world = worldBuilder.Build();
             Vku.HelloWorld(world);
         }
