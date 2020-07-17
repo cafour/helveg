@@ -155,6 +155,9 @@ namespace Helveg.Analysis
             }
 
             var refCounter = new ReferenceCountingAnalyzer();
+            var analyzers = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
+            analyzers.Add(refCounter);
+            analyzers.AddRange(project.AnalyzerReferences.SelectMany(a => a.GetAnalyzers("C#")));
             var withAnalyzersOptions = new CompilationWithAnalyzersOptions(
                 options: new AnalyzerOptions(ImmutableArray.Create<AdditionalText>()),
                 onAnalyzerException: (e, a, d) =>
@@ -167,7 +170,7 @@ namespace Helveg.Analysis
                 logAnalyzerExecutionTime: false);
             var withAnalyzers = new CompilationWithAnalyzers(
                 compilation,
-                ImmutableArray.Create<DiagnosticAnalyzer>(refCounter),
+                analyzers.ToImmutable(),
                 withAnalyzersOptions);
             var diagnostics = await withAnalyzers.GetAllDiagnosticsAsync();
 

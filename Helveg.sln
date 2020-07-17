@@ -5,10 +5,6 @@ VisualStudioVersion = 15.0.26124.0
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Helveg", "helveg\Helveg.csproj", "{5830A327-2040-4BE9-91F5-C5DAAC8D9516}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sample", "sample", "{CB9B54FF-E678-42D5-8B17-3C8DF69D90A0}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Helveg.Sample", "sample\clean\Helveg.Sample.csproj", "{C361EC2D-83A2-4837-A8FF-83D36CF8C50D}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -34,20 +30,5 @@ Global
 		{5830A327-2040-4BE9-91F5-C5DAAC8D9516}.Release|x64.Build.0 = Release|Any CPU
 		{5830A327-2040-4BE9-91F5-C5DAAC8D9516}.Release|x86.ActiveCfg = Release|Any CPU
 		{5830A327-2040-4BE9-91F5-C5DAAC8D9516}.Release|x86.Build.0 = Release|Any CPU
-		{C361EC2D-83A2-4837-A8FF-83D36CF8C50D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C361EC2D-83A2-4837-A8FF-83D36CF8C50D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C361EC2D-83A2-4837-A8FF-83D36CF8C50D}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{C361EC2D-83A2-4837-A8FF-83D36CF8C50D}.Debug|x64.Build.0 = Debug|Any CPU
-		{C361EC2D-83A2-4837-A8FF-83D36CF8C50D}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{C361EC2D-83A2-4837-A8FF-83D36CF8C50D}.Debug|x86.Build.0 = Debug|Any CPU
-		{C361EC2D-83A2-4837-A8FF-83D36CF8C50D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C361EC2D-83A2-4837-A8FF-83D36CF8C50D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C361EC2D-83A2-4837-A8FF-83D36CF8C50D}.Release|x64.ActiveCfg = Release|Any CPU
-		{C361EC2D-83A2-4837-A8FF-83D36CF8C50D}.Release|x64.Build.0 = Release|Any CPU
-		{C361EC2D-83A2-4837-A8FF-83D36CF8C50D}.Release|x86.ActiveCfg = Release|Any CPU
-		{C361EC2D-83A2-4837-A8FF-83D36CF8C50D}.Release|x86.Build.0 = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{C361EC2D-83A2-4837-A8FF-83D36CF8C50D} = {CB9B54FF-E678-42D5-8B17-3C8DF69D90A0}
 	EndGlobalSection
 EndGlobal
