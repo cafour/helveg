@@ -55,7 +55,7 @@ namespace Helveg.Landscape
                     {
                         var l = (positions[i] - coord).Length();
                         var r = sizes[i] + NodeOverlap;
-                        sum = MathF.Max(sum, GrassLevel * (1.0f - Smoothstep(0.0f, SlopeWidth, l - r)));
+                        sum = MathF.Max(sum, GrassLevel * (1.0f - Glsl.Smoothstep(0.0f, SlopeWidth, l - r)));
                     }
                     var noiseValue = (noise.Evaluate(x * IslandNoiseFrequency, y * IslandNoiseFrequency) + 1.0)
                         * IslandNoiseMagnitude / 2.0;
@@ -99,8 +99,7 @@ namespace Helveg.Landscape
             });
         }
 
-        public static void PlaceDependencies(
-            Heightmap heightmap,
+        public static void PlaceCargo(
             WorldBuilder world,
             AnalyzedProject project,
             RectangleF boundingBox)
@@ -158,7 +157,7 @@ namespace Helveg.Landscape
                             world: world,
                             position: center,
                             wood: new Block(Colours.Island.Wood),
-                            needles: new Block {PaletteIndex = needles },
+                            needles: new Block { PaletteIndex = needles },
                             hasNeedles: !type.Health.HasFlag(Diagnosis.Warning));
                         break;
                     case AnalyzedTypeKind.Struct:
@@ -180,16 +179,50 @@ namespace Helveg.Landscape
             }
         }
 
-        public static void PlaceBridge()
+        public static bool PlaceBridges(
+            Heightmap heightmap,
+            WorldBuilder world,
+            Graph solutionGraph,
+            AnalyzedProject project)
         {
-            
+            const float edgeInset = 10.0f;
+            var index = Array.IndexOf(solutionGraph.Labels, project.Name);
+            if (index == -1)
+            {
+                return false;
+            }
+
+            var center = solutionGraph.Positions[index];
+            foreach (var dependency in project.ProjectReferences)
+            {
+                var dependencyIndex = Array.IndexOf(solutionGraph.Labels, dependency);
+                if (dependencyIndex == -1)
+                {
+                    return false;
+                }
+
+                var dependencyCenter = solutionGraph.Positions[dependencyIndex];
+                var direction = Vector2.Normalize(dependencyCenter - center);
+                var from = FindIslandEdge(heightmap, center, direction) - edgeInset * direction;
+                var to = FindIslandEdge(heightmap, dependencyCenter, -direction) + edgeInset * direction;
+                Bridge.Draw(
+                    world: world,
+                    from: new Point3(from.X, heightmap[from], from.Y),
+                    to: new Point3(to.X, heightmap[to], to.Y),
+                    bridge: new Block[] {new Block(Colours.Island.Cargo0), new Block(Colours.Island.Cargo1)},
+                    height: (int)MathF.Sqrt((dependencyCenter - center).Length()));
+            }
+            return true;
         }
 
-        public static float Smoothstep(float low, float high, float value)
+        public static Vector2 FindIslandEdge(Heightmap heightmap, Vector2 from, Vector2 direction)
         {
-            // https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/smoothstep.xhtml
-            value = Math.Clamp((value - low) / (high - low), 0.0f, 1.0f);
-            return value * value * (3.0f - 2.0f * value);
+            var current = from;
+            while(heightmap[current] > WaterLevel)
+            {
+                current += direction;
+            }
+            return current - direction;
         }
     }
 }

@@ -172,7 +172,11 @@ namespace Helveg
                 var project = solution.Projects[solutionGraph.Labels[i]];
                 logger.LogInformation($"Placing structures of '{project.Name}'.");
                 var bbox = graphs[i].GetBoundingBox();
-                Terrain.PlaceDependencies(heightmap, world, project, bbox);
+                if (!Terrain.PlaceBridges(heightmap, world, solutionGraph, project))
+                {
+                    logger.LogError($"Bridge from the '{project.Name}' island could not be placed.");
+                }
+                Terrain.PlaceCargo(world, project, bbox);
                 Terrain.PlaceTypeStructures(heightmap, world, project, graphs[i].ToAnalyzed());
             }
 

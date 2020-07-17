@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 
 namespace Helveg.Landscape
 {
@@ -33,15 +34,27 @@ namespace Helveg.Landscape
         public int SizeX { get; }
         public int SizeY { get; }
 
+        public float this[Vector2 p]
+        {
+            get
+            {
+                return this[p.X, p.Y];
+            }
+            set
+            {
+                this[p.X, p.Y] = value;
+            }
+        }
+
         public float this[float x, float y]
         {
             get
             {
-                return this[(int)x, (int)y];
+                return this[(int)MathF.Round(x), (int)MathF.Round(y)];
             }
             set
             {
-                this[(int)x, (int)y] = value;
+                this[(int)MathF.Round(x), (int)MathF.Round(y)] = value;
             }
         }
 

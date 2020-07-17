@@ -1,3 +1,4 @@
+using System;
 using System.Numerics;
 using Helveg.Render;
 
@@ -12,33 +13,34 @@ namespace Helveg.Landscape
             WorldBuilder world,
             Point3 from,
             Point3 to,
-            Block[] bridge)
+            Block[] bridge,
+            int height)
         {
             var direction = Vector3.Normalize((Vector3)(to - from));
             var normal = Point3.Round(Width * Vector3.Cross(direction, new Vector3(0, 1, 0)));
             var dir = Point3.Round(Width * direction);
             var left = normal - dir;
             var right = -normal - dir;
-            world.OverLine(from, from + left, l =>
+            var length = (to - from).Length();
+
+            void drawSide(Point3 s)
             {
-                world[l] = bridge[0];
-                var offset = l - from;
-                world.OverLine(l, to + offset, p =>
+                world[s] = bridge[0];
+                var offset = s - from;
+                world.OverLine(s, to + offset, p =>
                 {
-                    var index = (int)((p - offset - from).Length() / SegmentLength) % 2;
+                    var distance = (p - s).Length();
+                    var percentage = distance / length;
+                    var currentHeight = (MathF.Sin(3 * MathF.PI / 2 + 2 * MathF.PI * percentage) + 1.0f) * 0.5f * height;
+                    var currentLevel = (int)MathF.Round(currentHeight);
+                    p.Y += (int)MathF.Round(currentHeight);
+                    var index = currentLevel % bridge.Length;
                     world[p] = bridge[index];
                 }, true);
-            });
-            world.OverLine(from, from + right, r =>
-            {
-                world[r] = bridge[0];
-                var offset = r - from;
-                world.OverLine(r, to + offset, p =>
-                {
-                    var index = (int)((p - offset - from).Length() / SegmentLength) % 2;
-                    world[p] = bridge[index];
-                }, true);
-            });
+            }
+
+            world.OverLine(from, from + left, drawSide);
+            world.OverLine(from, from + right, drawSide);
         }
     }
 }
