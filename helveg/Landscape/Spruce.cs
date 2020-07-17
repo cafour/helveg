@@ -31,6 +31,8 @@ namespace Helveg.Landscape
             const float volTransfer0 = 0.09f;
             const float volTransfer1 = 0.75f;
 
+            var random = new Random(seed);
+
             var rules = ImmutableDictionary.CreateBuilder<Kind, LRule<Kind>>();
             rules.Add(Kind.ZerothOrder, p =>
             {
@@ -49,7 +51,7 @@ namespace Helveg.Landscape
                         builder.Add(new LSymbol<Kind>(Kind.Pop));
                     }
                 }
-                builder.Add(new LSymbol<Kind>(Kind.RollChange, MathF.PI / 6f));
+                builder.Add(new LSymbol<Kind>(Kind.RollChange, MathF.PI * random.Next(0, 12) / 12.0f));
                 builder.Add(new LSymbol<Kind>(Kind.ZerothOrder));
                 return builder.ToImmutable();
             });
