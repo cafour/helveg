@@ -87,7 +87,9 @@ namespace Helveg.Landscape
             var sentence = ImmutableArray.Create(
                 new LSymbol<Kind>(Kind.PitchChange, -MathF.PI / 2f),
                 new LSymbol<Kind>(Kind.ZerothOrder));
-            while (size != 0)
+            
+            bool shouldEndNext = false;
+            while(true)
             {
                 sentence = lsystem.Rewrite(sentence);
                 var rebuilder = sentence.ToBuilder();
@@ -132,6 +134,11 @@ namespace Helveg.Landscape
                     }
                 }
                 sentence = rebuilder.ToImmutable();
+                if (shouldEndNext)
+                {
+                    break;
+                }
+                shouldEndNext = size == 0;
             }
             return sentence;
         }

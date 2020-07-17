@@ -76,7 +76,7 @@ namespace Helveg
             SerializableGraphCollection? cache = null,
             float repulsionFactor = 2.0f)
         {
-            var logger = Logging.CreateLogger($"{graph.Name}: Fdg");
+            var logger = Logging.CreateLogger(string.IsNullOrEmpty(graph.Name) ? "Fdg" : $"{graph.Name}: Fdg");
             if (cache is object
                 && cache.Graphs is object
                 && cache.Graphs.TryGetValue(graph.Name, out var cachedGraph)
