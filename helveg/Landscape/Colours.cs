@@ -26,6 +26,10 @@ namespace Helveg.Landscape
             Cargo0,
             Cargo1,
             Cargo2,
+            Stem,
+            Flower0,
+            Flower1,
+            Flower2
         }
 
         public static readonly Vector3[] IslandPalette = new Vector3[]
@@ -48,6 +52,10 @@ namespace Helveg.Landscape
             new Vector3(0xcf, 0x2c, 0x23) / 0xff, // cargo0
             new Vector3(0xde, 0xad, 0x41) / 0xff, // cargo1
             new Vector3(0x2a, 0x77, 0x58) / 0xff, // cargo2
+            new Vector3(0x23, 0x38, 0x0a) / 0xff, // stem
+            new Vector3(0x6a, 0x3c, 0x61) / 0xff, // flower0
+            new Vector3(0x99, 0x02, 0x0e) / 0xff, // flower1
+            new Vector3(0xd1, 0x9e, 0x01) / 0xff, // flower2
         };
     }
 }

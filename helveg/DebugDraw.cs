@@ -63,6 +63,12 @@ namespace Helveg
             };
             parent.AddCommand(constructionCmd);
 
+            var meadowCmd = new Command("meadow", "Draw a meadow")
+            {
+                Handler = CommandHandler.Create(typeof(DebugDraw).GetMethod(nameof(DrawMeadow))!)
+            };
+            parent.AddCommand(meadowCmd);
+
             var chunkCmd = new Command("chunk", "Draw a single chunk")
             {
                 Handler = CommandHandler.Create(typeof(DebugDraw).GetMethod(nameof(DrawChunk))!)
@@ -215,6 +221,26 @@ namespace Helveg
                 position: Point3.Zero,
                 side: 6
             );
+            var world = worldBuilder.Build();
+            Vku.HelloWorld(world);
+        }
+
+        public static void DrawMeadow()
+        {
+            var worldBuilder = new WorldBuilder(64, new Block { Flags = BlockFlags.IsAir }, Colours.IslandPalette);
+            Meadow.Draw(
+                world: worldBuilder,
+                stem: new Block(Colours.Island.Stem),
+                flower: new Block[]
+                {
+                    new Block(Colours.Island.Flower0),
+                    new Block(Colours.Island.Flower1),
+                    new Block(Colours.Island.Flower2),
+                },
+                position: Point3.Zero,
+                flowerCount: 32,
+                radius: 16,
+                seed: 42);
             var world = worldBuilder.Build();
             Vku.HelloWorld(world);
         }

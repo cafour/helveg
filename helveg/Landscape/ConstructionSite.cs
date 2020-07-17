@@ -17,6 +17,8 @@ namespace Helveg.Landscape
             world.FillLine(square.LowerRight, square.UpperRight, beam);
             world.FillLine(square.UpperRight, square.UpperLeft, beam);
             world.FillLine(square.UpperLeft, square.LowerLeft, beam);
+            world.FillLine(square.UpperLeft, square.LowerRight, beam);
+            world.FillLine(square.LowerLeft, square.UpperRight, beam);
 
             world.FillVolume(
                 square.LowerLeft + new Point3(0, 1, 0),

@@ -192,6 +192,21 @@ namespace Helveg.Landscape
                             position: center,
                             side: (int)MathF.Round(MathF.Sqrt(type.Size)));
                         break;
+                    case AnalyzedTypeKind.Enum:
+                        Meadow.Draw(
+                            world: world,
+                            stem: new Block(Colours.Island.Stem),
+                            flower: new Block[]
+                            {
+                                new Block(Colours.Island.Flower0),
+                                new Block(Colours.Island.Flower1),
+                                new Block(Colours.Island.Flower2),
+                            },
+                            position: center,
+                            flowerCount: type.Size,
+                            radius: type.Size,
+                            seed: type.GetSeed());
+                        break;
                 }
                 if (type.Health.HasFlag(Diagnosis.Error))
                 {
