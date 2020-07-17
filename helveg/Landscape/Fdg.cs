@@ -159,6 +159,10 @@ namespace Helveg.Landscape
                 globalTraction += (state.Degrees[i] + 1) * (state.Forces[i] + state.PreviousForces[i]).Length() / 2f;
             }
 
+            // prevent NaNs related to global swinging
+            var sign = globalSwinging >= 0 ? 1 : -1;
+            globalSwinging += sign * float.Epsilon;
+
             state.GlobalSpeed = Math.Clamp(
                 state.TraSwgRatio * globalTraction / globalSwinging,
                 0.5f * state.GlobalSpeed,
@@ -179,6 +183,10 @@ namespace Helveg.Landscape
                     speed *= 0.1f;
                 }
                 speed = MathF.Min(speed, state.MaxSpeedConstant / length);
+                if(float.IsNaN(state.Forces[i].X) || float.IsNaN(state.Forces[i].Y))
+                {
+                    Debugger.Break();
+                }
                 state.Positions[i] += state.Forces[i] * speed;
             }
         }
