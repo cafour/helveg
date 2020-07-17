@@ -168,7 +168,7 @@ namespace Helveg
             Bridge.Draw(
                 world: worldBuilder,
                 from: Point3.Zero,
-                to: new Point3(23, 0, 89),
+                to: new Point3(100, 0, 23),
                 bridge: new [] {new Block(Colours.Island.Cargo0), new Block(Colours.Island.Cargo1)});
             var world = worldBuilder.Build();
             Vku.HelloWorld(world);

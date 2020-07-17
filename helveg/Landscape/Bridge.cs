@@ -19,12 +19,26 @@ namespace Helveg.Landscape
             var dir = Point3.Round(Width * direction);
             var left = normal - dir;
             var right = -normal - dir;
-            world.OverLine(from, to, p =>
+            world.OverLine(from, from + left, l =>
             {
-                var index = (int)((p - from).Length() / SegmentLength) % 2;
-                world.FillLine(p, p + left, bridge[index], true);
-                world.FillLine(p, p + right, bridge[index], true);
-            }, corners: true);
+                world[l] = bridge[0];
+                var offset = l - from;
+                world.OverLine(l, to + offset, p =>
+                {
+                    var index = (int)((p - offset - from).Length() / SegmentLength) % 2;
+                    world[p] = bridge[index];
+                }, true);
+            });
+            world.OverLine(from, from + right, r =>
+            {
+                world[r] = bridge[0];
+                var offset = r - from;
+                world.OverLine(r, to + offset, p =>
+                {
+                    var index = (int)((p - offset - from).Length() / SegmentLength) % 2;
+                    world[p] = bridge[index];
+                }, true);
+            });
         }
     }
 }

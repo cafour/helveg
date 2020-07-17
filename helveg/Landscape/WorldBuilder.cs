@@ -100,16 +100,16 @@ namespace Helveg.Landscape
                     from.X += sign.X;
                     if (error.Y >= 0)
                     {
+                        actionCorner(from);
                         from.Y += sign.Y;
                         error.Y -= 2 * diff.X;
-                        actionCorner(from);
                     }
 
                     if (error.Z >= 0)
                     {
+                        actionCorner(from);
                         from.Z += sign.Z;
                         error.Z -= 2 * diff.X;
-                        actionCorner(from);
                     }
 
                     error.Y += 2 * diff.Y;
@@ -124,16 +124,16 @@ namespace Helveg.Landscape
                     from.Y += sign.Y;
                     if (error.X >= 0)
                     {
+                        actionCorner(from);
                         from.X += sign.X;
                         error.X -= 2 * diff.Y;
-                        actionCorner(from);
                     }
 
                     if (error.Z >= 0)
                     {
+                        actionCorner(from);
                         from.Z += sign.Z;
                         error.Z -= 2 * diff.Y;
-                        actionCorner(from);
                     }
 
                     error.X += 2 * diff.X;
@@ -148,16 +148,16 @@ namespace Helveg.Landscape
                     from.Z += sign.Z;
                     if (error.Y >= 0)
                     {
+                        actionCorner(from);
                         from.Y += sign.Y;
                         error.Y -= 2 * diff.Z;
-                        actionCorner(from);
                     }
 
                     if (error.X >= 0)
                     {
+                        actionCorner(from);
                         from.X += sign.X;
                         error.X -= 2 * diff.Z;
-                        actionCorner(from);
                     }
 
                     error.Y += 2 * diff.Y;
