@@ -57,6 +57,12 @@ namespace Helveg
             };
             parent.AddCommand(signpostCmd);
 
+            var constructionCmd = new Command("construction", "Draw a construction site")
+            {
+                Handler = CommandHandler.Create(typeof(DebugDraw).GetMethod(nameof(DrawConstructionSite))!)
+            };
+            parent.AddCommand(constructionCmd);
+
             var chunkCmd = new Command("chunk", "Draw a single chunk")
             {
                 Handler = CommandHandler.Create(typeof(DebugDraw).GetMethod(nameof(DrawChunk))!)
@@ -195,6 +201,20 @@ namespace Helveg
                 position: Point3.Zero,
                 arrowCount: 12,
                 seed: 42);
+            var world = worldBuilder.Build();
+            Vku.HelloWorld(world);
+        }
+
+        public static void DrawConstructionSite()
+        {
+            var worldBuilder = new WorldBuilder(64, new Block { Flags = BlockFlags.IsAir }, Colours.IslandPalette);
+            ConstructionSite.Draw(
+                world: worldBuilder,
+                corner: new Block(Colours.Island.Stone),
+                beam: new Block(Colours.Island.Wood),
+                position: Point3.Zero,
+                side: 6
+            );
             var world = worldBuilder.Build();
             Vku.HelloWorld(world);
         }

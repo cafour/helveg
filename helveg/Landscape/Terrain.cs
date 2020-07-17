@@ -175,7 +175,7 @@ namespace Helveg.Landscape
                         Signpost.Draw(
                             world: world,
                             wood: new Block(Colours.Island.Wood),
-                            arrows: new []
+                            arrows: new[]
                             {
                                 new Block(Colours.Island.Wood0),
                                 new Block(Colours.Island.Wood1)
@@ -183,6 +183,14 @@ namespace Helveg.Landscape
                             position: center,
                             arrowCount: type.Size,
                             seed: type.GetSeed());
+                        break;
+                    case AnalyzedTypeKind.Interface:
+                        ConstructionSite.Draw(
+                            world: world,
+                            corner: new Block(Colours.Island.Stone),
+                            beam: new Block(Colours.Island.Wood),
+                            position: center,
+                            side: (int)MathF.Round(MathF.Sqrt(type.Size)));
                         break;
                 }
                 if (type.Health.HasFlag(Diagnosis.Error))
@@ -224,7 +232,7 @@ namespace Helveg.Landscape
                     world: world,
                     from: new Point3(from.X, heightmap[from], from.Y),
                     to: new Point3(to.X, heightmap[to], to.Y),
-                    bridge: new Block[] {new Block(Colours.Island.Cargo0), new Block(Colours.Island.Cargo1)},
+                    bridge: new Block[] { new Block(Colours.Island.Cargo0), new Block(Colours.Island.Cargo1) },
                     height: (int)MathF.Sqrt((dependencyCenter - center).Length()));
             }
             return true;
@@ -233,7 +241,7 @@ namespace Helveg.Landscape
         public static Vector2 FindIslandEdge(Heightmap heightmap, Vector2 from, Vector2 direction)
         {
             var current = from;
-            while(heightmap[current] > WaterLevel)
+            while (heightmap[current] > WaterLevel)
             {
                 current += direction;
             }

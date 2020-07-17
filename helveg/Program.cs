@@ -73,7 +73,8 @@ namespace Helveg
             int strongGravityCount,
             int overlapPreventionCount,
             DateTime expectedTimeStamp = default,
-            SerializableGraphCollection? cache = null)
+            SerializableGraphCollection? cache = null,
+            float repulsionFactor = 2.0f)
         {
             var logger = Logging.CreateLogger($"{graph.Name}: Fdg");
             if (cache is object
@@ -86,6 +87,7 @@ namespace Helveg
             }
 
             var state = Fdg.Create(graph.Positions, graph.Weights, graph.Sizes);
+            state.RepulsionFactor = repulsionFactor;
             logger.LogInformation("Processing regular iterations.");
             for (int i = 0; i < regularCount; ++i)
             {
@@ -141,7 +143,7 @@ namespace Helveg
                 solutionGraph.Sizes[i] = MathF.Max(bbox.Width, bbox.Height);
             }
             logger.LogInformation("Laying out islands.");
-            RunFdg(solutionGraph, 0, 0, 1000);
+            RunFdg(solutionGraph, 500, 0, 500, repulsionFactor: 11.0f);
 
             const int margin = 64;
             var globalBbox = Rectangle.Round(RectangleF.Inflate(solutionGraph.GetBoundingBox(), margin, margin));

@@ -129,7 +129,7 @@ void vku::CameraCore::onResize(size_t imageCount, VkExtent2D extent)
         glm::radians(60.0f),
         static_cast<float>(extent.width) / static_cast<float>(extent.height),
         0.01f,
-        1000.0f);
+        10000.0f);
     _view.projection[1][1] *= -1;
 }
 
