@@ -212,9 +212,9 @@ namespace Helveg.Landscape
                 }
                 if (type.Health.HasFlag(Diagnosis.Error))
                 {
-                    var height = world.GetHeight(center.X, center.Y);
+                    var height = world.GetHeight(center.X, center.Z);
                     var structureHeight = Math.Max(0, height - center.Y);
-                    world.Burn(center + new Point3(0, structureHeight / 2, 0), MathF.Sqrt(type.Size));
+                    world.Burn(center + new Point3(0, structureHeight / 2 + 1, 0), MathF.Sqrt(type.Size));
                 }
             }
         }

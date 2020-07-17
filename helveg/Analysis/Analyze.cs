@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using Helveg.Serialization;
 using Microsoft.Build.Definition;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.Extensions.Logging;
@@ -194,9 +196,17 @@ namespace Helveg.Analysis
                 var semanticModel = compilation.GetSemanticModel(
                     diagnostic.Location.SourceTree,
                     ignoreAccessibility: true);
-                var mid = (diagnostic.Location.SourceSpan.Start + diagnostic.Location.SourceSpan.End) / 2;
-                var symbol = semanticModel.GetEnclosingSymbol(mid);
-                var typeSymbol = symbol is INamedTypeSymbol t ? t : symbol.ContainingType;
+                var rootNode = diagnostic.Location.SourceTree.GetRoot();
+                var node = rootNode.FindNode(diagnostic.Location.SourceSpan);
+                var declaration = node.AncestorsAndSelf().FirstOrDefault(a => IsDeclaration(a));
+                var symbol = semanticModel.GetDeclaredSymbol(declaration);
+                if (symbol is null)
+                {
+                    // one last chance to get some symbol out of this
+                    var mid = (diagnostic.Location.SourceSpan.Start + diagnostic.Location.SourceSpan.Start) / 2;
+                    symbol = semanticModel.GetEnclosingSymbol(mid);
+                }
+                var typeSymbol = symbol is INamedTypeSymbol t ? t : symbol?.ContainingType;
                 if (typeSymbol is object && types.TryGetValue(typeSymbol.GetAnalyzedId(), out var analyzedType))
                 {
                     types[analyzedType.Id] = analyzedType.WithHealth(
@@ -336,6 +346,17 @@ namespace Helveg.Analysis
             }
 
             return graph;
+        }
+
+        private static bool IsDeclaration(SyntaxNode node)
+        {
+            return node is MemberDeclarationSyntax
+                || node is TypeDeclarationSyntax
+                || node is EnumDeclarationSyntax
+                || node is NamespaceDeclarationSyntax
+                || node is ParameterSyntax
+                || node is TypeParameterSyntax
+                || node is UsingDirectiveSyntax;
         }
 
         private static IEnumerable<INamedTypeSymbol> GetAllTypes(Compilation compilation)
