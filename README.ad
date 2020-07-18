@@ -15,7 +15,7 @@ image::https://img.shields.io/gitlab/pipeline/helveg/helveg/master[]
 * An interface -> a construction site
 * An enum -> a meadow with flowers
 * An error -> fire
-* A warning -> missing roof needles or flowers
+* A warning -> missing roofs, needles or flowers
 * Project references -> bridges
 * Package references -> cargo on a platform
 
