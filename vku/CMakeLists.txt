@@ -76,6 +76,7 @@ set(VKU_SOURCES
     world_render.cpp)
 
 add_library(${PROJECT_NAME} SHARED ${VKU_SOURCES})
+set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_link_libraries(${PROJECT_NAME} PUBLIC volk glfw glm)
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 set_target_properties(${PROJECT_NAME} PROPERTIES
@@ -119,8 +120,9 @@ target_embed_shader(${PROJECT_NAME} shaders/fire.vert FIRE_VERT)
 target_embed_shader(${PROJECT_NAME} shaders/fire.geom FIRE_GEOM)
 target_embed_shader(${PROJECT_NAME} shaders/fire.frag FIRE_FRAG)
 
-add_executable(hello hello.cpp)
-target_link_libraries(hello PRIVATE ${PROJECT_NAME})
-set_target_properties(hello PROPERTIES
-    CXX_STANDARD 17
-    CXX_STANDARD_REQUIRED True)
+# NOTE: Uncomment to add the 'hello' sample executable
+# add_executable(hello hello.cpp)
+# target_link_libraries(hello PRIVATE ${PROJECT_NAME})
+# set_target_properties(hello PROPERTIES
+#     CXX_STANDARD 17
+#     CXX_STANDARD_REQUIRED True)
