@@ -5,22 +5,22 @@ namespace Helveg.Landscape
 {
     public static class Eades
     {
-        public const float DefaultGravityFactor = 0.5f;
-        public const float DefaultSpringFactor = 2f;
-        public const float DefaultRepulsionFactor = 1;
+        public const float DefaultGravity = 1f;
+        public const float DefaultStiffness = 2f;
+        public const float DefaultRepulsion = 1f;
         public const float DefaultSpeed = 0.1f;
-        public const float DefaultSpringLengthDivisor = 1f;
+        public const float DefaultUnloadedLength = 1f;
 
         public struct State
         {
             public float[] Weights;
             public Vector2[] Forces;
             public Vector2[] Positions;
-            public float GravityFactor;
-            public float SpringFactor;
-            public float RepulsionFactor;
+            public float Gravity;
+            public float Stiffness;
+            public float Repulsion;
             public float Speed;
-            public float SpringLengthDivisor;
+            public float UnloadedLength;
         }
 
         public static State Create(Vector2[] positions, float[] weights)
@@ -30,11 +30,11 @@ namespace Helveg.Landscape
                 Weights = weights,
                 Forces = new Vector2[positions.Length],
                 Positions = positions,
-                GravityFactor = DefaultGravityFactor,
-                SpringFactor = DefaultSpringFactor,
-                RepulsionFactor = DefaultRepulsionFactor,
+                Gravity = DefaultGravity,
+                Stiffness = DefaultStiffness,
+                Repulsion = DefaultRepulsion,
                 Speed = DefaultSpeed,
-                SpringLengthDivisor = DefaultSpringLengthDivisor
+                UnloadedLength = DefaultUnloadedLength
             };
         }
 
@@ -46,26 +46,27 @@ namespace Helveg.Landscape
             {
                 var gravityDirection = -state.Positions[from];
                 var gravityLength = gravityDirection.Length();
-                if (gravityLength > 0f)
-                {
-                    state.Forces[from] = state.GravityFactor * gravityDirection / gravityLength;
-                }
+                state.Forces[from] = state.Gravity * gravityDirection / MathF.Max(1f, gravityLength);
 
                 for (int to = from + 1; to < nodeCount; ++to, ++weightIndex)
                 {
                     var direction = state.Positions[to] - state.Positions[from];
+                    // prevent division by 0 by pushing nodes apart
+                    if (direction.X == 0f && direction.Y == 0f)
+                    {
+                        var push = new Vector2(float.Epsilon, float.Epsilon);
+                        state.Positions[from] += push;
+                        state.Positions[to] -= push;
+                    }
                     var lengthSquared = direction.LengthSquared();
                     var length = MathF.Sqrt(lengthSquared);
-                    if (length > 0f)
-                    {
-                        var unit = direction / length;
-                        var force = state.Weights[weightIndex] > 0f
-                            ? state.SpringFactor * MathF.Log2(length / state.SpringLengthDivisor)
-                            : -state.RepulsionFactor / lengthSquared;
-                        force = Math.Clamp(force, -nodeCount, nodeCount);
-                        state.Forces[from] += force * unit;
-                        state.Forces[to] -= force * unit;
-                    }
+                    var unit = direction / length;
+                    var force = state.Weights[weightIndex] > 0f
+                        ? state.Stiffness * MathF.Log2(length / state.UnloadedLength)
+                        : -state.Repulsion / lengthSquared;
+                    force = Math.Clamp(force, -nodeCount, nodeCount);
+                    state.Forces[from] += force * unit;
+                    state.Forces[to] -= force * unit;
                 }
             }
             for (int i = 0; i < nodeCount; ++i)

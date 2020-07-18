@@ -58,25 +58,6 @@ namespace Helveg
             eadesCmd.Handler = CommandHandler.Create(typeof(DebugGraph).GetMethod(nameof(RunEades))!);
             parent.AddCommand(eadesCmd);
 
-            var frCmd = new Command("fr", "Animates the Fruchterman-Reingold algorithm")
-            {
-                formatOpt,
-                iterationsOpt,
-                new Option<float>(
-                    aliases: new [] {"-w", "--width"},
-                    getDefaultValue: () => 1024.0f,
-                    description: "The width of the graph space" ),
-                new Option<float>(
-                    aliases: new [] {"-h", "--height"},
-                    getDefaultValue: () => 1024.0f,
-                    description: "The height of the graph space" ),
-                speedOpt,
-                everyOpt,
-                ignoreCacheOpt
-            };
-            frCmd.Handler = CommandHandler.Create(typeof(DebugGraph).GetMethod(nameof(RunFruchtermanReingold))!);
-            parent.AddCommand(frCmd);
-
             var fdgCmd = new Command("fdg", "Animates the ForceAtlas2-inspired algorithm")
             {
                 formatOpt,
@@ -117,42 +98,12 @@ namespace Helveg
                 init: g =>
                 {
                     state = Eades.Create(g.Positions, g.Weights);
+                    state.UnloadedLength = g.Positions.Length / 2f;
+                    state.Repulsion = g.Positions.Length;
                 },
                 step: (i, g) =>
                 {
                     Eades.Step(ref state);
-                    return g;
-                },
-                format: format,
-                iterationCount: iterations,
-                prefix: "eades",
-                every: every,
-                speed: speed);
-        }
-
-        public static async Task RunFruchtermanReingold(
-            FileSystemInfo source,
-            FileInfo json,
-            Dictionary<string, string> properties,
-            GraphFormat format,
-            int iterations,
-            float width,
-            float height,
-            int speed,
-            int every)
-        {
-            FR.State state = default;
-            await DrawGraph(
-                source: source,
-                json: json,
-                properties: properties,
-                init: g =>
-                {
-                    state = FR.Create(g.Positions, g.Weights, width, height);
-                },
-                step: (i, g) =>
-                {
-                    FR.Step(ref state);
                     return g;
                 },
                 format: format,

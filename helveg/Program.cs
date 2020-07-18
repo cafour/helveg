@@ -22,8 +22,10 @@ namespace Helveg
         public const string AnalysisCacheFilename = "helveg-analysis.json";
         public const string FdgCacheFilename = "helveg-fdg.json";
         public const int RegularIterationCount = 2000;
-        public const int NoOverlapIterationCount = 2000;
-        public const int StrongGravityIterationCount = 1000;
+        public const int NoOverlapIterationCount = 4000;
+        public const int StrongGravityIterationCount = 500;
+        public const float MinNodeSize = 6;
+        public const float IslandGapSize = 500f;
         public const string VkDebugAlias = "--vk-debug";
         public const string VerboseAlias = "--verbose";
         public const string ForceAlias = "--force";
@@ -93,15 +95,16 @@ namespace Helveg
             {
                 Fdg.Step(ref state);
             }
-            logger.LogInformation("Processing overlap prevention iterations.");
-            state.PreventOverlapping = true;
-            for (int i = 0; i < overlapPreventionCount; ++i)
-            {
-                Fdg.Step(ref state);
-            }
             logger.LogInformation("Processing strong gravity iterations.");
             state.IsGravityStrong = true;
             for (int i = 0; i < strongGravityCount; ++i)
+            {
+                Fdg.Step(ref state);
+            }
+            logger.LogInformation("Processing overlap prevention iterations.");
+            state.IsGravityStrong = false;
+            state.PreventOverlapping = true;
+            for (int i = 0; i < overlapPreventionCount; ++i)
             {
                 Fdg.Step(ref state);
             }
@@ -120,8 +123,13 @@ namespace Helveg
                 .Select(p => Task.Run(() =>
                 {
                     var project = solution.Projects[p];
+                    var graph = Graph.FromAnalyzed(project);
+                    for (int i = 0; i < graph.Positions.Length; ++i)
+                    {
+                        graph.Sizes[i] = MathF.Max(graph.Sizes[i], MinNodeSize);
+                    }
                     return RunFdg(
-                        graph: Graph.FromAnalyzed(project),
+                        graph: graph,
                         regularCount: RegularIterationCount,
                         strongGravityCount: StrongGravityIterationCount,
                         overlapPreventionCount: NoOverlapIterationCount,
@@ -143,7 +151,14 @@ namespace Helveg
                 solutionGraph.Sizes[i] = MathF.Max(bbox.Width, bbox.Height);
             }
             logger.LogInformation("Laying out islands.");
-            RunFdg(solutionGraph, 500, 0, 500, repulsionFactor: 11.0f);
+            solutionGraph.LayInCircle();
+            var state = Eades.Create(solutionGraph.Positions, solutionGraph.Weights);
+            state.UnloadedLength = solutionGraph.Sizes.Max() + IslandGapSize;
+            state.Repulsion = 100f;
+            for (int i = 0; i < 1000; ++i)
+            {
+                Eades.Step(ref state);
+            }
 
             const int margin = 64;
             var globalBbox = Rectangle.Round(RectangleF.Inflate(solutionGraph.GetBoundingBox(), margin, margin));

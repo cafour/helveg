@@ -64,6 +64,15 @@ namespace Helveg.Render
             return new Graph(solution.Name, new Vector2[solution.Projects.Count], weights, names, sizes);
         }
 
+        public void LayInCircle()
+        {
+            for (int i = 0; i < Positions.Length; ++i)
+            {
+                var angle = 2f * MathF.PI / Positions.Length * i;
+                Positions[i] = Positions.Length * new Vector2(MathF.Cos(angle), MathF.Sin(angle));
+            }
+        }
+
         public AnalyzedTypeGraph ToAnalyzed()
         {
             var graph = new AnalyzedTypeGraph
