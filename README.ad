@@ -41,7 +41,7 @@ Helveg builds upon the work of others. A lot of others.
 link:https://gist.github.com/digitalshadow/134a3a02b67cecd72181[An OpenSimplex C# implementation]::
 A patent-free alternative to Simplex noise.
 
-link:https://www.docker.com/[Docker] and link:https://docs.gitlab.com/ee/ci/[https://docs.gitlab.com/ee/ci/]::
+link:https://www.docker.com/[Docker] and link:https://docs.gitlab.com/ee/ci/[GitLab CI]::
 So that I may keep my sanity when building the cross-platform NuGet package.
 
 link:https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0098679[ForceAtlas2]::
