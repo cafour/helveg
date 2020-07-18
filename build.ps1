@@ -46,7 +46,7 @@ cmd /c """$vsDir\VC\Auxiliary\Build\vcvars64.bat"" & set" | foreach {
 
 if (-not $noConfigure) {
     Write-Host "Configuring vku"
-    cmake -S $sourceDir -B $buildDir -DCMAKE_INSTALL_PREFIX=$artifactsDir -DCMAKE_BUILD_TYPE=Release -G Ninja
+    cmake -S $sourceDir -B $buildDir -DCMAKE_INSTALL_PREFIX="$artifactsDir" -DCMAKE_BUILD_TYPE="Release" -G Ninja
     if (-not $?) {
         exit 1
     }

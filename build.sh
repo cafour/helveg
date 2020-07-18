@@ -56,7 +56,7 @@ if [ ! -d "$ARTIFACTS_DIR" ]; then
 fi
 
 CONFIGURE_ARGS="-DCMAKE_INSTALL_PREFIX='$ARTIFACTS_DIR'"
-CONFIGURE_ARGS+="-DCMAKE_BUILD_TYPE=Release"
+CONFIGURE_ARGS+=" -DCMAKE_BUILD_TYPE=Release"
 if $configure; then
     echo "Configuring vku"
     cmake -S "$SOURCE_DIR" -B "$BUILD_DIR" $CONFIGURE_ARGS || exit 1
