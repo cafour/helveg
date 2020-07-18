@@ -153,8 +153,9 @@ namespace Helveg
             logger.LogInformation("Laying out islands.");
             solutionGraph.LayInCircle();
             var state = Eades.Create(solutionGraph.Positions, solutionGraph.Weights);
-            state.UnloadedLength = solutionGraph.Sizes.Max() + IslandGapSize;
-            state.Repulsion = 100f;
+            var maxSize = solutionGraph.Sizes.Max();
+            state.UnloadedLength = maxSize + IslandGapSize;
+            state.Repulsion = maxSize * maxSize;
             for (int i = 0; i < 1000; ++i)
             {
                 Eades.Step(ref state);
