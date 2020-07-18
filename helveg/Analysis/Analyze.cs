@@ -199,6 +199,12 @@ namespace Helveg.Analysis
                 var rootNode = diagnostic.Location.SourceTree.GetRoot();
                 var node = rootNode.FindNode(diagnostic.Location.SourceSpan);
                 var declaration = node.AncestorsAndSelf().FirstOrDefault(a => IsDeclaration(a));
+                if (declaration is null)
+                {
+                    // no idea where this diagnostic is
+                    continue;
+                }
+
                 var symbol = semanticModel.GetDeclaredSymbol(declaration);
                 if (symbol is null)
                 {
