@@ -42,6 +42,24 @@ std::vector<VkDescriptorSet> vku::allocateDescriptorSets(
     return sets;
 }
 
+void vku::writeImageDescriptor(
+    VkDevice device,
+    VkDescriptorSet descriptorSet,
+    VkDescriptorType descriptorType,
+    VkDescriptorImageInfo *imageDescriptorInfos,
+    uint32_t binding,
+    uint32_t descriptorCount)
+{
+    VkWriteDescriptorSet write {};
+    write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    write.dstSet = descriptorSet;
+    write.descriptorType = descriptorType;
+    write.dstBinding = binding;
+    write.pImageInfo = imageDescriptorInfos;
+    write.descriptorCount = descriptorCount;
+    vkUpdateDescriptorSets(device, 1, &write, 0, nullptr);
+}
+
 void vku::writeWholeBufferDescriptor(
     VkDevice device,
     VkDescriptorType descriptorType,

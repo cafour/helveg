@@ -8,18 +8,30 @@
  **/
 
 namespace vku {
-class TransferCore;
+class RenderCore;
 
 class TextCore {
 private:
+    vku::RenderCore &_render;
+    VkBuffer _modelBuffer;
+    VkBuffer _cameraBuffer;
+    VkRenderPass _renderPass;
+
     vku::Sampler _fontSampler;
     vku::Image _fontImage;
     vku::ImageView _fontImageView;
     vku::DeviceMemory _fontImageMemory;
 
-    void createFontImage(vku::TransferCore &transfer);
+    vku::DescriptorSetLayout _textDSL;
+    vku::DescriptorPool _textDP;
+    VkDescriptorSet _textDS;
+    vku::PipelineLayout _textPL;
+    vku::GraphicsPipeline _textGP;
+
+    void createFontImage();
+    void createTextGP();
 
 public:
-    TextCore(vku::TransferCore &transfer);
+    TextCore(vku::RenderCore &render, VkBuffer cameraBuffer);
 };
 }

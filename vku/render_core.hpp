@@ -36,6 +36,7 @@ public:
         std::function<vku::Framebuffer (vku::SwapchainFrame &)> createFramebuffer,
         std::function<void (VkCommandBuffer, vku::SwapchainFrame &)> recordCommandBuffer);
 
+    vku::DisplayCore &displayCore() { return _displayCore; }
     vku::CommandPool &commandPool() { return _commandPool; }
     std::vector<vku::Framebuffer> &framebuffers() { return _framebuffers; }
     vku::CommandBuffers &commandBuffers() { return _commandBuffers; }

@@ -121,7 +121,8 @@ target_embed_shader(${PROJECT_NAME} shaders/fire.comp FIRE_COMP)
 target_embed_shader(${PROJECT_NAME} shaders/fire.vert FIRE_VERT)
 target_embed_shader(${PROJECT_NAME} shaders/fire.geom FIRE_GEOM)
 target_embed_shader(${PROJECT_NAME} shaders/fire.frag FIRE_FRAG)
-
+target_embed_shader(${PROJECT_NAME} shaders/text.vert TEXT_VERT)
+target_embed_shader(${PROJECT_NAME} shaders/text.frag TEXT_FRAG)
 # NOTE: Uncomment to add the 'hello' sample executable
 # add_executable(hello hello.cpp)
 # target_link_libraries(hello PRIVATE ${PROJECT_NAME})

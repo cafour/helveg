@@ -53,3 +53,9 @@ extern const uint32_t *FIRE_GEOM;
 
 extern const size_t FIRE_FRAG_LENGTH;
 extern const uint32_t *FIRE_FRAG;
+
+extern const size_t TEXT_VERT_LENGTH;
+extern const uint32_t *TEXT_VERT;
+
+extern const size_t TEXT_FRAG_LENGTH;
+extern const uint32_t *TEXT_FRAG;

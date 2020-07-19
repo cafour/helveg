@@ -21,6 +21,14 @@ std::vector<VkDescriptorSet> allocateDescriptorSets(
     VkDescriptorSetLayout setLayout,
     size_t count);
 
+void writeImageDescriptor(
+    VkDevice device,
+    VkDescriptorSet descriptorSet,
+    VkDescriptorType descriptorType,
+    VkDescriptorImageInfo *imageDescriptorInfos,
+    uint32_t binding,
+    uint32_t descriptorCount = 1);
+
 void writeWholeBufferDescriptor(
     VkDevice device,
     VkDescriptorType descriptorType,

@@ -19,7 +19,6 @@ private:
     vku::DepthCore _depthCore;
     vku::TransferCore _transferCore;
     std::vector<vku::MeshCore> _meshes;
-    vku::TextCore _textCore;
 
     // Common
     vku::Time _time = {};
