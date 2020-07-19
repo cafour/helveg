@@ -74,4 +74,23 @@ VkFormat findSupportedFormat(
     VkImageTiling tiling,
     VkFormatFeatureFlags features);
 
+void recordImageLayoutChange(
+    VkCommandBuffer cb,
+    VkImage image,
+    VkImageSubresourceRange subresourceRange,
+    VkImageLayout oldImageLayout,
+    VkImageLayout newImageLayout,
+    VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+    VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
+
+void copyToImage(
+    VkPhysicalDevice physicalDevice,
+    VkDevice device,
+    VkCommandPool commandPool,
+    VkQueue queue,
+    VkImage image,
+    uint32_t width,
+    uint32_t height,
+    uint8_t *data);
+
 }

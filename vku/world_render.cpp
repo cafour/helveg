@@ -40,6 +40,7 @@ vku::WorldRender::WorldRender(int width, int height, World world, const std::str
     , _cameraCore(_displayCore, _renderCore)
     , _depthCore(_displayCore, _renderCore)
     , _transferCore(_displayCore.physicalDevice(), _displayCore.device())
+    , _textCore(_transferCore)
     , _world(world)
 {
     VkPhysicalDeviceProperties properties;

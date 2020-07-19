@@ -13,4 +13,5 @@
 #include "swapchain_core.hpp"
 #include "transfer_core.hpp"
 #include "camera_core.hpp"
+#include "text_core.hpp"
 #include "wrapper.hpp"

@@ -90,6 +90,20 @@ public:
     reverse_iterator rend() noexcept { return _raw.rend(); }
     const_reverse_iterator crbegin() const noexcept { return _raw.crbegin(); }
     const_reverse_iterator crend() const noexcept { return _raw.crend(); }
+
+    static VkCommandBufferAllocateInfo allocateInfo()
+    {
+        VkCommandBufferAllocateInfo info = {};
+        info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        return info;
+    }
+
+    static VkCommandBufferBeginInfo beginInfo()
+    {
+        VkCommandBufferBeginInfo info = {};
+        info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        return info;
+    }
 };
 
 }

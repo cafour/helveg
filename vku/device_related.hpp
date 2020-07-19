@@ -40,6 +40,13 @@ public:
         VkFormat format,
         VkImageTiling tiling,
         VkImageUsageFlags usage);
+
+    static VkImageCreateInfo createInfo()
+    {
+        VkImageCreateInfo createInfo = {};
+        createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+        return createInfo;
+    }
 };
 
 class ImageView : public DeviceConstructible<
@@ -50,6 +57,29 @@ class ImageView : public DeviceConstructible<
 public:
     using DeviceConstructible::DeviceConstructible;
     static ImageView basic(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectMask);
+
+    static VkImageViewCreateInfo createInfo()
+    {
+        VkImageViewCreateInfo info = {};
+        info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        return info;
+    }
+};
+
+class Sampler : public DeviceConstructible<
+                    VkSampler,
+                    VkSamplerCreateInfo,
+                    &vkCreateSampler,
+                    &vkDestroySampler> {
+public:
+    using DeviceConstructible::DeviceConstructible;
+
+    static VkSamplerCreateInfo createInfo()
+    {
+        VkSamplerCreateInfo info = {};
+        info.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+        return info;
+    }
 };
 
 class Swapchain : public DeviceConstructible<

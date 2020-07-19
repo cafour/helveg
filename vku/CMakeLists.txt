@@ -73,7 +73,9 @@ set(VKU_SOURCES
     chunk_render.hpp
     chunk_render.cpp
     world_render.hpp
-    world_render.cpp)
+    world_render.cpp
+    text_core.hpp
+    text_core.cpp)
 
 add_library(${PROJECT_NAME} SHARED ${VKU_SOURCES})
 set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)

@@ -1,14 +1,15 @@
 #include "base.hpp"
 
 #include "containers.hpp"
+#include "device_related.hpp"
 #include "log.hpp"
 
 #include <algorithm>
 #include <cstring>
 #include <iostream>
+#include <limits>
 #include <sstream>
 #include <vector>
-#include <limits>
 
 void vku::log(VkResult result, const char *filename, int line, const char *what)
 {
@@ -169,8 +170,8 @@ VkPhysicalDevice vku::findDevice(
     });
 
     std::sort(props.begin(), props.end(), [](const auto &left, const auto &right) {
-        const VkPhysicalDeviceProperties& leftProps = std::get<1>(left);
-        const VkPhysicalDeviceProperties& rightProps = std::get<1>(right);
+        const VkPhysicalDeviceProperties &leftProps = std::get<1>(left);
+        const VkPhysicalDeviceProperties &rightProps = std::get<1>(right);
         return leftProps.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU
             && rightProps.deviceType != VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU;
     });
@@ -307,15 +308,13 @@ void vku::fillBuffer(
     VkDeviceSize size,
     uint32_t data)
 {
-    VkCommandBufferAllocateInfo allocateInfo = {};
-    allocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    auto allocateInfo = vku::CommandBuffers::allocateInfo();
     allocateInfo.commandPool = commandPool;
     allocateInfo.commandBufferCount = 1;
     allocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     vku::CommandBuffers commandBuffers(device, allocateInfo);
 
-    VkCommandBufferBeginInfo beginInfo = {};
-    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    auto beginInfo = vku::CommandBuffers::beginInfo();
     beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
     ENSURE(vkBeginCommandBuffer(commandBuffers[0], &beginInfo));
 
@@ -367,4 +366,134 @@ VkFormat vku::findSupportedFormat(
     }
 
     throw std::runtime_error("failed to find a supported format");
+}
+
+static VkAccessFlags getLayoutAccessMask(VkImageLayout imageLayout, bool isDst)
+{
+    switch (imageLayout) {
+    case VK_IMAGE_LAYOUT_UNDEFINED:
+        return 0;
+    case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
+        return VK_ACCESS_TRANSFER_READ_BIT;
+    case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
+        return VK_ACCESS_TRANSFER_WRITE_BIT;
+    case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
+        return isDst
+            ? VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT
+            : VK_ACCESS_SHADER_READ_BIT;
+    default:
+        throw std::runtime_error("Access mask for an image layout is missing.");
+    }
+}
+
+// Based on https://github.com/SaschaWillems/Vulkan/blob/master/base/VulkanTools.cpp
+void vku::recordImageLayoutChange(
+    VkCommandBuffer cb,
+    VkImage image,
+    VkImageSubresourceRange subresourceRange,
+    VkImageLayout oldImageLayout,
+    VkImageLayout newImageLayout,
+    VkPipelineStageFlags srcStageMask,
+    VkPipelineStageFlags dstStageMask)
+{
+    // Create an image barrier object
+    VkImageMemoryBarrier barrier = {};
+    barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.oldLayout = oldImageLayout;
+    barrier.newLayout = newImageLayout;
+    barrier.subresourceRange = subresourceRange;
+    barrier.image = image;
+    barrier.srcAccessMask = getLayoutAccessMask(oldImageLayout, false);
+    barrier.dstAccessMask = getLayoutAccessMask(newImageLayout, true);
+
+    vkCmdPipelineBarrier(
+        cb,
+        srcStageMask,
+        dstStageMask,
+        0,
+        0,
+        nullptr,
+        0,
+        nullptr,
+        1,
+        &barrier);
+}
+
+// Based on https://github.com/SaschaWillems/Vulkan/blob/master/base/VulkanTools.cpp
+void vku::copyToImage(
+    VkPhysicalDevice physicalDevice,
+    VkDevice device,
+    VkCommandPool commandPool,
+    VkQueue queue,
+    VkImage image,
+    uint32_t width,
+    uint32_t height,
+    uint8_t *data)
+{
+    VkMemoryRequirements memoryReqs;
+    vkGetImageMemoryRequirements(device, image, &memoryReqs);
+    auto stagingBuffer = vku::Buffer::exclusive(device, memoryReqs.size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+    auto stagingMemory = vku::DeviceMemory::hostCoherentBuffer(physicalDevice, device, stagingBuffer);
+
+    auto allocateInfo = vku::CommandBuffers::allocateInfo();
+    allocateInfo.commandPool = commandPool;
+    allocateInfo.commandBufferCount = 1;
+    allocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    vku::CommandBuffers commandBuffers(device, allocateInfo);
+    VkCommandBuffer cb = commandBuffers.front();
+
+    vku::hostDeviceCopy(device, data, stagingMemory, width * height);
+
+    auto beginInfo = vku::CommandBuffers::beginInfo();
+    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    ENSURE(vkBeginCommandBuffer(cb, &beginInfo));
+
+    VkImageSubresourceRange subresourceRange = {};
+    subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    subresourceRange.baseMipLevel = 0;
+    subresourceRange.levelCount = 1;
+    subresourceRange.layerCount = 1;
+
+    vku::recordImageLayoutChange(
+        cb,
+        image,
+        subresourceRange,
+        VK_IMAGE_LAYOUT_UNDEFINED,
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+    VkBufferImageCopy bufferCopyRegion = {};
+    bufferCopyRegion.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    bufferCopyRegion.imageSubresource.mipLevel = 0;
+    bufferCopyRegion.imageSubresource.layerCount = 1;
+    bufferCopyRegion.imageExtent.width = width;
+    bufferCopyRegion.imageExtent.height = height;
+    bufferCopyRegion.imageExtent.depth = 1;
+
+    vkCmdCopyBufferToImage(
+        cb, // command buffer
+        stagingBuffer, // src
+        image, // dst
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, // dstLayout
+        1, // regionCount
+        &bufferCopyRegion // regions
+    );
+
+    vku::recordImageLayoutChange(
+        cb,
+        image,
+        subresourceRange,
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+    ENSURE(vkEndCommandBuffer(cb));
+
+    VkSubmitInfo submitInfo = {};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &cb;
+
+    ENSURE(vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE));
+    ENSURE(vkQueueWaitIdle(queue));
 }
