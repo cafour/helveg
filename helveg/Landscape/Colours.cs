@@ -40,7 +40,7 @@ namespace Helveg.Landscape
             new Vector3(109, 182, 73) / 255, // grass
             new Vector3(219, 182, 146) / 255, // sand
             new Vector3(109, 73, 36) / 255, // wood
-            new Vector3(0, 0, 220) / 255, // water
+            new Vector3(0x00, 0x5b, 0xa8) / 0xff, // water
             new Vector3(0, 42, 0) / 255, // leaves
             new Vector3(0, 73, 36) / 255, // needles0
             new Vector3(109, 146, 109) / 255, // needles1

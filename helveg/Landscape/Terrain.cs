@@ -78,11 +78,7 @@ namespace Helveg.Landscape
                     var noiseValue = (int)(noise.Evaluate(
                         x * GlobalNoiseFrequency,
                         y * GlobalNoiseFrequency) * GlobalNoiseMagnitude);
-                    var rockLevel = Math.Max(height - 4, 1);
-                    world.FillLine(
-                        new Point3(x, 0, y),
-                        new Point3(x, rockLevel, y),
-                        new Block(Colours.Island.Stone));
+                    var rockLevel = Math.Max(height - 4, 0);
                     var surface = height < SandLevel + noiseValue
                         ? new Block(Colours.Island.Sand)
                         : new Block(Colours.Island.Grass);
@@ -90,6 +86,10 @@ namespace Helveg.Landscape
                         new Point3(x, rockLevel, y),
                         new Point3(x, height, y),
                         surface);
+                        world.FillLine(
+                        new Point3(x, 0, y),
+                        new Point3(x, rockLevel, y),
+                        new Block(Colours.Island.Stone));
                     if (height < WaterLevel)
                     {
                         world.FillLine(
