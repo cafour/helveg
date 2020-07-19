@@ -1,5 +1,4 @@
 using System;
-using System.Threading.Tasks;
 using Helveg.Sample.Manufacturing;
 
 namespace Helveg.Sample.Data
@@ -10,10 +9,5 @@ namespace Helveg.Sample.Data
         public CheeseKind Kind { get; set; }
         public ICheeseUnit Amount { get; set; }
         public ICheeseFactory Manufacturer { get; set; }
-
-        private async Task DoNothing()
-        {
-
-        }
     }
 }

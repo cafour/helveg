@@ -7,5 +7,6 @@ namespace Helveg.Sample.Data
         public override float MilkContent { get; } = 0.9f;
         public override int HoleCount { get; } = -10;
         public override int Price { get; } = 50;
+        public override int Cost { get; } = int.MaxValue;
     }
 }

@@ -6,7 +6,7 @@ namespace Helveg.Sample.Manufacturing
 {
     public class HumanFactory : ICheeseFactory
     {
-        private readonly List<HumanWorker> employees;
+        private readonly List<HumanWorker> employees = new List<HumanWorker>();
 
         public void CloseDown()
         {

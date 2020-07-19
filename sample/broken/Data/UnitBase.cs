@@ -11,5 +11,6 @@ namespace Helveg.Sample.Data
         public abstract int HoleCount { get; }
         public abstract int Price { get; }
         public abstract int Cost { get; }
+        public abstract int Mana { get; }
     }
 }
