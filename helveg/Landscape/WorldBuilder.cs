@@ -26,12 +26,16 @@ namespace Helveg.Landscape
 
         public int ChunkSize { get; }
 
+        public Vector3 SkyColour { get; set; } = Colours.SkyColour;
+
+        public Vector3 InitialCameraPosition { get; set; }
+
         public Chunk GetChunkAt(Point3 position)
         {
             var chunkStart = position - ((position % ChunkSize) + new Point3(ChunkSize)) % ChunkSize;
 
             Chunk chunk;
-            while(!Chunks.TryGetValue(chunkStart, out chunk))
+            while (!Chunks.TryGetValue(chunkStart, out chunk))
             {
                 chunk = Chunk.CreateEmpty(ChunkSize, defaultFill, palette);
                 Chunks.TryAdd(chunkStart, chunk);
@@ -42,7 +46,7 @@ namespace Helveg.Landscape
         public int GetHeight(int x, int z)
         {
             int y = 0;
-            while(!this[x, y, z].Flags.HasFlag(BlockFlags.IsAir))
+            while (!this[x, y, z].Flags.HasFlag(BlockFlags.IsAir))
             {
                 y++;
             }
@@ -226,7 +230,7 @@ namespace Helveg.Landscape
             var max = new Point3(Math.Max(one.X, two.X), Math.Max(one.Y, two.Y), Math.Max(one.Z, two.Z));
             for (int x = min.X; x <= max.X; ++x)
             {
-                for(int y = min.Y; y <= max.Y; ++y)
+                for (int y = min.Y; y <= max.Y; ++y)
                 {
                     for (int z = min.Z; z <= max.Z; ++z)
                     {
@@ -256,7 +260,12 @@ namespace Helveg.Landscape
                     Chunks.TryRemove(key, out _);
                 }
             }
-            return new World(Chunks.Values.ToArray(), Chunks.Keys.ToArray(), Fires.ToArray());
+            return new World(
+                Chunks.Values.ToArray(),
+                Chunks.Keys.ToArray(),
+                Fires.ToArray(),
+                SkyColour,
+                InitialCameraPosition);
         }
     }
 }

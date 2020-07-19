@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.Drawing;
 using System.Linq;
 using System.Numerics;
 using Helveg.Landscape;
@@ -27,16 +28,24 @@ namespace Helveg
             };
             parent.AddCommand(cubeCmd);
 
+            var islandCmd = new Command("island", "Draw an island")
+            {
+                Handler = CommandHandler.Create(typeof(DebugDraw).GetMethod(nameof(DrawIsland))!)
+            };
+            parent.AddCommand(islandCmd);
+
             var treeCmd = new Command("tree", "Draw a tree")
             {
                 Handler = CommandHandler.Create(typeof(DebugDraw).GetMethod(nameof(DrawTree))!)
             };
+            treeCmd.AddOption(new Option<bool>("--fire", "Set on fire"));
             parent.AddCommand(treeCmd);
 
             var cabinCmd = new Command("cabin", "Draw a log cabin")
             {
                 Handler = CommandHandler.Create(typeof(DebugDraw).GetMethod(nameof(DrawCabin))!)
             };
+            cabinCmd.AddOption(new Option<bool>("--damage", "Do not generate a roof"));
             parent.AddCommand(cabinCmd);
 
             var cargoCmd = new Command("cargo", "Draw some cargo")
@@ -122,32 +131,57 @@ namespace Helveg
             return Vku.HelloMesh(mesh);
         }
 
-        public static void DrawTree()
+        public static void DrawIsland()
+        {
+            var worldBuilder = GetDebugWorldBuilder();
+            var heightmap = new Heightmap(0, 64, 0, 64);
+            Terrain.WriteIslandHeightmap(
+                heightmap: heightmap,
+                area: new Rectangle(0, 0, 64, 64),
+                seed: 42,
+                positions: new[] { new Vector2(31, 31) },
+                sizes: new[] { 8f });
+            Terrain.GenerateTerrain(heightmap, worldBuilder);
+            var world = worldBuilder.Build();
+            Vku.HelloWorld(world);
+        }
+
+        public static void DrawTree(bool fire)
         {
             var logger = Program.Logging.CreateLogger("Debug Tree");
             var sentence = Spruce.Generate(42, 15);
             logger.LogInformation(string.Concat(sentence));
-            var worldBuilder = new WorldBuilder(64, new Block { Flags = BlockFlags.IsAir }, Colours.IslandPalette);
+            var worldBuilder = GetDebugWorldBuilder();
             const int tintCount = 6;
-            for (int i = 0; i < tintCount; ++i)
+            // for (int i = 0; i < tintCount; ++i)
+            // {
+            //     for (int j = i; j < tintCount; ++j)
+            //     {
+            //         Spruce.Draw(
+            //             sentence,
+            //             worldBuilder,
+            //             new Point3(i * 32, 0, j * 32),
+            //             new Block(Colours.Island.Wood),
+            //             new Block { PaletteIndex = (byte)((int)Colours.Island.Needles0 + (i + j) % tintCount) });
+            //     }
+            // }
+            Spruce.Draw(
+                sentence,
+                worldBuilder,
+                new Point3(0, 0, 0),
+                new Block(Colours.Island.Wood),
+                new Block(Colours.Island.Needles0));
+            if (fire)
             {
-                for (int j = i; j < tintCount; ++j)
-                {
-                    Spruce.Draw(
-                    sentence,
-                    worldBuilder,
-                    new Point3(i * 20, 0, j * 20),
-                    new Block(Colours.Island.Wood),
-                    new Block { PaletteIndex = (byte)((int)Colours.Island.Needles0 + (i + j) % tintCount) });
-                }
+                worldBuilder.Burn(new Point3(0, 8, 0), 5);
             }
             var world = worldBuilder.Build();
             Vku.HelloWorld(world);
         }
 
-        public static void DrawCabin()
+        public static void DrawCabin(bool damage)
         {
-            var worldBuilder = new WorldBuilder(64, new Block { Flags = BlockFlags.IsAir }, Colours.IslandPalette);
+            var worldBuilder = GetDebugWorldBuilder();
             LogCabin.Draw(
                 worldBuilder,
                 Point3.Zero,
@@ -155,17 +189,18 @@ namespace Helveg
                 new Block(Colours.Island.Wood1),
                 new Block(Colours.Island.Roof),
                 6,
-                4);
+                6,
+                hasRoof: !damage);
             var world = worldBuilder.Build();
             Vku.HelloWorld(world);
         }
 
         public static void DrawCargo()
         {
-            var worldBuilder = new WorldBuilder(64, new Block { Flags = BlockFlags.IsAir }, Colours.IslandPalette);
+            var worldBuilder = GetDebugWorldBuilder();
             Cargo.Draw(
                 world: worldBuilder,
-                position: new Point3(0, 32, 0),
+                position: new Point3(0, 8, 0),
                 platform: new Block(Colours.Island.Wood),
                 corner: new Block(Colours.Island.Stone),
                 containers: new Block[]
@@ -182,12 +217,29 @@ namespace Helveg
 
         public static void DrawBridge()
         {
-            var worldBuilder = new WorldBuilder(64, new Block { Flags = BlockFlags.IsAir }, Colours.IslandPalette);
+            var worldBuilder = GetDebugWorldBuilder();
+            var to = new Point3(50, 0, 0);
+            worldBuilder.FillVolume(
+                new Point3(-5, -11, -5),
+                new Point3(5, -2, 5),
+                fill: new Block(Colours.Island.Stone));
+            worldBuilder.FillVolume(
+                new Point3(-5, -11, -5) + to,
+                new Point3(5, -2, 5) + to,
+                fill: new Block(Colours.Island.Stone));
+            worldBuilder.FillVolume(
+                new Point3(-5, -1, -5),
+                new Point3(5, -1, 5),
+                fill: new Block(Colours.Island.Grass));
+            worldBuilder.FillVolume(
+                new Point3(-5, -1, -5) + to,
+                new Point3(5, -1, 5) + to,
+                fill: new Block(Colours.Island.Grass));
             Bridge.Draw(
                 world: worldBuilder,
                 from: Point3.Zero,
-                to: new Point3(100, 0, 0),
-                bridge: new [] {new Block(Colours.Island.Cargo0), new Block(Colours.Island.Cargo1)},
+                to: to,
+                bridge: new[] { new Block(Colours.Island.Cargo0), new Block(Colours.Island.Cargo1) },
                 height: 8);
             var world = worldBuilder.Build();
             Vku.HelloWorld(world);
@@ -195,17 +247,17 @@ namespace Helveg
 
         public static void DrawSignpost()
         {
-            var worldBuilder = new WorldBuilder(64, new Block { Flags = BlockFlags.IsAir }, Colours.IslandPalette);
+            var worldBuilder = GetDebugWorldBuilder();
             Signpost.Draw(
                 world: worldBuilder,
                 wood: new Block(Colours.Island.Wood),
-                arrows: new []
+                arrows: new[]
                 {
                     new Block(Colours.Island.Wood0),
                     new Block(Colours.Island.Wood1)
                 },
                 position: Point3.Zero,
-                arrowCount: 12,
+                arrowCount: 4,
                 seed: 42);
             var world = worldBuilder.Build();
             Vku.HelloWorld(world);
@@ -213,7 +265,7 @@ namespace Helveg
 
         public static void DrawConstructionSite()
         {
-            var worldBuilder = new WorldBuilder(64, new Block { Flags = BlockFlags.IsAir }, Colours.IslandPalette);
+            var worldBuilder = GetDebugWorldBuilder();
             ConstructionSite.Draw(
                 world: worldBuilder,
                 corner: new Block(Colours.Island.Stone),
@@ -227,7 +279,15 @@ namespace Helveg
 
         public static void DrawMeadow()
         {
-            var worldBuilder = new WorldBuilder(64, new Block { Flags = BlockFlags.IsAir }, Colours.IslandPalette);
+            var worldBuilder = GetDebugWorldBuilder();
+            worldBuilder.FillVolume(
+                new Point3(-8, -2, -8),
+                new Point3(8, -2, 8),
+                fill: new Block(Colours.Island.Stone));
+            worldBuilder.FillVolume(
+                new Point3(-8, -1, -8),
+                new Point3(8, -1, 8),
+                fill: new Block(Colours.Island.Grass));
             Meadow.Draw(
                 world: worldBuilder,
                 stem: new Block(Colours.Island.Stem),
@@ -238,8 +298,8 @@ namespace Helveg
                     new Block(Colours.Island.Flower2),
                 },
                 position: Point3.Zero,
-                flowerCount: 32,
-                radius: 16,
+                flowerCount: 24,
+                radius: 8,
                 seed: 42);
             var world = worldBuilder.Build();
             Vku.HelloWorld(world);
@@ -309,6 +369,18 @@ namespace Helveg
             }
             var builtWorld = world.Build();
             Vku.HelloWorld(builtWorld);
+        }
+
+        private static WorldBuilder GetDebugWorldBuilder()
+        {
+            return new WorldBuilder(
+                chunkSize: 64,
+                defaultFill: new Block { Flags = BlockFlags.IsAir },
+                palette: Colours.IslandPalette)
+            {
+                // the sky is white for thesis-frienly screenshots
+                SkyColour = new Vector3(1.0f, 1.0f, 1.0f)
+            };
         }
     }
 }

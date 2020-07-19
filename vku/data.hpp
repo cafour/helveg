@@ -38,6 +38,8 @@ namespace vku {
         uint32_t chunkCount;
         Emitter *fires;
         uint32_t fireCount;
+        glm::vec3 skyColour;
+        glm::vec3 initialCameraPosition;
     };
 
     struct Light

@@ -14,6 +14,7 @@ using System;
 using System.CommandLine.Builder;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Numerics;
 
 namespace Helveg
 {
@@ -29,6 +30,7 @@ namespace Helveg
         public const string VkDebugAlias = "--vk-debug";
         public const string VerboseAlias = "--verbose";
         public const string ForceAlias = "--force";
+        public const int DefaultCameraElevation = 12;
 
         public static ILoggerFactory Logging = new NullLoggerFactory();
         public static bool IsForced = false;
@@ -197,6 +199,11 @@ namespace Helveg
                 Terrain.PlaceCargo(world, project, bbox);
                 Terrain.PlaceTypeStructures(heightmap, world, project, graphs[i].ToAnalyzed());
             }
+            var cameraHeight = heightmap[heightmap.CenterX, heightmap.CenterY];
+            world.InitialCameraPosition = new Vector3(
+                heightmap.CenterX,
+                cameraHeight + DefaultCameraElevation,
+                heightmap.CenterY);
 
             return world.Build();
         }

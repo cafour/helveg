@@ -6,6 +6,8 @@ namespace Helveg.Landscape
     {
         public const byte NeedleColourCount = 6;
 
+        public static readonly Vector3 SkyColour = new Vector3(0.533f, 0.808f, 0.925f);
+
         public enum Island : byte
         {
             Stone,

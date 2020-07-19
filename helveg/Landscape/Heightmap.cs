@@ -70,6 +70,9 @@ namespace Helveg.Landscape
             }
         }
 
+        public int CenterX => (MaxX + MinX) / 2;
+        public int CenterY => (MaxY + MinY) / 2;
+
         public bool TryGetValue(int x, int y, out float value)
         {
             if (x >= MinX && x < MaxX && y >= MinY && y < MaxY)

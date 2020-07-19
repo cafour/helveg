@@ -12,12 +12,22 @@ namespace Helveg.Render
         private GCHandle firesHandle;
         private Chunk.Raw[] rawChunks;
 
-        public World(Chunk[] chunks, Point3[] positions, Emitter[] fires)
-            : this(chunks, positions.Select(p => (Vector3)p).ToArray(), fires)
+        public World(
+            Chunk[] chunks,
+            Point3[] positions,
+            Emitter[] fires,
+            Vector3 skyColour,
+            Vector3 initialCameraPosition)
+            : this(chunks, positions.Select(p => (Vector3)p).ToArray(), fires, skyColour, initialCameraPosition)
         {
         }
 
-        public World(Chunk[] chunks, Vector3[] positions, Emitter[] fires)
+        public World(
+            Chunk[] chunks,
+            Vector3[] positions,
+            Emitter[] fires,
+            Vector3 skyColour,
+            Vector3 initialCameraPosition)
         {
             if (chunks.Length != positions.Length)
             {
@@ -29,6 +39,8 @@ namespace Helveg.Render
             Positions = positions;
             positionsHandle = default;
             Fires = fires;
+            SkyColour = skyColour;
+            InitialCameraPosition = initialCameraPosition;
             firesHandle = default;
             rawChunks = Array.Empty<Chunk.Raw>();
         }
@@ -38,6 +50,8 @@ namespace Helveg.Render
         public Vector3[] Positions;
 
         public Emitter[] Fires;
+        public Vector3 SkyColour;
+        public Vector3 InitialCameraPosition;
 
         public unsafe Raw GetRaw()
         {
@@ -67,7 +81,9 @@ namespace Helveg.Render
                 ChunkOffsets = (Vector3*)positionsHandle.AddrOfPinnedObject().ToPointer(),
                 ChunkCount = (uint)Chunks.Length,
                 Fires = (Emitter*)firesHandle.AddrOfPinnedObject().ToPointer(),
-                FireCount = (uint)Fires.Length
+                FireCount = (uint)Fires.Length,
+                SkyColour = SkyColour,
+                InitialCameraPosition = InitialCameraPosition
             };
         }
 
@@ -78,6 +94,8 @@ namespace Helveg.Render
             public uint ChunkCount;
             public Emitter* Fires;
             public uint FireCount;
+            public Vector3 SkyColour;
+            public Vector3 InitialCameraPosition;
         }
     }
 }

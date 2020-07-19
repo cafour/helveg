@@ -11,7 +11,6 @@
 
 // If you change this, don't forget about fire.comp as well.
 const size_t emitterParticleCount = 32 * 32;
-const glm::vec4 skyColor = glm::vec4(0.533f, 0.808f, 0.925f, 1.0f);
 
 static VkPhysicalDeviceFeatures getRequiredFeatures()
 {
@@ -49,7 +48,7 @@ vku::WorldRender::WorldRender(int width, int height, World world, const std::str
     ss << "Using device '" << properties.deviceName << "'.";
     vku::logDebug(ss.str());
 
-    _cameraCore.view().position = glm::vec3(0.0f, 128.0f, 0.0f);
+    _cameraCore.view().position = world.initialCameraPosition;
 
     _renderCore.onResize([this](auto s, auto e) { onResize(s, e); });
     _renderCore.onUpdate([this](auto &f) { onUpdate(f); });
@@ -307,8 +306,9 @@ void vku::WorldRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::S
     VkExtent2D extent = _swapchainCore.extent();
     renderPassInfo.renderArea.extent = extent;
 
+    auto skyColour = glm::vec4(_world.skyColour, 1.0f);
     VkClearValue clearValues[2];
-    clearValues[0].color = { skyColor.r, skyColor.g, skyColor.b, skyColor.a };
+    clearValues[0].color = { skyColour.r, skyColour.g, skyColour.b, skyColour.a };
     clearValues[1].depthStencil = { 1.0f, 0 };
     renderPassInfo.clearValueCount = 2;
     renderPassInfo.pClearValues = clearValues;
