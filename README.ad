@@ -65,6 +65,12 @@ The C# and VB.NET compiler and code analysis library.
 link:https://github.com/dotnet/command-line-api[System.CommandLine]::
 A library for the parsing of command-line args.
 
+link:https://github.com/SaschaWillems/Vulkan[Sascha Willems' Vulkan Samples]::
+A collection of great Vulkan samples.
+
+link:https://github.com/KhronosGroup/Vulkan-Tools/[vkcube]::
+The most comprehensive Vulkan sample there is.
+
 link:https://github.com/zeux/volk[volk]::
 A meta-loader for Vulkan.
 
