@@ -169,8 +169,8 @@ namespace Helveg
                 sentence,
                 worldBuilder,
                 new Point3(0, 0, 0),
-                new Block(Colours.Island.Wood),
-                new Block(Colours.Island.Needles0));
+                new Block(Colors.Island.Wood),
+                new Block(Colors.Island.Needles0));
             if (fire)
             {
                 worldBuilder.Burn(new Point3(0, 8, 0), 5);
@@ -185,9 +185,9 @@ namespace Helveg
             LogCabin.Draw(
                 worldBuilder,
                 Point3.Zero,
-                new Block(Colours.Island.Wood0),
-                new Block(Colours.Island.Wood1),
-                new Block(Colours.Island.Roof),
+                new Block(Colors.Island.Wood0),
+                new Block(Colors.Island.Wood1),
+                new Block(Colors.Island.Roof),
                 6,
                 6,
                 hasRoof: !damage);
@@ -201,13 +201,13 @@ namespace Helveg
             Cargo.Draw(
                 world: worldBuilder,
                 position: new Point3(0, 8, 0),
-                platform: new Block(Colours.Island.Wood),
-                corner: new Block(Colours.Island.Stone),
+                platform: new Block(Colors.Island.Wood),
+                corner: new Block(Colors.Island.Stone),
                 containers: new Block[]
                 {
-                    new Block(Colours.Island.Cargo0),
-                    new Block(Colours.Island.Cargo1),
-                    new Block(Colours.Island.Cargo2)
+                    new Block(Colors.Island.Cargo0),
+                    new Block(Colors.Island.Cargo1),
+                    new Block(Colors.Island.Cargo2)
                 },
                 seed: 42,
                 containerCount: 5);
@@ -222,24 +222,24 @@ namespace Helveg
             worldBuilder.FillVolume(
                 new Point3(-5, -11, -5),
                 new Point3(5, -2, 5),
-                fill: new Block(Colours.Island.Stone));
+                fill: new Block(Colors.Island.Stone));
             worldBuilder.FillVolume(
                 new Point3(-5, -11, -5) + to,
                 new Point3(5, -2, 5) + to,
-                fill: new Block(Colours.Island.Stone));
+                fill: new Block(Colors.Island.Stone));
             worldBuilder.FillVolume(
                 new Point3(-5, -1, -5),
                 new Point3(5, -1, 5),
-                fill: new Block(Colours.Island.Grass));
+                fill: new Block(Colors.Island.Grass));
             worldBuilder.FillVolume(
                 new Point3(-5, -1, -5) + to,
                 new Point3(5, -1, 5) + to,
-                fill: new Block(Colours.Island.Grass));
+                fill: new Block(Colors.Island.Grass));
             Bridge.Draw(
                 world: worldBuilder,
                 from: Point3.Zero,
                 to: to,
-                bridge: new[] { new Block(Colours.Island.Cargo0), new Block(Colours.Island.Cargo1) },
+                bridge: new[] { new Block(Colors.Island.Cargo0), new Block(Colors.Island.Cargo1) },
                 height: 8);
             var world = worldBuilder.Build();
             Vku.HelloWorld(world);
@@ -250,11 +250,11 @@ namespace Helveg
             var worldBuilder = GetDebugWorldBuilder();
             Signpost.Draw(
                 world: worldBuilder,
-                wood: new Block(Colours.Island.Wood),
+                wood: new Block(Colors.Island.Wood),
                 arrows: new[]
                 {
-                    new Block(Colours.Island.Wood0),
-                    new Block(Colours.Island.Wood1)
+                    new Block(Colors.Island.Wood0),
+                    new Block(Colors.Island.Wood1)
                 },
                 position: Point3.Zero,
                 arrowCount: 4,
@@ -268,8 +268,8 @@ namespace Helveg
             var worldBuilder = GetDebugWorldBuilder();
             ConstructionSite.Draw(
                 world: worldBuilder,
-                corner: new Block(Colours.Island.Stone),
-                beam: new Block(Colours.Island.Wood),
+                corner: new Block(Colors.Island.Stone),
+                beam: new Block(Colors.Island.Wood),
                 position: Point3.Zero,
                 side: 6
             );
@@ -283,19 +283,19 @@ namespace Helveg
             worldBuilder.FillVolume(
                 new Point3(-8, -2, -8),
                 new Point3(8, -2, 8),
-                fill: new Block(Colours.Island.Stone));
+                fill: new Block(Colors.Island.Stone));
             worldBuilder.FillVolume(
                 new Point3(-8, -1, -8),
                 new Point3(8, -1, 8),
-                fill: new Block(Colours.Island.Grass));
+                fill: new Block(Colors.Island.Grass));
             Meadow.Draw(
                 world: worldBuilder,
-                stem: new Block(Colours.Island.Stem),
+                stem: new Block(Colors.Island.Stem),
                 flower: new Block[]
                 {
-                    new Block(Colours.Island.Flower0),
-                    new Block(Colours.Island.Flower1),
-                    new Block(Colours.Island.Flower2),
+                    new Block(Colors.Island.Flower0),
+                    new Block(Colors.Island.Flower1),
+                    new Block(Colors.Island.Flower2),
                 },
                 position: Point3.Zero,
                 flowerCount: 24,
@@ -310,8 +310,8 @@ namespace Helveg
             var blockTypes = new Block[]
             {
                 new Block {Flags = BlockFlags.IsAir},
-                new Block(Colours.Island.Stone),
-                new Block(Colours.Island.Grass)
+                new Block(Colors.Island.Stone),
+                new Block(Colors.Island.Grass)
             };
             var palette = new[]
             {
@@ -364,7 +364,7 @@ namespace Helveg
                 for (int z = -radius; z <= radius; ++z)
                 {
                     var y = (int)(noise.Evaluate(x * 0.025, z * 0.025) * 32 + 32);
-                    world[x, y, z] = new Block(Colours.Island.Stone);
+                    world[x, y, z] = new Block(Colors.Island.Stone);
                 }
             }
             world.Labels.Add(new Label { Text = "Test", Position = new Vector3(10, 10, 10), Size = new Vector2(1, 1) });
@@ -377,7 +377,7 @@ namespace Helveg
             return new WorldBuilder(
                 chunkSize: 64,
                 defaultFill: new Block { Flags = BlockFlags.IsAir },
-                palette: Colours.IslandPalette)
+                palette: Colors.IslandPalette)
             {
                 // the sky is white for thesis-frienly screenshots
                 SkyColour = new Vector3(1.0f, 1.0f, 1.0f)

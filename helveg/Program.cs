@@ -183,7 +183,7 @@ namespace Helveg
                 Terrain.WriteIslandHeightmap(heightmap, area, project.GetSeed(), graph.Positions, graph.Sizes);
             }
 
-            var world = new WorldBuilder(128, new Block { Flags = BlockFlags.IsAir }, Colours.IslandPalette);
+            var world = new WorldBuilder(128, new Block { Flags = BlockFlags.IsAir }, Colors.IslandPalette);
             logger.LogInformation("Generating terrain.");
             Terrain.GenerateTerrain(heightmap, world);
 

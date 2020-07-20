@@ -28,7 +28,7 @@ namespace Helveg.Landscape
 
         public int ChunkSize { get; }
 
-        public Vector3 SkyColour { get; set; } = Colours.SkyColour;
+        public Vector3 SkyColour { get; set; } = Colors.SkyColour;
 
         public Vector3 InitialCameraPosition { get; set; }
 

@@ -80,8 +80,8 @@ namespace Helveg.Landscape
                         y * GlobalNoiseFrequency) * GlobalNoiseMagnitude);
                     var rockLevel = Math.Max(height - 4, 0);
                     var surface = height < SandLevel + noiseValue
-                        ? new Block(Colours.Island.Sand)
-                        : new Block(Colours.Island.Grass);
+                        ? new Block(Colors.Island.Sand)
+                        : new Block(Colors.Island.Grass);
                     world.FillLine(
                         new Point3(x, rockLevel, y),
                         new Point3(x, height, y),
@@ -89,13 +89,13 @@ namespace Helveg.Landscape
                     world.FillLine(
                     new Point3(x, 0, y),
                     new Point3(x, rockLevel, y),
-                    new Block(Colours.Island.Stone));
+                    new Block(Colors.Island.Stone));
                     if (height < WaterLevel)
                     {
                         world.FillLine(
                             new Point3(x, height + 1, y),
                             new Point3(x, WaterLevel, y),
-                            new Block(Colours.Island.Water));
+                            new Block(Colors.Island.Water));
                     }
                 }
             });
@@ -122,13 +122,13 @@ namespace Helveg.Landscape
             Cargo.Draw(
                 world: world,
                 position: position,
-                platform: new Block(Colours.Island.Wood),
-                corner: new Block(Colours.Island.Stone),
+                platform: new Block(Colors.Island.Wood),
+                corner: new Block(Colors.Island.Stone),
                 containers: new[]
                 {
-                    new Block(Colours.Island.Cargo0),
-                    new Block(Colours.Island.Cargo1),
-                    new Block(Colours.Island.Cargo2)
+                    new Block(Colors.Island.Cargo0),
+                    new Block(Colors.Island.Cargo1),
+                    new Block(Colors.Island.Cargo2)
                 },
                 seed: project.GetSeed(),
                 containerCount: project.PackageReferences.Count);
@@ -152,13 +152,13 @@ namespace Helveg.Landscape
                             seed: type.GetSeed(),
                             size: type.Size);
                         // the byte cast being required twice is beyond me
-                        var needles = (byte)((byte)Colours.Island.Needles0
-                            + (byte)type.Family % Colours.NeedleColourCount);
+                        var needles = (byte)((byte)Colors.Island.Needles0
+                            + (byte)type.Family % Colors.NeedleColourCount);
                         Spruce.Draw(
                             sentence: sentence,
                             world: world,
                             position: center,
-                            wood: new Block(Colours.Island.Wood),
+                            wood: new Block(Colors.Island.Wood),
                             needles: new Block { PaletteIndex = needles },
                             hasNeedles: !type.Health.HasFlag(Diagnosis.Warning));
                         break;
@@ -166,9 +166,9 @@ namespace Helveg.Landscape
                         LogCabin.Draw(
                             world: world,
                             position: center,
-                            wood0: new Block(Colours.Island.Wood0),
-                            wood1: new Block(Colours.Island.Wood1),
-                            roof: new Block(Colours.Island.Roof),
+                            wood0: new Block(Colors.Island.Wood0),
+                            wood1: new Block(Colors.Island.Wood1),
+                            roof: new Block(Colors.Island.Roof),
                             side: (int)MathF.Round(MathF.Sqrt(type.Size)) + 1,
                             levelCount: type.Size,
                             hasRoof: !type.Health.HasFlag(Diagnosis.Warning));
@@ -176,11 +176,11 @@ namespace Helveg.Landscape
                     case AnalyzedTypeKind.Delegate:
                         Signpost.Draw(
                             world: world,
-                            wood: new Block(Colours.Island.Wood),
+                            wood: new Block(Colors.Island.Wood),
                             arrows: new[]
                             {
-                                new Block(Colours.Island.Wood0),
-                                new Block(Colours.Island.Wood1)
+                                new Block(Colors.Island.Wood0),
+                                new Block(Colors.Island.Wood1)
                             },
                             position: center,
                             arrowCount: type.Size,
@@ -189,20 +189,20 @@ namespace Helveg.Landscape
                     case AnalyzedTypeKind.Interface:
                         ConstructionSite.Draw(
                             world: world,
-                            corner: new Block(Colours.Island.Stone),
-                            beam: new Block(Colours.Island.Wood),
+                            corner: new Block(Colors.Island.Stone),
+                            beam: new Block(Colors.Island.Wood),
                             position: center,
                             side: (int)MathF.Round(MathF.Sqrt(type.Size)));
                         break;
                     case AnalyzedTypeKind.Enum:
                         Meadow.Draw(
                             world: world,
-                            stem: new Block(Colours.Island.Stem),
+                            stem: new Block(Colors.Island.Stem),
                             flower: new Block[]
                             {
-                                new Block(Colours.Island.Flower0),
-                                new Block(Colours.Island.Flower1),
-                                new Block(Colours.Island.Flower2),
+                                new Block(Colors.Island.Flower0),
+                                new Block(Colors.Island.Flower1),
+                                new Block(Colors.Island.Flower2),
                             },
                             position: center,
                             flowerCount: type.Size,
@@ -260,7 +260,7 @@ namespace Helveg.Landscape
                     world: world,
                     from: new Point3(from.X, heightmap[from], from.Y),
                     to: new Point3(to.X, heightmap[to], to.Y),
-                    bridge: new Block[] { new Block(Colours.Island.Cargo0), new Block(Colours.Island.Cargo1) },
+                    bridge: new Block[] { new Block(Colors.Island.Cargo0), new Block(Colors.Island.Cargo1) },
                     height: (int)MathF.Sqrt((dependencyCenter - center).Length()));
             }
             return true;

@@ -2,7 +2,7 @@ using System.Numerics;
 
 namespace Helveg.Landscape
 {
-    public static class Colours
+    public static class Colors
     {
         public const byte NeedleColourCount = 6;
 
