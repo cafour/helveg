@@ -19,6 +19,7 @@ private:
     vku::DepthCore _depthCore;
     vku::TransferCore _transferCore;
     std::vector<vku::MeshCore> _meshes;
+    vku::TextCore _textCore;
 
     // Common
     vku::Time _time = {};
@@ -54,6 +55,10 @@ private:
     // Fire Graphics
     vku::GraphicsPipeline _fireGP;
 
+    // Text Graphics
+    bool _textVisible = true;
+    vku::GraphicsPipeline _textGP;
+
     void recordCommandBuffer(VkCommandBuffer commandBuffer, vku::SwapchainFrame &frame);
     vku::Framebuffer createFramebuffer(vku::SwapchainFrame &frame);
     void onResize(size_t imageCount, VkExtent2D extent);
@@ -64,6 +69,7 @@ private:
     void createWorldGP();
     void createFireGP();
     void createFireCP();
+    void createTextGP();
 
 public:
     WorldRender(int width, int height, World world, const std::string &title, bool debug = false);

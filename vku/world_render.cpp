@@ -40,6 +40,11 @@ vku::WorldRender::WorldRender(int width, int height, World world, const std::str
     , _cameraCore(_displayCore, _renderCore)
     , _depthCore(_displayCore, _renderCore)
     , _transferCore(_displayCore.physicalDevice(), _displayCore.device())
+    , _textCore(
+          _transferCore,
+          std::vector<std::string> { "Hello, World!" },
+          std::vector<glm::vec3> { glm::vec3(0.0f) },
+          std::vector<glm::vec2> { glm::vec2(1.0f, -1.0f) })
     , _world(world)
 {
     VkPhysicalDeviceProperties properties;
@@ -48,15 +53,15 @@ vku::WorldRender::WorldRender(int width, int height, World world, const std::str
     ss << "Using device '" << properties.deviceName << "'.";
     vku::logDebug(ss.str());
 
-    _cameraCore.view().position = world.initialCameraPosition;
-
-    _renderCore.onResize([this](auto s, auto e) { onResize(s, e); });
-    _renderCore.onUpdate([this](auto &f) { onUpdate(f); });
-
     _renderPass = vku::RenderPass::basic(
         _displayCore.device(),
         _displayCore.surfaceFormat().format,
         _depthCore.depthFormat());
+
+    _cameraCore.view().position = world.initialCameraPosition;
+
+    _renderCore.onResize([this](auto s, auto e) { onResize(s, e); });
+    _renderCore.onUpdate([this](auto &f) { onUpdate(f); });
 
     _timeBuffer = vku::Buffer::exclusive(
         _displayCore.device(),
@@ -71,6 +76,7 @@ vku::WorldRender::WorldRender(int width, int height, World world, const std::str
     createWorldGP();
     createFireGP();
     createFireCP();
+    createTextGP();
 }
 
 void vku::WorldRender::createMeshes()
@@ -78,8 +84,7 @@ void vku::WorldRender::createMeshes()
     logInformation("Creating meshes.");
     for (size_t i = 0; i < _world.chunkCount; ++i) {
         auto maybeMesh = vku::MeshCore::fromChunk(_transferCore, _world.chunks[i]);
-        if (maybeMesh.has_value())
-        {
+        if (maybeMesh.has_value()) {
             _meshes.push_back(std::move(maybeMesh.value()));
         }
 
@@ -107,7 +112,12 @@ void vku::WorldRender::createWorldGP()
             1,
             VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
             1,
-            VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT)
+            VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT),
+        vku::descriptorBinding(
+            2,
+            VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            1,
+            VK_SHADER_STAGE_FRAGMENT_BIT)
     };
 
     _worldDSL = vku::DescriptorSetLayout::basic(_displayCore.device(), bindings.begin(), bindings.size());
@@ -277,6 +287,38 @@ void vku::WorldRender::createFireCP()
     _fireCP = vku::ComputePipeline(_displayCore.device(), createInfo);
 }
 
+void vku::WorldRender::createTextGP()
+{
+    auto vertexShader = vku::ShaderModule::inlined(_displayCore.device(), TEXT_VERT, TEXT_VERT_LENGTH);
+    auto fragmentShader = vku::ShaderModule::inlined(_displayCore.device(), TEXT_FRAG, TEXT_FRAG_LENGTH);
+    auto shaderStages = {
+        vku::shaderStage(VK_SHADER_STAGE_VERTEX_BIT, vertexShader),
+        vku::shaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, fragmentShader)
+    };
+
+    auto vertexBindings = {
+        vku::vertexInputBinding(0, sizeof(glm::vec3), VK_VERTEX_INPUT_RATE_VERTEX), // position
+        vku::vertexInputBinding(1, sizeof(glm::vec2), VK_VERTEX_INPUT_RATE_VERTEX), // uv
+    };
+
+    auto vertexAttributes = {
+        vku::vertexInputAttribute(0, 0, VK_FORMAT_R32G32B32_SFLOAT, 0), // position
+        vku::vertexInputAttribute(1, 1, VK_FORMAT_R32G32_SFLOAT, 0) // uv
+    };
+
+    _textGP = vku::GraphicsPipeline::basic(
+        _displayCore.device(),
+        _worldPL,
+        _renderPass,
+        shaderStages.begin(),
+        shaderStages.size(),
+        vertexBindings.begin(),
+        vertexBindings.size(),
+        vertexAttributes.begin(),
+        vertexAttributes.size(),
+        VK_FRONT_FACE_COUNTER_CLOCKWISE);
+}
+
 void vku::WorldRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::SwapchainFrame &frame)
 {
     VkCommandBufferBeginInfo beginInfo = {};
@@ -373,6 +415,16 @@ void vku::WorldRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::S
         vkCmdDraw(commandBuffer, _world.fireCount * emitterParticleCount, 1, 0, 0);
     }
 
+    if (_textVisible) {
+        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _textGP);
+        VkDeviceSize offset = 0;
+        auto positionBuffer = _textCore.positionBuffer();
+        vkCmdBindVertexBuffers(commandBuffer, 0, 1, &positionBuffer, &offset);
+        auto uvBuffer = _textCore.uvBuffer();
+        vkCmdBindVertexBuffers(commandBuffer, 1, 1, &uvBuffer, &offset);
+        vkCmdDraw(commandBuffer, _textCore.vertexCount(), 1, 0, 0);
+    }
+
     vkCmdEndRenderPass(commandBuffer);
 
     ENSURE(vkEndCommandBuffer(commandBuffer));
@@ -413,11 +465,13 @@ void vku::WorldRender::onResize(size_t imageCount, VkExtent2D)
             _uboBuffers[i]);
     }
 
-    VkDescriptorPoolSize poolSizes[] = {
-        vku::descriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 2 * imageCount)
+    auto poolSizes = {
+        vku::descriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 2 * imageCount),
+        vku::descriptorPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1 * imageCount),
     };
-    _worldDP = vku::DescriptorPool::basic(_displayCore.device(), imageCount, poolSizes, 1);
+    _worldDP = vku::DescriptorPool::basic(_displayCore.device(), imageCount, poolSizes.begin(), poolSizes.size());
     _worldDSs = vku::allocateDescriptorSets(_displayCore.device(), _worldDP, _worldDSL, imageCount);
+    auto fontDescriptor = _textCore.fontDescriptor();
     for (size_t i = 0; i < imageCount; ++i) {
         vku::writeWholeBufferDescriptor(
             _displayCore.device(),
@@ -431,6 +485,12 @@ void vku::WorldRender::onResize(size_t imageCount, VkExtent2D)
             _cameraCore.cameraBuffers()[i],
             _worldDSs[i],
             1);
+        vku::writeImageDescriptor(
+            _displayCore.device(),
+            _worldDSs[i],
+            VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            &fontDescriptor,
+            2);
     }
 }
 

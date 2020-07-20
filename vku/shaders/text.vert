@@ -3,7 +3,11 @@
 // Based on https://github.com/SaschaWillems/Vulkan/blob/master/data/shaders/glsl/base/textoverlay.vert
 // by Sascha Willems, licensed under the MIT license
 
-layout(binding = 0) uniform Camera
+layout(binding = 0) uniform Model
+{
+    mat4 model;
+};
+layout(binding = 1) uniform Camera
 {
     mat4 view;
     mat4 proj;
@@ -11,18 +15,13 @@ layout(binding = 0) uniform Camera
 }
 camera;
 
-layout(location = 0) in vec2 inPos;
+layout(location = 0) in vec3 inPosition;
 layout(location = 1) in vec2 inUV;
 
 layout(location = 0) out vec2 outUV;
 
-out gl_PerVertex
-{
-    vec4 gl_Position;
-};
-
 void main(void)
 {
-    gl_Position = vec4(inPos, 0.0, 1.0);
     outUV = inUV;
+    gl_Position = camera.proj * camera.view * model * vec4(inPosition, 1.0f);
 }
