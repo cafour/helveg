@@ -31,6 +31,13 @@ namespace vku {
         float radius;
     };
 
+    struct Label
+    {
+        char *text;
+        glm::vec3 position;
+        glm::vec2 size;
+    };
+
     struct World
     {
         Chunk *chunks;
@@ -40,6 +47,8 @@ namespace vku {
         uint32_t fireCount;
         glm::vec3 skyColour;
         glm::vec3 initialCameraPosition;
+        Label *labels;
+        uint32_t labelCount;
     };
 
     struct Light

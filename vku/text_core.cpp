@@ -12,10 +12,11 @@
 stb_fontchar fontData[STB_FONT_consolas_24_usascii_NUM_CHARS];
 
 static void addText(
-    std::vector<glm::vec3> &positions,
+    std::vector<glm::vec2> &positions,
     std::vector<glm::vec2> &uvs,
+    std::vector<glm::vec3> &centers,
     const std::string &text,
-    glm::vec3 at,
+    glm::vec3 center,
     glm::vec2 scale = glm::vec2(1))
 {
     const uint32_t firstChar = STB_FONT_consolas_24_usascii_FIRST_CHAR;
@@ -27,50 +28,60 @@ static void addText(
     }
 
     // align at center
-    at.x -= textWidth / 2.0f;
+    float x = -textWidth / 2.0f;
 
-    glm::vec3 scale3 = glm::vec3(scale.x, scale.y, 1.0f);
     // generate a quad for each char
     for (auto letter : text) {
         stb_fontchar *charData = &fontData[(uint32_t)letter - firstChar];
 
+        centers.push_back(center);
+        centers.push_back(center);
+        centers.push_back(center);
+        centers.push_back(center);
+        centers.push_back(center);
+        centers.push_back(center);
+
         // lower triangle
-        positions.push_back(at + glm::vec3(charData->x0f, charData->y0f, 0.0f) * scale3);
-        positions.push_back(at + glm::vec3(charData->x0f, charData->y1f, 0.0f) * scale3);
-        positions.push_back(at + glm::vec3(charData->x1f, charData->y1f, 0.0f) * scale3);
+        positions.push_back(glm::vec2(x, 0.0f) + glm::vec2(charData->x0f, charData->y0f) * scale);
+        positions.push_back(glm::vec2(x, 0.0f) + glm::vec2(charData->x0f, charData->y1f) * scale);
+        positions.push_back(glm::vec2(x, 0.0f) + glm::vec2(charData->x1f, charData->y1f) * scale);
         uvs.push_back(glm::vec2(charData->s0f, charData->t0f));
         uvs.push_back(glm::vec2(charData->s0f, charData->t1f));
         uvs.push_back(glm::vec2(charData->s1f, charData->t1f));
 
         // upper triangle
-        positions.push_back(at + glm::vec3(charData->x0f, charData->y0f, 0.0f) * scale3);
-        positions.push_back(at + glm::vec3(charData->x1f, charData->y1f, 0.0f) * scale3);
-        positions.push_back(at + glm::vec3(charData->x1f, charData->y0f, 0.0f) * scale3);
+        positions.push_back(glm::vec2(x, 0.0f) + glm::vec2(charData->x0f, charData->y0f) * scale);
+        positions.push_back(glm::vec2(x, 0.0f) + glm::vec2(charData->x1f, charData->y1f) * scale);
+        positions.push_back(glm::vec2(x, 0.0f) + glm::vec2(charData->x1f, charData->y0f) * scale);
         uvs.push_back(glm::vec2(charData->s0f, charData->t0f));
         uvs.push_back(glm::vec2(charData->s1f, charData->t1f));
         uvs.push_back(glm::vec2(charData->s1f, charData->t0f));
 
-        at.x += charData->advance * scale.x;
+        x += charData->advance * scale.x;
     }
 }
 
-vku::TextCore::TextCore(
-    vku::TransferCore &transfer,
-    const std::vector<std::string> &texts,
-    const std::vector<glm::vec3> &textPositions,
-    const std::vector<glm::vec2> &textScales)
+vku::TextCore::TextCore(vku::TransferCore &transfer)
 {
     createFontImage(transfer);
+}
 
-    std::vector<glm::vec3> positions;
+void vku::TextCore::createBuffers(
+        vku::TransferCore &transfer,
+        const std::vector<std::string> &texts,
+        const std::vector<glm::vec3> &textPositions,
+        const std::vector<glm::vec2> &textScales)
+{
+    std::vector<glm::vec2> positions;
     std::vector<glm::vec2> uvs;
+    std::vector<glm::vec3> centers;
     for (size_t i = 0; i < texts.size(); i++) {
-        addText(positions, uvs, texts[i], textPositions[i], textScales[i]);
+        addText(positions, uvs, centers, texts[i], textPositions[i], textScales[i]);
     }
 
     _vertexCount = static_cast<uint32_t>(positions.size());
 
-    size_t positionsSize = positions.size() * sizeof(glm::vec3);
+    size_t positionsSize = positions.size() * sizeof(glm::vec2);
     _positionBuffer = vku::Buffer::exclusive(
         transfer.device(),
         positionsSize,
@@ -97,7 +108,22 @@ vku::TextCore::TextCore(
         _uvBuffer,
         uvs.data(),
         uvsSize);
+
+    size_t centersSize = centers.size() * sizeof(glm::vec3);
+    _centerBuffer = vku::Buffer::exclusive(
+        transfer.device(),
+        centersSize,
+        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
+    _centerMemory = vku::DeviceMemory::deviceLocalData(
+        transfer.physicalDevice(),
+        transfer.device(),
+        transfer.transferPool(),
+        transfer.transferQueue(),
+        _centerBuffer,
+        centers.data(),
+        centersSize);
 }
+
 
 void vku::TextCore::createFontImage(vku::TransferCore& transfer)
 {

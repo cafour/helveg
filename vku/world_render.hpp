@@ -56,7 +56,7 @@ private:
     vku::GraphicsPipeline _fireGP;
 
     // Text Graphics
-    bool _textVisible = true;
+    bool _textVisible = false;
     vku::GraphicsPipeline _textGP;
 
     void recordCommandBuffer(VkCommandBuffer commandBuffer, vku::SwapchainFrame &frame);
@@ -66,10 +66,14 @@ private:
 
     // I needed to split the constructor to be able to find anything in this mess.
     void createMeshes();
+    void createLabels();
     void createWorldGP();
     void createFireGP();
     void createFireCP();
     void createTextGP();
+
+    void onKey(int key, int scancode, int action, int mods);
+
 
 public:
     WorldRender(int width, int height, World world, const std::string &title, bool debug = false);

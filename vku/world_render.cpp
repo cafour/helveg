@@ -40,11 +40,7 @@ vku::WorldRender::WorldRender(int width, int height, World world, const std::str
     , _cameraCore(_displayCore, _renderCore)
     , _depthCore(_displayCore, _renderCore)
     , _transferCore(_displayCore.physicalDevice(), _displayCore.device())
-    , _textCore(
-          _transferCore,
-          std::vector<std::string> { "Hello, World!" },
-          std::vector<glm::vec3> { glm::vec3(0.0f) },
-          std::vector<glm::vec2> { glm::vec2(1.0f, -1.0f) })
+    , _textCore(_transferCore)
     , _world(world)
 {
     VkPhysicalDeviceProperties properties;
@@ -52,6 +48,8 @@ vku::WorldRender::WorldRender(int width, int height, World world, const std::str
     std::stringstream ss;
     ss << "Using device '" << properties.deviceName << "'.";
     vku::logDebug(ss.str());
+
+    _displayCore.window().onKey([this](auto k, auto s, auto a, auto m) { onKey(k, s, a, m); });
 
     _renderPass = vku::RenderPass::basic(
         _displayCore.device(),
@@ -73,6 +71,7 @@ vku::WorldRender::WorldRender(int width, int height, World world, const std::str
         _timeBuffer);
 
     createMeshes();
+    createLabels();
     createWorldGP();
     createFireGP();
     createFireCP();
@@ -98,6 +97,20 @@ void vku::WorldRender::createMeshes()
         _boxMin.y = std::min(_boxMin.y, chunkPosition.y);
         _boxMin.z = std::min(_boxMin.z, chunkPosition.z);
     }
+}
+
+void vku::WorldRender::createLabels()
+{
+    std::vector<std::string> texts;
+    std::vector<glm::vec3> positions;
+    std::vector<glm::vec2> scales;
+    for (size_t i = 0; i < _world.labelCount; ++i) {
+        texts.push_back(_world.labels[i].text);
+        positions.push_back(_world.labels[i].position);
+        scales.push_back(_world.labels[i].size * glm::vec2(1.0f, -1.0f));
+    }
+
+    _textCore.createBuffers(_transferCore, texts, positions, scales);
 }
 
 void vku::WorldRender::createWorldGP()
@@ -297,13 +310,15 @@ void vku::WorldRender::createTextGP()
     };
 
     auto vertexBindings = {
-        vku::vertexInputBinding(0, sizeof(glm::vec3), VK_VERTEX_INPUT_RATE_VERTEX), // position
+        vku::vertexInputBinding(0, sizeof(glm::vec2), VK_VERTEX_INPUT_RATE_VERTEX), // position
         vku::vertexInputBinding(1, sizeof(glm::vec2), VK_VERTEX_INPUT_RATE_VERTEX), // uv
+        vku::vertexInputBinding(2, sizeof(glm::vec3), VK_VERTEX_INPUT_RATE_VERTEX), // center
     };
 
     auto vertexAttributes = {
-        vku::vertexInputAttribute(0, 0, VK_FORMAT_R32G32B32_SFLOAT, 0), // position
-        vku::vertexInputAttribute(1, 1, VK_FORMAT_R32G32_SFLOAT, 0) // uv
+        vku::vertexInputAttribute(0, 0, VK_FORMAT_R32G32_SFLOAT, 0), // position
+        vku::vertexInputAttribute(1, 1, VK_FORMAT_R32G32_SFLOAT, 0), // uv
+        vku::vertexInputAttribute(2, 2, VK_FORMAT_R32G32B32_SFLOAT, 0), // center
     };
 
     _textGP = vku::GraphicsPipeline::basic(
@@ -415,13 +430,15 @@ void vku::WorldRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::S
         vkCmdDraw(commandBuffer, _world.fireCount * emitterParticleCount, 1, 0, 0);
     }
 
-    if (_textVisible) {
+    if (_textVisible && _world.labelCount > 0) {
         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _textGP);
         VkDeviceSize offset = 0;
         auto positionBuffer = _textCore.positionBuffer();
         vkCmdBindVertexBuffers(commandBuffer, 0, 1, &positionBuffer, &offset);
         auto uvBuffer = _textCore.uvBuffer();
         vkCmdBindVertexBuffers(commandBuffer, 1, 1, &uvBuffer, &offset);
+        auto centerBuffer = _textCore.centerBuffer();
+        vkCmdBindVertexBuffers(commandBuffer, 2, 1, &centerBuffer, &offset);
         vkCmdDraw(commandBuffer, _textCore.vertexCount(), 1, 0, 0);
     }
 
@@ -504,4 +521,14 @@ void vku::WorldRender::onUpdate(vku::SwapchainFrame &frame)
     _time.secDelta = currentTime - _time.sec;
     _time.sec = currentTime;
     vku::hostDeviceCopy(_displayCore.device(), &_time, _timeMemory, sizeof(vku::Time));
+}
+
+void vku::WorldRender::onKey(int key, int scancode, int action, int mods)
+{
+    (void)scancode;
+    (void)mods;
+    if (action == GLFW_RELEASE && key == GLFW_KEY_F1) {
+        _textVisible = !_textVisible;
+        _renderCore.resize();
+    }
 }

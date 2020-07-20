@@ -24,6 +24,8 @@ namespace Helveg.Landscape
 
         public List<Emitter> Fires { get; } = new List<Emitter>();
 
+        public List<Label> Labels {get;} = new List<Label>();
+
         public int ChunkSize { get; }
 
         public Vector3 SkyColour { get; set; } = Colours.SkyColour;
@@ -265,7 +267,8 @@ namespace Helveg.Landscape
                 Chunks.Keys.ToArray(),
                 Fires.ToArray(),
                 SkyColour,
-                InitialCameraPosition);
+                InitialCameraPosition,
+                Labels.ToArray());
         }
     }
 }

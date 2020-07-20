@@ -5,11 +5,12 @@ using System.Runtime.InteropServices;
 
 namespace Helveg.Render
 {
-    public struct World
+    public struct World : IDisposable
     {
         private GCHandle chunksHandle;
         private GCHandle positionsHandle;
         private GCHandle firesHandle;
+        private IntPtr rawLabels;
         private Chunk.Raw[] rawChunks;
 
         public World(
@@ -17,8 +18,9 @@ namespace Helveg.Render
             Point3[] positions,
             Emitter[] fires,
             Vector3 skyColour,
-            Vector3 initialCameraPosition)
-            : this(chunks, positions.Select(p => (Vector3)p).ToArray(), fires, skyColour, initialCameraPosition)
+            Vector3 initialCameraPosition,
+            Label[] labels)
+            : this(chunks, positions.Select(p => (Vector3)p).ToArray(), fires, skyColour, initialCameraPosition, labels)
         {
         }
 
@@ -27,7 +29,8 @@ namespace Helveg.Render
             Vector3[] positions,
             Emitter[] fires,
             Vector3 skyColour,
-            Vector3 initialCameraPosition)
+            Vector3 initialCameraPosition,
+            Label[] labels)
         {
             if (chunks.Length != positions.Length)
             {
@@ -39,9 +42,11 @@ namespace Helveg.Render
             Positions = positions;
             positionsHandle = default;
             Fires = fires;
+            firesHandle = default;
+            Labels = labels;
+            rawLabels = IntPtr.Zero;
             SkyColour = skyColour;
             InitialCameraPosition = initialCameraPosition;
-            firesHandle = default;
             rawChunks = Array.Empty<Chunk.Raw>();
         }
 
@@ -52,6 +57,7 @@ namespace Helveg.Render
         public Emitter[] Fires;
         public Vector3 SkyColour;
         public Vector3 InitialCameraPosition;
+        public Label[] Labels;
 
         public unsafe Raw GetRaw()
         {
@@ -75,6 +81,16 @@ namespace Helveg.Render
                 firesHandle = GCHandle.Alloc(Fires, GCHandleType.Pinned);
             }
 
+            if (rawLabels == IntPtr.Zero)
+            {
+                int size = Marshal.SizeOf<Label>();
+                rawLabels = Marshal.AllocHGlobal(size * Labels.Length);
+                for (int i = 0; i < Labels.Length; ++i)
+                {
+                    Marshal.StructureToPtr(Labels[i], rawLabels + i * size, false);
+                }
+            }
+
             return new Raw
             {
                 Chunks = (Chunk.Raw*)chunksHandle.AddrOfPinnedObject().ToPointer(),
@@ -83,8 +99,18 @@ namespace Helveg.Render
                 Fires = (Emitter*)firesHandle.AddrOfPinnedObject().ToPointer(),
                 FireCount = (uint)Fires.Length,
                 SkyColour = SkyColour,
-                InitialCameraPosition = InitialCameraPosition
+                InitialCameraPosition = InitialCameraPosition,
+                Labels = rawLabels,
+                LabelCount = (uint)Labels.Length
             };
+        }
+
+        public void Dispose()
+        {
+            firesHandle.Free();
+            chunksHandle.Free();
+            positionsHandle.Free();
+            Marshal.FreeHGlobal(rawLabels);
         }
 
         public unsafe struct Raw
@@ -96,6 +122,8 @@ namespace Helveg.Render
             public uint FireCount;
             public Vector3 SkyColour;
             public Vector3 InitialCameraPosition;
+            public IntPtr Labels;
+            public uint LabelCount;
         }
     }
 }

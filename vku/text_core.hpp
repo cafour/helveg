@@ -15,9 +15,6 @@ class TransferCore;
 
 class TextCore {
 private:
-    // VkRenderPass _renderPass;
-    // VkBuffer _cameraBuffer;
-
     vku::Sampler _fontSampler;
     vku::Image _fontImage;
     vku::ImageView _fontImageView;
@@ -27,19 +24,16 @@ private:
     vku::DeviceMemory _positionMemory;
     vku::Buffer _uvBuffer;
     vku::DeviceMemory _uvMemory;
+    vku::Buffer _centerBuffer;
+    vku::DeviceMemory _centerMemory;
     uint32_t _vertexCount;
 
-    // vku::DescriptorSetLayout _textDSL;
-    // vku::DescriptorPool _textDP;
-    // VkDescriptorSet _textDS;
-    // vku::PipelineLayout _textPL;
-    // vku::GraphicsPipeline _textGP;
-
     void createFontImage(vku::TransferCore &transfer);
-    // void createTextGP();
 
 public:
-    TextCore(
+    TextCore(vku::TransferCore &transfer);
+
+    void createBuffers(
         vku::TransferCore &transfer,
         const std::vector<std::string> &texts,
         const std::vector<glm::vec3> &textPositions,
@@ -48,6 +42,7 @@ public:
     VkDescriptorImageInfo fontDescriptor();
     VkBuffer positionBuffer() { return _positionBuffer; }
     VkBuffer uvBuffer() { return _uvBuffer; }
+    VkBuffer centerBuffer() { return _centerBuffer; }
     uint32_t vertexCount() { return _vertexCount; }
 };
 }

@@ -15,13 +15,22 @@ layout(binding = 1) uniform Camera
 }
 camera;
 
-layout(location = 0) in vec3 inPosition;
+layout(location = 0) in vec2 inPosition;
 layout(location = 1) in vec2 inUV;
+layout(location = 2) in vec3 inCenter;
 
 layout(location = 0) out vec2 outUV;
 
 void main(void)
 {
+    // Based on http://www.opengl-tutorial.org/intermediate-tutorials/billboards-particles/billboards/p
+    vec3 camRight = vec3(camera.view[0][0], camera.view[1][0], camera.view[2][0]);
+    vec3 camUp = vec3(camera.view[0][1], camera.view[1][1], camera.view[2][1]);
+
+    vec3 billboardPosition = inCenter
+        + camRight * inPosition.x
+        + camUp * inPosition.y;
+
     outUV = inUV;
-    gl_Position = camera.proj * camera.view * model * vec4(inPosition, 1.0f);
+    gl_Position = camera.proj * camera.view * model * vec4(billboardPosition, 1.0f);
 }

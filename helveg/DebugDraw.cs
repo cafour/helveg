@@ -367,6 +367,7 @@ namespace Helveg
                     world[x, y, z] = new Block(Colours.Island.Stone);
                 }
             }
+            world.Labels.Add(new Label { Text = "Test", Position = new Vector3(10, 10, 10), Size = new Vector2(1, 1) });
             var builtWorld = world.Build();
             Vku.HelloWorld(builtWorld);
         }

@@ -86,10 +86,10 @@ namespace Helveg.Landscape
                         new Point3(x, rockLevel, y),
                         new Point3(x, height, y),
                         surface);
-                        world.FillLine(
-                        new Point3(x, 0, y),
-                        new Point3(x, rockLevel, y),
-                        new Block(Colours.Island.Stone));
+                    world.FillLine(
+                    new Point3(x, 0, y),
+                    new Point3(x, rockLevel, y),
+                    new Block(Colours.Island.Stone));
                     if (height < WaterLevel)
                     {
                         world.FillLine(
@@ -210,12 +210,23 @@ namespace Helveg.Landscape
                             seed: type.GetSeed());
                         break;
                 }
+                var height = world.GetHeight(center.X, center.Z);
+                // TODO: Fix this bug. This is only a workaround.
+                if (type.Kind == AnalyzedTypeKind.Struct)
+                {
+                    height += type.Size + (int)((MathF.Round(MathF.Sqrt(type.Size)) + 1) / 2);
+                }
                 if (type.Health.HasFlag(Diagnosis.Error))
                 {
-                    var height = world.GetHeight(center.X, center.Z);
                     var structureHeight = Math.Max(0, height - center.Y);
                     world.Burn(center + new Point3(0, structureHeight / 2 + 1, 0), MathF.Sqrt(type.Size));
                 }
+                world.Labels.Add(new Label
+                {
+                    Text = type.Id.Name,
+                    Position = new Vector3(center.X, height, center.Z),
+                    Size = Vector2.One * type.Size / 100f
+                });
             }
         }
 
