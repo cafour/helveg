@@ -79,9 +79,16 @@ VkPipelineColorBlendAttachmentState vku::colorBlendAttachment(
     bool blendEnable,
     VkColorComponentFlags colorWriteMask)
 {
+    // TODO: Create a better abstraction. This is too specific.
     VkPipelineColorBlendAttachmentState attachment = {};
     attachment.blendEnable = blendEnable;
     attachment.colorWriteMask = colorWriteMask;
+    attachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+    attachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE;
+    attachment.colorBlendOp = VK_BLEND_OP_ADD;
+    attachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+    attachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+    attachment.alphaBlendOp = VK_BLEND_OP_ADD;
     return attachment;
 }
 
@@ -179,7 +186,8 @@ vku::GraphicsPipeline vku::GraphicsPipeline::basic(
     size_t vertexAttributeCount,
     VkFrontFace frontFace,
     VkPrimitiveTopology topology,
-    bool hasDepthStencil)
+    bool hasDepthStencil,
+    bool allowBlending)
 {
     VkGraphicsPipelineCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -203,7 +211,7 @@ vku::GraphicsPipeline vku::GraphicsPipeline::basic(
     auto multisampleState = vku::multisampleState(VK_SAMPLE_COUNT_1_BIT);
     createInfo.pMultisampleState = &multisampleState;
 
-    auto colorBlendAttachment = vku::colorBlendAttachment(false);
+    auto colorBlendAttachment = vku::colorBlendAttachment(allowBlending);
     auto colorBlendState = vku::colorBlendState(&colorBlendAttachment, 1);
     createInfo.pColorBlendState = &colorBlendState;
 

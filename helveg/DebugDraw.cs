@@ -152,19 +152,6 @@ namespace Helveg
             var sentence = Spruce.Generate(42, 15);
             logger.LogInformation(string.Concat(sentence));
             var worldBuilder = GetDebugWorldBuilder();
-            const int tintCount = 6;
-            // for (int i = 0; i < tintCount; ++i)
-            // {
-            //     for (int j = i; j < tintCount; ++j)
-            //     {
-            //         Spruce.Draw(
-            //             sentence,
-            //             worldBuilder,
-            //             new Point3(i * 32, 0, j * 32),
-            //             new Block(Colours.Island.Wood),
-            //             new Block { PaletteIndex = (byte)((int)Colours.Island.Needles0 + (i + j) % tintCount) });
-            //     }
-            // }
             Spruce.Draw(
                 sentence,
                 worldBuilder,

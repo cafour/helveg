@@ -106,7 +106,8 @@ public:
         size_t vertexAttributeCount = 0,
         VkFrontFace frontFace = VK_FRONT_FACE_CLOCKWISE,
         VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
-        bool hasDepthStencil = true);
+        bool hasDepthStencil = true,
+        bool allowBlending = false);
 };
 
 class ComputePipeline : public DeviceRelated<VkPipeline> {

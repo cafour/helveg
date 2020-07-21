@@ -331,7 +331,10 @@ void vku::WorldRender::createTextGP()
         vertexBindings.size(),
         vertexAttributes.begin(),
         vertexAttributes.size(),
-        VK_FRONT_FACE_COUNTER_CLOCKWISE);
+        VK_FRONT_FACE_COUNTER_CLOCKWISE,
+        VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+        true,
+        true);
 }
 
 void vku::WorldRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::SwapchainFrame &frame)
