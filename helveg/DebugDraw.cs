@@ -367,7 +367,8 @@ namespace Helveg
                 palette: Colors.IslandPalette)
             {
                 // the sky is white for thesis-frienly screenshots
-                SkyColour = new Vector3(1.0f, 1.0f, 1.0f)
+                SkyColour = new Vector3(1.0f, 1.0f, 1.0f),
+                InitialCameraPosition = new Vector3(0, 0, -10)
             };
         }
     }

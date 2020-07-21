@@ -101,6 +101,11 @@ void vku::WorldRender::createMeshes()
 
 void vku::WorldRender::createLabels()
 {
+    if (_world.labelCount == 0)
+    {
+        return;
+    }
+
     std::vector<std::string> texts;
     std::vector<glm::vec3> positions;
     std::vector<glm::vec2> scales;
