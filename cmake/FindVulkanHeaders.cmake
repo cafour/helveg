@@ -1,8 +1,7 @@
 include(FetchContent)
 
 FetchContent_Declare(fetch_vulkan_headers
-GIT_REPOSITORY https://github.com/KhronosGroup/Vulkan-Headers
-)
+    GIT_REPOSITORY https://github.com/KhronosGroup/Vulkan-Headers)
 FetchContent_GetProperties(fetch_vulkan_headers)
 if(NOT fetch_vulkan_headers_POPULATED)
 FetchContent_Populate(fetch_vulkan_headers)

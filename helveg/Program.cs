@@ -30,6 +30,7 @@ namespace Helveg
         public const string VkDebugAlias = "--vk-debug";
         public const string VerboseAlias = "--verbose";
         public const string ForceAlias = "--force";
+        public const string RayTracingAlias = "--ray-tracing";
         public const int DefaultCameraElevation = 12;
 
         public static ILoggerFactory Logging = new NullLoggerFactory();
@@ -234,6 +235,9 @@ namespace Helveg
             rootCmd.AddGlobalOption(new Option<bool>(VkDebugAlias, "Enable Vulkan validation layers"));
             rootCmd.AddGlobalOption(new Option<bool>(new[] { "-v", VerboseAlias }, "Set logging level to Debug"));
             rootCmd.AddGlobalOption(new Option<bool>(new[] { "-f", ForceAlias }, "Overwrite cached results"));
+            rootCmd.AddGlobalOption(new Option<bool>(
+                alias: RayTracingAlias,
+                description: "Enable rendering with VK_KHR_ray_tracing-based"));
             rootCmd.AddArgument(new Argument<FileSystemInfo>(
                 name: "SOURCE",
                 description: "Path to a project or a solution",
@@ -262,7 +266,6 @@ namespace Helveg
             DebugGraph.AddGraphCommands(debugCmd);
             rootCmd.AddCommand(debugCmd);
 
-
             var builder = new CommandLineBuilder(rootCmd);
             builder.UseDefaults();
             builder.UseMiddleware(c =>
@@ -272,6 +275,11 @@ namespace Helveg
                 if (c.ParseResult.ValueForOption<bool>(VkDebugAlias))
                 {
                     Vku.SetDebug(true);
+                }
+
+                if (c.ParseResult.ValueForOption<bool>(RayTracingAlias))
+                {
+                    Vku.SetRayTracing(true);
                 }
 
                 LogLevel minimumLevel = c.ParseResult.ValueForOption<bool>(VerboseAlias)

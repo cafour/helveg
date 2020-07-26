@@ -72,7 +72,8 @@ vku::Device vku::Device::basic(
     VkPhysicalDevice physicalDevice,
     uint32_t queueIndex,
     const std::vector<const char *> *extensions,
-    const VkPhysicalDeviceFeatures *features)
+    const VkPhysicalDeviceFeatures *features,
+    const void *next)
 {
     float queuePriority = 1.0f;
     VkDeviceQueueCreateInfo queueCreateInfo = {};
@@ -95,6 +96,7 @@ vku::Device vku::Device::basic(
         createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions->size());
         createInfo.ppEnabledExtensionNames = extensions->data();
     }
+    createInfo.pNext = next;
 
     return vku::Device(physicalDevice, createInfo);
 }

@@ -1,25 +1,28 @@
 #include "interop.hpp"
 #include "log.hpp"
+#include "rt_render.hpp"
 
 #include <cstdlib>
 #include <functional>
 #include <iostream>
 #include <stdexcept>
 
-static bool isDebug = false;
+bool isDebug = false;
+bool isRayTraced = false;
 
 void setDebug(bool debug)
 {
     isDebug = debug;
 }
 
+void setRayTracing(bool rayTracing)
+{
+    isRayTraced = rayTracing;
+}
+
 void setLogCallback(void (*callback)(int level, const char *message))
 {
-    if (!callback) {
-        throw std::invalid_argument("The logging callback must not be false-ish.");
-    }
-
-    vku::onLog([callback](vku::LogLevel l, const std::string& m) {
+    vku::onLog([callback](vku::LogLevel l, const std::string &m) {
         callback(l, m.c_str());
     });
 }
@@ -100,7 +103,12 @@ int helloChunk(vku::Chunk chunk)
 int helloWorld(vku::World world, const char *title)
 {
     return hello([world, title]() {
-        vku::WorldRender app(1280, 720, world, title, isDebug);
-        app.renderCore().run();
+        if (isRayTraced) {
+            vku::RTRender app(1280, 720, world, title, isDebug);
+            // app.renderCore().run();
+        } else {
+            vku::WorldRender app(1280, 720, world, title, isDebug);
+            app.renderCore().run();
+        }
     });
 }

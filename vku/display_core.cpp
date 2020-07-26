@@ -7,14 +7,15 @@ vku::DisplayCore::DisplayCore(
     int width,
     int height,
     const std::string &name,
-    const std::vector<const char *> extensions,
-    const VkPhysicalDeviceFeatures *features)
+    const std::vector<const char *> &extensions,
+    const VkPhysicalDeviceFeatures *features,
+    const void *deviceCreateInfoNext)
     : _instance(instance)
 {
     _window = vku::Window::noApi(width, height, name);
     _surface = vku::Surface::glfw(_instance, _window);
     _physicalDevice = vku::findDevice(_instance, _surface, &_queueIndex, &extensions);
-    _device = vku::Device::basic(_physicalDevice, _queueIndex, &extensions, features);
+    _device = vku::Device::basic(_physicalDevice, _queueIndex, &extensions, features, deviceCreateInfoNext);
     vkGetDeviceQueue(_device, _queueIndex, 0, &_queue);
     _surfaceFormat = vku::findSurfaceFormat(physicalDevice(), surface());
     const std::vector<VkFormat> depthFormats {

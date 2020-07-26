@@ -9,6 +9,7 @@ if(NOT fetch_volk_POPULATED)
   add_subdirectory(${fetch_volk_SOURCE_DIR} ${fetch_volk_BINARY_DIR})
 endif()
 
+target_compile_definitions(volk INTERFACE VK_ENABLE_BETA_EXTENSIONS)
 if(WIN32)
     target_compile_definitions(volk INTERFACE VK_USE_PLATFORM_WIN32_KHR)
 else()

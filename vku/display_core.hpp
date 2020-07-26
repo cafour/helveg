@@ -41,8 +41,9 @@ public:
         int width,
         int height,
         const std::string &name,
-        const std::vector<const char *> extensions,
-        const VkPhysicalDeviceFeatures *features = nullptr);
+        const std::vector<const char *> &extensions,
+        const VkPhysicalDeviceFeatures *features = nullptr,
+        const void *deviceCreateInfoNext = nullptr);
 
     vku::Window &window() { return _window; }
     VkPhysicalDevice physicalDevice() { return _physicalDevice; }

@@ -17,6 +17,9 @@ namespace Helveg.Render
         [DllImport("vku", CallingConvention = CallingConvention.Cdecl)]
         private static extern bool setDebug(bool debug);
 
+        [DllImport("vku", CallingConvention = CallingConvention.Cdecl)]
+        private static extern bool setRayTracing(bool rayTracing);
+
 
         [DllImport("vku", CallingConvention = CallingConvention.Cdecl)]
         private static extern bool setLogCallback(LogHandler handler);
@@ -46,6 +49,11 @@ namespace Helveg.Render
         public static void SetDebug(bool debug)
         {
             setDebug(debug);
+        }
+
+        public static void SetRayTracing(bool rayTracing)
+        {
+            setRayTracing(rayTracing);
         }
 
         public static void SetLogCallback(LogHandler handler)

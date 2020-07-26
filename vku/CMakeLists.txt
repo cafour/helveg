@@ -1,8 +1,16 @@
 cmake_minimum_required(VERSION 3.10)
 project(vku)
 
-set(VULKAN_HEADERS_DIR "" CACHE PATH "Path to the Vulkan headers")
-include_directories(${VULKAN_HEADERS_DIR})
+if(MSVC)
+    set(CMAKE_C_FLAGS "/DWIN32 /D_WINDOWS /W4")
+    set(CMAKE_C_FLAGS_DEBUG "/D_DEBUG /MTd /Zi /Ob0 /Od /RTC1")
+    set(CMAKE_C_FLAGS_RELEASE "/D NDEBUG /MT /O2 /Ob2")
+    set(CMAKE_CXX_FLAGS "/DWIN32 /D_WINDOWS /W4 /GR /EHsc")
+    set(CMAKE_CXX_FLAGS_DEBUG "/D_DEBUG /MTd /Zi /Ob0 /Od /RTC1")
+    set(CMAKE_CXX_FLAGS_RELEASE "/D NDEBUG /MT /O2 /Ob2")
+else()
+    target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -pedantic)
+endif()
 
 find_package(VulkanHeaders REQUIRED)
 find_package(Volk REQUIRED)
@@ -62,6 +70,8 @@ set(VKU_SOURCES
     mesh_core.cpp
     camera_core.hpp
     camera_core.cpp
+    text_core.hpp
+    text_core.cpp
     
     # renders
     triangle_render.hpp
@@ -74,8 +84,8 @@ set(VKU_SOURCES
     chunk_render.cpp
     world_render.hpp
     world_render.cpp
-    text_core.hpp
-    text_core.cpp)
+    rt_render.hpp
+    rt_render.cpp)
 
 add_library(${PROJECT_NAME} SHARED ${VKU_SOURCES})
 set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
@@ -87,17 +97,6 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
     CXX_VISIBILITY_PRESET hidden
     CXX_STANDARD 17
     CXX_STANDARD_REQUIRED True)
-
-if(MSVC)
-    set(CMAKE_C_FLAGS "/DWIN32 /D_WINDOWS /W4")
-    set(CMAKE_C_FLAGS_DEBUG "/D_DEBUG /MTd /Zi /Ob0 /Od /RTC1")
-    set(CMAKE_C_FLAGS_RELEASE "/D NDEBUG /MT /O2 /Ob2")
-    set(CMAKE_CXX_FLAGS "/DWIN32 /D_WINDOWS /W4 /GR /EHsc")
-    set(CMAKE_CXX_FLAGS_DEBUG "/D_DEBUG /MTd /Zi /Ob0 /Od /RTC1")
-    set(CMAKE_CXX_FLAGS_RELEASE "/D NDEBUG /MT /O2 /Ob2")
-else()
-    target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -pedantic)
-endif()
 
 string(LENGTH "${CMAKE_SOURCE_DIR}/" ROOT_PATH_LENGTH)
 target_compile_definitions(${PROJECT_NAME} PUBLIC ROOT_PATH_LENGTH=${ROOT_PATH_LENGTH})

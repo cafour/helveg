@@ -61,6 +61,7 @@ public:
         VkPhysicalDevice physicalDevice,
         uint32_t queueIndex,
         const std::vector<const char*> *extensions = nullptr,
-        const VkPhysicalDeviceFeatures *features = nullptr);
+        const VkPhysicalDeviceFeatures *features = nullptr,
+        const void *next = nullptr);
 };
 }
