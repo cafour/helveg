@@ -16,19 +16,22 @@ const std::vector<const char*> requiredDevicesExtensions = std::vector<const cha
     VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME
 };
 
-const VkPhysicalDeviceRayTracingFeaturesKHR next = {
+const VkPhysicalDeviceRayTracingFeaturesKHR rtFeatures = {
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_FEATURES_KHR
 };
 
 vku::RTRender::RTRender(int width, int height, World world, const std::string &title, bool debug)
     : _instanceCore("RTRender", true, true)
-    , _displayCore(_instanceCore.instance(), width, height, "RTRender", requiredDevicesExtensions, nullptr, &next)
+    , _displayCore(_instanceCore.instance(), width, height, "RTRender", requiredDevicesExtensions, nullptr, &rtFeatures)
     , _swapchainCore(_displayCore)
     , _renderCore(
         _displayCore,
         _swapchainCore,
         [this](auto &f) { return createFramebuffer(f); },
         [this](auto cb, auto &f) { recordCommandBuffer(cb, f); })
+    , _rtProperties(vku::findProperties<VkPhysicalDeviceRayTracingPropertiesKHR>(
+        _displayCore.physicalDevice(),
+        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PROPERTIES_KHR))
 {
 }
 

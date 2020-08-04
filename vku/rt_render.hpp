@@ -13,6 +13,8 @@ private:
     vku::SwapchainCore _swapchainCore;
     vku::RenderCore _renderCore;
 
+    VkPhysicalDeviceRayTracingPropertiesKHR _rtProperties;
+
     void recordCommandBuffer(VkCommandBuffer commandBuffer, vku::SwapchainFrame &frame);
     vku::Framebuffer createFramebuffer(vku::SwapchainFrame &frame);
 

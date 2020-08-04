@@ -13,6 +13,11 @@
 
 namespace vku {
 
+struct StructureHeader {
+    VkStructureType sType;
+    void *pNext;
+};
+
 void log(VkResult result, const char *filename, int line, const char *what);
 
 void ensure(VkResult result, const char *filename, int line, const char *what);
@@ -73,6 +78,20 @@ VkFormat findSupportedFormat(
     const std::vector<VkFormat> &candidates,
     VkImageTiling tiling,
     VkFormatFeatureFlags features);
+
+template <typename Properties>
+Properties findProperties(
+    VkPhysicalDevice physicalDevice,
+    VkStructureType propertiesType)
+{
+    Properties result = {};
+    result.sType = propertiesType;
+    VkPhysicalDeviceProperties2 properties = {};
+    properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
+    properties.pNext = &result;
+    vkGetPhysicalDeviceProperties2(physicalDevice, &properties);
+    return result;
+}
 
 void recordImageLayoutChange(
     VkCommandBuffer cb,
