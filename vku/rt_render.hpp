@@ -14,9 +14,11 @@ private:
     vku::RenderCore _renderCore;
 
     VkPhysicalDeviceRayTracingPropertiesKHR _rtProperties;
+    vku::AccelerationStructure _blas;
 
     void recordCommandBuffer(VkCommandBuffer commandBuffer, vku::SwapchainFrame &frame);
     vku::Framebuffer createFramebuffer(vku::SwapchainFrame &frame);
+    void createBlas(vku::MeshCore &mesh);
 
 public:
     RTRender(int width, int height, World world, const std::string &title, bool debug = false);

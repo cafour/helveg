@@ -187,4 +187,13 @@ public:
         size_t dataSize);
 };
 
+class AccelerationStructure : public DeviceConstructible<
+                                  VkAccelerationStructureKHR,
+                                  VkAccelerationStructureCreateInfoKHR,
+                                  &vkCreateAccelerationStructureKHR,
+                                  &vkDestroyAccelerationStructureKHR> {
+public:
+    using DeviceConstructible::DeviceConstructible;
+};
+
 }

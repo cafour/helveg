@@ -300,6 +300,28 @@ void vku::deviceDeviceCopy(
     ENSURE(vkQueueWaitIdle(transferQueue));
 }
 
+VkDeviceAddress vku::getBufferAddress(VkDevice device, VkBuffer buffer)
+{
+    VkBufferDeviceAddressInfo addressInfo = {};
+    addressInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
+    addressInfo.buffer = buffer;
+    return vkGetBufferDeviceAddress(device, &addressInfo);
+}
+
+VkDeviceOrHostAddressConstKHR addressConst(VkDeviceAddress deviceAddress)
+{
+    VkDeviceOrHostAddressConstKHR address = {};
+    address.deviceAddress = deviceAddress;
+    return address;
+}
+
+VkDeviceOrHostAddressConstKHR addressConst(const void *hostAddress)
+{
+    VkDeviceOrHostAddressConstKHR address = {};
+    address.hostAddress = hostAddress;
+    return address;
+}
+
 void vku::fillBuffer(
     VkDevice device,
     VkCommandPool commandPool,

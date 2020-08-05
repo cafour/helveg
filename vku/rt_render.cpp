@@ -43,3 +43,47 @@ vku::Framebuffer vku::RTRender::createFramebuffer(vku::SwapchainFrame &frame)
 {
     return {};
 }
+
+void vku::RTRender::createBlas(vku::MeshCore &mesh)
+{
+    // prepare a single geometry object
+
+    VkAccelerationStructureCreateGeometryTypeInfoKHR geometryCreate = {};
+    geometryCreate.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_GEOMETRY_TYPE_INFO_KHR;
+    geometryCreate.geometryType = VK_GEOMETRY_TYPE_TRIANGLES_KHR;
+    geometryCreate.indexType = VK_INDEX_TYPE_UINT32;
+    geometryCreate.vertexFormat = VK_FORMAT_R32G32B32_SFLOAT;
+    geometryCreate.maxPrimitiveCount = mesh.indexCount() / 3;
+    geometryCreate.maxVertexCount = mesh.vertexCount();
+    geometryCreate.allowsTransforms = VK_FALSE;
+
+    VkAccelerationStructureGeometryTrianglesDataKHR triangles = {};
+    triangles.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_TRIANGLES_DATA_KHR;
+    triangles.vertexFormat = geometryCreate.vertexFormat;
+    triangles.vertexData = vku::addressConst(vku::getBufferAddress(_displayCore.device(), mesh.vertexBuffer()));
+    triangles.vertexStride = sizeof(glm::vec3);
+    triangles.indexType = geometryCreate.indexType;
+    triangles.indexData = vku::addressConst(vku::getBufferAddress(_displayCore.device(), mesh.indexBuffer()));
+
+    VkAccelerationStructureGeometryKHR geometry = {};
+    geometry.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR;
+    geometry.flags = VK_GEOMETRY_OPAQUE_BIT_KHR;
+    geometry.geometry.triangles = triangles;
+    geometry.geometryType = VK_GEOMETRY_TYPE_TRIANGLES_KHR;
+
+    VkAccelerationStructureBuildOffsetInfoKHR offset = {};
+    offset.firstVertex = 0;
+    offset.primitiveCount = geometryCreate.maxPrimitiveCount;
+    offset.primitiveOffset = 0;
+    offset.transformOffset = 0;
+
+    // create the blas
+
+    VkAccelerationStructureCreateInfoKHR blasCreate = {};
+    blasCreate.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_INFO_KHR;
+    blasCreate.flags = VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR;
+    blasCreate.maxGeometryCount = 1; // TODO: Change once you actually create more than one geometry.
+    blasCreate.pGeometryInfos = &geometryCreate;
+
+    _blas = vku::AccelerationStructure(_displayCore.device(), blasCreate);
+}
