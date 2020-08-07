@@ -8,8 +8,6 @@ if(MSVC)
     set(CMAKE_CXX_FLAGS "/DWIN32 /D_WINDOWS /W4 /GR /EHsc")
     set(CMAKE_CXX_FLAGS_DEBUG "/D_DEBUG /MTd /Zi /Ob0 /Od /RTC1")
     set(CMAKE_CXX_FLAGS_RELEASE "/D NDEBUG /MT /O2 /Ob2")
-else()
-    target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -pedantic)
 endif()
 
 find_package(VulkanHeaders REQUIRED)
@@ -97,6 +95,10 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
     CXX_VISIBILITY_PRESET hidden
     CXX_STANDARD 17
     CXX_STANDARD_REQUIRED True)
+
+if(NOT MSVC)
+    target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -pedantic)
+endif()
 
 string(LENGTH "${CMAKE_SOURCE_DIR}/" ROOT_PATH_LENGTH)
 target_compile_definitions(${PROJECT_NAME} PUBLIC ROOT_PATH_LENGTH=${ROOT_PATH_LENGTH})
