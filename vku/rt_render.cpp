@@ -60,10 +60,10 @@ void vku::RTRender::createBlas(vku::MeshCore &mesh)
     VkAccelerationStructureGeometryTrianglesDataKHR triangles = {};
     triangles.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_TRIANGLES_DATA_KHR;
     triangles.vertexFormat = geometryCreate.vertexFormat;
-    triangles.vertexData = vku::addressConst(vku::getBufferAddress(_displayCore.device(), mesh.vertexBuffer()));
+    triangles.vertexData.deviceAddress = vku::getBufferAddress(_displayCore.device(), mesh.vertexBuffer());
     triangles.vertexStride = sizeof(glm::vec3);
     triangles.indexType = geometryCreate.indexType;
-    triangles.indexData = vku::addressConst(vku::getBufferAddress(_displayCore.device(), mesh.indexBuffer()));
+    triangles.indexData.deviceAddress = vku::getBufferAddress(_displayCore.device(), mesh.indexBuffer());
 
     VkAccelerationStructureGeometryKHR geometry = {};
     geometry.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR;

@@ -95,10 +95,6 @@ Properties findProperties(
 
 VkDeviceAddress getBufferAddress(VkDevice device, VkBuffer buffer);
 
-VkDeviceOrHostAddressConstKHR addressConst(VkDeviceAddress deviceAddress);
-
-VkDeviceOrHostAddressConstKHR addressConst(const void *hostAddress);
-
 void recordImageLayoutChange(
     VkCommandBuffer cb,
     VkImage image,

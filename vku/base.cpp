@@ -308,20 +308,6 @@ VkDeviceAddress vku::getBufferAddress(VkDevice device, VkBuffer buffer)
     return vkGetBufferDeviceAddress(device, &addressInfo);
 }
 
-VkDeviceOrHostAddressConstKHR addressConst(VkDeviceAddress deviceAddress)
-{
-    VkDeviceOrHostAddressConstKHR address = {};
-    address.deviceAddress = deviceAddress;
-    return address;
-}
-
-VkDeviceOrHostAddressConstKHR addressConst(const void *hostAddress)
-{
-    VkDeviceOrHostAddressConstKHR address = {};
-    address.hostAddress = hostAddress;
-    return address;
-}
-
 void vku::fillBuffer(
     VkDevice device,
     VkCommandPool commandPool,
