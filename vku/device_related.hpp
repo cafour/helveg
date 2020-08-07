@@ -159,7 +159,8 @@ public:
         VkPhysicalDevice physicalDevice,
         VkDevice device,
         VkBuffer buffer,
-        VkMemoryPropertyFlags requiredProperties);
+        VkMemoryPropertyFlags requiredProperties,
+        VkMemoryAllocateFlags flags = 0);
 
     static DeviceMemory forImage(
         VkPhysicalDevice physicalDevice,
@@ -175,7 +176,8 @@ public:
     static DeviceMemory deviceLocalBuffer(
         VkPhysicalDevice physicalDevice,
         VkDevice device,
-        VkBuffer buffer);
+        VkBuffer buffer,
+        VkMemoryAllocateFlags flags = 0);
 
     static DeviceMemory deviceLocalData(
         VkPhysicalDevice physicalDevice,
@@ -184,7 +186,8 @@ public:
         VkQueue transferQueue,
         VkBuffer buffer,
         const void *data,
-        size_t dataSize);
+        size_t dataSize,
+        VkMemoryAllocateFlags flags = 0);
 };
 
 class AccelerationStructure : public DeviceConstructible<

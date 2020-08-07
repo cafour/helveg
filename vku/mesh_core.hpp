@@ -28,9 +28,13 @@ public:
         size_t vertexCount,
         const uint32_t *indices,
         size_t indexCount,
-        const glm::vec3 *colors = nullptr);
+        const glm::vec3 *colors = nullptr,
+        bool addressable = false);
 
-    static std::optional<MeshCore> fromChunk(vku::TransferCore& transferCore, vku::Chunk chunk);
+    static std::optional<MeshCore> fromChunk(
+        vku::TransferCore& transferCore,
+        vku::Chunk chunk,
+        bool addresable = false);
 
     vku::Buffer &vertexBuffer() { return _vertexBuffer; }
     vku::DeviceMemory &vertexMemory() { return _vertexMemory; }

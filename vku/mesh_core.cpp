@@ -9,7 +9,8 @@ vku::MeshCore::MeshCore(
     size_t vertexCount,
     const uint32_t *indices,
     size_t indexCount,
-    const glm::vec3 *colors)
+    const glm::vec3 *colors,
+    bool addressable)
     : _vertexCount(vertexCount)
     , _indexCount(indexCount)
 {
@@ -30,14 +31,19 @@ vku::MeshCore::MeshCore(
     if (colors) {
         vku::hostDeviceCopy(transferCore.device(), colors, stagingMemory, vertexBufferSize, vertexBufferSize);
     }
+    auto vertexFlags = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+    if (addressable) {
+        vertexFlags |= VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
+    }
     _vertexBuffer = vku::Buffer::exclusive(
         transferCore.device(),
         totalVertexBufferSize,
-        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
+        vertexFlags);
     _vertexMemory = vku::DeviceMemory::deviceLocalBuffer(
         transferCore.physicalDevice(),
         transferCore.device(),
-        _vertexBuffer);
+        _vertexBuffer,
+        VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT);
     vku::deviceDeviceCopy(
         transferCore.device(),
         transferCore.transferPool(),
@@ -46,10 +52,14 @@ vku::MeshCore::MeshCore(
         _vertexBuffer,
         totalVertexBufferSize);
 
+    auto indexFlags = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+    if (addressable) {
+        indexFlags |= VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
+    }
     _indexBuffer = vku::Buffer::exclusive(
         transferCore.device(),
         indexCount * sizeof(uint32_t),
-        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
+        indexFlags);
     _indexMemory = vku::DeviceMemory::deviceLocalData(
         transferCore.physicalDevice(),
         transferCore.device(),
@@ -57,7 +67,8 @@ vku::MeshCore::MeshCore(
         transferCore.transferQueue(),
         _indexBuffer,
         indices,
-        indexCount * sizeof(uint32_t));
+        indexCount * sizeof(uint32_t),
+        VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT);
 }
 
 static void pushCube(
@@ -125,7 +136,10 @@ static void pushCube(
     }
 }
 
-std::optional<vku::MeshCore> vku::MeshCore::fromChunk(vku::TransferCore &transferCore, vku::Chunk chunk)
+std::optional<vku::MeshCore> vku::MeshCore::fromChunk(
+    vku::TransferCore &transferCore,
+    vku::Chunk chunk,
+    bool addressable)
 {
     if (!chunk.palette || !chunk.voxels || !chunk.size) {
         throw std::invalid_argument("the chunk is not valid");
@@ -154,5 +168,12 @@ std::optional<vku::MeshCore> vku::MeshCore::fromChunk(vku::TransferCore &transfe
         return std::nullopt;
     }
 
-    return vku::MeshCore(transferCore, vertices.data(), vertices.size(), indices.data(), indices.size(), colors.data());
+    return vku::MeshCore(
+        transferCore,
+        vertices.data(),
+        vertices.size(),
+        indices.data(),
+        indices.size(),
+        colors.data(),
+        addressable);
 }

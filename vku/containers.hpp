@@ -104,6 +104,31 @@ public:
         info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
         return info;
     }
+
+    static vku::CommandBuffers beginSingle(VkDevice device, VkCommandPool commandPool)
+    {
+        auto allocateInfo = vku::CommandBuffers::allocateInfo();
+        allocateInfo.commandPool = commandPool;
+        allocateInfo.commandBufferCount = 1;
+        allocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        vku::CommandBuffers commandBuffers(device, allocateInfo);
+
+        auto beginInfo = vku::CommandBuffers::beginInfo();
+        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+        ENSURE(vkBeginCommandBuffer(commandBuffers[0], &beginInfo));
+
+        return commandBuffers;
+    }
+
+    static void submitSingle(vku::CommandBuffers &commandBuffers, VkQueue queue)
+    {
+        VkSubmitInfo submitInfo = {};
+        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        submitInfo.commandBufferCount = 1;
+        submitInfo.pCommandBuffers = commandBuffers;
+        ENSURE(vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE));
+        ENSURE(vkQueueWaitIdle(queue));
+    }
 };
 
 }

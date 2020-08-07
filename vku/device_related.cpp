@@ -170,13 +170,19 @@ vku::DeviceMemory vku::DeviceMemory::forBuffer(
     VkPhysicalDevice physicalDevice,
     VkDevice device,
     VkBuffer buffer,
-    VkMemoryPropertyFlags requiredProperties)
+    VkMemoryPropertyFlags requiredProperties,
+    VkMemoryAllocateFlags flags)
 {
     VkMemoryRequirements memoryRequirements;
     vkGetBufferMemoryRequirements(device, buffer, &memoryRequirements);
 
+    VkMemoryAllocateFlagsInfo flagsInfo = {};
+    flagsInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_FLAGS_INFO;
+    flagsInfo.flags = flags;
+
     VkMemoryAllocateInfo allocateInfo = {};
     allocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocateInfo.pNext = &flagsInfo;
     allocateInfo.allocationSize = memoryRequirements.size;
     allocateInfo.memoryTypeIndex = vku::findMemoryType(
         physicalDevice,
@@ -223,13 +229,15 @@ vku::DeviceMemory vku::DeviceMemory::hostCoherentBuffer(
 vku::DeviceMemory vku::DeviceMemory::deviceLocalBuffer(
     VkPhysicalDevice physicalDevice,
     VkDevice device,
-    VkBuffer buffer)
+    VkBuffer buffer,
+    VkMemoryAllocateFlags flags)
 {
     return vku::DeviceMemory::forBuffer(
         physicalDevice,
         device,
         buffer,
-        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+        flags);
 }
 
 vku::DeviceMemory vku::DeviceMemory::deviceLocalData(
@@ -239,14 +247,15 @@ vku::DeviceMemory vku::DeviceMemory::deviceLocalData(
     VkQueue transferQueue,
     VkBuffer buffer,
     const void *data,
-    size_t dataSize)
+    size_t dataSize,
+    VkMemoryAllocateFlags flags)
 {
     auto stagingBuffer = vku::Buffer::exclusive(device, dataSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
     auto stagingMemory = vku::DeviceMemory::hostCoherentBuffer(physicalDevice, device, stagingBuffer);
 
     vku::hostDeviceCopy(device, data, stagingMemory, dataSize);
 
-    auto memory = vku::DeviceMemory::deviceLocalBuffer(physicalDevice, device, buffer);
+    auto memory = vku::DeviceMemory::deviceLocalBuffer(physicalDevice, device, buffer, flags);
     vku::deviceDeviceCopy(device, copyPool, transferQueue, stagingBuffer, buffer, dataSize);
     return memory;
 }
