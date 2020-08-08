@@ -273,31 +273,21 @@ void vku::deviceDeviceCopy(
     VkBuffer dst,
     VkDeviceSize size)
 {
-    VkCommandBufferAllocateInfo allocateInfo = {};
-    allocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    allocateInfo.commandPool = commandPool;
-    allocateInfo.commandBufferCount = 1;
-    allocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    vku::CommandBuffers commandBuffers(device, allocateInfo);
+    auto commandBuffers = vku::CommandBuffers::beginSingle(device, commandPool);
+    deviceDeviceCopy(commandBuffers[0], src, dst, size);
+    ENSURE(vkEndCommandBuffer(commandBuffers[0]));
+    vku::CommandBuffers::submitSingle(commandBuffers, transferQueue);
+}
 
-    VkCommandBufferBeginInfo beginInfo = {};
-    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-    ENSURE(vkBeginCommandBuffer(commandBuffers[0], &beginInfo));
-
+void vku::deviceDeviceCopy(
+    VkCommandBuffer cmd,
+    VkBuffer src,
+    VkBuffer dst,
+    VkDeviceSize size)
+{
     VkBufferCopy copy = {};
     copy.size = size;
-    vkCmdCopyBuffer(commandBuffers[0], src, dst, 1, &copy);
-
-    ENSURE(vkEndCommandBuffer(commandBuffers[0]));
-
-    VkSubmitInfo submitInfo = {};
-    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = commandBuffers;
-    ENSURE(vkQueueSubmit(transferQueue, 1, &submitInfo, VK_NULL_HANDLE));
-
-    ENSURE(vkQueueWaitIdle(transferQueue));
+    vkCmdCopyBuffer(cmd, src, dst, 1, &copy);
 }
 
 VkDeviceAddress vku::getBufferAddress(VkDevice device, VkBuffer buffer)

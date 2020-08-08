@@ -38,6 +38,11 @@ private:
     vku::Framebuffer createFramebuffer(vku::SwapchainFrame &frame);
     vku::GeometryInfo createGeometry(vku::MeshCore &mesh);
     vku::AccelerationStructure createBlas(vku::GeometriesInfo &geometries);
+    VkAccelerationStructureInstanceKHR createASInstance(
+        VkAccelerationStructureKHR as,
+        glm::mat4 transform,
+        uint32_t instanceId);
+    vku::AccelerationStructure createTlas(std::vector<VkAccelerationStructureInstanceKHR> &instances);
 
 public:
     RTRender(int width, int height, World world, const std::string &title, bool debug = false);

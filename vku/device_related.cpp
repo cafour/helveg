@@ -250,12 +250,26 @@ vku::DeviceMemory vku::DeviceMemory::deviceLocalData(
     size_t dataSize,
     VkMemoryAllocateFlags flags)
 {
-    auto stagingBuffer = vku::Buffer::exclusive(device, dataSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
-    auto stagingMemory = vku::DeviceMemory::hostCoherentBuffer(physicalDevice, device, stagingBuffer);
-
-    vku::hostDeviceCopy(device, data, stagingMemory, dataSize);
+    auto staging = vku::stagingBuffer(physicalDevice, device, dataSize);
+    vku::hostDeviceCopy(device, data, staging.memory, dataSize);
 
     auto memory = vku::DeviceMemory::deviceLocalBuffer(physicalDevice, device, buffer, flags);
-    vku::deviceDeviceCopy(device, copyPool, transferQueue, stagingBuffer, buffer, dataSize);
+    vku::deviceDeviceCopy(device, copyPool, transferQueue, staging.buffer, buffer, dataSize);
     return memory;
+}
+
+vku::BackedBuffer vku::stagingBuffer(
+    VkPhysicalDevice physicalDevice,
+    VkDevice device,
+    size_t dataSize,
+    const void *data)
+{
+    auto buffer = vku::Buffer::exclusive(device, dataSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+    auto memory = vku::DeviceMemory::hostCoherentBuffer(physicalDevice, device, buffer);
+
+    if (data) {
+        vku::hostDeviceCopy(device, data, memory, dataSize);
+    }
+
+    return { std::move(buffer), std::move(memory) };
 }

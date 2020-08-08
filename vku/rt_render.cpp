@@ -1,5 +1,6 @@
 #include "rt_render.hpp"
 
+#include <glm/gtc/matrix_transform.hpp>
 #include <vector>
 
 /*
@@ -22,7 +23,7 @@ static VkPhysicalDeviceVulkan12Features getDeviceFeatures()
     features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
     features.bufferDeviceAddress = VK_TRUE;
     return features;
-} 
+}
 
 VkPhysicalDeviceVulkan12Features deviceFeatures = getDeviceFeatures();
 
@@ -53,6 +54,9 @@ vku::RTRender::RTRender(int width, int height, World world, const std::string &t
     geometries.geometries.push_back(geometryInfo.geometry);
     geometries.offsets.push_back(geometryInfo.offset);
     auto blas = createBlas(geometries);
+    auto asInstance = createASInstance(blas, glm::translate(glm::mat4(1), _world.chunkOffsets[0]), 0);
+    std::vector instances { asInstance };
+    auto tlas = createTlas(instances);
 }
 
 void vku::RTRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::SwapchainFrame &frame)
@@ -62,6 +66,56 @@ void vku::RTRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::Swap
 vku::Framebuffer vku::RTRender::createFramebuffer(vku::SwapchainFrame &frame)
 {
     return {};
+}
+
+// returns the scratch and object size of an accelaration structure
+static VkDeviceSize getASSize(
+    VkDevice device,
+    VkAccelerationStructureKHR as,
+    VkAccelerationStructureMemoryRequirementsTypeKHR sizeType)
+{
+    VkAccelerationStructureMemoryRequirementsInfoKHR asReqs = {};
+    asReqs.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_MEMORY_REQUIREMENTS_INFO_KHR;
+    asReqs.type = sizeType;
+    asReqs.accelerationStructure = as;
+    asReqs.buildType = VK_ACCELERATION_STRUCTURE_BUILD_TYPE_DEVICE_KHR;
+
+    VkMemoryRequirements2 memReqs = {};
+    memReqs.sType = VK_STRUCTURE_TYPE_MEMORY_REQUIREMENTS_2;
+
+    vkGetAccelerationStructureMemoryRequirementsKHR(device, &asReqs, &memReqs);
+    return memReqs.memoryRequirements.size;
+}
+
+static vku::BackedBuffer getRTBuffer(
+    VkPhysicalDevice physicalDevice,
+    VkDevice device,
+    VkDeviceSize size)
+{
+    auto buffer = vku::Buffer::exclusive(
+        device,
+        size,
+        VK_BUFFER_USAGE_RAY_TRACING_BIT_KHR
+            | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT
+            | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
+    auto memory = vku::DeviceMemory::deviceLocalBuffer(
+        physicalDevice,
+        device,
+        buffer,
+        VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT);
+    return { std::move(buffer), std::move(memory) };
+}
+
+static vku::BackedBuffer getScratch(
+    VkPhysicalDevice physicalDevice,
+    VkDevice device,
+    VkAccelerationStructureKHR as)
+{
+    auto scratchSize = getASSize(
+        device,
+        as,
+        VK_ACCELERATION_STRUCTURE_MEMORY_REQUIREMENTS_TYPE_BUILD_SCRATCH_KHR);
+    return getRTBuffer(physicalDevice, device, scratchSize);
 }
 
 vku::GeometryInfo vku::RTRender::createGeometry(vku::MeshCore &mesh)
@@ -106,36 +160,12 @@ vku::AccelerationStructure vku::RTRender::createBlas(vku::GeometriesInfo &geomet
     blasCreate.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_INFO_KHR;
     blasCreate.type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
     blasCreate.flags = VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR;
-    blasCreate.maxGeometryCount = geometries.createInfos.size();
+    blasCreate.maxGeometryCount = static_cast<uint32_t>(geometries.createInfos.size());
     blasCreate.pGeometryInfos = geometries.createInfos.data();
     auto blas = vku::AccelerationStructure(_displayCore.device(), blasCreate);
 
-    VkAccelerationStructureMemoryRequirementsInfoKHR asReqs = {};
-    asReqs.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_MEMORY_REQUIREMENTS_INFO_KHR;
-    asReqs.type = VK_ACCELERATION_STRUCTURE_MEMORY_REQUIREMENTS_TYPE_BUILD_SCRATCH_KHR;
-    asReqs.accelerationStructure = blas;
-    asReqs.buildType = VK_ACCELERATION_STRUCTURE_BUILD_TYPE_DEVICE_KHR;
-
-    VkMemoryRequirements2 memReqs = {};
-    memReqs.sType = VK_STRUCTURE_TYPE_MEMORY_REQUIREMENTS_2;
-
-    vkGetAccelerationStructureMemoryRequirementsKHR(_displayCore.device(), &asReqs, &memReqs);
-    VkDeviceSize scratchSize = memReqs.memoryRequirements.size;
-
-    asReqs.type = VK_ACCELERATION_STRUCTURE_MEMORY_REQUIREMENTS_TYPE_OBJECT_KHR;
-    vkGetAccelerationStructureMemoryRequirementsKHR(_displayCore.device(), &asReqs, &memReqs);
-    VkDeviceSize objectSize = memReqs.memoryRequirements.size;
-
-    auto scratchBuffer = vku::Buffer::exclusive(
-        _displayCore.device(),
-        scratchSize,
-        VK_BUFFER_USAGE_RAY_TRACING_BIT_KHR | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT);
-    auto scratchMemory = vku::DeviceMemory::deviceLocalBuffer(
-        _displayCore.physicalDevice(),
-        _displayCore.device(),
-        scratchBuffer,
-        VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT);
-    VkDeviceAddress scratchAddress = vku::getBufferAddress(_displayCore.device(), scratchBuffer);
+    auto scratch = getScratch(_displayCore.physicalDevice(), _displayCore.device(), blas);
+    VkDeviceAddress scratchAddress = vku::getBufferAddress(_displayCore.device(), scratch.buffer);
 
     auto commandBuffers = vku::CommandBuffers::beginSingle(_displayCore.device(), _renderCore.commandPool());
     auto cmd = commandBuffers.front();
@@ -152,8 +182,8 @@ vku::AccelerationStructure vku::RTRender::createBlas(vku::GeometriesInfo &geomet
     buildInfo.ppGeometries = &pGeometries;
     buildInfo.scratchData.deviceAddress = scratchAddress;
 
-    std::vector<const VkAccelerationStructureBuildOffsetInfoKHR*> pOffsets(geometries.offsets.size());
-    for(size_t i = 0; i < geometries.offsets.size(); ++i) {
+    std::vector<const VkAccelerationStructureBuildOffsetInfoKHR *> pOffsets(geometries.offsets.size());
+    for (size_t i = 0; i < geometries.offsets.size(); ++i) {
         pOffsets[i] = &geometries.offsets[i];
     }
     vkCmdBuildAccelerationStructureKHR(cmd, 1, &buildInfo, pOffsets.data());
@@ -161,4 +191,106 @@ vku::AccelerationStructure vku::RTRender::createBlas(vku::GeometriesInfo &geomet
     vku::CommandBuffers::submitSingle(commandBuffers, _displayCore.queue());
 
     return blas;
+}
+
+VkAccelerationStructureInstanceKHR vku::RTRender::createASInstance(
+    VkAccelerationStructureKHR as,
+    glm::mat4 transform,
+    uint32_t instanceId)
+{
+    VkAccelerationStructureInstanceKHR instance = {};
+    std::copy(&transform[0][0], &transform[3][0], &instance.transform.matrix[0][0]);
+    instance.instanceCustomIndex = instanceId;
+    instance.mask = 0xff;
+    instance.instanceShaderBindingTableRecordOffset = 0;
+    instance.flags = VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR;
+
+    VkAccelerationStructureDeviceAddressInfoKHR addressInfo = {};
+    addressInfo.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_DEVICE_ADDRESS_INFO_KHR;
+    addressInfo.accelerationStructure = as;
+
+    instance.accelerationStructureReference = vkGetAccelerationStructureDeviceAddressKHR(
+        _displayCore.device(),
+        &addressInfo);
+    return instance;
+}
+
+vku::AccelerationStructure vku::RTRender::createTlas(std::vector<VkAccelerationStructureInstanceKHR> &instances)
+{
+    VkAccelerationStructureCreateGeometryTypeInfoKHR geometryCreate = {};
+    geometryCreate.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_GEOMETRY_TYPE_INFO_KHR;
+    geometryCreate.geometryType = VK_GEOMETRY_TYPE_INSTANCES_KHR;
+    geometryCreate.maxPrimitiveCount = static_cast<uint32_t>(instances.size());
+    geometryCreate.allowsTransforms = VK_TRUE;
+
+    VkAccelerationStructureCreateInfoKHR tlasCreate = {};
+    tlasCreate.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_INFO_KHR;
+    tlasCreate.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
+    tlasCreate.flags = VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR;
+    tlasCreate.maxGeometryCount = 1;
+    tlasCreate.pGeometryInfos = &geometryCreate;
+    auto tlas = vku::AccelerationStructure(_displayCore.device(), tlasCreate);
+
+    auto scratch = getScratch(_displayCore.physicalDevice(), _displayCore.device(), tlas);
+    auto scratchAddress = vku::getBufferAddress(_displayCore.device(), scratch.buffer);
+
+    auto commandBuffers = vku::CommandBuffers::beginSingle(_displayCore.device(), _renderCore.commandPool());
+    auto cmd = commandBuffers[0];
+
+    auto instancesSize = sizeof(VkAccelerationStructureInstanceKHR) * instances.size();
+    auto instancesBuffer = getRTBuffer(_displayCore.physicalDevice(), _displayCore.device(), instancesSize);
+    auto instancesAddress = vku::getBufferAddress(_displayCore.device(), instancesBuffer.buffer);
+
+    auto staging = vku::stagingBuffer(
+        _displayCore.physicalDevice(),
+        _displayCore.device(),
+        instancesSize,
+        instances.data());
+    vku::deviceDeviceCopy(cmd, staging.buffer, instancesBuffer.buffer, instancesSize);
+
+    VkMemoryBarrier barrier = {};
+    barrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+    barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+    barrier.dstAccessMask = VK_ACCESS_ACCELERATION_STRUCTURE_WRITE_BIT_KHR;
+    vkCmdPipelineBarrier(
+        cmd,
+        VK_PIPELINE_STAGE_TRANSFER_BIT, // srcStage
+        VK_PIPELINE_STAGE_ACCELERATION_STRUCTURE_BUILD_BIT_KHR,
+        0,
+        1,
+        &barrier,
+        0,
+        nullptr,
+        0,
+        nullptr);
+
+    VkAccelerationStructureGeometryDataKHR geometryData = {};
+    geometryData.instances.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_INSTANCES_DATA_KHR;
+    geometryData.instances.data.deviceAddress = instancesAddress;
+
+    VkAccelerationStructureGeometryKHR geometry = {};
+    geometry.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR;
+    geometry.geometryType = VK_GEOMETRY_TYPE_INSTANCES_KHR;
+    geometry.geometry = geometryData;
+
+    const VkAccelerationStructureGeometryKHR *pGeometries = &geometry;
+    VkAccelerationStructureBuildGeometryInfoKHR buildInfo = {};
+    buildInfo.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR;
+    buildInfo.flags = tlasCreate.flags;
+    buildInfo.update = VK_FALSE;
+    buildInfo.srcAccelerationStructure = VK_NULL_HANDLE;
+    buildInfo.dstAccelerationStructure = tlas;
+    buildInfo.geometryArrayOfPointers = VK_FALSE;
+    buildInfo.geometryCount = 1;
+    buildInfo.ppGeometries = &pGeometries;
+    buildInfo.scratchData.deviceAddress = scratchAddress;
+
+    VkAccelerationStructureBuildOffsetInfoKHR offset = {};
+    offset.primitiveCount = static_cast<uint32_t>(instances.size());
+    const VkAccelerationStructureBuildOffsetInfoKHR *pOffset = &offset;
+    vkCmdBuildAccelerationStructureKHR(cmd, 1, &buildInfo, &pOffset);
+    vkEndCommandBuffer(cmd);
+    vku::CommandBuffers::submitSingle(commandBuffers, _displayCore.queue());
+
+    return tlas;
 }

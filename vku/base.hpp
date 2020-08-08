@@ -58,6 +58,12 @@ void deviceDeviceCopy(
     VkBuffer dst,
     VkDeviceSize size);
 
+void deviceDeviceCopy(
+    VkCommandBuffer cmd,
+    VkBuffer src,
+    VkBuffer dst,
+    VkDeviceSize size);
+
 void hostDeviceCopy(
     VkDevice device,
     const void *src,
