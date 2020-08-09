@@ -67,12 +67,59 @@ vku::RTRender::RTRender(int width, int height, World world, const std::string &t
     auto tlas = createTlas(instances);
     createRTDescriptorSet();
     createSbt(3);
+    createRTPipeline();
 }
 
-void vku::RTRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::SwapchainFrame &frame)
+void vku::RTRender::recordCommandBuffer(VkCommandBuffer cmd, vku::SwapchainFrame &frame)
 {
-    (void)commandBuffer;
     (void)frame;
+    VkCommandBufferBeginInfo beginInfo = {};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    ENSURE(vkBeginCommandBuffer(cmd, &beginInfo));
+
+    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, _rayTracePipeline);
+    vkCmdBindDescriptorSets(
+        cmd,
+        VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR,
+        _rayTracePL,
+        0,
+        1,
+        &_rayTraceDS,
+        0,
+        nullptr);
+
+    VkDeviceSize progSize = _rtProperties.shaderGroupBaseAlignment;
+    VkDeviceSize hitGroupStride = progSize;
+    VkDeviceSize sbtSize = progSize * 3;
+
+    VkStridedBufferRegionKHR raygenRegion = {};
+    raygenRegion.buffer = _sbt.buffer;
+    raygenRegion.offset = 0;
+    raygenRegion.stride = progSize;
+    raygenRegion.size = sbtSize;
+    VkStridedBufferRegionKHR missRegion = {};
+    missRegion.buffer = _sbt.buffer;
+    missRegion.offset = progSize;
+    missRegion.stride = progSize;
+    missRegion.size = sbtSize;
+    VkStridedBufferRegionKHR hitRegion = {};
+    hitRegion.buffer = _sbt.buffer;
+    hitRegion.offset = 2 * progSize;
+    hitRegion.stride = progSize;
+    hitRegion.size = sbtSize;
+    VkStridedBufferRegionKHR callableRegion = {};
+
+    vkCmdTraceRaysKHR(
+        cmd,
+        &raygenRegion,
+        &missRegion,
+        &hitRegion,
+        &callableRegion,
+        _swapchainCore.extent().width,
+        _swapchainCore.extent().height,
+        1);
+
+    ENSURE(vkEndCommandBuffer(cmd));
 }
 
 vku::Framebuffer vku::RTRender::createFramebuffer(vku::SwapchainFrame &frame)
