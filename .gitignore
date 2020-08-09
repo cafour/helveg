@@ -31,6 +31,9 @@
 !*.yml
 !Dockerfile
 !*.ps1
+!*.rchit
+!*.rmiss
+!*.rgen
 
 # misc
 !.clang-format
