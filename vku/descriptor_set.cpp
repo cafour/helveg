@@ -50,13 +50,34 @@ void vku::writeImageDescriptor(
     uint32_t binding,
     uint32_t descriptorCount)
 {
-    VkWriteDescriptorSet write {};
+    VkWriteDescriptorSet write = {};
     write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     write.dstSet = descriptorSet;
     write.descriptorType = descriptorType;
     write.dstBinding = binding;
     write.pImageInfo = imageDescriptorInfos;
     write.descriptorCount = descriptorCount;
+    vkUpdateDescriptorSets(device, 1, &write, 0, nullptr);
+}
+
+void vku::writeASDescriptor(
+    VkDevice device,
+    VkDescriptorSet descriptorSet,
+    VkAccelerationStructureKHR as,
+    uint32_t binding)
+{
+    VkWriteDescriptorSetAccelerationStructureKHR asWrite = {};
+    asWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_KHR;
+    asWrite.accelerationStructureCount = 1;
+    asWrite.pAccelerationStructures = &as;
+
+    VkWriteDescriptorSet write = {};
+    write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    write.dstSet = descriptorSet;
+    write.descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR;
+    write.dstBinding = binding;
+    write.descriptorCount = 1;
+    write.pNext = &asWrite;
     vkUpdateDescriptorSets(device, 1, &write, 0, nullptr);
 }
 

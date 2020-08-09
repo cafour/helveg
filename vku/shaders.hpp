@@ -59,3 +59,12 @@ extern const uint32_t *TEXT_VERT;
 
 extern const size_t TEXT_FRAG_LENGTH;
 extern const uint32_t *TEXT_FRAG;
+
+extern const size_t RAYTRACE_RCHIT_LENGTH;
+extern const uint32_t *RAYTRACE_RCHIT;
+
+extern const size_t RAYTRACE_RGEN_LENGTH;
+extern const uint32_t *RAYTRACE_RGEN;
+
+extern const size_t RAYTRACE_RMISS_LENGTH;
+extern const uint32_t *RAYTRACE_RMISS;

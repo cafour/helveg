@@ -36,6 +36,12 @@ void writeWholeBufferDescriptor(
     VkDescriptorSet descriptorSet,
     uint32_t binding);
 
+void writeASDescriptor(
+    VkDevice device,
+    VkDescriptorSet descriptorSet,
+    VkAccelerationStructureKHR as,
+    uint32_t binding);
+
 VkDescriptorPoolSize descriptorPoolSize(VkDescriptorType type, size_t descriptorCount);
 
 class DescriptorSetLayout : public DeviceConstructible<

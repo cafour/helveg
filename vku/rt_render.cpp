@@ -1,5 +1,7 @@
 #include "rt_render.hpp"
 
+#include "shaders.hpp"
+
 #include <glm/gtc/matrix_transform.hpp>
 #include <vector>
 
@@ -24,13 +26,16 @@ static VkPhysicalDeviceVulkan12Features getDeviceFeatures()
     features.bufferDeviceAddress = VK_TRUE;
     return features;
 }
-
 VkPhysicalDeviceVulkan12Features deviceFeatures = getDeviceFeatures();
 
-VkPhysicalDeviceRayTracingFeaturesKHR rtFeatures = {
-    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_FEATURES_KHR,
-    &deviceFeatures
-};
+static VkPhysicalDeviceRayTracingFeaturesKHR getRTFeatures()
+{
+    VkPhysicalDeviceRayTracingFeaturesKHR features = {};
+    features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_FEATURES_KHR;
+    features.pNext = &deviceFeatures;
+    return features;
+}
+VkPhysicalDeviceRayTracingFeaturesKHR rtFeatures = getRTFeatures();
 
 vku::RTRender::RTRender(int width, int height, World world, const std::string &title, bool debug)
     : _instanceCore("RTRender", true, debug)
@@ -47,6 +52,8 @@ vku::RTRender::RTRender(int width, int height, World world, const std::string &t
           VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PROPERTIES_KHR))
     , _world(world)
 {
+    _renderCore.onResize([this](auto s, auto e) { onResize(s, e); });
+
     auto maybeMesh = vku::MeshCore::fromChunk(_transferCore, _world.chunks[0], true);
     auto geometryInfo = createGeometry(maybeMesh.value());
     GeometriesInfo geometries;
@@ -57,15 +64,34 @@ vku::RTRender::RTRender(int width, int height, World world, const std::string &t
     auto asInstance = createASInstance(blas, glm::translate(glm::mat4(1), _world.chunkOffsets[0]), 0);
     std::vector instances { asInstance };
     auto tlas = createTlas(instances);
+    createRTDescriptorSet();
 }
 
 void vku::RTRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::SwapchainFrame &frame)
 {
+    (void)commandBuffer;
+    (void)frame;
 }
 
 vku::Framebuffer vku::RTRender::createFramebuffer(vku::SwapchainFrame &frame)
 {
+    (void)frame;
     return {};
+}
+
+void vku::RTRender::onResize(size_t imageCount, VkExtent2D extent)
+{
+    (void)imageCount;
+    (void)extent;
+    VkDescriptorImageInfo offscreenColorInfo = {};
+    offscreenColorInfo.imageView = _offscreenColorIV;
+    offscreenColorInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+    vku::writeImageDescriptor(
+        _displayCore.device(),
+        _rayTraceDS,
+        VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+        &offscreenColorInfo,
+        1);
 }
 
 // returns the scratch and object size of an accelaration structure
@@ -297,4 +323,56 @@ vku::AccelerationStructure vku::RTRender::createTlas(std::vector<VkAccelerationS
 
 void vku::RTRender::createRTDescriptorSet()
 {
+    auto bindings = {
+        vku::descriptorBinding(
+            0,
+            VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR,
+            1,
+            VK_SHADER_STAGE_RAYGEN_BIT_KHR
+                | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR),
+        vku::descriptorBinding(
+            1,
+            VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+            1,
+            VK_SHADER_STAGE_RAYGEN_BIT_KHR)
+    };
+    auto sizes = {
+        vku::descriptorPoolSize(VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR, 1),
+        vku::descriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1)
+    };
+    _rayTraceDP = vku::DescriptorPool::basic(_displayCore.device(), 1, sizes.begin(), sizes.size());
+    _rayTraceDsl = vku::DescriptorSetLayout::basic(_displayCore.device(), bindings.begin(), bindings.size());
+    _rayTraceDS = vku::allocateDescriptorSets(_displayCore.device(), _rayTraceDP, _rayTraceDsl, 1)[0];
+
+    vku::writeASDescriptor(_displayCore.device(), _rayTraceDS, _tlas, 0);
+}
+
+void vku::RTRender::createRTPipeline()
+{
+    auto rgenShader = vku::ShaderModule::inlined(_displayCore.device(), RAYTRACE_RGEN, RAYTRACE_RGEN_LENGTH);
+    auto rmissShader = vku::ShaderModule::inlined(_displayCore.device(), RAYTRACE_RMISS, RAYTRACE_RMISS_LENGTH);
+    auto rchitShader = vku::ShaderModule::inlined(_displayCore.device(), RAYTRACE_RCHIT, RAYTRACE_RCHIT_LENGTH);
+    auto shaderStages = {
+        vku::shaderStage(VK_SHADER_STAGE_RAYGEN_BIT_KHR, rgenShader),
+        vku::shaderStage(VK_SHADER_STAGE_MISS_BIT_KHR, rmissShader),
+        vku::shaderStage(VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR, rchitShader)
+    };
+
+    auto groups = {
+        vku::rayTracingShaderGroup(VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR, 0),
+        vku::rayTracingShaderGroup(VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR, 1),
+        vku::rayTracingShaderGroup(VK_RAY_TRACING_SHADER_GROUP_TYPE_TRIANGLES_HIT_GROUP_KHR, VK_SHADER_UNUSED_KHR, 2)
+    };
+
+    _rayTracePL = vku::PipelineLayout::basic(_displayCore.device(), _rayTraceDsl, 1);
+
+    auto createInfo = vku::RayTracingPipeline::createInfo();
+    createInfo.pStages = shaderStages.begin();
+    createInfo.stageCount = shaderStages.size();
+    createInfo.pGroups = groups.begin();
+    createInfo.groupCount = groups.size();
+    createInfo.layout = _rayTracePL;
+    createInfo.maxRecursionDepth = 1;
+
+    _rayTracePipeline = vku::RayTracingPipeline(_displayCore.device(), createInfo);
 }

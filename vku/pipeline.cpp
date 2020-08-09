@@ -236,3 +236,20 @@ vku::GraphicsPipeline vku::GraphicsPipeline::basic(
     createInfo.subpass = 0;
     return vku::GraphicsPipeline(device, createInfo);
 }
+
+VkRayTracingShaderGroupCreateInfoKHR vku::rayTracingShaderGroup(
+    VkRayTracingShaderGroupTypeKHR type,
+    uint32_t generalShader,
+    uint32_t closestHitShader,
+    uint32_t anyHitShader,
+    uint32_t intersectionShader)
+{
+    VkRayTracingShaderGroupCreateInfoKHR group = {};
+    group.sType = VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR;
+    group.type = type;
+    group.generalShader = generalShader;
+    group.closestHitShader = closestHitShader;
+    group.anyHitShader = anyHitShader;
+    group.intersectionShader = intersectionShader;
+    return group;
+}

@@ -128,4 +128,38 @@ public:
     ComputePipeline(ComputePipeline &&other) noexcept = default;
     ComputePipeline &operator=(ComputePipeline &&other) noexcept = default;
 };
+
+class RayTracingPipeline : public DeviceRelated<VkPipeline> {
+public:
+    using DeviceRelated::DeviceRelated;
+
+    RayTracingPipeline(VkDevice device, VkRayTracingPipelineCreateInfoKHR &createInfo)
+        : DeviceRelated(device, VK_NULL_HANDLE)
+    {
+        ENSURE(vkCreateRayTracingPipelinesKHR(device, VK_NULL_HANDLE, 1, &createInfo, nullptr, &_raw));
+    }
+    ~RayTracingPipeline()
+    {
+        if (_device != VK_NULL_HANDLE && _raw != VK_NULL_HANDLE) {
+            vkDestroyPipeline(_device, _raw, nullptr);
+        }
+    }
+    RayTracingPipeline(RayTracingPipeline &&other) noexcept = default;
+    RayTracingPipeline &operator=(RayTracingPipeline &&other) noexcept = default;
+
+    static VkRayTracingPipelineCreateInfoKHR createInfo()
+    {
+        VkRayTracingPipelineCreateInfoKHR info = {};
+        info.sType = VK_STRUCTURE_TYPE_RAY_TRACING_PIPELINE_CREATE_INFO_KHR;
+        return info;
+    }
+};
+
+VkRayTracingShaderGroupCreateInfoKHR rayTracingShaderGroup(
+    VkRayTracingShaderGroupTypeKHR type,
+    uint32_t generalShader,
+    uint32_t closestHitShader = VK_SHADER_UNUSED_KHR,
+    uint32_t anyHitShader = VK_SHADER_UNUSED_KHR,
+    uint32_t intersectionShader = VK_SHADER_UNUSED_KHR);
+
 }
