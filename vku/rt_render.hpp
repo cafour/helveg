@@ -38,6 +38,7 @@ private:
     vku::ImageView _offscreenColorIV;
     vku::PipelineLayout _rayTracePL;
     vku::RayTracingPipeline _rayTracePipeline;
+    vku::BackedBuffer _sbt;
 
     vku::World _world;
 
@@ -54,6 +55,7 @@ private:
     vku::AccelerationStructure createTlas(std::vector<VkAccelerationStructureInstanceKHR> &instances);
     void createRTDescriptorSet();
     void createRTPipeline();
+    void createSbt(uint32_t groupCount);
 
 public:
     RTRender(int width, int height, World world, const std::string &title, bool debug = false);

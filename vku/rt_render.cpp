@@ -2,6 +2,7 @@
 
 #include "shaders.hpp"
 
+#include <cstring>
 #include <glm/gtc/matrix_transform.hpp>
 #include <vector>
 
@@ -65,6 +66,7 @@ vku::RTRender::RTRender(int width, int height, World world, const std::string &t
     std::vector instances { asInstance };
     auto tlas = createTlas(instances);
     createRTDescriptorSet();
+    createSbt(3);
 }
 
 void vku::RTRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::SwapchainFrame &frame)
@@ -375,4 +377,33 @@ void vku::RTRender::createRTPipeline()
     createInfo.maxRecursionDepth = 1;
 
     _rayTracePipeline = vku::RayTracingPipeline(_displayCore.device(), createInfo);
+}
+
+void vku::RTRender::createSbt(uint32_t groupCount)
+{
+    uint32_t sbtSize = _rtProperties.shaderGroupBaseAlignment * groupCount;
+
+    _sbt.buffer = vku::Buffer::exclusive(_displayCore.device(), sbtSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+    _sbt.memory = vku::DeviceMemory::hostCoherentBuffer(
+        _displayCore.physicalDevice(),
+        _displayCore.device(),
+        _sbt.buffer);
+    std::vector<uint8_t> sbt(sbtSize);
+    ENSURE(vkGetRayTracingShaderGroupHandlesKHR(
+        _displayCore.device(),
+        _rayTracePipeline,
+        0,
+        groupCount,
+        sbtSize,
+        sbt.data()));
+    void *destination;
+    ENSURE(vkMapMemory(_displayCore.device(), _sbt.memory, 0, sbtSize, 0, &destination));
+    uint8_t *destinationBytes = reinterpret_cast<uint8_t *>(destination);
+    for (uint32_t i = 0; i < groupCount; i++) {
+        std::memcpy(
+            destinationBytes + i * _rtProperties.shaderGroupBaseAlignment,
+            sbt.data() + i * _rtProperties.shaderGroupHandleSize,
+            _rtProperties.shaderGroupHandleSize);
+    }
+    vkUnmapMemory(_displayCore.device(), _sbt.memory);
 }
