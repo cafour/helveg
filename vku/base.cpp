@@ -157,7 +157,7 @@ VkPhysicalDevice vku::findDevice(
     uint32_t deviceCount = 0;
     ENSURE(vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr));
     if (deviceCount == 0) {
-        throw std::runtime_error("failed to find any GPU with Vulkan support");
+        throw std::runtime_error("A GPU with Vulkan support could not be found.");
     }
 
     std::vector<VkPhysicalDevice> devices(deviceCount);
@@ -200,7 +200,7 @@ VkPhysicalDevice vku::findDevice(
         break;
     }
     if (chosenDevice == VK_NULL_HANDLE) {
-        throw std::runtime_error("failed to find a suitable physical device");
+        throw std::runtime_error("A suitable physical device could not be found.");
     }
     return chosenDevice;
 }
@@ -222,7 +222,7 @@ VkSurfaceFormatKHR vku::findSurfaceFormat(
     }
 
     if (formatCount == 0) {
-        throw std::runtime_error("failed to find a suitable surface format as surface has no formats");
+        throw std::runtime_error("Could not find a suitable surface format as the surface has no formats.");
     }
 
     chosenFormat.format = VK_FORMAT_UNDEFINED;
@@ -262,7 +262,7 @@ uint32_t vku::findMemoryType(
             return i;
         }
     }
-    throw std::runtime_error("failed to find a suitable memory type");
+    throw std::runtime_error("A suitable memory type could not be found.");
 }
 
 void vku::deviceDeviceCopy(
@@ -373,7 +373,7 @@ VkFormat vku::findSupportedFormat(
         }
     }
 
-    throw std::runtime_error("failed to find a supported format");
+    throw std::runtime_error("Could not find a supported format.");
 }
 
 static VkAccessFlags getLayoutAccessMask(VkImageLayout imageLayout, bool isDst)
