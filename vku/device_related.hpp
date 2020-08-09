@@ -190,6 +190,17 @@ public:
         VkMemoryAllocateFlags flags = 0);
 };
 
+struct BackedBuffer {
+    vku::Buffer buffer;
+    vku::DeviceMemory memory;
+};
+
+vku::BackedBuffer stagingBuffer(
+    VkPhysicalDevice physicalDevice,
+    VkDevice device,
+    size_t dataSize,
+    const void *data = nullptr);
+
 class AccelerationStructure : public DeviceConstructible<
                                   VkAccelerationStructureKHR,
                                   VkAccelerationStructureCreateInfoKHR,

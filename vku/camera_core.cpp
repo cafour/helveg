@@ -56,7 +56,7 @@ void vku::CameraCore::onKey(int key, int scancode, int action, int mods)
         _lastPress = glfwGetTime();
     }
 
-    int value = action == GLFW_PRESS || action == GLFW_REPEAT ? 1.0f : 0.0f;
+    float value = action == GLFW_PRESS || action == GLFW_REPEAT ? 1.0f : 0.0f;
     switch (key) {
     case GLFW_KEY_W:
     case GLFW_KEY_UP:
