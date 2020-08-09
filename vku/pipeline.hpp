@@ -151,6 +151,7 @@ public:
     {
         VkRayTracingPipelineCreateInfoKHR info = {};
         info.sType = VK_STRUCTURE_TYPE_RAY_TRACING_PIPELINE_CREATE_INFO_KHR;
+        info.libraries.sType = VK_STRUCTURE_TYPE_PIPELINE_LIBRARY_CREATE_INFO_KHR;
         return info;
     }
 };

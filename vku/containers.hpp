@@ -120,15 +120,7 @@ public:
         return commandBuffers;
     }
 
-    static void submitSingle(vku::CommandBuffers &commandBuffers, VkQueue queue)
-    {
-        VkSubmitInfo submitInfo = {};
-        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-        submitInfo.commandBufferCount = 1;
-        submitInfo.pCommandBuffers = commandBuffers;
-        ENSURE(vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE));
-        ENSURE(vkQueueWaitIdle(queue));
-    }
+    static void submitSingle(vku::CommandBuffers &commandBuffers, VkQueue queue);
 };
 
 }

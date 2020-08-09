@@ -105,6 +105,7 @@ int helloWorld(vku::World world, const char *title)
     return hello([world, title]() {
         if (isRayTraced) {
             vku::RTRender app(1280, 720, world, title, isDebug);
+            ENSURE(vkDeviceWaitIdle(app.displayCore().device()));
             // app.renderCore().run();
         } else {
             vku::WorldRender app(1280, 720, world, title, isDebug);

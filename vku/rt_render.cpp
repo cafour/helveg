@@ -63,11 +63,12 @@ vku::RTRender::RTRender(int width, int height, World world, const std::string &t
     geometries.offsets.push_back(geometryInfo.offset);
     auto blas = createBlas(geometries);
     auto asInstance = createASInstance(blas, glm::translate(glm::mat4(1), _world.chunkOffsets[0]), 0);
+    _blases.push_back(std::move(blas));
     std::vector instances { asInstance };
-    auto tlas = createTlas(instances);
+    _tlas = createTlas(instances);
     createRTDescriptorSet();
-    createSbt(3);
     createRTPipeline();
+    createSbt(3);
 }
 
 void vku::RTRender::recordCommandBuffer(VkCommandBuffer cmd, vku::SwapchainFrame &frame)

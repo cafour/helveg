@@ -61,5 +61,6 @@ public:
     RTRender(int width, int height, World world, const std::string &title, bool debug = false);
 
     vku::RenderCore &renderCore() { return _renderCore; }
+    vku::DisplayCore &displayCore() { return _displayCore; }
 };
 }
