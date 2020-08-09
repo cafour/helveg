@@ -294,3 +294,7 @@ vku::AccelerationStructure vku::RTRender::createTlas(std::vector<VkAccelerationS
 
     return tlas;
 }
+
+void vku::RTRender::createRTDescriptorSet()
+{
+}

@@ -30,12 +30,15 @@ private:
     vku::TransferCore _transferCore;
 
     VkPhysicalDeviceRayTracingPropertiesKHR _rtProperties;
-    vku::AccelerationStructure _blas;
+    vku::DescriptorSetLayout _rayTraceDsl;
+    vku::DescriptorPool _rayTraceDP;
+    VkDescriptorSet _rayTraceDS;
 
     vku::World _world;
 
     void recordCommandBuffer(VkCommandBuffer commandBuffer, vku::SwapchainFrame &frame);
     vku::Framebuffer createFramebuffer(vku::SwapchainFrame &frame);
+
     vku::GeometryInfo createGeometry(vku::MeshCore &mesh);
     vku::AccelerationStructure createBlas(vku::GeometriesInfo &geometries);
     VkAccelerationStructureInstanceKHR createASInstance(
@@ -43,6 +46,7 @@ private:
         glm::mat4 transform,
         uint32_t instanceId);
     vku::AccelerationStructure createTlas(std::vector<VkAccelerationStructureInstanceKHR> &instances);
+    void createRTDescriptorSet();
 
 public:
     RTRender(int width, int height, World world, const std::string &title, bool debug = false);
