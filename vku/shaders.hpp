@@ -68,3 +68,6 @@ extern const uint32_t *RAYTRACE_RGEN;
 
 extern const size_t RAYTRACE_RMISS_LENGTH;
 extern const uint32_t *RAYTRACE_RMISS;
+
+extern const size_t SHADOW_RMISS_LENGTH;
+extern const uint32_t *SHADOW_RMISS;

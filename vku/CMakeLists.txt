@@ -127,6 +127,7 @@ target_embed_shader(${PROJECT_NAME} shaders/text.frag TEXT_FRAG)
 target_embed_shader(${PROJECT_NAME} shaders/raytrace.rchit RAYTRACE_RCHIT)
 target_embed_shader(${PROJECT_NAME} shaders/raytrace.rgen RAYTRACE_RGEN)
 target_embed_shader(${PROJECT_NAME} shaders/raytrace.rmiss RAYTRACE_RMISS)
+target_embed_shader(${PROJECT_NAME} shaders/shadow.rmiss SHADOW_RMISS)
 # NOTE: Uncomment to add the 'hello' sample executable
 # add_executable(hello hello.cpp)
 # target_link_libraries(hello PRIVATE ${PROJECT_NAME})
