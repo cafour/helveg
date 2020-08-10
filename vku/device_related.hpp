@@ -190,6 +190,15 @@ public:
         VkMemoryAllocateFlags flags = 0);
 };
 
+class AccelerationStructure : public DeviceConstructible<
+                                  VkAccelerationStructureKHR,
+                                  VkAccelerationStructureCreateInfoKHR,
+                                  &vkCreateAccelerationStructureKHR,
+                                  &vkDestroyAccelerationStructureKHR> {
+public:
+    using DeviceConstructible::DeviceConstructible;
+};
+
 struct BackedBuffer {
     vku::Buffer buffer;
     vku::DeviceMemory memory;
@@ -201,13 +210,15 @@ vku::BackedBuffer stagingBuffer(
     size_t dataSize,
     const void *data = nullptr);
 
-class AccelerationStructure : public DeviceConstructible<
-                                  VkAccelerationStructureKHR,
-                                  VkAccelerationStructureCreateInfoKHR,
-                                  &vkCreateAccelerationStructureKHR,
-                                  &vkDestroyAccelerationStructureKHR> {
-public:
-    using DeviceConstructible::DeviceConstructible;
+struct BackedImage {
+    vku::Image image;
+    vku::DeviceMemory memory;
+    vku::ImageView imageView;
 };
 
+vku::BackedImage offscreenImage(
+    VkPhysicalDevice physicalDevice,
+    VkDevice device,
+    VkExtent3D extent,
+    VkFormat format);
 }

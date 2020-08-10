@@ -273,3 +273,23 @@ vku::BackedBuffer vku::stagingBuffer(
 
     return { std::move(buffer), std::move(memory) };
 }
+
+vku::BackedImage vku::offscreenImage(
+    VkPhysicalDevice physicalDevice,
+    VkDevice device,
+    VkExtent3D extent,
+    VkFormat format)
+{
+    auto image = vku::Image::basic(
+        device,
+        extent,
+        format,
+        VK_IMAGE_TILING_OPTIMAL,
+        VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT);
+
+    auto memory = vku::DeviceMemory::forImage(physicalDevice, device, image, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+    auto imageView = vku::ImageView::basic(device, image, format, VK_IMAGE_ASPECT_COLOR_BIT);
+
+    return {std::move(image), std::move(memory), std::move(imageView)};
+}

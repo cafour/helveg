@@ -379,6 +379,10 @@ static VkAccessFlags getLayoutAccessMask(VkImageLayout imageLayout, bool isDst)
         return isDst
             ? VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT
             : VK_ACCESS_SHADER_READ_BIT;
+    case VK_IMAGE_LAYOUT_GENERAL:
+        return VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_SHADER_READ_BIT;
+    case VK_IMAGE_LAYOUT_PRESENT_SRC_KHR:
+        return VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
     default:
         throw std::runtime_error("Access mask for an image layout is missing.");
     }

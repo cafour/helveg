@@ -35,10 +35,10 @@ private:
     vku::DescriptorSetLayout _rayTraceDsl;
     vku::DescriptorPool _rayTraceDP;
     VkDescriptorSet _rayTraceDS;
-    vku::ImageView _offscreenColorIV;
     vku::PipelineLayout _rayTracePL;
     vku::RayTracingPipeline _rayTracePipeline;
     vku::BackedBuffer _sbt;
+    vku::BackedImage _offscreen;
 
     vku::World _world;
 

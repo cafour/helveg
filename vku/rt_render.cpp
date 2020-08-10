@@ -73,10 +73,24 @@ vku::RTRender::RTRender(int width, int height, World world, const std::string &t
 
 void vku::RTRender::recordCommandBuffer(VkCommandBuffer cmd, vku::SwapchainFrame &frame)
 {
-    (void)frame;
+    VkExtent2D extent = _swapchainCore.extent();
+
     VkCommandBufferBeginInfo beginInfo = {};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     ENSURE(vkBeginCommandBuffer(cmd, &beginInfo));
+
+    VkImageSubresourceRange subresourceRange;
+    subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    subresourceRange.baseMipLevel = 0;
+    subresourceRange.levelCount = 1;
+    subresourceRange.baseArrayLayer = 0;
+    subresourceRange.layerCount = 1;
+    vku::recordImageLayoutChange(
+        cmd,
+        _offscreen.image,
+        subresourceRange,
+        VK_IMAGE_LAYOUT_UNDEFINED,
+        VK_IMAGE_LAYOUT_GENERAL);
 
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, _rayTracePipeline);
     vkCmdBindDescriptorSets(
@@ -90,7 +104,6 @@ void vku::RTRender::recordCommandBuffer(VkCommandBuffer cmd, vku::SwapchainFrame
         nullptr);
 
     VkDeviceSize progSize = _rtProperties.shaderGroupBaseAlignment;
-    VkDeviceSize hitGroupStride = progSize;
     VkDeviceSize sbtSize = progSize * 3;
 
     VkStridedBufferRegionKHR raygenRegion = {};
@@ -116,9 +129,52 @@ void vku::RTRender::recordCommandBuffer(VkCommandBuffer cmd, vku::SwapchainFrame
         &missRegion,
         &hitRegion,
         &callableRegion,
-        _swapchainCore.extent().width,
-        _swapchainCore.extent().height,
+        extent.width,
+        extent.height,
         1);
+
+    vku::recordImageLayoutChange(
+        cmd,
+        frame.image,
+        subresourceRange,
+        VK_IMAGE_LAYOUT_UNDEFINED,
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    vku::recordImageLayoutChange(
+        cmd,
+        _offscreen.image,
+        subresourceRange,
+        VK_IMAGE_LAYOUT_GENERAL,
+        VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+
+    VkImageCopy copyRegion = {};
+    copyRegion.srcOffset = {0, 0, 0};
+    copyRegion.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    copyRegion.srcSubresource.mipLevel = 0;
+    copyRegion.srcSubresource.baseArrayLayer = 0;
+    copyRegion.srcSubresource.layerCount = 1;
+    copyRegion.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    copyRegion.dstSubresource.mipLevel = 0;
+    copyRegion.dstSubresource.baseArrayLayer = 0;
+    copyRegion.dstSubresource.layerCount = 1;
+    copyRegion.extent.depth = 1;
+    copyRegion.extent.width = extent.width;
+    copyRegion.extent.height = extent.height;
+    copyRegion.dstOffset = {0, 0, 0};
+    vkCmdCopyImage(
+        cmd,
+        _offscreen.image,
+        VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+        frame.image,
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        1,
+        &copyRegion);
+
+    vku::recordImageLayoutChange(
+        cmd,
+        frame.image,
+        subresourceRange,
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
     ENSURE(vkEndCommandBuffer(cmd));
 }
@@ -132,9 +188,18 @@ vku::Framebuffer vku::RTRender::createFramebuffer(vku::SwapchainFrame &frame)
 void vku::RTRender::onResize(size_t imageCount, VkExtent2D extent)
 {
     (void)imageCount;
-    (void)extent;
+    VkExtent3D extent3d = {};
+    extent3d.width = extent.width;
+    extent3d.height = extent.height;
+    extent3d.depth = 1;
+    _offscreen = vku::offscreenImage(
+        _displayCore.physicalDevice(),
+        _displayCore.device(),
+        extent3d,
+        VK_FORMAT_B8G8R8A8_UNORM);
+
     VkDescriptorImageInfo offscreenColorInfo = {};
-    offscreenColorInfo.imageView = _offscreenColorIV;
+    offscreenColorInfo.imageView = _offscreen.imageView;
     offscreenColorInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
     vku::writeImageDescriptor(
         _displayCore.device(),
@@ -418,9 +483,9 @@ void vku::RTRender::createRTPipeline()
 
     auto createInfo = vku::RayTracingPipeline::createInfo();
     createInfo.pStages = shaderStages.begin();
-    createInfo.stageCount = shaderStages.size();
+    createInfo.stageCount = static_cast<uint32_t>(shaderStages.size());
     createInfo.pGroups = groups.begin();
-    createInfo.groupCount = groups.size();
+    createInfo.groupCount = static_cast<uint32_t>(groups.size());
     createInfo.layout = _rayTracePL;
     createInfo.maxRecursionDepth = 1;
 
