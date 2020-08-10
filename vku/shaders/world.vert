@@ -9,6 +9,8 @@ layout(binding = 1) uniform Camera
 {
     mat4 view;
     mat4 proj;
+    mat4 viewInv;
+    mat4 projInv;
     vec3 position;
 }
 camera;

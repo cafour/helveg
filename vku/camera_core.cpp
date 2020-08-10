@@ -113,7 +113,7 @@ void vku::CameraCore::onResize(size_t imageCount, VkExtent2D extent)
     for (size_t i = _cameraBuffers.size(); i < imageCount; ++i) {
         auto buffer = vku::Buffer::exclusive(
             _displayCore.device(),
-            sizeof(vku::SimpleView),
+            sizeof(vku::CameraView),
             VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
         auto memory = vku::DeviceMemory::hostCoherentBuffer(
             _displayCore.physicalDevice(),
@@ -131,6 +131,7 @@ void vku::CameraCore::onResize(size_t imageCount, VkExtent2D extent)
         0.01f,
         10000.0f);
     _view.projection[1][1] *= -1;
+    _view.projectionInverse = glm::inverse(_view.projection);
 }
 
 void vku::CameraCore::onUpdate(vku::SwapchainFrame &frame)
@@ -154,5 +155,6 @@ void vku::CameraCore::onUpdate(vku::SwapchainFrame &frame)
     _view.position += direction * speed * diff;
 
     _view.view = glm::lookAt(_view.position, _view.position + _front, _up);
+    _view.viewInverse = glm::inverse(_view.view);
     vku::hostDeviceCopy(_displayCore.device(), &_view, _cameraMemories[frame.index], sizeof(vku::CameraView));
 }
