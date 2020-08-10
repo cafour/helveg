@@ -40,7 +40,7 @@ private:
     float _pitch = 0.0f;
     double _lastX = 0.0f;
     double _lastY = 0.0f;
-    float _sensitivity = 1.0f;
+    float _sensitivity = 3.14159f;
     bool _enabled = false;
 
     void onMouseMove(double x, double y);
