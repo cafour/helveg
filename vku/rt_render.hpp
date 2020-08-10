@@ -2,6 +2,8 @@
 
 #include "cores.hpp"
 
+#include <vector>
+
 namespace vku {
 
 struct GeometryInfo
@@ -30,6 +32,8 @@ private:
     vku::TransferCore _transferCore;
     vku::CameraCore _cameraCore;
 
+    std::vector<vku::MeshCore> _meshes;
+
     VkPhysicalDeviceRayTracingPropertiesKHR _rtProperties;
     std::vector<vku::BackedBuffer> _blasBuffers;
     std::vector<vku::AccelerationStructure> _blases;
@@ -42,6 +46,7 @@ private:
     vku::RayTracingPipeline _rayTracePipeline;
     vku::BackedBuffer _sbt;
     vku::BackedImage _offscreen;
+    uint32_t _shaderGroupCount = 0;
 
     vku::World _world;
 

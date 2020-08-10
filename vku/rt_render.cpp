@@ -73,6 +73,7 @@ vku::RTRender::RTRender(int width, int height, World world, const std::string &t
             _blases.back(),
             glm::translate(glm::mat4(1), _world.chunkOffsets[i]),
             static_cast<uint32_t>(i)));
+        _meshes.push_back(std::move(maybeMesh.value()));
     }
     createTlas(blasInstances);
     createRTDescriptorSet();
@@ -118,7 +119,7 @@ void vku::RTRender::recordCommandBuffer(VkCommandBuffer cmd, vku::SwapchainFrame
         nullptr);
 
     VkDeviceSize progSize = _rtProperties.shaderGroupBaseAlignment;
-    VkDeviceSize sbtSize = progSize * 3;
+    VkDeviceSize sbtSize = progSize * _shaderGroupCount;
 
     VkStridedBufferRegionKHR raygenRegion = {};
     raygenRegion.buffer = _sbt.buffer;
@@ -132,7 +133,7 @@ void vku::RTRender::recordCommandBuffer(VkCommandBuffer cmd, vku::SwapchainFrame
     missRegion.size = sbtSize;
     VkStridedBufferRegionKHR hitRegion = {};
     hitRegion.buffer = _sbt.buffer;
-    hitRegion.offset = 2 * progSize;
+    hitRegion.offset = 3 * progSize; // there are 2 miss shaders
     hitRegion.stride = progSize;
     hitRegion.size = sbtSize;
     VkStridedBufferRegionKHR callableRegion = {};
@@ -504,18 +505,65 @@ void vku::RTRender::createRTDescriptorSet()
             2,
             VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
             1,
-            VK_SHADER_STAGE_RAYGEN_BIT_KHR)
+            VK_SHADER_STAGE_RAYGEN_BIT_KHR),
+        vku::descriptorBinding( // vertices
+            3,
+            VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+            _world.chunkCount,
+            VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR),
+        vku::descriptorBinding( // indices
+            4,
+            VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+            _world.chunkCount,
+            VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR),
+        vku::descriptorBinding( // colors
+            5,
+            VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+            _world.chunkCount,
+            VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR),
     };
     auto sizes = {
         vku::descriptorPoolSize(VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR, 1),
         vku::descriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1),
         vku::descriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1),
+        vku::descriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 3 * _world.chunkCount),
     };
     _rayTraceDP = vku::DescriptorPool::basic(_displayCore.device(), 1, sizes.begin(), sizes.size());
     _rayTraceDsl = vku::DescriptorSetLayout::basic(_displayCore.device(), bindings.begin(), bindings.size());
     _rayTraceDS = vku::allocateDescriptorSets(_displayCore.device(), _rayTraceDP, _rayTraceDsl, 1)[0];
 
     vku::writeASDescriptor(_displayCore.device(), _rayTraceDS, _tlas, 0);
+
+    std::vector<VkDescriptorBufferInfo> vertexBufferInfos;
+    std::vector<VkDescriptorBufferInfo> indexBufferInfos;
+    std::vector<VkDescriptorBufferInfo> colorBufferInfos;
+    for (size_t i = 0; i < _world.chunkCount; ++i) {
+        uint32_t vertexBufferSize = static_cast<uint32_t>(_meshes[i].vertexCount() * sizeof(glm::vec3));
+        vertexBufferInfos.push_back({_meshes[i].vertexBuffer(), 0, vertexBufferSize});
+        indexBufferInfos.push_back({_meshes[i].indexBuffer(), 0, VK_WHOLE_SIZE});
+        colorBufferInfos.push_back({_meshes[i].vertexBuffer(), vertexBufferSize, VK_WHOLE_SIZE});
+    }
+    vku::writeBufferDescriptors(
+        _displayCore.device(),
+        VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+        vertexBufferInfos.data(),
+        vertexBufferInfos.size(),
+        _rayTraceDS,
+        3);
+    vku::writeBufferDescriptors(
+        _displayCore.device(),
+        VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+        indexBufferInfos.data(),
+        indexBufferInfos.size(),
+        _rayTraceDS,
+        4);
+    vku::writeBufferDescriptors(
+        _displayCore.device(),
+        VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+        colorBufferInfos.data(),
+        colorBufferInfos.size(),
+        _rayTraceDS,
+        5);
 }
 
 void vku::RTRender::createRTPipeline()
@@ -523,17 +571,21 @@ void vku::RTRender::createRTPipeline()
     auto rgenShader = vku::ShaderModule::inlined(_displayCore.device(), RAYTRACE_RGEN, RAYTRACE_RGEN_LENGTH);
     auto rmissShader = vku::ShaderModule::inlined(_displayCore.device(), RAYTRACE_RMISS, RAYTRACE_RMISS_LENGTH);
     auto rchitShader = vku::ShaderModule::inlined(_displayCore.device(), RAYTRACE_RCHIT, RAYTRACE_RCHIT_LENGTH);
+    auto shadowShader = vku::ShaderModule::inlined(_displayCore.device(), SHADOW_RMISS, SHADOW_RMISS_LENGTH);
     auto shaderStages = {
         vku::shaderStage(VK_SHADER_STAGE_RAYGEN_BIT_KHR, rgenShader),
         vku::shaderStage(VK_SHADER_STAGE_MISS_BIT_KHR, rmissShader),
+        vku::shaderStage(VK_SHADER_STAGE_MISS_BIT_KHR, shadowShader),
         vku::shaderStage(VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR, rchitShader)
     };
 
     auto groups = {
         vku::rayTracingShaderGroup(VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR, 0),
         vku::rayTracingShaderGroup(VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR, 1),
-        vku::rayTracingShaderGroup(VK_RAY_TRACING_SHADER_GROUP_TYPE_TRIANGLES_HIT_GROUP_KHR, VK_SHADER_UNUSED_KHR, 2)
+        vku::rayTracingShaderGroup(VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR, 2),
+        vku::rayTracingShaderGroup(VK_RAY_TRACING_SHADER_GROUP_TYPE_TRIANGLES_HIT_GROUP_KHR, VK_SHADER_UNUSED_KHR, 3)
     };
+    _shaderGroupCount = static_cast<uint32_t>(groups.size());
 
     _rayTracePL = vku::PipelineLayout::basic(_displayCore.device(), _rayTraceDsl, 1);
 
@@ -543,7 +595,7 @@ void vku::RTRender::createRTPipeline()
     createInfo.pGroups = groups.begin();
     createInfo.groupCount = static_cast<uint32_t>(groups.size());
     createInfo.layout = _rayTracePL;
-    createInfo.maxRecursionDepth = 1;
+    createInfo.maxRecursionDepth = 2;
 
     _rayTracePipeline = vku::RayTracingPipeline(_displayCore.device(), createInfo);
 }

@@ -29,6 +29,14 @@ void writeImageDescriptor(
     uint32_t binding,
     uint32_t descriptorCount = 1);
 
+void writeBufferDescriptors(
+    VkDevice device,
+    VkDescriptorType descriptorType,
+    VkDescriptorBufferInfo *bufferInfos,
+    size_t descriptorCount,
+    VkDescriptorSet descriptorSet,
+    uint32_t binding);
+
 void writeWholeBufferDescriptor(
     VkDevice device,
     VkDescriptorType descriptorType,

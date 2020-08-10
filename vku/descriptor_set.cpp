@@ -81,6 +81,25 @@ void vku::writeASDescriptor(
     vkUpdateDescriptorSets(device, 1, &write, 0, nullptr);
 }
 
+void vku::writeBufferDescriptors(
+    VkDevice device,
+    VkDescriptorType descriptorType,
+    VkDescriptorBufferInfo *bufferInfos,
+    size_t descriptorCount,
+    VkDescriptorSet descriptorSet,
+    uint32_t binding)
+{
+    VkWriteDescriptorSet write = {};
+    write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    write.dstSet = descriptorSet;
+    write.dstBinding = binding;
+    write.dstArrayElement = 0;
+    write.descriptorType = descriptorType;
+    write.descriptorCount = static_cast<uint32_t>(descriptorCount);
+    write.pBufferInfo = bufferInfos;
+    vkUpdateDescriptorSets(device, 1, &write, 0, nullptr);
+}
+
 void vku::writeWholeBufferDescriptor(
     VkDevice device,
     VkDescriptorType descriptorType,
@@ -93,15 +112,7 @@ void vku::writeWholeBufferDescriptor(
     bufferInfo.offset = 0;
     bufferInfo.range = VK_WHOLE_SIZE;
 
-    VkWriteDescriptorSet write = {};
-    write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    write.dstSet = descriptorSet;
-    write.dstBinding = binding;
-    write.dstArrayElement = 0;
-    write.descriptorType = descriptorType;
-    write.descriptorCount = 1;
-    write.pBufferInfo = &bufferInfo;
-    vkUpdateDescriptorSets(device, 1, &write, 0, nullptr);
+    vku::writeBufferDescriptors(device, descriptorType, &bufferInfo, 1, descriptorSet, binding);
 }
 
 vku::DescriptorSetLayout vku::DescriptorSetLayout::basic(
