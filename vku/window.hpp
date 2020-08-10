@@ -47,6 +47,8 @@ public:
     glm::dvec2 mousePosition();
     void disableCursor();
     void resetCursor();
+    int width();
+    int height();
 
     operator GLFWwindow *() { return _raw; }
     GLFWwindow *raw() { return _raw; }
