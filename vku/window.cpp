@@ -37,8 +37,9 @@ void vku::Window::handleFocus(GLFWwindow *raw, int focused)
     }
 }
 
-vku::Window::Window(GLFWwindow *raw)
+vku::Window::Window(GLFWwindow *raw, bool allowCursorDisable)
     : _raw(raw)
+    , _allowCursorDisable(allowCursorDisable)
 {
     count++;
     glfwSetWindowUserPointer(_raw, this);
@@ -61,6 +62,7 @@ vku::Window::~Window()
 
 vku::Window::Window(vku::Window &&other) noexcept
     : _raw(std::exchange(other._raw, nullptr))
+    , _allowCursorDisable(other._allowCursorDisable)
 {
     glfwSetWindowUserPointer(_raw, this);
 }
@@ -70,18 +72,19 @@ vku::Window &vku::Window::operator=(vku::Window &&other) noexcept
     if (this != &other) {
         std::swap(_raw, other._raw);
         glfwSetWindowUserPointer(_raw, this);
+        _allowCursorDisable = other._allowCursorDisable;
     }
     return *this;
 }
 
-vku::Window vku::Window::noApi(int width, int height, const std::string &title)
+vku::Window vku::Window::noApi(int width, int height, const std::string &title, bool allowCursorDisable)
 {
     if (count == 0 && glfwInit() == GLFW_FALSE) {
         throw std::runtime_error("GLFW failed to initialize");
     }
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     auto raw = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
-    return vku::Window(raw);
+    return vku::Window(raw, allowCursorDisable);
 }
 
 void vku::Window::onMouseMove(std::function<void(double x, double y)> handler)
@@ -113,7 +116,9 @@ glm::dvec2 vku::Window::mousePosition()
 
 void vku::Window::disableCursor()
 {
-    glfwSetInputMode(_raw, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    if (_allowCursorDisable) {
+        glfwSetInputMode(_raw, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    }
 }
 
 void vku::Window::resetCursor()

@@ -17,6 +17,7 @@ private:
     static size_t count;
 
     GLFWwindow *_raw;
+    bool _allowCursorDisable;
     std::vector<std::function<void (double x, double y)>> _mouseMoveHandlers;
     std::vector<std::function<void (int button, int action, int mods)>> _mouseButtonHandlers;
     std::vector<std::function<void (int key, int scancode, int action, int mods)>> _keyHandlers;
@@ -31,14 +32,14 @@ public:
     Window()
         : _raw(nullptr)
     {}
-    Window(GLFWwindow *raw);
+    Window(GLFWwindow *raw, bool allowCursorDisable);
     ~Window();
     Window(const Window &other) = delete;
     Window(Window &&other) noexcept;
     Window &operator=(const Window &other) = delete;
     Window &operator=(Window &&other) noexcept;
 
-    static Window noApi(int width, int height, const std::string &title);
+    static Window noApi(int width, int height, const std::string &title, bool allowCursorDisable = true);
 
     void onMouseMove(std::function<void (double x, double y)> handler);
     void onMouseButton(std::function<void (int button, int action, int mods)> handler);
