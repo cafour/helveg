@@ -3,6 +3,90 @@
 
 #include <array>
 
+static vku::BackedBuffer createProperVertices(
+    vku::TransferCore &transferCore,
+    const glm::vec3 *vertices,
+    size_t vertexCount,
+    const glm::vec3 *colors,
+    bool isAddressable)
+{
+    size_t vertexBufferSize = sizeof(glm::vec3) * vertexCount;
+    size_t totalVertexBufferSize = vertexBufferSize;
+    if (colors) {
+        totalVertexBufferSize *= 2;
+    }
+    auto staging = vku::stagingBuffer(
+        transferCore.physicalDevice(),
+        transferCore.device(),
+        totalVertexBufferSize);
+    vku::hostDeviceCopy(transferCore.device(), vertices, staging.memory, vertexBufferSize);
+    if (colors) {
+        vku::hostDeviceCopy(transferCore.device(), colors, staging.memory, vertexBufferSize, vertexBufferSize);
+    }
+    auto vertexFlags = VK_BUFFER_USAGE_TRANSFER_DST_BIT
+        | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+    VkMemoryAllocateFlags allocateFlags = 0;
+    if (isAddressable) {
+        vertexFlags |= VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
+        allocateFlags |= VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT;
+    }
+    auto buffer = vku::Buffer::exclusive(
+        transferCore.device(),
+        totalVertexBufferSize,
+        vertexFlags);
+    auto memory = vku::DeviceMemory::deviceLocalBuffer(
+        transferCore.physicalDevice(),
+        transferCore.device(),
+        buffer,
+        allocateFlags);
+    vku::deviceDeviceCopy(
+        transferCore.device(),
+        transferCore.transferPool(),
+        transferCore.transferQueue(),
+        staging.buffer,
+        buffer,
+        totalVertexBufferSize);
+    return { std::move(buffer), std::move(memory) };
+}
+
+static vku::BackedBuffer createStorageVertices(
+    vku::TransferCore &transferCore,
+    const glm::vec3 *vertices,
+    size_t vertexCount,
+    const glm::vec3 *colors,
+    bool isAddressable)
+{
+    std::vector<vku::ColoredVertex> hostStorage(vertexCount);
+    for(size_t i = 0; i < vertexCount; ++i) {
+        hostStorage[i].position = glm::vec4(vertices[i], 1.0f);
+        if (colors) {
+            hostStorage[i].color = glm::vec4(colors[i], 1.0f);
+        }
+    }
+    auto vertexFlags = VK_BUFFER_USAGE_TRANSFER_DST_BIT
+        | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+    VkMemoryAllocateFlags allocateFlags = 0;
+    if (isAddressable) {
+        vertexFlags |= VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
+        allocateFlags |= VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT;
+    }
+    auto size = vertexCount * sizeof(vku::ColoredVertex);
+    auto buffer = vku::Buffer::exclusive(
+        transferCore.device(),
+        size,
+        vertexFlags);
+    auto memory = vku::DeviceMemory::deviceLocalData(
+        transferCore.physicalDevice(),
+        transferCore.device(),
+        transferCore.transferPool(),
+        transferCore.transferQueue(),
+        buffer,
+        hostStorage.data(),
+        size,
+        allocateFlags);
+    return { std::move(buffer), std::move(memory) };
+}
+
 vku::MeshCore::MeshCore(
     vku::TransferCore &transferCore,
     const glm::vec3 *vertices,
@@ -10,67 +94,39 @@ vku::MeshCore::MeshCore(
     const uint32_t *indices,
     size_t indexCount,
     const glm::vec3 *colors,
-    bool addressable)
+    bool isAddressable,
+    bool isStorage)
     : _vertexCount(vertexCount)
     , _indexCount(indexCount)
 {
-    size_t vertexBufferSize = sizeof(glm::vec3) * vertexCount;
-    size_t totalVertexBufferSize = vertexBufferSize;
-    if (colors) {
-        totalVertexBufferSize *= 2;
-    }
-    auto stagingBuffer = vku::Buffer::exclusive(
-        transferCore.device(),
-        totalVertexBufferSize,
-        VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
-    auto stagingMemory = vku::DeviceMemory::hostCoherentBuffer(
-        transferCore.physicalDevice(),
-        transferCore.device(),
-        stagingBuffer);
-    vku::hostDeviceCopy(transferCore.device(), vertices, stagingMemory, vertexBufferSize);
-    if (colors) {
-        vku::hostDeviceCopy(transferCore.device(), colors, stagingMemory, vertexBufferSize, vertexBufferSize);
-    }
+    _vertices = isStorage
+        ? createStorageVertices(transferCore, vertices, vertexCount, colors, isAddressable)
+        : createProperVertices(transferCore, vertices, vertexCount, colors, isAddressable);
 
-    auto vertexFlags = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-    auto indexFlags = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+    auto indexFlags = VK_BUFFER_USAGE_TRANSFER_DST_BIT
+        | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
     VkMemoryAllocateFlags allocateFlags = 0;
-    if (addressable) {
-        vertexFlags |= VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
+    if (isAddressable) {
         indexFlags |= VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
         allocateFlags |= VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT;
     }
-
-    _vertexBuffer = vku::Buffer::exclusive(
-        transferCore.device(),
-        totalVertexBufferSize,
-        vertexFlags);
-    _vertexMemory = vku::DeviceMemory::deviceLocalBuffer(
-        transferCore.physicalDevice(),
-        transferCore.device(),
-        _vertexBuffer,
-        allocateFlags);
-    vku::deviceDeviceCopy(
-        transferCore.device(),
-        transferCore.transferPool(),
-        transferCore.transferQueue(),
-        stagingBuffer,
-        _vertexBuffer,
-        totalVertexBufferSize);
-
-    _indexBuffer = vku::Buffer::exclusive(
+    if (isStorage) {
+        indexFlags |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+    }
+    auto indexBuffer = vku::Buffer::exclusive(
         transferCore.device(),
         indexCount * sizeof(uint32_t),
         indexFlags);
-    _indexMemory = vku::DeviceMemory::deviceLocalData(
+    auto indexMemory = vku::DeviceMemory::deviceLocalData(
         transferCore.physicalDevice(),
         transferCore.device(),
         transferCore.transferPool(),
         transferCore.transferQueue(),
-        _indexBuffer,
+        indexBuffer,
         indices,
         indexCount * sizeof(uint32_t),
         allocateFlags);
+    _indices = { std::move(indexBuffer), std::move(indexMemory) };
 }
 
 static void pushCube(
@@ -126,8 +182,7 @@ static void pushCube(
         // push the appropriate face
         for (size_t i = 0; i < 6; ++i) {
             uint32_t localIndex = cubeIndices[f][i];
-            if (actualIndices[localIndex] == ~0u)
-            {
+            if (actualIndices[localIndex] == ~0u) {
                 vertices.push_back(cubeVertices[localIndex] + glm::vec3(position));
                 colors.push_back(color);
                 actualIndices[localIndex] = static_cast<uint32_t>(vertices.size() - 1);
@@ -141,7 +196,8 @@ static void pushCube(
 std::optional<vku::MeshCore> vku::MeshCore::fromChunk(
     vku::TransferCore &transferCore,
     vku::Chunk chunk,
-    bool addressable)
+    bool isAddressable,
+    bool isStorage)
 {
     if (!chunk.palette || !chunk.voxels || !chunk.size) {
         throw std::invalid_argument("the chunk is not valid");
@@ -165,8 +221,7 @@ std::optional<vku::MeshCore> vku::MeshCore::fromChunk(
         }
     }
 
-    if (indices.empty())
-    {
+    if (indices.empty()) {
         return std::nullopt;
     }
 
@@ -177,5 +232,6 @@ std::optional<vku::MeshCore> vku::MeshCore::fromChunk(
         indices.data(),
         indices.size(),
         colors.data(),
-        addressable);
+        isAddressable,
+        isStorage);
 }

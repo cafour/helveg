@@ -13,11 +13,9 @@ struct Chunk;
 
 class MeshCore {
 private:
-    vku::Buffer _vertexBuffer;
-    vku::DeviceMemory _vertexMemory;
+    vku::BackedBuffer _vertices;
     size_t _vertexCount;
-    vku::Buffer _indexBuffer;
-    vku::DeviceMemory _indexMemory;
+    vku::BackedBuffer _indices;
     size_t _indexCount;
     bool _isColored;
 
@@ -29,18 +27,20 @@ public:
         const uint32_t *indices,
         size_t indexCount,
         const glm::vec3 *colors = nullptr,
-        bool addressable = false);
+        bool isAddressable = false,
+        bool isStorage = false);
 
     static std::optional<MeshCore> fromChunk(
         vku::TransferCore& transferCore,
         vku::Chunk chunk,
-        bool addresable = false);
+        bool isAddressable = false,
+        bool isStorage = false);
 
-    vku::Buffer &vertexBuffer() { return _vertexBuffer; }
-    vku::DeviceMemory &vertexMemory() { return _vertexMemory; }
+    vku::Buffer &vertexBuffer() { return _vertices.buffer; }
+    vku::DeviceMemory &vertexMemory() { return _vertices.memory; }
     size_t vertexCount() { return _vertexCount; }
-    vku::Buffer &indexBuffer() { return _indexBuffer; }
-    vku::DeviceMemory &indexMemory() { return _indexMemory; }
+    vku::Buffer &indexBuffer() { return _indices.buffer; }
+    vku::DeviceMemory &indexMemory() { return _indices.memory; }
     size_t indexCount() { return _indexCount; }
     bool hasColors() { return _isColored; }
 };

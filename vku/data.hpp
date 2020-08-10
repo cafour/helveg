@@ -89,4 +89,9 @@ namespace vku {
     struct Model {
         alignas(16) glm::mat4 view;
     };
+
+    struct ColoredVertex {
+        alignas(16) glm::vec4 position;
+        alignas(16) glm::vec4 color;
+    };
 }

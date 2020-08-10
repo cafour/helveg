@@ -12,10 +12,13 @@ struct hitPayload {
 layout(location = 0) rayPayloadInEXT hitPayload prd;
 layout(location = 1) rayPayloadEXT bool isShadowed;
 
+struct Vertex {
+    vec4 pos;
+    vec4 col;
+};
 layout(binding = 0, set = 0) uniform accelerationStructureEXT topLevelAS;
-layout(binding = 3, set = 0, scalar) buffer Vertices { vec3 v[]; } vertices[];
+layout(binding = 3, set = 0, scalar) buffer Vertices { Vertex v[]; } vertices[];
 layout(binding = 4, set = 0) buffer Indices { uint i[]; } indices[];
-layout(binding = 5, set = 0, scalar) buffer Colors { vec3 c[]; } colors[];
 
 // clang-format on
 
@@ -34,9 +37,9 @@ void main()
         indices[nonuniformEXT(objId)].i[3 * gl_PrimitiveID + 1], //
         indices[nonuniformEXT(objId)].i[3 * gl_PrimitiveID + 2]); //
     // Vertex of the triangle
-    vec3 v0 = vertices[nonuniformEXT(objId)].v[ind.x];
-    vec3 v1 = vertices[nonuniformEXT(objId)].v[ind.y];
-    vec3 v2 = vertices[nonuniformEXT(objId)].v[ind.z];
+    vec3 v0 = vertices[nonuniformEXT(objId)].v[ind.x].pos.xyz;
+    vec3 v1 = vertices[nonuniformEXT(objId)].v[ind.y].pos.xyz;
+    vec3 v2 = vertices[nonuniformEXT(objId)].v[ind.z].pos.xyz;
 
     const vec3 barycentrics = vec3(1.0 - attribs.x - attribs.y, attribs.x, attribs.y);
 
@@ -61,7 +64,7 @@ void main()
         L = normalize(lightPosition - vec3(0));
     }
 
-    vec3 c = colors[nonuniformEXT(objId)].c[ind.x];
+    vec3 c = vertices[nonuniformEXT(objId)].v[ind.x].col.rgb;
     // Diffuse
     float NdotL = max(dot(normal, L), 0.0f);
     vec3 diffuse = NdotL * c;
@@ -70,36 +73,37 @@ void main()
     float attenuation = 1;
 
     // Tracing shadow ray only if the light is visible from the surface
-    if (dot(normal, L) > 0) {
-        float tMin = 0.001;
-        float tMax = lightDistance;
-        vec3 origin = gl_WorldRayOriginEXT + gl_WorldRayDirectionEXT * gl_HitTEXT;
-        vec3 rayDir = L;
-        uint flags = gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsOpaqueEXT
-            | gl_RayFlagsSkipClosestHitShaderEXT;
-        isShadowed = true;
-        traceRayEXT(topLevelAS, // acceleration structure
-            flags, // rayFlags
-            0xFF, // cullMask
-            0, // sbtRecordOffset
-            0, // sbtRecordStride
-            1, // missIndex
-            origin, // ray origin
-            tMin, // ray min range
-            rayDir, // ray direction
-            tMax, // ray max range
-            1 // payload (location = 1)
-        );
+    // if (dot(normal, L) > 0) {
+    //     float tMin = 0.001;
+    //     float tMax = lightDistance;
+    //     vec3 origin = gl_WorldRayOriginEXT + gl_WorldRayDirectionEXT * gl_HitTEXT;
+    //     vec3 rayDir = L;
+    //     uint flags = gl_RayFlagsTerminateOnFirstHitEXT
+    //         | gl_RayFlagsOpaqueEXT
+    //         | gl_RayFlagsSkipClosestHitShaderEXT;
+    //     isShadowed = true;
+    //     traceRayEXT(topLevelAS, // acceleration structure
+    //         flags, // rayFlags
+    //         0xFF, // cullMask
+    //         0, // sbtRecordOffset
+    //         0, // sbtRecordStride
+    //         1, // missIndex
+    //         origin, // ray origin
+    //         tMin, // ray min range
+    //         rayDir, // ray direction
+    //         tMax, // ray max range
+    //         1 // payload (location = 1)
+    //     );
 
-        if (isShadowed) {
-            attenuation = 0.3;
-        } else {
-            // Specular
-            vec3 H = normalize(L + gl_WorldRayDirectionEXT);
-            float NdotH = max(dot(normal, H), 0.0f);
-            specular = pow(NdotH, 10) * c;
-        }
-    }
+    //     if (isShadowed) {
+    //         attenuation = 0.3;
+    //     } else {
+    //         // Specular
+    //         vec3 H = normalize(L + gl_WorldRayDirectionEXT);
+    //         float NdotH = max(dot(normal, H), 0.0f);
+    //         specular = pow(NdotH, 10) * c;
+    //     }
+    // }
 
     prd.hitValue = vec3(lightIntensity * attenuation * (diffuse + specular));
 }
