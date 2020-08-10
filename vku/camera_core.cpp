@@ -43,7 +43,7 @@ void vku::CameraCore::onMouseMove(double x, double y)
     _lastY = y;
 
     _yaw += static_cast<float>(_sensitivity * dx);
-    _pitch += static_cast<float>(_sensitivity * dy);
+    _pitch -= static_cast<float>(_sensitivity * dy);
     _pitch = std::clamp(_pitch, -piHalf + 0.05f, piHalf - 0.05f);
 }
 
