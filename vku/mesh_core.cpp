@@ -31,10 +31,16 @@ vku::MeshCore::MeshCore(
     if (colors) {
         vku::hostDeviceCopy(transferCore.device(), colors, stagingMemory, vertexBufferSize, vertexBufferSize);
     }
+
     auto vertexFlags = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+    auto indexFlags = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+    VkMemoryAllocateFlags allocateFlags = 0;
     if (addressable) {
         vertexFlags |= VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
+        indexFlags |= VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
+        allocateFlags |= VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT;
     }
+
     _vertexBuffer = vku::Buffer::exclusive(
         transferCore.device(),
         totalVertexBufferSize,
@@ -43,7 +49,7 @@ vku::MeshCore::MeshCore(
         transferCore.physicalDevice(),
         transferCore.device(),
         _vertexBuffer,
-        VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT);
+        allocateFlags);
     vku::deviceDeviceCopy(
         transferCore.device(),
         transferCore.transferPool(),
@@ -52,10 +58,6 @@ vku::MeshCore::MeshCore(
         _vertexBuffer,
         totalVertexBufferSize);
 
-    auto indexFlags = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
-    if (addressable) {
-        indexFlags |= VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
-    }
     _indexBuffer = vku::Buffer::exclusive(
         transferCore.device(),
         indexCount * sizeof(uint32_t),
@@ -68,7 +70,7 @@ vku::MeshCore::MeshCore(
         _indexBuffer,
         indices,
         indexCount * sizeof(uint32_t),
-        VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT);
+        allocateFlags);
 }
 
 static void pushCube(
