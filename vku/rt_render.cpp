@@ -33,6 +33,7 @@ static VkPhysicalDeviceRayTracingFeaturesKHR getRTFeatures()
 {
     VkPhysicalDeviceRayTracingFeaturesKHR features = {};
     features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_FEATURES_KHR;
+    features.rayTracing = VK_TRUE;
     features.pNext = &deviceFeatures;
     return features;
 }
@@ -48,6 +49,7 @@ vku::RTRender::RTRender(int width, int height, World world, const std::string &t
           [this](auto &f) { return createFramebuffer(f); },
           [this](auto cb, auto &f) { recordCommandBuffer(cb, f); })
     , _transferCore(_displayCore.physicalDevice(), _displayCore.device())
+    , _cameraCore(_displayCore, _renderCore)
     , _rtProperties(vku::findProperties<VkPhysicalDeviceRayTracingPropertiesKHR>(
           _displayCore.physicalDevice(),
           VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PROPERTIES_KHR))
@@ -61,14 +63,18 @@ vku::RTRender::RTRender(int width, int height, World world, const std::string &t
     geometries.createInfos.push_back(geometryInfo.createInfo);
     geometries.geometries.push_back(geometryInfo.geometry);
     geometries.offsets.push_back(geometryInfo.offset);
-    auto blas = createBlas(geometries);
-    auto asInstance = createASInstance(blas, glm::translate(glm::mat4(1), _world.chunkOffsets[0]), 0);
-    _blases.push_back(std::move(blas));
+    createBlas(geometries);
+    auto asInstance = createASInstance(_blases.front(), glm::translate(glm::mat4(1), _world.chunkOffsets[0]), 0);
     std::vector instances { asInstance };
-    _tlas = createTlas(instances);
+    createTlas(instances);
     createRTDescriptorSet();
     createRTPipeline();
     createSbt(3);
+}
+
+vku::RTRender::~RTRender()
+{
+    vkDeviceWaitIdle(_displayCore.device());
 }
 
 void vku::RTRender::recordCommandBuffer(VkCommandBuffer cmd, vku::SwapchainFrame &frame)
@@ -207,6 +213,13 @@ void vku::RTRender::onResize(size_t imageCount, VkExtent2D extent)
         VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
         &offscreenColorInfo,
         1);
+
+    vku::writeWholeBufferDescriptor(
+        _displayCore.device(),
+        VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+        _cameraCore.cameraBuffers()[0],
+        _rayTraceDS,
+        2);
 }
 
 // returns the scratch and object size of an accelaration structure
@@ -259,6 +272,29 @@ static vku::BackedBuffer getScratch(
     return getRTBuffer(physicalDevice, device, scratchSize);
 }
 
+static vku::BackedBuffer getObjectBuffer(
+    VkPhysicalDevice physicalDevice,
+    VkDevice device,
+    VkAccelerationStructureKHR as)
+{
+    auto objectSize = getASSize(
+        device,
+        as, 
+        VK_ACCELERATION_STRUCTURE_MEMORY_REQUIREMENTS_TYPE_OBJECT_KHR);
+    auto back = getRTBuffer(physicalDevice, device, objectSize);
+
+    VkBindAccelerationStructureMemoryInfoKHR bindInfo = {};
+    bindInfo.sType = VK_STRUCTURE_TYPE_BIND_ACCELERATION_STRUCTURE_MEMORY_INFO_KHR;
+    bindInfo.accelerationStructure = as;
+    bindInfo.memory = back.memory;
+    bindInfo.memoryOffset = 0;
+    bindInfo.deviceIndexCount = 0;
+    bindInfo.pDeviceIndices = nullptr;
+
+    ENSURE(vkBindAccelerationStructureMemoryKHR(device, 1, &bindInfo));
+    return back;
+}
+
 vku::GeometryInfo vku::RTRender::createGeometry(vku::MeshCore &mesh)
 {
     // prepare a single geometry object
@@ -295,7 +331,7 @@ vku::GeometryInfo vku::RTRender::createGeometry(vku::MeshCore &mesh)
     return { geometryCreate, geometry, offset };
 }
 
-vku::AccelerationStructure vku::RTRender::createBlas(vku::GeometriesInfo &geometries)
+void vku::RTRender::createBlas(vku::GeometriesInfo &geometries)
 {
     VkAccelerationStructureCreateInfoKHR blasCreate = {};
     blasCreate.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_INFO_KHR;
@@ -304,6 +340,8 @@ vku::AccelerationStructure vku::RTRender::createBlas(vku::GeometriesInfo &geomet
     blasCreate.maxGeometryCount = static_cast<uint32_t>(geometries.createInfos.size());
     blasCreate.pGeometryInfos = geometries.createInfos.data();
     auto blas = vku::AccelerationStructure(_displayCore.device(), blasCreate);
+
+    _blasBuffers.push_back(getObjectBuffer(_displayCore.physicalDevice(), _displayCore.device(), blas));
 
     auto scratch = getScratch(_displayCore.physicalDevice(), _displayCore.device(), blas);
     VkDeviceAddress scratchAddress = vku::getBufferAddress(_displayCore.device(), scratch.buffer);
@@ -328,10 +366,10 @@ vku::AccelerationStructure vku::RTRender::createBlas(vku::GeometriesInfo &geomet
         pOffsets[i] = &geometries.offsets[i];
     }
     vkCmdBuildAccelerationStructureKHR(cmd, 1, &buildInfo, pOffsets.data());
-    vkEndCommandBuffer(cmd);
+    ENSURE(vkEndCommandBuffer(cmd));
     vku::CommandBuffers::submitSingle(commandBuffers, _displayCore.queue());
 
-    return blas;
+    _blases.push_back(std::move(blas));
 }
 
 VkAccelerationStructureInstanceKHR vku::RTRender::createASInstance(
@@ -353,10 +391,13 @@ VkAccelerationStructureInstanceKHR vku::RTRender::createASInstance(
     instance.accelerationStructureReference = vkGetAccelerationStructureDeviceAddressKHR(
         _displayCore.device(),
         &addressInfo);
+    if (instance.accelerationStructureReference == 0) {
+        throw std::runtime_error("The AS handle is invalid.");
+    }
     return instance;
 }
 
-vku::AccelerationStructure vku::RTRender::createTlas(std::vector<VkAccelerationStructureInstanceKHR> &instances)
+void vku::RTRender::createTlas(std::vector<VkAccelerationStructureInstanceKHR> &instances)
 {
     VkAccelerationStructureCreateGeometryTypeInfoKHR geometryCreate = {};
     geometryCreate.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_GEOMETRY_TYPE_INFO_KHR;
@@ -370,9 +411,11 @@ vku::AccelerationStructure vku::RTRender::createTlas(std::vector<VkAccelerationS
     tlasCreate.flags = VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR;
     tlasCreate.maxGeometryCount = 1;
     tlasCreate.pGeometryInfos = &geometryCreate;
-    auto tlas = vku::AccelerationStructure(_displayCore.device(), tlasCreate);
+    _tlas = vku::AccelerationStructure(_displayCore.device(), tlasCreate);
 
-    auto scratch = getScratch(_displayCore.physicalDevice(), _displayCore.device(), tlas);
+    _tlasBuffer = getObjectBuffer(_displayCore.physicalDevice(), _displayCore.device(), _tlas);
+
+    auto scratch = getScratch(_displayCore.physicalDevice(), _displayCore.device(), _tlas);
     auto scratchAddress = vku::getBufferAddress(_displayCore.device(), scratch.buffer);
 
     auto commandBuffers = vku::CommandBuffers::beginSingle(_displayCore.device(), _renderCore.commandPool());
@@ -420,7 +463,7 @@ vku::AccelerationStructure vku::RTRender::createTlas(std::vector<VkAccelerationS
     buildInfo.flags = tlasCreate.flags;
     buildInfo.update = VK_FALSE;
     buildInfo.srcAccelerationStructure = VK_NULL_HANDLE;
-    buildInfo.dstAccelerationStructure = tlas;
+    buildInfo.dstAccelerationStructure = _tlas;
     buildInfo.geometryArrayOfPointers = VK_FALSE;
     buildInfo.geometryCount = 1;
     buildInfo.ppGeometries = &pGeometries;
@@ -430,10 +473,8 @@ vku::AccelerationStructure vku::RTRender::createTlas(std::vector<VkAccelerationS
     offset.primitiveCount = static_cast<uint32_t>(instances.size());
     const VkAccelerationStructureBuildOffsetInfoKHR *pOffset = &offset;
     vkCmdBuildAccelerationStructureKHR(cmd, 1, &buildInfo, &pOffset);
-    vkEndCommandBuffer(cmd);
+    ENSURE(vkEndCommandBuffer(cmd));
     vku::CommandBuffers::submitSingle(commandBuffers, _displayCore.queue());
-
-    return tlas;
 }
 
 void vku::RTRender::createRTDescriptorSet()
@@ -449,11 +490,17 @@ void vku::RTRender::createRTDescriptorSet()
             1,
             VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
             1,
+            VK_SHADER_STAGE_RAYGEN_BIT_KHR),
+        vku::descriptorBinding(
+            2,
+            VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            1,
             VK_SHADER_STAGE_RAYGEN_BIT_KHR)
     };
     auto sizes = {
         vku::descriptorPoolSize(VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR, 1),
-        vku::descriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1)
+        vku::descriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1),
+        vku::descriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1),
     };
     _rayTraceDP = vku::DescriptorPool::basic(_displayCore.device(), 1, sizes.begin(), sizes.size());
     _rayTraceDsl = vku::DescriptorSetLayout::basic(_displayCore.device(), bindings.begin(), bindings.size());
