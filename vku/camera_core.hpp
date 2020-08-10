@@ -38,8 +38,8 @@ private:
     float _speed = 0.0f;
     float _yaw = 0.0f;
     float _pitch = 0.0f;
-    float _lastX = 0.0f;
-    float _lastY = 0.0f;
+    double _lastX = 0.0f;
+    double _lastY = 0.0f;
     float _sensitivity = 0.005f;
     bool _enabled = false;
 

@@ -28,9 +28,12 @@ private:
     vku::SwapchainCore _swapchainCore;
     vku::RenderCore _renderCore;
     vku::TransferCore _transferCore;
+    vku::CameraCore _cameraCore;
 
     VkPhysicalDeviceRayTracingPropertiesKHR _rtProperties;
+    std::vector<vku::BackedBuffer> _blasBuffers;
     std::vector<vku::AccelerationStructure> _blases;
+    vku::BackedBuffer _tlasBuffer;
     vku::AccelerationStructure _tlas;
     vku::DescriptorSetLayout _rayTraceDsl;
     vku::DescriptorPool _rayTraceDP;
@@ -47,18 +50,19 @@ private:
     void onResize(size_t imageCount, VkExtent2D extent);
 
     vku::GeometryInfo createGeometry(vku::MeshCore &mesh);
-    vku::AccelerationStructure createBlas(vku::GeometriesInfo &geometries);
+    void createBlas(vku::GeometriesInfo &geometries);
     VkAccelerationStructureInstanceKHR createASInstance(
         VkAccelerationStructureKHR as,
         glm::mat4 transform,
         uint32_t instanceId);
-    vku::AccelerationStructure createTlas(std::vector<VkAccelerationStructureInstanceKHR> &instances);
+    void createTlas(std::vector<VkAccelerationStructureInstanceKHR> &instances);
     void createRTDescriptorSet();
     void createRTPipeline();
     void createSbt(uint32_t groupCount);
 
 public:
     RTRender(int width, int height, World world, const std::string &title, bool debug = false);
+    ~RTRender();
 
     vku::RenderCore &renderCore() { return _renderCore; }
     vku::DisplayCore &displayCore() { return _displayCore; }

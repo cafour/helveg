@@ -3,12 +3,13 @@
 
 layout(binding = 0, set = 0) uniform accelerationStructureEXT topLevelAS;
 layout(binding = 1, set = 0, rgba32f) uniform image2D image;
-layout(binding = 0, set = 1) uniform CameraProperties
+layout(binding = 2, set = 0) uniform CameraProperties
 {
     mat4 view;
     mat4 proj;
     mat4 viewInverse;
     mat4 projInverse;
+    vec3 position;
 }
 cam;
 

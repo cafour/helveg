@@ -31,20 +31,19 @@ vku::CameraCore::CameraCore(vku::DisplayCore &displayCore, vku::RenderCore &rend
 
 void vku::CameraCore::onMouseMove(double x, double y)
 {
-    if (!_enabled)
-    {
-        _lastX = static_cast<float>(x);
-        _lastY = static_cast<float>(y);
+    if (!_enabled) {
+        _lastX = x;
+        _lastY = y;
         return;
     }
 
-    float dx = static_cast<float>(x) - _lastX;
-    float dy = _lastY - static_cast<float>(y);
-    _lastX = static_cast<float>(x);
-    _lastY = static_cast<float>(y);
+    double dx = (x - _lastX) / _displayCore.window().width();
+    double dy = (y - _lastY) / _displayCore.window().height();
+    _lastX = x;
+    _lastY = y;
 
-    _yaw += _sensitivity * dx;
-    _pitch += _sensitivity * dy;
+    _yaw += static_cast<float>(_sensitivity * dx);
+    _pitch += static_cast<float>(_sensitivity * dy);
     _pitch = std::clamp(_pitch, -piHalf + 0.05f, piHalf - 0.05f);
 }
 

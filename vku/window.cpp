@@ -120,3 +120,17 @@ void vku::Window::resetCursor()
 {
     glfwSetInputMode(_raw, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 }
+
+int vku::Window::width()
+{
+    int value = -1;
+    glfwGetWindowSize(_raw, &value, nullptr);
+    return value;
+}
+
+int vku::Window::height()
+{
+    int value = -1;
+    glfwGetWindowSize(_raw, nullptr, &value);
+    return value;
+}
