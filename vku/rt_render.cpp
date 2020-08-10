@@ -59,7 +59,7 @@ vku::RTRender::RTRender(int width, int height, World world, const std::string &t
 
     std::vector<VkAccelerationStructureInstanceKHR> blasInstances;
     for (size_t i = 0; i < _world.chunkCount; ++i) {
-        auto maybeMesh = vku::MeshCore::fromChunk(_transferCore, _world.chunks[0], true);
+        auto maybeMesh = vku::MeshCore::fromChunk(_transferCore, _world.chunks[i], true);
         if (!maybeMesh.has_value()) {
             continue;
         }
@@ -71,8 +71,8 @@ vku::RTRender::RTRender(int width, int height, World world, const std::string &t
         createBlas(geometries);
         blasInstances.push_back(createASInstance(
             _blases.back(),
-            glm::translate(glm::mat4(1), _world.chunkOffsets[0]),
-            0));
+            glm::translate(glm::mat4(1), _world.chunkOffsets[i]),
+            static_cast<uint32_t>(i)));
     }
     createTlas(blasInstances);
     createRTDescriptorSet();
@@ -386,6 +386,7 @@ VkAccelerationStructureInstanceKHR vku::RTRender::createASInstance(
     uint32_t instanceId)
 {
     VkAccelerationStructureInstanceKHR instance = {};
+    transform = glm::transpose(transform);
     std::copy(&transform[0][0], &transform[3][0], &instance.transform.matrix[0][0]);
     instance.instanceCustomIndex = instanceId;
     instance.mask = 0xff;
