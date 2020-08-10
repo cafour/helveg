@@ -57,16 +57,24 @@ vku::RTRender::RTRender(int width, int height, World world, const std::string &t
 {
     _renderCore.onResize([this](auto s, auto e) { onResize(s, e); });
 
-    auto maybeMesh = vku::MeshCore::fromChunk(_transferCore, _world.chunks[0], true);
-    auto geometryInfo = createGeometry(maybeMesh.value());
-    GeometriesInfo geometries;
-    geometries.createInfos.push_back(geometryInfo.createInfo);
-    geometries.geometries.push_back(geometryInfo.geometry);
-    geometries.offsets.push_back(geometryInfo.offset);
-    createBlas(geometries);
-    auto asInstance = createASInstance(_blases.front(), glm::translate(glm::mat4(1), _world.chunkOffsets[0]), 0);
-    std::vector instances { asInstance };
-    createTlas(instances);
+    std::vector<VkAccelerationStructureInstanceKHR> blasInstances;
+    for (size_t i = 0; i < _world.chunkCount; ++i) {
+        auto maybeMesh = vku::MeshCore::fromChunk(_transferCore, _world.chunks[0], true);
+        if (!maybeMesh.has_value()) {
+            continue;
+        }
+        auto geometryInfo = createGeometry(maybeMesh.value());
+        GeometriesInfo geometries;
+        geometries.createInfos.push_back(geometryInfo.createInfo);
+        geometries.geometries.push_back(geometryInfo.geometry);
+        geometries.offsets.push_back(geometryInfo.offset);
+        createBlas(geometries);
+        blasInstances.push_back(createASInstance(
+            _blases.back(),
+            glm::translate(glm::mat4(1), _world.chunkOffsets[0]),
+            0));
+    }
+    createTlas(blasInstances);
     createRTDescriptorSet();
     createRTPipeline();
     createSbt(3);
@@ -153,7 +161,7 @@ void vku::RTRender::recordCommandBuffer(VkCommandBuffer cmd, vku::SwapchainFrame
         VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 
     VkImageCopy copyRegion = {};
-    copyRegion.srcOffset = {0, 0, 0};
+    copyRegion.srcOffset = { 0, 0, 0 };
     copyRegion.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     copyRegion.srcSubresource.mipLevel = 0;
     copyRegion.srcSubresource.baseArrayLayer = 0;
@@ -165,7 +173,7 @@ void vku::RTRender::recordCommandBuffer(VkCommandBuffer cmd, vku::SwapchainFrame
     copyRegion.extent.depth = 1;
     copyRegion.extent.width = extent.width;
     copyRegion.extent.height = extent.height;
-    copyRegion.dstOffset = {0, 0, 0};
+    copyRegion.dstOffset = { 0, 0, 0 };
     vkCmdCopyImage(
         cmd,
         _offscreen.image,
@@ -279,7 +287,7 @@ static vku::BackedBuffer getObjectBuffer(
 {
     auto objectSize = getASSize(
         device,
-        as, 
+        as,
         VK_ACCELERATION_STRUCTURE_MEMORY_REQUIREMENTS_TYPE_OBJECT_KHR);
     auto back = getRTBuffer(physicalDevice, device, objectSize);
 
