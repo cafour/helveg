@@ -323,7 +323,7 @@ vku::GeometryInfo vku::RTRender::createGeometry(vku::MeshCore &mesh)
     triangles.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_TRIANGLES_DATA_KHR;
     triangles.vertexFormat = geometryCreate.vertexFormat;
     triangles.vertexData.deviceAddress = vku::getBufferAddress(_displayCore.device(), mesh.vertexBuffer());
-    triangles.vertexStride = sizeof(glm::vec3);
+    triangles.vertexStride = sizeof(vku::ColoredVertex);
     triangles.indexType = geometryCreate.indexType;
     triangles.indexData.deviceAddress = vku::getBufferAddress(_displayCore.device(), mesh.indexBuffer());
 
