@@ -14,6 +14,7 @@ find_package(VulkanHeaders REQUIRED)
 find_package(Volk REQUIRED)
 find_package(GLFW REQUIRED)
 find_package(Glm REQUIRED)
+find_package(Glslang REQUIRED)
 
 include(Embed)
 

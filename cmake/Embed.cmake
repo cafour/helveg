@@ -23,6 +23,6 @@ function(target_embed_shader TARGET INPUT_GLSL EMBEDDED_NAME)
         COMMAND glslangValidator -V ${INPUT_GLSL} -o ${_SPV}
         MAIN_DEPENDENCY ${INPUT_GLSL}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    )
+        DEPENDS glslangValidator)
     target_embed(${TARGET} ${_SPV} ${EMBEDDED_NAME})
 endfunction()
