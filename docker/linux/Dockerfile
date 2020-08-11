@@ -9,4 +9,5 @@ ENV LANG=$DOCKER_LANG.UTF-8 \
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
     cmake \
     clang \
-    xorg-dev
+    xorg-dev \
+    python3
