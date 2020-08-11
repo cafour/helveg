@@ -1,4 +1,9 @@
-find_file(GLSLANG_PATH glslangValidator)
+if(WIN32)
+    find_file(GLSLANG_PATH glslangValidator.exe)
+else()
+    find_file(GLSLANG_PATH glslangValidator)
+endif()
+
 if (GLSLANG_PATH)
     message(STATUS "Found ${GLSLANG_PATH}")
     add_custom_target(glslangValidator)
