@@ -14,9 +14,7 @@ build-windows:
       - build/_deps
   artifacts:
     paths:
-      - artifacts/*.nupkg
-      - artifacts/*.dll
-      - artifacts/*.so
+      - artifacts/vku.dll
   tags:
     - office-windows
   only:
@@ -36,8 +34,8 @@ build-linux:
   artifacts:
     paths:
       - artifacts/*.nupkg
-      - artifacts/*.dll
-      - artifacts/*.so
+      - artifacts/vku.dll
+      - artifacts/libvku.so
   only:
     - master
 
@@ -54,8 +52,8 @@ build-linux-tag:
   artifacts:
     paths:
       - artifacts/*.nupkg
-      - artifacts/*.dll
-      - artifacts/*.so
+      - artifacts/vku.dll
+      - artifacts/libvku.so
   only:
     - /^v0\.\d+\.\d+$/
 
