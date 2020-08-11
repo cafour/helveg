@@ -77,7 +77,7 @@ void main()
         float tMin = 0.001;
         float tMax = lightDistance;
         vec3 origin = gl_WorldRayOriginEXT + gl_WorldRayDirectionEXT * gl_HitTEXT;
-        vec3 rayDir = L;
+        vec3 rayDir = -L;
         uint flags = gl_RayFlagsTerminateOnFirstHitEXT
             | gl_RayFlagsOpaqueEXT
             | gl_RayFlagsSkipClosestHitShaderEXT;
