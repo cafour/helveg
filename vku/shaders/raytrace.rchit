@@ -23,9 +23,9 @@ layout(binding = 4, set = 0) buffer Indices { uint i[]; } indices[];
 // clang-format on
 
 const vec4 clearColor = vec4(0.533f, 0.808f, 0.925f, 1.0f);
-const vec3 lightPosition = vec3(10.f, 15.f, 8.f);
-const float lightIntensity = 100.0f;
-const int lightType = 0;
+const vec3 lightPosition = vec3(-100.0, -100.0, -100.0);
+const float lightIntensity = 1.0f;
+const int lightType = 1;
 
 void main()
 {
@@ -73,37 +73,37 @@ void main()
     float attenuation = 1;
 
     // Tracing shadow ray only if the light is visible from the surface
-    // if (dot(normal, L) > 0) {
-    //     float tMin = 0.001;
-    //     float tMax = lightDistance;
-    //     vec3 origin = gl_WorldRayOriginEXT + gl_WorldRayDirectionEXT * gl_HitTEXT;
-    //     vec3 rayDir = L;
-    //     uint flags = gl_RayFlagsTerminateOnFirstHitEXT
-    //         | gl_RayFlagsOpaqueEXT
-    //         | gl_RayFlagsSkipClosestHitShaderEXT;
-    //     isShadowed = true;
-    //     traceRayEXT(topLevelAS, // acceleration structure
-    //         flags, // rayFlags
-    //         0xFF, // cullMask
-    //         0, // sbtRecordOffset
-    //         0, // sbtRecordStride
-    //         1, // missIndex
-    //         origin, // ray origin
-    //         tMin, // ray min range
-    //         rayDir, // ray direction
-    //         tMax, // ray max range
-    //         1 // payload (location = 1)
-    //     );
+    if (dot(normal, L) > 0) {
+        float tMin = 0.001;
+        float tMax = lightDistance;
+        vec3 origin = gl_WorldRayOriginEXT + gl_WorldRayDirectionEXT * gl_HitTEXT;
+        vec3 rayDir = L;
+        uint flags = gl_RayFlagsTerminateOnFirstHitEXT
+            | gl_RayFlagsOpaqueEXT
+            | gl_RayFlagsSkipClosestHitShaderEXT;
+        isShadowed = true;
+        traceRayEXT(topLevelAS, // acceleration structure
+            flags, // rayFlags
+            0xFF, // cullMask
+            0, // sbtRecordOffset
+            0, // sbtRecordStride
+            1, // missIndex
+            origin, // ray origin
+            tMin, // ray min range
+            rayDir, // ray direction
+            tMax, // ray max range
+            1 // payload (location = 1)
+        );
 
-    //     if (isShadowed) {
-    //         attenuation = 0.3;
-    //     } else {
-    //         // Specular
-    //         vec3 H = normalize(L + gl_WorldRayDirectionEXT);
-    //         float NdotH = max(dot(normal, H), 0.0f);
-    //         specular = pow(NdotH, 10) * c;
-    //     }
-    // }
+        if (isShadowed) {
+            attenuation = 0.3;
+        } else {
+            // Specular
+            vec3 H = normalize(L + gl_WorldRayDirectionEXT);
+            float NdotH = max(dot(normal, H), 0.0f);
+            specular = pow(NdotH, 10) * c;
+        }
+    }
 
     prd.hitValue = vec3(lightIntensity * attenuation * (diffuse + specular));
 }

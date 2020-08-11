@@ -80,7 +80,7 @@ vku::RTRender::RTRender(int width, int height, World world, const std::string &t
     createTlas(blasInstances);
     createRTDescriptorSet();
     createRTPipeline();
-    createSbt(3);
+    createSbt(_shaderGroupCount);
 }
 
 vku::RTRender::~RTRender()
@@ -556,8 +556,8 @@ void vku::RTRender::createRTPipeline()
 {
     auto rgenShader = vku::ShaderModule::inlined(_displayCore.device(), RAYTRACE_RGEN, RAYTRACE_RGEN_LENGTH);
     auto rmissShader = vku::ShaderModule::inlined(_displayCore.device(), RAYTRACE_RMISS, RAYTRACE_RMISS_LENGTH);
-    auto rchitShader = vku::ShaderModule::inlined(_displayCore.device(), RAYTRACE_RCHIT, RAYTRACE_RCHIT_LENGTH);
     auto shadowShader = vku::ShaderModule::inlined(_displayCore.device(), SHADOW_RMISS, SHADOW_RMISS_LENGTH);
+    auto rchitShader = vku::ShaderModule::inlined(_displayCore.device(), RAYTRACE_RCHIT, RAYTRACE_RCHIT_LENGTH);
     auto shaderStages = {
         vku::shaderStage(VK_SHADER_STAGE_RAYGEN_BIT_KHR, rgenShader),
         vku::shaderStage(VK_SHADER_STAGE_MISS_BIT_KHR, rmissShader),
