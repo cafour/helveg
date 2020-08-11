@@ -1,3 +1,11 @@
+find_file(GLSLANG_PATH glslangValidator)
+if (GLSLANG_PATH)
+    message(STATUS "Found ${GLSLANG_PATH}")
+    add_custom_target(glslangValidator)
+else()
+    find_package(Glslang REQUIRED)
+endif()
+
 add_executable(embed ${CMAKE_CURRENT_LIST_DIR}/embed.cpp)
 
 set(EMBED_DIR ${CMAKE_BINARY_DIR}/embedded)
