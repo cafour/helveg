@@ -14,7 +14,9 @@ build-windows:
       - build/_deps
   artifacts:
     paths:
-      - artifacts/
+      - artifacts/*.nupkg
+      - artifacts/*.dll
+      - artifacts/*.so
   tags:
     - office-windows
   only:
@@ -33,7 +35,9 @@ build-linux:
       - build/_deps
   artifacts:
     paths:
-      - artifacts/
+      - artifacts/*.nupkg
+      - artifacts/*.dll
+      - artifacts/*.so
   only:
     - master
 
@@ -49,7 +53,9 @@ build-linux-tag:
       - build/_deps
   artifacts:
     paths:
-      - artifacts/
+      - artifacts/*.nupkg
+      - artifacts/*.dll
+      - artifacts/*.so
   only:
     - /^v0\.\d+\.\d+$/
 
