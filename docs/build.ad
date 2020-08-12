@@ -22,7 +22,7 @@ The easiest way to build Helveg is the `build.sh` or `build.ps1` script.
 3. Configure and build Vku.
     a. On Windows, make sure you are inside a _x64 Native Tools Command Prompt for VS 2019_ or have otherwise configured 64-bit MSVC to be detectable by CMake and run:
 +
-[source, powershell]
+[source, batch]
 ----
 cmake -B "build" ^
     -DCMAKE_INSTALL_PREFIX="artifacts" ^
@@ -32,7 +32,7 @@ cmake --build "build" --target install
 ----
     b. On Linux, run:
 +
-[source, batch]
+[source, bash]
 ----
 cmake -B "./build" \
     -DCMAKE_INSTALL_PREFIX="./artifacts" \
