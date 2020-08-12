@@ -17,6 +17,8 @@ extern "C" {
 
     EXPORT void setRayTracing(bool rayTracing);
 
+    EXPORT void setForceCursor(bool forceCursor);
+
     EXPORT void setLogCallback(void (*callback)(int level, const char *message));
 
     EXPORT int helloTriangle();

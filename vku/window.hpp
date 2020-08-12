@@ -48,6 +48,7 @@ public:
     glm::dvec2 mousePosition();
     void disableCursor();
     void resetCursor();
+    void forceCursor(bool allowDisable = false);
     int width();
     int height();
 

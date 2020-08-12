@@ -126,6 +126,12 @@ void vku::Window::resetCursor()
     glfwSetInputMode(_raw, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 }
 
+void vku::Window::forceCursor(bool allowDisable)
+{
+    resetCursor();
+    _allowCursorDisable = allowDisable;
+}
+
 int vku::Window::width()
 {
     int value = -1;

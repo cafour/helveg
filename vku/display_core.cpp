@@ -12,7 +12,7 @@ vku::DisplayCore::DisplayCore(
     const void *deviceCreateInfoNext)
     : _instance(instance)
 {
-    _window = vku::Window::noApi(width, height, name, false);
+    _window = vku::Window::noApi(width, height, name);
     _surface = vku::Surface::glfw(_instance, _window);
     _physicalDevice = vku::findDevice(_instance, _surface, &_queueIndex, &extensions);
     _device = vku::Device::basic(_physicalDevice, _queueIndex, &extensions, features, deviceCreateInfoNext);

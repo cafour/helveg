@@ -9,6 +9,7 @@
 
 bool isDebug = false;
 bool isRayTraced = false;
+bool isCursorForced = false;
 
 void setDebug(bool debug)
 {
@@ -18,6 +19,11 @@ void setDebug(bool debug)
 void setRayTracing(bool rayTracing)
 {
     isRayTraced = rayTracing;
+}
+
+void setForceCursor(bool forceCursor)
+{
+    isCursorForced = forceCursor;
 }
 
 void setLogCallback(void (*callback)(int level, const char *message))
@@ -105,9 +111,15 @@ int helloWorld(vku::World world, const char *title)
     return hello([world, title]() {
         if (isRayTraced) {
             vku::RTRender app(1280, 720, world, title, isDebug);
+            if (isCursorForced) {
+                app.displayCore().window().forceCursor();
+            }
             app.renderCore().run();
         } else {
             vku::WorldRender app(1280, 720, world, title, isDebug);
+            if (isCursorForced) {
+                app.displayCore().window().forceCursor();
+            }
             app.renderCore().run();
         }
     });

@@ -58,6 +58,7 @@ vku::RTRender::RTRender(int width, int height, World world, const std::string &t
     , _world(world)
 {
     _renderCore.onResize([this](auto s, auto e) { onResize(s, e); });
+    _cameraCore.view().position = world.initialCameraPosition;
 
     std::vector<VkAccelerationStructureInstanceKHR> blasInstances;
     for (size_t i = 0; i < _world.chunkCount; ++i) {

@@ -78,6 +78,7 @@ private:
 public:
     WorldRender(int width, int height, World world, const std::string &title, bool debug = false);
 
+    vku::DisplayCore &displayCore() {return _displayCore; }
     vku::RenderCore &renderCore() { return _renderCore; }
 };
 }
