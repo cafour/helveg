@@ -43,3 +43,6 @@ The output then needs to be parsed and environment variables set accordingly _ag
 
 CMake and .NET Core::
 While it is possible to hook the `dotnet` command into `CMakeLists.txt` in such a way that the whole application gets built upon one `cmake --build .`, this solution is not perfect. For instance, it tends to hang when more threads get involved. It also produces a different filesystem hierarchy on each OS. I recommend settling for a custom build script that runs `cmake` and `dotnet` sequentially.
+
+Lost device with VK_KHR_ray_tracing::
+Don't forget to allocate and bind device memory for the acceleration structures themselves. Scratch buffers are not enough!
