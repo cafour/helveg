@@ -1,4 +1,5 @@
 # Helveg
+:!figure-caption:
 
 A software visualization tool. It turns projects into islands and classes into trees. It also sets the trees on fire if there are errors in them.
 
@@ -18,6 +19,20 @@ image::https://img.shields.io/gitlab/pipeline/helveg/helveg/master[]
 * A warning -> missing roofs, needles or flowers
 * Project references -> bridges
 * Package references -> cargo on a platform
+
+## Screenshots
+
+.A visualization of Helveg itself.
+image::img/world.png[]
+
+.A visualization of Helveg with ray traing on.
+image::img/world_rtx.png[]
+
+.A compilation error causing a fire.
+image::img/fire.png[]
+
+.Labels.
+image::img/labels.png[]
 
 ## Control scheme
 

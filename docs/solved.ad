@@ -34,7 +34,7 @@ MSVC is not particularly easy to use. For instance, to tell it to compile a piec
 +
 However, just running this script is not enough. Not when one uses Powershell and wants to continue to do so. No, on Powershell this script needs to be run thusly:
 +
-[source, cmd]
+[source, batch]
 ----
 cmd /c """$vsDir\VC\Auxiliary\Build\vcvars64.bat"" & set"
 ----
