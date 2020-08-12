@@ -32,14 +32,14 @@ cmake --build "build" --target install
 ----
     b. On Linux, run:
 +
-[source, bash]
+[source, batch]
 ----
 cmake -B "./build" \
     -DCMAKE_INSTALL_PREFIX="./artifacts" \
     -DCMAKE_BUILD_TYPE="Debug"
 cmake --build "./build" --target install
 ----
-4. To produce the executable in `build/helveg`, run the following with `<RID>`` replaced by the Runtime Identifier of the build environment:
+4. To produce the executable in `build/helveg`, run the following with `<RID>` replaced by the link:https://docs.microsoft.com/en-us/dotnet/core/rid-catalog[Runtime Identifier] of the build environment:
 +
 [source, bash]
 ----
