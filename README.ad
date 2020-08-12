@@ -31,12 +31,14 @@ image::https://img.shields.io/gitlab/pipeline/helveg/helveg/master[]
 | D / Right | Move right
 | Shift | Move down
 | Space | Move up
+| F1 | Show labels
 |===
 
 ## Documentation
 
 * link:docs/build.ad[Build Instructions]
-
+* link:docs/architecture.ad[Program Architecture]
+* link:docs/solved.ad[Solved Problems]
 
 ## Acknowledgements
 

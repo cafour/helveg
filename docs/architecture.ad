@@ -1,0 +1,34 @@
+# Program Architecture
+
+Helveg has two halves: the C# half and the C++ half. The C# code (inside the `helveg` directory) handles code analysis and landscape generation, whereas the C{plus}{plus} part (inside the `vku` directory) is Helveg's renderer -- Vku.
+
+## Helveg
+
+Helveg relies on link:https://github.com/microsoft/MSBuildLocator.git[MSBuildLocator] and link:https://github.com/dotnet/roslyn.git[Roslyn] to load projects and analyze C# code, respectively.
+
+When a project or a solution is loaded, Helveg calculates a graph of relations between the types defined in each project (_Analyze.cs_), it then lays them out in 2D space with a force-directed graph drawing algorithm (_Fdg.cs_) and
+generates a terrain (_Terrain.cs_). The _Program_ class directs this whole pipeline.
+
+## Vku
+
+Vku is a renderer written in C++, which was originally a set of mere Vulkan utilies (thus the name). It has four layers that build extend one another:
+
+Base::
+The lowest of all is the _Base_ layer. It contains RAII wrappers of some of Vulkan's structures, convenience functions, logging, etc.
+
+Cores::
+A _Core_ is just Vku's fancy term for an OOP class. Cores groups common functionality. For instance, `MeshCore` contains the vertex and index buffers of a mesh, `SwapchainCore` manages a swapchain of images, and `RenderCore` wraps around the main rendering loop.
+
+Renders::
+A _Render_ is essentially an application in its own right. For a given input, a Render open a window with GLFW and does all the rendering involved. Vku has several renders, but the one you'll likely be looking for is either the `WorldRender`, which, well, renders the procedurally generated chunks, or the `GraphRender`, which renders the progress of a force-directed graph drawing algorithm.
+
+Interop::
+The functions exported out of the Vku library. These functions are called from within the C# half.
+
+## Distribution
+
+It's a link:https://docs.microsoft.com/en-us/dotnet/core/tools/global-tools[.NET Core Tool], a special kind of NuGet package that contains an executable.
+
+## More Information
+
+link:https://is.muni.cz/th/kv7md/[_Procedurally Generated Landscape as a Visualization of C# Code_], my bachelor's thesis, contains a much more complete description of Helveg's current implementation.
