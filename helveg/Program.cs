@@ -60,6 +60,7 @@ namespace Helveg
 
             var cache = IsForced ? null : await Serialize.GetCache<SerializableSolution>(AnalysisCacheFilename, logger);
             var vsInstance = MSBuildLocator.RegisterDefaults();
+            NuGetLocator.Register(vsInstance.MSBuildPath);
             logger.LogDebug($"Using MSBuild at '{vsInstance.MSBuildPath}'.");
 
             var analyzedSolution = await Analyze.AnalyzeProjectOrSolution(file, properties, logger, cache);
