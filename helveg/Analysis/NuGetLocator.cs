@@ -41,6 +41,15 @@ namespace Helveg.Analysis
                 }
                 return Assembly.LoadFrom(targetAssembly);
             };
+            AssemblyLoadContext.Default.Resolving += (context, name) =>
+            {
+                var targetAssembly = Path.Combine(msbuildPath, name.Name + ".dll");
+                if (!File.Exists(targetAssembly))
+                {
+                    return null;
+                }
+                return Assembly.LoadFrom(targetAssembly);
+            };
         }
 
         private static bool HasPublicKeyToken(AssemblyName assemblyName, string expectedPublicKeyToken)
