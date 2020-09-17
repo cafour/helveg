@@ -125,7 +125,7 @@ static VkPhysicalDeviceFeatures getDeviceFeatures()
 
 static const VkPhysicalDeviceFeatures requiredFeatures = getDeviceFeatures();
 
-vku::GraphRender::GraphRender(int width, int height, Graph graph, bool debug)
+vku::GraphRender::GraphRender(int width, int height, Graph graph, float scale, bool debug)
     : _instanceCore("GraphRender", true, debug)
     , _displayCore(_instanceCore.instance(), width, height, "vkdev", &requiredFeatures)
     , _swapchainCore(_displayCore)

@@ -25,9 +25,9 @@ extern "C" {
 
     EXPORT int helloMesh(vku::MeshRender::Mesh mesh);
 
-    EXPORT int helloGraph(vku::GraphRender::Graph graph);
+    EXPORT int helloGraph(vku::GraphRender::Graph graph, float scale);
 
-    EXPORT int createGraphRender(vku::GraphRender::Graph graph, void **graphRender);
+    EXPORT int createGraphRender(vku::GraphRender::Graph graph, float scale, void **graphRender);
 
     EXPORT int stepGraphRender(void *ptr);
 

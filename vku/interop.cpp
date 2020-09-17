@@ -64,18 +64,18 @@ int helloMesh(vku::MeshRender::Mesh mesh)
     });
 }
 
-int helloGraph(vku::GraphRender::Graph graph)
+int helloGraph(vku::GraphRender::Graph graph, float scale)
 {
-    return hello([graph]() {
-        vku::GraphRender app(1280, 720, graph, isDebug);
+    return hello([graph, scale]() {
+        vku::GraphRender app(1280, 720, graph, scale, isDebug);
         app.renderCore().run();
     });
 }
 
-int createGraphRender(vku::GraphRender::Graph graph, void **ptr)
+int createGraphRender(vku::GraphRender::Graph graph, float scale, void **ptr)
 {
-    return hello([graph, ptr]() {
-        auto graphRender = new vku::GraphRender(1024, 1024, graph, isDebug);
+    return hello([graph, scale, ptr]() {
+        auto graphRender = new vku::GraphRender(1024, 1024, graph, scale, isDebug);
         graphRender->renderCore().resize();
         *ptr = graphRender;
     });

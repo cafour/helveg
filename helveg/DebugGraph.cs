@@ -79,6 +79,64 @@ namespace Helveg
             };
             fdgCmd.Handler = CommandHandler.Create(typeof(DebugGraph).GetMethod(nameof(RunFdg))!);
             parent.AddCommand(fdgCmd);
+
+            var islandGraphCmd = new Command("island-graph", "Animates the layout of islands");
+            islandGraphCmd.Handler = CommandHandler.Create(typeof(DebugGraph).GetMethod(nameof(RunIslandGraph))!);
+            parent.AddCommand(islandGraphCmd);
+        }
+
+        public static async Task RunIslandGraph(FileSystemInfo source, Dictionary<string, string> properties)
+        {
+            var logger = Program.Logging.CreateLogger($"Debug Island Graph");
+            var nullableSolution = await Program.RunAnalysis(source, properties);
+            if (nullableSolution is null)
+            {
+                logger.LogCritical("Failed to load the solution.");
+                return;
+            }
+
+            var solution = nullableSolution.Value;
+            var solutionGraph = Graph.FromAnalyzed(solution);
+            var graphs = await Task.WhenAll(solutionGraph.Labels
+                .Select(p => Task.Run(() =>
+                {
+                    var project = solution.Projects[p];
+                    var graph = Graph.FromAnalyzed(project);
+                    for (int i = 0; i < graph.Positions.Length; ++i)
+                    {
+                        graph.Sizes[i] = MathF.Max(graph.Sizes[i], Program.MinNodeSize);
+                    }
+                    return Program.RunFdg(
+                        graph: graph,
+                        regularCount: Program.RegularIterationCount,
+                        strongGravityCount: Program.StrongGravityIterationCount,
+                        overlapPreventionCount: Program.NoOverlapIterationCount,
+                        expectedTimeStamp: project.LastWriteTime);
+                })));
+
+            for (int i = 0; i < graphs.Length; ++i)
+            {
+                var bbox = graphs[i].GetBoundingBox();
+                solutionGraph.Sizes[i] = MathF.Max(bbox.Width, bbox.Height);
+            }
+            logger.LogInformation("Laying out islands.");
+            solutionGraph.LayInCircle();
+            var state = Eades.Create(solutionGraph.Positions, solutionGraph.Weights);
+            var maxSize = solutionGraph.Sizes.Max();
+            state.UnloadedLength = maxSize + Program.IslandGapSize;
+            state.Repulsion = maxSize * maxSize;
+            DrawGraph(
+                graph: solutionGraph,
+                step: (i, g) =>
+                {
+                    Eades.Step(ref state);
+                    return g;
+                },
+                format: GraphFormat.Vku,
+                iterationCount: Program.IslandIterationCount,
+                prefix: string.Empty,
+                every: -1,
+                speed: 10);
         }
 
         public static async Task RunEades(

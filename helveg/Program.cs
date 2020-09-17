@@ -25,6 +25,7 @@ namespace Helveg
         public const int RegularIterationCount = 2000;
         public const int NoOverlapIterationCount = 4000;
         public const int StrongGravityIterationCount = 500;
+        public const int IslandIterationCount = 1000;
         public const float MinNodeSize = 6;
         public const float IslandGapSize = 500f;
         public const string VkDebugAlias = "--vk-debug";
@@ -160,8 +161,8 @@ namespace Helveg
             var state = Eades.Create(solutionGraph.Positions, solutionGraph.Weights);
             var maxSize = solutionGraph.Sizes.Max();
             state.UnloadedLength = maxSize + IslandGapSize;
-            state.Repulsion = maxSize * maxSize;
-            for (int i = 0; i < 1000; ++i)
+            state.Repulsion = maxSize;
+            for (int i = 0; i < IslandIterationCount; ++i)
             {
                 Eades.Step(ref state);
             }
