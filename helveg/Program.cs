@@ -157,29 +157,25 @@ namespace Helveg
                 var bbox = graphs[i].GetBoundingBox();
                 solutionGraph.Sizes[i] = MathF.Max(bbox.Width, bbox.Height);
             }
-            logger.LogInformation("Laying out islands.");
-            solutionGraph.LayInCircle();
-            // var state = Eades.Create(solutionGraph.Positions, solutionGraph.Weights);
-            var maxSize = solutionGraph.Sizes.Max();
-            var solutionFdgState = Fdg.Create(solutionGraph.Positions, solutionGraph.Weights, solutionGraph.Sizes);
-            solutionFdgState.RepulsionFactor = solutionGraph.Positions.Length * maxSize;
-            solutionFdgState.IsGravityStrong = true;
-            solutionFdgState.GravityFactor = 1.0f;
-            for (int i = 0; i < 3000; ++i)
+            if (solutionGraph.Positions.Length > 1)
             {
-                Fdg.Step(ref solutionFdgState);
+                logger.LogInformation("Laying out islands.");
+                solutionGraph.LayInCircle();
+                var maxSize = solutionGraph.Sizes.Max();
+                var solutionFdgState = Fdg.Create(solutionGraph.Positions, solutionGraph.Weights, solutionGraph.Sizes);
+                solutionFdgState.RepulsionFactor = solutionGraph.Positions.Length * maxSize;
+                solutionFdgState.IsGravityStrong = true;
+                solutionFdgState.GravityFactor = 1.0f;
+                for (int i = 0; i < 3000; ++i)
+                {
+                    Fdg.Step(ref solutionFdgState);
+                }
+                solutionFdgState.PreventOverlapping = true;
+                for (int i = 0; i < 2000; ++i)
+                {
+                    Fdg.Step(ref solutionFdgState);
+                }
             }
-            solutionFdgState.PreventOverlapping = true;
-            for (int i = 0; i < 2000; ++i)
-            {
-                Fdg.Step(ref solutionFdgState);
-            }
-            // state.UnloadedLength = maxSize + IslandGapSize;
-            // state.Repulsion = maxSize;
-            // for (int i = 0; i < IslandIterationCount; ++i)
-            // {
-            //     Eades.Step(ref state);
-            // }
 
             const int margin = 64;
             var globalBbox = Rectangle.Round(RectangleF.Inflate(solutionGraph.GetBoundingBox(), margin, margin));
