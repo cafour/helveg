@@ -35,12 +35,13 @@ private:
     vku::Buffer _edgeBuffer;
     vku::DeviceMemory _edgeBufferMemory;
     std::vector<VkDescriptorSet> _descriptorSets;
+    float _scale;
 
     void recordCommandBuffer(VkCommandBuffer commandBuffer, vku::SwapchainFrame &frame);
     vku::Framebuffer createFramebuffer(vku::SwapchainFrame &frame);
 
 public:
-    GraphRender(int width, int height, Graph graph, float scale = 1.0f, bool debug = false);
+    GraphRender(int width, int height, Graph graph, float scale = 0.01f, bool debug = false);
 
     void flushPositions();
     vku::InstanceCore &instanceCore() { return _instanceCore; }

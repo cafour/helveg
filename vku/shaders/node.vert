@@ -3,7 +3,10 @@
 
 layout(location = 0) in vec2 inPosition;
 
-const float scale = 0.001f;
+layout(push_constant) uniform Constants
+{
+    layout(offset = 0) float scale;
+};
 
 void main() {
     gl_Position = vec4(inPosition * scale, 0.0f, 1.0f);

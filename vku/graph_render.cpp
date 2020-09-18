@@ -4,7 +4,10 @@
 #include <chrono>
 #include <glm/gtc/matrix_transform.hpp>
 
-static vku::GraphicsPipeline buildNodePipeline(VkDevice device, VkPipelineLayout pipelineLayout, VkRenderPass renderPass)
+static vku::GraphicsPipeline buildNodePipeline(
+    VkDevice device,
+    VkPipelineLayout pipelineLayout,
+    VkRenderPass renderPass)
 {
     VkVertexInputBindingDescription vertexBindings[] = {
         vku::vertexInputBinding(0, sizeof(glm::vec2), VK_VERTEX_INPUT_RATE_VERTEX)
@@ -61,7 +64,10 @@ static vku::GraphicsPipeline buildNodePipeline(VkDevice device, VkPipelineLayout
     return vku::GraphicsPipeline(device, createInfo);
 }
 
-static vku::GraphicsPipeline buildEdgePipeline(VkDevice device, VkPipelineLayout pipelineLayout, VkRenderPass renderPass)
+static vku::GraphicsPipeline buildEdgePipeline(
+    VkDevice device,
+    VkPipelineLayout pipelineLayout,
+    VkRenderPass renderPass)
 {
     VkVertexInputBindingDescription vertexBindings[] = {
         vku::vertexInputBinding(0, sizeof(glm::vec2), VK_VERTEX_INPUT_RATE_VERTEX)
@@ -139,7 +145,21 @@ vku::GraphRender::GraphRender(int width, int height, Graph graph, float scale, b
     , _nodePipeline(buildNodePipeline(_displayCore.device(), _pipelineLayout, _renderPass))
     , _edgePipeline(buildEdgePipeline(_displayCore.device(), _pipelineLayout, _renderPass))
     , _graph(graph)
+    , _scale(scale)
 {
+    auto pushConstantRanges = {
+        VkPushConstantRange { VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(float) },
+    };
+
+    _pipelineLayout = vku::PipelineLayout::basic(
+        _displayCore.device(), // device
+        nullptr, // setLayouts
+        0, // setLayoutCount
+        pushConstantRanges.begin(),
+        pushConstantRanges.size());
+    _nodePipeline = buildNodePipeline(_displayCore.device(), _pipelineLayout, _renderPass);
+    _edgePipeline = buildEdgePipeline(_displayCore.device(), _pipelineLayout, _renderPass);
+
     size_t positionsSize = graph.count * sizeof(glm::vec2);
     _nodeBuffer = vku::Buffer::exclusive(
         _displayCore.device(),
@@ -188,11 +208,11 @@ void vku::GraphRender::flushPositions()
         0);
 }
 
-void vku::GraphRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::SwapchainFrame &frame)
+void vku::GraphRender::recordCommandBuffer(VkCommandBuffer cmd, vku::SwapchainFrame &frame)
 {
     VkCommandBufferBeginInfo beginInfo = {};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    ENSURE(vkBeginCommandBuffer(commandBuffer, &beginInfo));
+    ENSURE(vkBeginCommandBuffer(cmd, &beginInfo));
 
     VkRenderPassBeginInfo renderPassInfo = {};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -217,26 +237,28 @@ void vku::GraphRender::recordCommandBuffer(VkCommandBuffer commandBuffer, vku::S
     VkRect2D scissor = {};
     scissor.extent = extent;
 
-    vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+    vkCmdBeginRenderPass(cmd, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+    vkCmdPushConstants(cmd, _pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(float), &_scale);
 
     VkDeviceSize offsets[] = { 0 };
     if (_edgeCount) {
-        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _edgePipeline);
-        vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-        vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
-        vkCmdBindVertexBuffers(commandBuffer, 0, 1, _nodeBuffer, offsets);
-        vkCmdBindIndexBuffer(commandBuffer, _edgeBuffer, 0, VK_INDEX_TYPE_UINT32);
-        vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(_edgeCount), 1, 0, 0, 0);
+        vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _edgePipeline);
+        vkCmdSetViewport(cmd, 0, 1, &viewport);
+        vkCmdSetScissor(cmd, 0, 1, &scissor);
+        vkCmdBindVertexBuffers(cmd, 0, 1, _nodeBuffer, offsets);
+        vkCmdBindIndexBuffer(cmd, _edgeBuffer, 0, VK_INDEX_TYPE_UINT32);
+        vkCmdDrawIndexed(cmd, static_cast<uint32_t>(_edgeCount), 1, 0, 0, 0);
     }
-    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _nodePipeline);
-    vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-    vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
-    vkCmdBindVertexBuffers(commandBuffer, 0, 1, _nodeBuffer, offsets);
-    vkCmdDraw(commandBuffer, _graph.count, 1, 0, 0);
+    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _nodePipeline);
+    vkCmdSetViewport(cmd, 0, 1, &viewport);
+    vkCmdSetScissor(cmd, 0, 1, &scissor);
+    vkCmdBindVertexBuffers(cmd, 0, 1, _nodeBuffer, offsets);
+    vkCmdDraw(cmd, _graph.count, 1, 0, 0);
 
-    vkCmdEndRenderPass(commandBuffer);
+    vkCmdEndRenderPass(cmd);
 
-    ENSURE(vkEndCommandBuffer(commandBuffer));
+    ENSURE(vkEndCommandBuffer(cmd));
 }
 
 vku::Framebuffer vku::GraphRender::createFramebuffer(vku::SwapchainFrame &frame)

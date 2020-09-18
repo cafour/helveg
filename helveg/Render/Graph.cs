@@ -66,10 +66,15 @@ namespace Helveg.Render
 
         public void LayInCircle()
         {
+            LayInCircle(Positions.Length);
+        }
+
+        public void LayInCircle(float radius)
+        {
             for (int i = 0; i < Positions.Length; ++i)
             {
                 var angle = 2f * MathF.PI / Positions.Length * i;
-                Positions[i] = Positions.Length * new Vector2(MathF.Cos(angle), MathF.Sin(angle));
+                Positions[i] = radius * new Vector2(MathF.Cos(angle), MathF.Sin(angle));
             }
         }
 

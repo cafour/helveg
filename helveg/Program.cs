@@ -130,6 +130,7 @@ namespace Helveg
                 {
                     var project = solution.Projects[p];
                     var graph = Graph.FromAnalyzed(project);
+                    graph.LayInCircle(graph.Positions.Length);
                     for (int i = 0; i < graph.Positions.Length; ++i)
                     {
                         graph.Sizes[i] = MathF.Max(graph.Sizes[i], MinNodeSize);
@@ -158,14 +159,27 @@ namespace Helveg
             }
             logger.LogInformation("Laying out islands.");
             solutionGraph.LayInCircle();
-            var state = Eades.Create(solutionGraph.Positions, solutionGraph.Weights);
+            // var state = Eades.Create(solutionGraph.Positions, solutionGraph.Weights);
             var maxSize = solutionGraph.Sizes.Max();
-            state.UnloadedLength = maxSize + IslandGapSize;
-            state.Repulsion = maxSize;
-            for (int i = 0; i < IslandIterationCount; ++i)
+            var solutionFdgState = Fdg.Create(solutionGraph.Positions, solutionGraph.Weights, solutionGraph.Sizes);
+            solutionFdgState.RepulsionFactor = solutionGraph.Positions.Length * maxSize;
+            solutionFdgState.IsGravityStrong = true;
+            solutionFdgState.GravityFactor = 0.5f;
+            for (int i = 0; i < 3000; ++i)
             {
-                Eades.Step(ref state);
+                Fdg.Step(ref solutionFdgState);
             }
+            solutionFdgState.PreventOverlapping = true;
+            for (int i = 0; i < 2000; ++i)
+            {
+                Fdg.Step(ref solutionFdgState);
+            }
+            // state.UnloadedLength = maxSize + IslandGapSize;
+            // state.Repulsion = maxSize;
+            // for (int i = 0; i < IslandIterationCount; ++i)
+            // {
+            //     Eades.Step(ref state);
+            // }
 
             const int margin = 64;
             var globalBbox = Rectangle.Round(RectangleF.Inflate(solutionGraph.GetBoundingBox(), margin, margin));

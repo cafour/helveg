@@ -96,7 +96,7 @@ namespace Helveg.Render
             }
         }
 
-        public static unsafe GraphRender CreateGraphRender(Graph graph, float scale = 1.0f)
+        public static unsafe GraphRender CreateGraphRender(Graph graph, float scale = 0.01f)
         {
             var render = new GraphRender
             {

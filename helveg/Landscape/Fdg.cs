@@ -68,14 +68,7 @@ namespace Helveg.Landscape
             state.PreviousForces = new Vector2[nodeCount];
             state.Forces = new Vector2[nodeCount];
             state.Swinging = new float[nodeCount];
-
             state.Positions = positions;
-            for (int i = 0; i < nodeCount; ++i)
-            {
-                var angle = 2f * MathF.PI / nodeCount * i;
-                state.Positions[i] = nodeCount * new Vector2(MathF.Cos(angle), MathF.Sin(angle));
-            }
-
             state.Degrees = new int[nodeCount];
             state.Weights = weights;
             int weightIndex = 0;

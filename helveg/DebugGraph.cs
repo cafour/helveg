@@ -102,6 +102,7 @@ namespace Helveg
                 {
                     var project = solution.Projects[p];
                     var graph = Graph.FromAnalyzed(project);
+                    graph.LayInCircle(graph.Positions.Length);
                     for (int i = 0; i < graph.Positions.Length; ++i)
                     {
                         graph.Sizes[i] = MathF.Max(graph.Sizes[i], Program.MinNodeSize);
@@ -120,23 +121,74 @@ namespace Helveg
                 solutionGraph.Sizes[i] = MathF.Max(bbox.Width, bbox.Height);
             }
             logger.LogInformation("Laying out islands.");
-            solutionGraph.LayInCircle();
-            var state = Eades.Create(solutionGraph.Positions, solutionGraph.Weights);
+            solutionGraph.LayInCircle(solutionGraph.Positions.Length);
+            // var state = Eades.Create(solutionGraph.Positions, solutionGraph.Weights);
             var maxSize = solutionGraph.Sizes.Max();
-            state.UnloadedLength = maxSize + Program.IslandGapSize;
-            state.Repulsion = maxSize * maxSize;
-            DrawGraph(
+            // state.UnloadedLength = maxSize + Program.IslandGapSize;
+            // state.Gravity = 0.5f;
+            // // state.UnloadedLength = maxSize + Program.IslandGapSize;
+            // // state.Repulsion *= state.UnloadedLength;
+            // state.Stiffness = 20;
+            // state.Repulsion = 10;
+            // DrawGraph(
+            //     graph: solutionGraph,
+            //     step: (i, g) =>
+            //     {
+            //         Eades.Step(ref state);
+            //         return g;
+            //     },
+            //     format: GraphFormat.Vku,
+            //     iterationCount: Program.IslandIterationCount,
+            //     prefix: string.Empty,
+            //     every: -1,
+            //     speed: 10);
+
+            float scale = 1.0f / (solutionGraph.Positions.Length * maxSize);
+            var state = Fdg.Create(solutionGraph.Positions, solutionGraph.Weights, solutionGraph.Sizes);
+            state.RepulsionFactor = state.Positions.Length * maxSize;
+            state.GravityFactor = 0.5f;
+            state.IsGravityStrong = true;
+            solutionGraph = DrawGraph(
                 graph: solutionGraph,
                 step: (i, g) =>
                 {
-                    Eades.Step(ref state);
+                    Fdg.Step(ref state);
                     return g;
                 },
                 format: GraphFormat.Vku,
-                iterationCount: Program.IslandIterationCount,
-                prefix: string.Empty,
+                iterationCount: 3000,
+                prefix: "",
                 every: -1,
-                speed: 10);
+                speed: 10,
+                scale: scale);
+            state.PreventOverlapping = true;
+            solutionGraph = DrawGraph(
+                graph: solutionGraph,
+                step: (i, g) =>
+                {
+                    Fdg.Step(ref state);
+                    return g;
+                },
+                format: GraphFormat.Vku,
+                iterationCount: 2000,
+                prefix: "",
+                every: -1,
+                speed: 10,
+                scale: scale);
+            // state.IsGravityStrong = true;
+            // solutionGraph = DrawGraph(
+            //     graph: solutionGraph,
+            //     step: (i, g) =>
+            //     {
+            //         Fdg.Step(ref state);
+            //         return g;
+            //     },
+            //     format: GraphFormat.Vku,
+            //     iterationCount: 1000,
+            //     prefix: "",
+            //     every: -1,
+            //     speed: 10,
+            //     scale: scale);
         }
 
         public static async Task RunEades(
@@ -302,11 +354,7 @@ namespace Helveg
 
             var graph = Graph.FromAnalyzed(project.Value);
             init(graph);
-            for (int i = 0; i < graph.Positions.Length; ++i)
-            {
-                var angle = 2 * MathF.PI / graph.Positions.Length * i;
-                graph.Positions[i] = 64f * new Vector2(MathF.Cos(angle), MathF.Sin(angle));
-            }
+            graph.LayInCircle(graph.Positions.Length);
             return graph;
         }
 
@@ -317,12 +365,13 @@ namespace Helveg
             int iterationCount,
             string prefix,
             int every,
-            int speed)
+            int speed,
+            float scale = 0.01f)
         {
             switch (format)
             {
                 case GraphFormat.Vku:
-                    DrawVku(graph, step, iterationCount, speed);
+                    DrawVku(graph, step, iterationCount, speed, scale);
                     break;
                 case GraphFormat.GraphViz:
                     DrawGraphViz(graph, step, iterationCount, prefix, every);
@@ -357,9 +406,10 @@ namespace Helveg
             Graph graph,
             Func<int, Graph, Graph> step,
             int iterationCount,
-            int speed)
+            int speed,
+            float scale)
         {
-            var render = Vku.CreateGraphRender(graph);
+            var render = Vku.CreateGraphRender(graph, scale);
             Vku.StepGraphRender(render);
             var stopwatch = new Stopwatch();
             var end = false;
