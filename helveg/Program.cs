@@ -164,7 +164,7 @@ namespace Helveg
             var solutionFdgState = Fdg.Create(solutionGraph.Positions, solutionGraph.Weights, solutionGraph.Sizes);
             solutionFdgState.RepulsionFactor = solutionGraph.Positions.Length * maxSize;
             solutionFdgState.IsGravityStrong = true;
-            solutionFdgState.GravityFactor = 0.5f;
+            solutionFdgState.GravityFactor = 1.0f;
             for (int i = 0; i < 3000; ++i)
             {
                 Fdg.Step(ref solutionFdgState);
