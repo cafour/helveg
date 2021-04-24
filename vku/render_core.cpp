@@ -53,7 +53,7 @@ void vku::RenderCore::step()
     submitInfo.pSignalSemaphores = frame->releaseSemaphore;
     ENSURE(vkQueueSubmit(_displayCore.queue(), 1, &submitInfo, frame->fence));
 
-    VkPresentInfoKHR presentInfo {};
+    VkPresentInfoKHR presentInfo = {};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = _swapchainCore.swapchain();

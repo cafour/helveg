@@ -174,12 +174,6 @@ namespace Helveg
             {
                 Fdg.Step(ref solutionFdgState);
             }
-            // state.UnloadedLength = maxSize + IslandGapSize;
-            // state.Repulsion = maxSize;
-            // for (int i = 0; i < IslandIterationCount; ++i)
-            // {
-            //     Eades.Step(ref state);
-            // }
 
             const int margin = 64;
             var globalBbox = Rectangle.Round(RectangleF.Inflate(solutionGraph.GetBoundingBox(), margin, margin));
