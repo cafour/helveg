@@ -21,7 +21,7 @@ struct GeometriesInfo
 };
 
 /**
- * A version of WorldRender that uses the VK_KHR_ray_tracing extension.
+ * A version of WorldRender that uses the VK_KHR_ray_tracing_pipeline extension.
  **/
 class RTRender {
 private:
@@ -34,7 +34,7 @@ private:
 
     std::vector<vku::MeshCore> _meshes;
 
-    VkPhysicalDeviceRayTracingPropertiesKHR _rtProperties;
+    VkPhysicalDeviceRayTracingPipelinePropertiesKHR _rtProperties;
     std::vector<vku::BackedBuffer> _blasBuffers;
     std::vector<vku::AccelerationStructure> _blases;
     vku::BackedBuffer _tlasBuffer;

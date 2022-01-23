@@ -46,7 +46,7 @@ set(VKU_SOURCES
     wrapper.hpp
     log.hpp
     log.cpp
-    
+
     # cores
     cores.hpp
     instance_core.hpp
@@ -82,8 +82,9 @@ set(VKU_SOURCES
     chunk_render.cpp
     world_render.hpp
     world_render.cpp
-    rt_render.hpp
-    rt_render.cpp)
+    # rt_render.hpp
+    # rt_render.cpp
+)
 
 add_library(${PROJECT_NAME} SHARED ${VKU_SOURCES})
 set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
@@ -124,10 +125,10 @@ target_embed_shader(${PROJECT_NAME} shaders/fire.geom FIRE_GEOM)
 target_embed_shader(${PROJECT_NAME} shaders/fire.frag FIRE_FRAG)
 target_embed_shader(${PROJECT_NAME} shaders/text.vert TEXT_VERT)
 target_embed_shader(${PROJECT_NAME} shaders/text.frag TEXT_FRAG)
-target_embed_shader(${PROJECT_NAME} shaders/raytrace.rchit RAYTRACE_RCHIT)
-target_embed_shader(${PROJECT_NAME} shaders/raytrace.rgen RAYTRACE_RGEN)
-target_embed_shader(${PROJECT_NAME} shaders/raytrace.rmiss RAYTRACE_RMISS)
-target_embed_shader(${PROJECT_NAME} shaders/shadow.rmiss SHADOW_RMISS)
+# target_embed_shader(${PROJECT_NAME} shaders/raytrace.rchit RAYTRACE_RCHIT)
+# target_embed_shader(${PROJECT_NAME} shaders/raytrace.rgen RAYTRACE_RGEN)
+# target_embed_shader(${PROJECT_NAME} shaders/raytrace.rmiss RAYTRACE_RMISS)
+# target_embed_shader(${PROJECT_NAME} shaders/shadow.rmiss SHADOW_RMISS)
 # NOTE: Uncomment to add the 'hello' sample executable
 # add_executable(hello hello.cpp)
 # target_link_libraries(hello PRIVATE ${PROJECT_NAME})

@@ -9,6 +9,7 @@
     <LangVersion>latest</LangVersion>
     <AssemblyName>helveg</AssemblyName>
     <Version>0.0.0-dev</Version>
+    <RollForward>LatestMajor</RollForward>
     <!-- Well this doesn't work -->
     <!-- <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences> -->
   </PropertyGroup>
