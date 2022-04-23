@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:5.0-alpine
+FROM mcr.microsoft.com/dotnet/sdk:6.0-alpine
 
 ENV LANG=en_US.UTF-8 \
     LANGUAGE=en_US:UTF-8
@@ -33,7 +33,11 @@ RUN apk add \
     xz \
     zlib \
     cmake \
-    clang
+    clang \
+    xorg-server-dev \
+    libxrandr-dev \
+    libxinerama-dev \
+    libxcursor-dev \
+    libxi-dev
 
 RUN cd /usr/bin && ln -s /usr/bin/python3 python
-RUN git clone 

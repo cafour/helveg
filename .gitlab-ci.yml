@@ -5,10 +5,11 @@ stages:
   - deploy
 
 build-windows:
-  image: cafstep/helveg-ci:windows
   stage: prebuild
   script:
-    - '& ./build.ps1 -install -vsDir c:/BuildTools'
+    - choco install -y cmake vswhere ninja python3
+    - $env:Path="$env:Path;C:\Program Files\CMake\bin\"
+    - '& ./build.ps1 -install'
   cache:
     paths:
       - build/_deps
@@ -16,15 +17,17 @@ build-windows:
     paths:
       - artifacts/vku.dll
   tags:
-    - office-windows
-  only:
-    - master
-    - /^v0\.\d+\.\d+$/
+    - shared-windows
+    - windows
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+    - if: '$CI_COMMIT_TAG =~ /^v0\.\d+\.\d+$/'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
 
 build-linux:
   dependencies:
     - build-windows
-  image: cafstep/helveg-ci
+  image: cafour/helveg-ci
   stage: build
   script:
     - ./build.sh --install --pack
@@ -36,13 +39,14 @@ build-linux:
       - artifacts/*.nupkg
       - artifacts/vku.dll
       - artifacts/libvku.so
-  only:
-    - master
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
 
 build-linux-tag:
   dependencies:
     - build-windows
-  image: cafstep/helveg-ci
+  image: cafour/helveg-ci
   stage: build
   script:
     - ./build.sh --install --pack --tag-version
@@ -54,16 +58,16 @@ build-linux-tag:
       - artifacts/*.nupkg
       - artifacts/vku.dll
       - artifacts/libvku.so
-  only:
-    - /^v0\.\d+\.\d+$/
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^v0\.\d+\.\d+$/'
 
 deploy-nuget:
   dependencies:
     - build-windows
     - build-linux-tag
-  image: mcr.microsoft.com/dotnet/core/sdk:3.1
+  image: mcr.microsoft.com/dotnet/core/sdk:6.0
   stage: deploy
   script:
     - dotnet nuget push ./artifacts/helveg*.nupkg --source nuget.org --api-key $NUGET_API_KEY
-  only:
-    - /^v0\.\d+\.\d+$/
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^v0\.\d+\.\d+$/'
