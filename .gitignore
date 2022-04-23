@@ -38,6 +38,7 @@
 # misc
 !.clang-format
 !.editorconfig
+!NuGet.config
 
 # images
 !*.png
