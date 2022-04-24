@@ -1,6 +1,6 @@
 #include "interop.hpp"
 #include "log.hpp"
-#include "rt_render.hpp"
+// #include "rt_render.hpp"
 
 #include <cstdlib>
 #include <functional>
@@ -109,18 +109,18 @@ int helloChunk(vku::Chunk chunk)
 int helloWorld(vku::World world, const char *title)
 {
     return hello([world, title]() {
-        if (isRayTraced) {
-            vku::RTRender app(1280, 720, world, title, isDebug);
-            if (isCursorForced) {
-                app.displayCore().window().forceCursor();
-            }
-            app.renderCore().run();
-        } else {
+        // if (isRayTraced) {
+        //     vku::RTRender app(1280, 720, world, title, isDebug);
+        //     if (isCursorForced) {
+        //         app.displayCore().window().forceCursor();
+        //     }
+        //     app.renderCore().run();
+        // } else {
             vku::WorldRender app(1280, 720, world, title, isDebug);
             if (isCursorForced) {
                 app.displayCore().window().forceCursor();
             }
             app.renderCore().run();
-        }
+        // }
     });
 }

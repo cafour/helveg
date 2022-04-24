@@ -249,9 +249,9 @@ namespace Helveg
             rootCmd.AddGlobalOption(new Option<bool>(new[] { "-v", VerboseAlias }, "Set logging level to Debug"));
             rootCmd.AddGlobalOption(new Option<bool>(new[] { "-f", ForceAlias }, "Overwrite cached results"));
             rootCmd.AddGlobalOption(new Option<bool>(ForceCursorAlias, "Never hide cursor"));
-            rootCmd.AddGlobalOption(new Option<bool>(
-                alias: RayTracingAlias,
-                description: "Enable rendering with VK_KHR_ray_tracing"));
+            // rootCmd.AddGlobalOption(new Option<bool>(
+            //     alias: RayTracingAlias,
+            //     description: "Enable rendering with VK_KHR_ray_tracing"));
             rootCmd.AddArgument(new Argument<FileSystemInfo>(
                 name: "SOURCE",
                 description: "Path to a project or a solution",

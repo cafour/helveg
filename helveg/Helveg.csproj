@@ -3,12 +3,13 @@
   <PropertyGroup>
     <!-- Compilation-ish -->
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
     <AssemblyName>helveg</AssemblyName>
     <Version>0.0.0-dev</Version>
+    <RollForward>LatestMajor</RollForward>
     <!-- Well this doesn't work -->
     <!-- <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences> -->
   </PropertyGroup>
@@ -24,37 +25,35 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Build" Version="16.6.0" ExcludeAssets="runtime" />
-    <PackageReference Include="Microsoft.Build.Locator" Version="1.2.6" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.7.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="3.7.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="3.1.7" />
+    <PackageReference Include="Microsoft.Build" Version="17.1.0" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Build.Locator" Version="1.4.1" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.1.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="4.1.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="6.0.0" />
     <!-- NuGet.ProjectModel is required since Microsoft.Build.Locator doesn't load NuGet assemblies
       see https://github.com/dotnet/roslyn/issues/36072 -->
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.20427.1 " />
     <!-- NuGet.ProjectModel generates a conflict which the following dependency resolves -->
-    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="4.7.0" />
-    <PackageReference Include="System.Text.Json" Version="4.7.2" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="6.0.0" />
+    <PackageReference Include="System.Text.Json" Version="6.0.3" />
   </ItemGroup>
 
   <ItemGroup>
     <None Include="$(PackageOutputPath)/*vku*.so">
       <CopyToOutputDirectory>always</CopyToOutputDirectory>
       <Pack>true</Pack>
-      <PackagePath>tools/netcoreapp3.1/linux-x64</PackagePath>
+      <PackagePath>tools/net6.0/linux-x64</PackagePath>
     </None>
     <None Include="$(PackageOutputPath)/*vku*.dll">
       <CopyToOutputDirectory>always</CopyToOutputDirectory>
       <Pack>true</Pack>
-      <PackagePath>tools/netcoreapp3.1/win-x64</PackagePath>
+      <PackagePath>tools/net6.0/win-x64</PackagePath>
     </None>
   </ItemGroup>
 
   <Target Name="CheckVkuExists" BeforeTargets="Build">
-    <Warning Text="The Windows version of vku ('vku.dll') is not available."
-      Condition="!Exists('$(PackageOutputPath)/vku.dll')"/>
-    <Warning Text="The Linux version of vku ('libvku.so') is not available."
-      Condition="!Exists('$(PackageOutputPath)/libvku.so')"/>
+    <Warning Text="The Windows version of vku ('vku.dll') is not available." Condition="!Exists('$(PackageOutputPath)/vku.dll')" />
+    <Warning Text="The Linux version of vku ('libvku.so') is not available." Condition="!Exists('$(PackageOutputPath)/libvku.so')" />
   </Target>
 
 </Project>

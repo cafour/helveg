@@ -7,7 +7,6 @@ set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
 
 FetchContent_Declare(fetch_glslang
     GIT_REPOSITORY https://github.com/KhronosGroup/glslang
-    GIT_TAG 8.13.3743
 )
 FetchContent_GetProperties(fetch_glslang)
 if(NOT fetch_glslang_POPULATED)

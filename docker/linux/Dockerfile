@@ -1,13 +1,43 @@
-FROM mcr.microsoft.com/dotnet/core/sdk:3.1
+FROM mcr.microsoft.com/dotnet/sdk:6.0-alpine
 
-ARG DOCKER_LANG=en_US
-ARG DOCKER_TIMEZONE=Europe/Prague
+ENV LANG=en_US.UTF-8 \
+    LANGUAGE=en_US:UTF-8
 
-ENV LANG=$DOCKER_LANG.UTF-8 \
-    LANGUAGE=$DOCKER_LANG:UTF-8
-
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+RUN apk add \
+    autoconf \
+    automake \
+    bash \
+    binutils \
+    bison \
+    bzip2 \
+    flex \
+    g++ \
+    gdk-pixbuf \
+    gettext \
+    git \
+    gperf \
+    intltool \
+    libtool \
+    linux-headers \
+    lzip \
+    make \
+    openssl \
+    openssl-dev \
+    p7zip \
+    patch \
+    perl \
+    python3 \
+    ruby \
+    unzip \
+    wget \
+    xz \
+    zlib \
     cmake \
     clang \
-    xorg-dev \
-    python3
+    xorg-server-dev \
+    libxrandr-dev \
+    libxinerama-dev \
+    libxcursor-dev \
+    libxi-dev
+
+RUN cd /usr/bin && ln -s /usr/bin/python3 python

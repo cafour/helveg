@@ -33,11 +33,16 @@ if ($vsDir -eq $null -or $vsDir -eq "") {
         Write-Host "Either install vswhere or set the -vsDir option"
         exit 1
     }
-    $vsDir = & vswhere -property installationPath
+    $vsDir = & vswhere -products * -property installationPath
+    Write-Host "Found VS at '$vsDir'."
 }
 
 # Urgh.
 # https://stackoverflow.com/questions/2124753/how-can-i-use-powershell-with-the-visual-studio-command-prompt
+if (-not (Test-Path "$vsDir\VC\Auxiliary\Build\vcvars64.bat")) {
+    Write-Host "vcvars64.bat seems to be missing."
+    exit 1
+}
 cmd /c """$vsDir\VC\Auxiliary\Build\vcvars64.bat"" & set" | foreach {
     if ($_ -match "=") {
         $v = $_.split("="); set-item -force -path "ENV:\$($v[0])" -value "$($v[1])"

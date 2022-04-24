@@ -136,7 +136,7 @@ public:
     RayTracingPipeline(VkDevice device, VkRayTracingPipelineCreateInfoKHR &createInfo)
         : DeviceRelated(device, VK_NULL_HANDLE)
     {
-        ENSURE(vkCreateRayTracingPipelinesKHR(device, VK_NULL_HANDLE, 1, &createInfo, nullptr, &_raw));
+        ENSURE(vkCreateRayTracingPipelinesKHR(device, VK_NULL_HANDLE, VK_NULL_HANDLE, 1, &createInfo, nullptr, &_raw));
     }
     ~RayTracingPipeline()
     {
@@ -149,9 +149,13 @@ public:
 
     static VkRayTracingPipelineCreateInfoKHR createInfo()
     {
+        VkPipelineLibraryCreateInfoKHR libInfo = {};
+        libInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LIBRARY_CREATE_INFO_KHR;
+
         VkRayTracingPipelineCreateInfoKHR info = {};
         info.sType = VK_STRUCTURE_TYPE_RAY_TRACING_PIPELINE_CREATE_INFO_KHR;
-        info.libraries.sType = VK_STRUCTURE_TYPE_PIPELINE_LIBRARY_CREATE_INFO_KHR;
+        info.pLibraryInfo = &libInfo;
+
         return info;
     }
 };

@@ -13,7 +13,7 @@
 
 const std::vector<const char *> requiredDevicesExtensions = std::vector<const char *> {
     VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-    VK_KHR_RAY_TRACING_EXTENSION_NAME,
+    VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME,
     VK_KHR_MAINTENANCE3_EXTENSION_NAME,
     VK_KHR_PIPELINE_LIBRARY_EXTENSION_NAME,
     VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME,
@@ -31,15 +31,15 @@ static VkPhysicalDeviceVulkan12Features getDeviceFeatures()
 }
 VkPhysicalDeviceVulkan12Features deviceFeatures = getDeviceFeatures();
 
-static VkPhysicalDeviceRayTracingFeaturesKHR getRTFeatures()
+static VkPhysicalDeviceRayTracingPipelineFeaturesKHR getRTFeatures()
 {
-    VkPhysicalDeviceRayTracingFeaturesKHR features = {};
-    features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_FEATURES_KHR;
-    features.rayTracing = VK_TRUE;
+    VkPhysicalDeviceRayTracingPipelineFeaturesKHR features = {};
+    features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR;
+    features.rayTracingPipeline = VK_TRUE;
     features.pNext = &deviceFeatures;
     return features;
 }
-VkPhysicalDeviceRayTracingFeaturesKHR rtFeatures = getRTFeatures();
+VkPhysicalDeviceRayTracingPipelineFeaturesKHR rtFeatures = getRTFeatures();
 
 vku::RTRender::RTRender(int width, int height, World world, const std::string &title, bool debug)
     : _instanceCore("RTRender", true, debug)
@@ -52,9 +52,9 @@ vku::RTRender::RTRender(int width, int height, World world, const std::string &t
           [this](auto cb, auto &f) { recordCommandBuffer(cb, f); })
     , _transferCore(_displayCore.physicalDevice(), _displayCore.device())
     , _cameraCore(_displayCore, _renderCore)
-    , _rtProperties(vku::findProperties<VkPhysicalDeviceRayTracingPropertiesKHR>(
+    , _rtProperties(vku::findProperties<VkPhysicalDeviceRayTracingPipelinePropertiesKHR>(
           _displayCore.physicalDevice(),
-          VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PROPERTIES_KHR))
+          VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_PROPERTIES_KHR))
     , _world(world)
 {
     _renderCore.onResize([this](auto s, auto e) { onResize(s, e); });
@@ -124,22 +124,22 @@ void vku::RTRender::recordCommandBuffer(VkCommandBuffer cmd, vku::SwapchainFrame
     VkDeviceSize progSize = _rtProperties.shaderGroupBaseAlignment;
     VkDeviceSize sbtSize = progSize * _shaderGroupCount;
 
-    VkStridedBufferRegionKHR raygenRegion = {};
+    VkStridedDeviceAddressRegionKHR raygenRegion = {};
     raygenRegion.buffer = _sbt.buffer;
     raygenRegion.offset = 0;
     raygenRegion.stride = progSize;
     raygenRegion.size = sbtSize;
-    VkStridedBufferRegionKHR missRegion = {};
+    VkStridedDeviceAddressRegionKHR missRegion = {};
     missRegion.buffer = _sbt.buffer;
     missRegion.offset = progSize;
     missRegion.stride = progSize;
     missRegion.size = sbtSize;
-    VkStridedBufferRegionKHR hitRegion = {};
+    VkStridedDeviceAddressRegionKHR hitRegion = {};
     hitRegion.buffer = _sbt.buffer;
     hitRegion.offset = 3 * progSize; // there are 2 miss shaders
     hitRegion.stride = progSize;
     hitRegion.size = sbtSize;
-    VkStridedBufferRegionKHR callableRegion = {};
+    VkStridedDeviceAddressRegionKHR callableRegion = {};
 
     vkCmdTraceRaysKHR(
         cmd,
