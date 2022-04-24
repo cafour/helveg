@@ -65,7 +65,7 @@ deploy-nuget:
   dependencies:
     - build-windows
     - build-linux-tag
-  image: mcr.microsoft.com/dotnet/core/sdk:6.0
+  image: mcr.microsoft.com/dotnet/sdk:6.0
   stage: deploy
   script:
     - dotnet nuget push ./artifacts/helveg*.nupkg --source nuget.org --api-key $NUGET_API_KEY
