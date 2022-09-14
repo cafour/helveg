@@ -46,9 +46,6 @@
 # cmake
 !*.cmake
 
-# IDE
-.vscode/
-
 # generated stuff
 obj/
 bin/
