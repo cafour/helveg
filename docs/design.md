@@ -24,11 +24,17 @@
 
 ## Glyphs
 
-* [Glyph-based Visualization: Foundations, Design Guidelines,
-Techniques and Applications](https://vis.uib.no/wp-content/papercite-data/pdfs/Borgo13GlyphBased.pdf)
+* [Glyph-based Visualization: Foundations, Design Guidelines, Techniques and Applications](https://vis.uib.no/wp-content/papercite-data/pdfs/Borgo13GlyphBased.pdf)
 * [MatchPad : Interactive Glyph-Based Visualization for Real-Time Sports Performance Analysis](https://www.researchgate.net/publication/262355245_MatchPad_Interactive_Glyph-Based_Visualization_for_Real-Time_Sports_Performance_Analysis)
 * [Diffusion Tensor Visualization with Glyph Packing](https://ieeexplore.ieee.org/document/4015499)
 * [Systematising glyph design for visualization](https://ora.ox.ac.uk/objects/uuid:b98ccce1-038f-4c0a-a259-7f53dfe06ac7)
+* [MetaGlyph: Automatic Generation of Metaphoric Glyph-based Visualization](https://arxiv.org/pdf/2209.05739.pdf)
+* [A Glyph Toolbox for Immersive Scientific Visualization](https://math.nist.gov/mcsd/savg/papers/NIST_SAVG_2002103000.pdf)
+
+### Glyph libraries
+
+* https://github.com/rwoldford/glyphs
+* https://docs.bokeh.org/en/latest/docs/reference/models/glyphs.html
 
 ## Dilemmas
 
@@ -37,3 +43,33 @@ Techniques and Applications](https://vis.uib.no/wp-content/papercite-data/pdfs/B
   * WebGL is the only supported renderer inside VSCode
     * To integrate Helveg with VSCode would require some IPC in the case of a desktop rendering API.
       * This would not work if Helveg were run inside browser-only VS Code.
+
+## Existing softvis tools
+
+* [Dependencies Visualizer for Unity](https://assetstore.unity.com/packages/tools/utilities/dependencies-visualizer-178326)
+* [Reference Viewer in Unreal Engine](https://docs.unrealengine.com/4.27/en-US/Basics/ContentBrowser/ReferenceViewer/)
+* [ndepend](https://www.ndepend.com/)
+* [UML Class Diagram in JetBrains Rider](https://www.jetbrains.com/help/idea/class-diagram.html)
+* [Class Designer in Visual Studio](https://docs.microsoft.com/en-us/visualstudio/ide/class-designer/designing-and-viewing-classes-and-types?view=vs-2022)
+* [PlantUML](https://github.com/plantuml/plantuml)
+
+## Features
+
+### Must-have
+
+* Export of data and images (PNG, SVG)
+* Filtering (regexes & other)
+* Extension for Visual Studio
+* Support for use cases
+  1. Large C# solutions
+  2. Unity projects
+
+### Nice-to-have
+
+* A minigame
+* Extension for VSCode, Rider, etc.
+
+## TODO
+
+* Design glyphs for functions, classes, namespaces, assemblies, other assets, etc.
+* Pick between Stride/Silk and WebGL.
