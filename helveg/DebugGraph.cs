@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.CommandLine.NamingConventionBinder;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -44,7 +45,7 @@ namespace Helveg
                 getDefaultValue: () => 100,
                 description: "Save node positions every n iterations (GraphViz)");
             var ignoreCacheOpt = new Option<FileInfo>(
-                alias: "--json",
+                aliases: new[] { "--json" },
                 description: "Path to a JSON document with results of an analysis");
 
             var eadesCmd = new Command("eades", "Animates the Eades'84 algorithm")

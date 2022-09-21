@@ -15,6 +15,7 @@ using System.CommandLine.Builder;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Numerics;
+using System.CommandLine.NamingConventionBinder;
 
 namespace Helveg
 {
@@ -245,10 +246,14 @@ namespace Helveg
             {
                 Handler = CommandHandler.Create(typeof(Program).GetMethod(nameof(RunPipeline))!)
             };
-            rootCmd.AddGlobalOption(new Option<bool>(VkDebugAlias, "Enable Vulkan validation layers"));
-            rootCmd.AddGlobalOption(new Option<bool>(new[] { "-v", VerboseAlias }, "Set logging level to Debug"));
-            rootCmd.AddGlobalOption(new Option<bool>(new[] { "-f", ForceAlias }, "Overwrite cached results"));
-            rootCmd.AddGlobalOption(new Option<bool>(ForceCursorAlias, "Never hide cursor"));
+            var vkDebugOption = new Option<bool>(VkDebugAlias, "Enable Vulkan validation layers");
+            var verboseOption = new Option<bool>(new[] { "-v", VerboseAlias }, "Set logging level to Debug");
+            var forceOption = new Option<bool>(new[] { "-f", ForceAlias }, "Overwrite cached results");
+            var forceCursorOption = new Option<bool>(ForceCursorAlias, "Never hide cursor");
+            rootCmd.AddGlobalOption(vkDebugOption);
+            rootCmd.AddGlobalOption(verboseOption);
+            rootCmd.AddGlobalOption(forceOption);
+            rootCmd.AddGlobalOption(forceCursorOption);
             // rootCmd.AddGlobalOption(new Option<bool>(
             //     alias: RayTracingAlias,
             //     description: "Enable rendering with VK_KHR_ray_tracing"));
@@ -262,16 +267,15 @@ namespace Helveg
                     .Select(t => t.Value.Split('=', 2))
                     .ToDictionary(p => p[0], p => p[1]),
                 description: "Set an MSBuild property for the loading of projects");
-            propertyOption.Argument.AddValidator(r =>
+            propertyOption.AddValidator(r =>
             {
                 foreach (var token in r.Tokens)
                 {
                     if (!token.Value.Contains('='))
                     {
-                        return "MSBuild properties must follow the '<n>=<v>' format.";
+                        r.ErrorMessage = "MSBuild properties must follow the '<n>=<v>' format.";
                     }
                 }
-                return null;
             });
             rootCmd.AddOption(propertyOption);
 
@@ -282,26 +286,27 @@ namespace Helveg
 
             var builder = new CommandLineBuilder(rootCmd);
             builder.UseDefaults();
-            builder.UseMiddleware(c =>
+            builder.AddMiddleware(c =>
             {
-                IsForced = c.ParseResult.ValueForOption<bool>(ForceAlias);
+                IsForced = c.ParseResult.GetValueForOption<bool>(forceOption);
 
-                if (c.ParseResult.ValueForOption<bool>(VkDebugAlias))
+                if (c.ParseResult.GetValueForOption<bool>(vkDebugOption))
                 {
                     Vku.SetDebug(true);
                 }
 
-                if (c.ParseResult.ValueForOption<bool>(RayTracingAlias))
-                {
-                    Vku.SetRayTracing(true);
-                }
+                // TODO: Fix ray tracing
+                //if (c.ParseResult.GetValueForOption<bool>(RayTracingAlias))
+                //{
+                //    Vku.SetRayTracing(true);
+                //}
 
-                if (c.ParseResult.ValueForOption<bool>(ForceCursorAlias))
+                if (c.ParseResult.GetValueForOption<bool>(forceCursorOption))
                 {
                     Vku.SetForceCursor(true);
                 }
 
-                LogLevel minimumLevel = c.ParseResult.ValueForOption<bool>(VerboseAlias)
+                LogLevel minimumLevel = c.ParseResult.GetValueForOption<bool>(verboseOption)
                     ? LogLevel.Debug
                     : LogLevel.Information;
                 Logging = LoggerFactory.Create(b =>
