@@ -10,6 +10,7 @@
     <AssemblyName>helveg</AssemblyName>
     <Version>0.0.0-dev</Version>
     <RollForward>LatestMajor</RollForward>
+    <StartupObject>Helveg.StrideProgram</StartupObject>
     <!-- Well this doesn't work -->
     <!-- <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences> -->
   </PropertyGroup>
@@ -25,6 +26,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="CodeCapital.Stride.GameDefaults" Version="1.0.0-preview.6" />
     <PackageReference Include="Microsoft.Build" Version="17.1.0" ExcludeAssets="runtime" />
     <PackageReference Include="Microsoft.Build.Locator" Version="1.4.1" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.1.0" />
