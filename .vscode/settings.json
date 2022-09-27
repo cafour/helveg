@@ -1,0 +1,9 @@
+{
+    "cmake.generator": "Ninja",
+    "cmake.installPrefix": "${workspaceFolder}/artifacts",
+    "workbench.colorCustomizations": {
+        "activityBar.background": "#110205",
+        "titleBar.activeBackground": "#450811",
+        "titleBar.activeForeground": "#F8FAF8"
+    }
+}
