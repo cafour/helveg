@@ -36,6 +36,7 @@ namespace Helveg
                 antialiasing.Dither = FXAAEffect.DitherType.Medium;
                 antialiasing.Quality = 0;
                 game.Window.AllowUserResizing = true;
+                forwardRenderer.MSAALevel = Stride.Graphics.MultisampleCount.None;
                 var cameraEntity = new Entity("Camera")
                 {
                     new CameraComponent

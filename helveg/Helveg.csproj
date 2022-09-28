@@ -3,7 +3,7 @@
   <PropertyGroup>
     <!-- Compilation-ish -->
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net6.0-windows</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
@@ -13,6 +13,8 @@
     <StartupObject>Helveg.StrideProgram</StartupObject>
     <!-- Well this doesn't work -->
     <!-- <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences> -->
+    <StrideGraphicsApi>OpenGL</StrideGraphicsApi>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
   </PropertyGroup>
   <PropertyGroup>
     <!-- Package-ish -->
