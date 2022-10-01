@@ -22,6 +22,33 @@
 * [SVG.NET](https://github.com/svg-net/SVG)
   * Requires `System.Drawing` which is a little dumb
 
+### JavaScript
+
+* [JavaScript: Discover the Graph-Visualization Ecosystem](https://isquared.digital/blog/2020-03-24-viz-tools-pt2-1/)
+* [sigma.js](https://www.sigmajs.org/)
+  * Graph rendering
+* [cola.js](https://ialab.it.monash.edu/webcola/)
+  * Graph layouting
+* [VivaGraphJS](https://github.com/anvaka/VivaGraphJS)
+  * Modular graph rendering and layouting engine
+* [deck.gl](https://deck.gl/)
+  * High-performance large scale visualization
+
+
+## Visual Style
+
+* [Mini Metro](https://dinopoloclub.com/games/mini-metro/)
+* Visual Studio Icons
+  * Methods -> Purple Isometric Boxes -> Hexagons
+  * Modules -> Multiple Boxes -> Squares
+* Increasing complexity
+  * Functions -> Dots
+  * Types -> Squares
+  * Modules -> Hexagons
+* A 2D city
+  * Functions -> Buildings
+  * Classes -> Blocks
+
 ## Glyphs
 
 * [Glyph-based Visualization: Foundations, Design Guidelines, Techniques and Applications](https://vis.uib.no/wp-content/papercite-data/pdfs/Borgo13GlyphBased.pdf)
