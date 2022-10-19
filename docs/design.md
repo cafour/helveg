@@ -79,24 +79,47 @@
 * [UML Class Diagram in JetBrains Rider](https://www.jetbrains.com/help/idea/class-diagram.html)
 * [Class Designer in Visual Studio](https://docs.microsoft.com/en-us/visualstudio/ide/class-designer/designing-and-viewing-classes-and-types?view=vs-2022)
 * [PlantUML](https://github.com/plantuml/plantuml)
+* [Code Connect](https://marketplace.visualstudio.com/items?itemName=CodeConnect.CodeConnectAlpha-12804)
+* [Alive](https://www.youtube.com/watch?v=C40Ozwohgm8)
 
 ## Features
 
 ### Must-have
 
-* Export of data and images (PNG, SVG)
+**High-level structural view (static analysis)**
+
+* A (potentially very large) node graph.
+* A nested hierarchy of nodes, `Solution -> Project/Assembly -> Namespace -> Type -> Field/Property/Method -> Variable`
+  * `Project/Assembly` should be optional as sometimes you only care about namespaces.
 * Filtering (regexes & other)
-* Extension for Visual Studio
+* Extension for Visual Studio / Visual Studio Code => Must be built as a web app
+* Export of data and images (PNG, SVG)
 * Support for use cases
-  1. Large C# solutions
-  2. Unity projects
+  1. Large C# solutions => Some optimization required
+  2. Unity projects => Support for other asset types and parsing of Unity references
+
+**Dynamic analysis**
+
+* Should enhance the node graph
+* `dotnet dump` analysis ([clrmd](https://github.com/Microsoft/clrmd))
+* Stacktrace visualization
+  * View of all possible function call paths (sans reflection)
+  * Highlight of a provided stacktrace
 
 ### Nice-to-have
 
-* A minigame
-* Extension for VSCode, Rider, etc.
+* A minigame of some sort
+* An extension for other IDEs
+* Good performance
+  * Would probably require a custom renderer, which is too time consuming
+* Visualization of a program's "recording"
+  * See _Alive_ in _Existing softvis tools_
 
 ## TODO
 
 * Design glyphs for functions, classes, namespaces, assemblies, other assets, etc.
 * Pick between Stride/Silk and WebGL.
+
+## English
+
+* https://www.linguee.com/
