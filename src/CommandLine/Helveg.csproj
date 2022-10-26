@@ -3,24 +3,20 @@
   <PropertyGroup>
     <!-- Compilation-ish -->
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0-windows</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
     <AssemblyName>helveg</AssemblyName>
     <Version>0.0.0-dev</Version>
     <RollForward>LatestMajor</RollForward>
-    <StartupObject>Helveg.StrideProgram</StartupObject>
     <!-- Well this doesn't work -->
     <!-- <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences> -->
-    <StrideGraphicsApi>OpenGL</StrideGraphicsApi>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
   </PropertyGroup>
   <PropertyGroup>
     <!-- Package-ish -->
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>helveg</ToolCommandName>
-    <PackageOutputPath>../artifacts</PackageOutputPath>
     <PackageDescription>A software visualization tool</PackageDescription>
     <Authors>Adam Štěpánek</Authors>
     <RepositoryUrl>https://gitlab.com/helveg/helveg</RepositoryUrl>
@@ -28,7 +24,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CodeCapital.Stride.GameDefaults" Version="1.0.0-preview.6" />
     <PackageReference Include="Microsoft.Build" Version="17.3.1" ExcludeAssets="runtime" />
     <PackageReference Include="Microsoft.Build.Locator" Version="1.5.5" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.3.0" />
@@ -42,23 +37,5 @@
     <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="6.0.0" />
     <PackageReference Include="System.Text.Json" Version="6.0.6" />
   </ItemGroup>
-
-  <ItemGroup>
-    <None Include="$(PackageOutputPath)/*vku*.so">
-      <CopyToOutputDirectory>always</CopyToOutputDirectory>
-      <Pack>true</Pack>
-      <PackagePath>tools/net6.0/linux-x64</PackagePath>
-    </None>
-    <None Include="$(PackageOutputPath)/*vku*.dll">
-      <CopyToOutputDirectory>always</CopyToOutputDirectory>
-      <Pack>true</Pack>
-      <PackagePath>tools/net6.0/win-x64</PackagePath>
-    </None>
-  </ItemGroup>
-
-  <Target Name="CheckVkuExists" BeforeTargets="Build">
-    <Warning Text="The Windows version of vku ('vku.dll') is not available." Condition="!Exists('$(PackageOutputPath)/vku.dll')" />
-    <Warning Text="The Linux version of vku ('libvku.so') is not available." Condition="!Exists('$(PackageOutputPath)/libvku.so')" />
-  </Target>
 
 </Project>
