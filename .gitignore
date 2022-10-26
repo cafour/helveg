@@ -35,6 +35,8 @@
 !*.rmiss
 !*.rgen
 !*.json
+!*.props
+!*.targets
 
 # misc
 !.clang-format

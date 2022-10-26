@@ -1,0 +1,7 @@
+<Project>
+    <PropertyGroup>
+        <PackageOutputPath>$(MSBuildThisFileDirectory)../artifacts</PackageOutputPath>
+        <DebugType>embedded</DebugType>
+        <EmbedAllSources>true</EmbedAllSources>
+    </PropertyGroup>
+</Project>
