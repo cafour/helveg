@@ -4,4 +4,11 @@
         <DebugType>embedded</DebugType>
         <EmbedAllSources>true</EmbedAllSources>
     </PropertyGroup>
+
+    <PropertyGroup>
+        <PackageDescription>A software visualization tool</PackageDescription>
+        <Authors>Adam Štěpánek</Authors>
+        <RepositoryUrl>https://gitlab.com/helveg/helveg</RepositoryUrl>
+        <PackageLicenseExpression>BSD-3-Clause</PackageLicenseExpression>
+    </PropertyGroup>
 </Project>
