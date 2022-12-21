@@ -236,27 +236,20 @@ namespace Helveg
             var world = await RunLandscapeGeneration(solution.Value);
 
             // rendering
-            Vku.HelloWorld(world);
+            // TODO: Output html
             return 0;
         }
 
-        public static unsafe int Main(string[] args)
+        public static int Main(string[] args)
         {
             var rootCmd = new RootCommand("A software visualization tool")
             {
                 Handler = CommandHandler.Create(typeof(Program).GetMethod(nameof(RunPipeline))!)
             };
-            var vkDebugOption = new Option<bool>(VkDebugAlias, "Enable Vulkan validation layers");
             var verboseOption = new Option<bool>(new[] { "-v", VerboseAlias }, "Set logging level to Debug");
             var forceOption = new Option<bool>(new[] { "-f", ForceAlias }, "Overwrite cached results");
-            var forceCursorOption = new Option<bool>(ForceCursorAlias, "Never hide cursor");
-            rootCmd.AddGlobalOption(vkDebugOption);
             rootCmd.AddGlobalOption(verboseOption);
             rootCmd.AddGlobalOption(forceOption);
-            rootCmd.AddGlobalOption(forceCursorOption);
-            // rootCmd.AddGlobalOption(new Option<bool>(
-            //     alias: RayTracingAlias,
-            //     description: "Enable rendering with VK_KHR_ray_tracing"));
             rootCmd.AddArgument(new Argument<FileSystemInfo>(
                 name: "SOURCE",
                 description: "Path to a project or a solution",
@@ -279,32 +272,11 @@ namespace Helveg
             });
             rootCmd.AddOption(propertyOption);
 
-            var debugCmd = new Command("debug", "Runs a debug utility");
-            DebugDraw.AddDrawCommands(debugCmd);
-            DebugGraph.AddGraphCommands(debugCmd);
-            rootCmd.AddCommand(debugCmd);
-
             var builder = new CommandLineBuilder(rootCmd);
             builder.UseDefaults();
             builder.AddMiddleware(c =>
             {
                 IsForced = c.ParseResult.GetValueForOption<bool>(forceOption);
-
-                if (c.ParseResult.GetValueForOption<bool>(vkDebugOption))
-                {
-                    Vku.SetDebug(true);
-                }
-
-                // TODO: Fix ray tracing
-                //if (c.ParseResult.GetValueForOption<bool>(RayTracingAlias))
-                //{
-                //    Vku.SetRayTracing(true);
-                //}
-
-                if (c.ParseResult.GetValueForOption<bool>(forceCursorOption))
-                {
-                    Vku.SetForceCursor(true);
-                }
 
                 LogLevel minimumLevel = c.ParseResult.GetValueForOption<bool>(verboseOption)
                     ? LogLevel.Debug
@@ -314,8 +286,6 @@ namespace Helveg
                     b.AddConsole();
                     b.SetMinimumLevel(minimumLevel);
                 });
-                var renderLogger = Logging.CreateLogger("Renderer");
-                Vku.SetLogCallback((l, m) => renderLogger.Log((LogLevel)l, m));
             });
             builder.Build(); // Sets ImplicitParser inside the root command. Yes, it's weird, I know.
             var errorCode = rootCmd.Invoke(args);
