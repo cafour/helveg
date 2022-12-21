@@ -47,8 +47,9 @@ namespace Helveg
             return (int)~crc;
         }
 
-        public static int GetCrc32(string value)
+        public static int GetCrc32(string? value)
         {
+            value ??= string.Empty;
             return GetCrc32(Encoding.ASCII.GetBytes(value));
         }
     }

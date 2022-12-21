@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.CommandLine.Builder;
+using System.CommandLine.Parsing;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Numerics;
@@ -66,13 +67,13 @@ namespace Helveg
             logger.LogDebug($"Using MSBuild at '{vsInstance.MSBuildPath}'.");
 
             var analyzedSolution = await Analyze.AnalyzeProjectOrSolution(file, properties, logger, null);
-            if (analyzedSolution is object)
-            {
-                await Serialize.SetCache(
-                    AnalysisCacheFilename,
-                    SerializableSolution.FromAnalyzed(analyzedSolution.Value),
-                    logger);
-            }
+            // if (analyzedSolution is object)
+            // {
+            //     await Serialize.SetCache(
+            //         AnalysisCacheFilename,
+            //         SerializableSolution.FromAnalyzed(analyzedSolution.Value),
+            //         logger);
+            // }
             return analyzedSolution;
         }
 
@@ -269,23 +270,23 @@ namespace Helveg
             });
             rootCmd.AddOption(propertyOption);
 
-            var builder = new CommandLineBuilder(rootCmd);
-            builder.UseHelp();
-            builder.AddMiddleware(c =>
-            {
-                IsForced = c.ParseResult.GetValueForOption<bool>(forceOption);
-
-                LogLevel minimumLevel = c.ParseResult.GetValueForOption<bool>(verboseOption)
-                    ? LogLevel.Debug
-                    : LogLevel.Information;
-                Logging = LoggerFactory.Create(b =>
+            var builder = new CommandLineBuilder(rootCmd)
+                .UseHelp()
+                .AddMiddleware(c =>
                 {
-                    b.AddConsole();
-                    b.SetMinimumLevel(minimumLevel);
-                });
-            });
-            builder.Build(); // Sets ImplicitParser inside the root command. Yes, it's weird, I know.
-            var errorCode = rootCmd.Invoke(args);
+                    IsForced = c.ParseResult.GetValueForOption<bool>(forceOption);
+
+                    LogLevel minimumLevel = c.ParseResult.GetValueForOption<bool>(verboseOption)
+                        ? LogLevel.Debug
+                        : LogLevel.Information;
+                    Logging = LoggerFactory.Create(b =>
+                    {
+                        b.AddConsole();
+                        b.SetMinimumLevel(minimumLevel);
+                    });
+                })
+                .Build(); // Sets ImplicitParser inside the root command. Yes, it's weird, I know.
+            var errorCode = builder.Invoke(args);
             Logging.Dispose();
             return errorCode;
         }

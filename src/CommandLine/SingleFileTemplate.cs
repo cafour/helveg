@@ -20,7 +20,7 @@ public static class SingleFileTemplate
 @$"<!DOCTYPE html>
 <html lang=""en"">
     <head>
-        <title> {solution.Name} | Helveg</title>
+        <title>{solution.Name} | Helveg</title>
         <meta charset=""utf-8"" />
         <meta content=""width=device-width, initial-scale=1.0"" name=""viewport"" />
         <style>

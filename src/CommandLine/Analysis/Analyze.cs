@@ -82,8 +82,8 @@ namespace Helveg.Analysis
                     return null;
                 }
                 return new AnalyzedSolution(
-                    path: string.Empty,
-                    name: string.Empty,
+                    path: null,
+                    name: $"Solution of '{analyzedProject.Value.Name}'",
                     projects: ImmutableDictionary.CreateRange(new[]
                     {
                         new KeyValuePair<string, AnalyzedProject>(project.Name, analyzedProject.Value)
@@ -123,7 +123,7 @@ namespace Helveg.Analysis
                 }
             }
             return new AnalyzedSolution(
-                path: solution.FilePath ?? string.Empty,
+                path: solution.FilePath,
                 name: name,
                 projects: projectBuilder.ToImmutable());
         }
