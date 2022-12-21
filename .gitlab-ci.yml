@@ -3,5 +3,4 @@ build:
   image: mcr.microsoft.com/dotnet/sdk:7.0-alpine
   script:
     - apk update && apk add nodejs-current npm
-    - cd src/CommandLine && npm ci && npm run build && cd ../..
     - dotnet build ./src/Helveg.sln

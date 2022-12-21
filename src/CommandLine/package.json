@@ -8,6 +8,9 @@
         "esbuild": "^0.16.10",
         "esbuild-sass-plugin": "^2.4.4",
         "graphology": "^0.25.1",
+        "graphology-components": "^1.5.4",
+        "graphology-layout": "^0.6.1",
+        "graphology-layout-forceatlas2": "^0.10.1",
         "graphology-types": "^0.24.5",
         "sigma": "^2.4.0",
         "yargs": "^17.6.2"

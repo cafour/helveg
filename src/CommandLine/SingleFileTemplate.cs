@@ -26,16 +26,17 @@ public static class SingleFileTemplate
         <style>
             {GetResource(CssResource)}
         </style>
+    </head>
+
+    <body>
+        <div id=""sigma-container"">
+        </div>
         <script type=""application/json"" id=""helveg-data"">
             {JsonSerializer.Serialize<SerializableSolution>(serializable, Serialize.JsonOptions)}
         </script>
         <script>
             {GetResource(JsResource)}
         </script>
-    </head>
-
-    <body>
-
     </body>
 </html>
 ";
