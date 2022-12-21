@@ -37,6 +37,8 @@
 !*.json
 !*.props
 !*.targets
+!*.ts
+!*.js
 
 # misc
 !.clang-format
@@ -58,3 +60,4 @@ external/
 embedded/
 artifacts/
 *.gv.png
+node_modules/
