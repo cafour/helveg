@@ -39,6 +39,7 @@
 !*.targets
 !*.ts
 !*.js
+!*.scss
 
 # misc
 !.clang-format

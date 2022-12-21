@@ -232,11 +232,8 @@ namespace Helveg
                 return 1;
             }
 
-            // landscape generation
-            var world = await RunLandscapeGeneration(solution.Value);
-
-            // rendering
-            // TODO: Output html
+            var output = SingleFileTemplate.Create(solution.Value);
+            File.WriteAllText("output.html", output);
             return 0;
         }
 

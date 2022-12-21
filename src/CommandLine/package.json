@@ -6,6 +6,7 @@
     "license": "BSD-3-Clause",
     "devDependencies": {
         "esbuild": "^0.16.10",
+        "esbuild-sass-plugin": "^2.4.4",
         "graphology": "^0.25.1",
         "graphology-types": "^0.24.5",
         "sigma": "^2.4.0",

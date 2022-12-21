@@ -1,4 +1,5 @@
 import esbuild from "esbuild";
+import { sassPlugin } from "esbuild-sass-plugin";
 import yargs from "yargs";
 
 const args = yargs(process.argv).argv;
@@ -17,5 +18,8 @@ await esbuild.build({
     sourcemap: isDebug,
     target: ["es2020"],
     treeShaking: true,
-    watch: isWatch
+    watch: isWatch,
+    plugins: [
+        sassPlugin()
+    ]
 });
