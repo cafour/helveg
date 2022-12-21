@@ -50,8 +50,8 @@
   </ItemGroup>
   
   <ItemGroup>
-    <NpmBuildOutputFiles Include="$(BaseIntermediateOutputPath)/esbuild/*.js" />
-    <NpmBuildOutputFiles Include="$(BaseIntermediateOutputPath)/esbuild/*.css" />
+    <NpmBuildOutputFiles Include="$(BaseIntermediateOutputPath)/esbuild/helveg.js" />
+    <NpmBuildOutputFiles Include="$(BaseIntermediateOutputPath)/esbuild/helveg.css" />
   </ItemGroup>
 
   <Target Name="NpmInstall" BeforeTargets="DispatchToInnerBuilds" Inputs="package.json" Outputs="node_modules/.install-stamp">
