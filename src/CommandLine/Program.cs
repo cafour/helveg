@@ -270,7 +270,7 @@ namespace Helveg
             rootCmd.AddOption(propertyOption);
 
             var builder = new CommandLineBuilder(rootCmd);
-            builder.UseDefaults();
+            builder.UseHelp();
             builder.AddMiddleware(c =>
             {
                 IsForced = c.ParseResult.GetValueForOption<bool>(forceOption);
