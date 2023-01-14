@@ -6,9 +6,9 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/src/CommandLine/bin/Debug/net7.0/helveg.dll",
+            "program": "${workspaceFolder}/src/bin/Debug/net7.0/helveg.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/src/CommandLine",
+            "cwd": "${workspaceFolder}/src",
             "console": "internalConsole",
             "stopAtEntry": false
         },
