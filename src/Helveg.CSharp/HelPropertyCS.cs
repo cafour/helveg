@@ -3,8 +3,10 @@ namespace Helveg.CSharp;
 public record HelPropertyCS : HelSymbolBaseCS
 {
     public static readonly HelPropertyCS Invalid = new();
-    
+
     public override HelSymbolKindCS Kind => HelSymbolKindCS.Property;
+
+    public HelTypeCS Type { get; init; } = HelTypeCS.Invalid;
 
     public HelMethodCS? GetMethod { get; init; }
 

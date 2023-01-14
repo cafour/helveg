@@ -8,7 +8,17 @@ public record HelSymbolBaseCS : IHelSymbolCS
 
     public HelVisibilityCS Visibility { get; init; }
 
+    public bool IsSealed { get; init; }
+
     public bool IsStatic { get; init; }
+
+    public bool IsAbstract { get; init; }
+
+    public bool IsExtern { get; init; }
+
+    public bool IsOverride { get; init; }
+
+    public bool IsVirtual { get; init; }
 
     public HelNamespaceCS ContainingNamespace { get; init; } = HelNamespaceCS.Invalid;
 

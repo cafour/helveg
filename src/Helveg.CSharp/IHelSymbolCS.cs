@@ -10,6 +10,8 @@ public interface IHelSymbolCS : IHelEntityCS
 
     bool IsStatic { get; }
 
+    bool IsAbstract { get; }
+
     [JsonIgnore]
     HelNamespaceCS ContainingNamespace { get; }
 

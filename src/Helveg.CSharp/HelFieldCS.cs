@@ -7,4 +7,10 @@ public record HelFieldCS : HelSymbolBaseCS
     public override HelSymbolKindCS Kind => HelSymbolKindCS.Field;
 
     public HelTypeCS Type { get; init; } = HelTypeCS.Invalid;
+
+    public bool IsReadOnly { get; init; }
+
+    public bool IsVolatile { get; init; }
+
+    public bool IsConst { get; init; }
 }

@@ -12,5 +12,7 @@ public enum HelSymbolKindCS
     Method,
     Field,
     Property,
-    Event
+    Event,
+    Parameter,
+    TypeParameter
 }
