@@ -1,14 +1,18 @@
 <Project>
-    <PropertyGroup>
-        <PackageOutputPath>$(MSBuildThisFileDirectory)../artifacts</PackageOutputPath>
-        <DebugType>embedded</DebugType>
-        <EmbedAllSources>true</EmbedAllSources>
-    </PropertyGroup>
+  <PropertyGroup>
+    <PackageOutputPath>$(MSBuildThisFileDirectory)../artifacts</PackageOutputPath>
+    <DebugType>embedded</DebugType>
+    <EmbedAllSources>true</EmbedAllSources>
+    <DefaultTargetFrameworks>net7.0</DefaultTargetFrameworks>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <RollForward>LatestMajor</RollForward>
+  </PropertyGroup>
 
-    <PropertyGroup>
-        <PackageDescription>A software visualization tool</PackageDescription>
-        <Authors>Adam Štěpánek</Authors>
-        <RepositoryUrl>https://gitlab.com/helveg/helveg</RepositoryUrl>
-        <PackageLicenseExpression>BSD-3-Clause</PackageLicenseExpression>
-    </PropertyGroup>
+  <PropertyGroup>
+    <PackageDescription>A software visualization tool</PackageDescription>
+    <Authors>Adam Štěpánek</Authors>
+    <RepositoryUrl>https://gitlab.com/helveg/helveg</RepositoryUrl>
+    <PackageLicenseExpression>BSD-3-Clause</PackageLicenseExpression>
+  </PropertyGroup>
 </Project>
