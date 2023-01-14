@@ -53,6 +53,10 @@
     <NpmBuildOutputFiles Include="$(BaseIntermediateOutputPath)/esbuild/helveg.js" />
     <NpmBuildOutputFiles Include="$(BaseIntermediateOutputPath)/esbuild/helveg.css" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\Helveg.CSharp\Helveg.CSharp.csproj" />
+  </ItemGroup>
 
   <Target Name="NpmInstall" BeforeTargets="DispatchToInnerBuilds" Inputs="package.json" Outputs="node_modules/.install-stamp">
     <Message Text="Restoring npm packages declared in package.json" Importance="High" />
