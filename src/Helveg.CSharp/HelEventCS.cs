@@ -6,7 +6,11 @@ public record HelEventCS : HelSymbolBaseCS
 
     public override HelSymbolKindCS Kind => HelSymbolKindCS.Event;
 
+    public HelTypeCS Type { get; init; } = HelTypeCS.Invalid;
+
     public HelMethodCS? AddMethod { get; init; }
 
     public HelMethodCS? RemoveMethod { get; init; }
+
+    public HelMethodCS? RaiseMethod { get; init; }
 }

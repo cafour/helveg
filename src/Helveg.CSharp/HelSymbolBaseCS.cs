@@ -6,7 +6,7 @@ public record HelSymbolBaseCS : IHelSymbolCS
 
     public virtual HelSymbolKindCS Kind { get; init; }
 
-    public HelVisibilityCS Visibility { get; init; }
+    public HelAccessibilityCS Accessibility { get; init; }
 
     public bool IsSealed { get; init; }
 

@@ -8,9 +8,15 @@ public record HelFieldCS : HelSymbolBaseCS
 
     public HelTypeCS Type { get; init; } = HelTypeCS.Invalid;
 
+    public IHelSymbolCS? AssociatedSymbol { get; init; }
+
     public bool IsReadOnly { get; init; }
 
     public bool IsVolatile { get; init; }
 
     public bool IsConst { get; init; }
+
+    public bool IsRequired { get; init; }
+
+    public HelRefKindCS RefKind { get; init; }
 }

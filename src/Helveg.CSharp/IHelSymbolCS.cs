@@ -6,11 +6,21 @@ public interface IHelSymbolCS : IHelEntityCS
 {
     HelSymbolKindCS Kind { get; }
 
-    HelVisibilityCS Visibility { get; }
+    HelAccessibilityCS Accessibility { get; }
+
+    bool IsSealed { get; }
 
     bool IsStatic { get; }
 
     bool IsAbstract { get; }
+
+    bool IsExtern { get; }
+
+    bool IsOverride { get; }
+
+    bool IsVirtual { get; }
+
+    bool IsImplicitlyDeclared { get; }
 
     [JsonIgnore]
     HelNamespaceCS ContainingNamespace { get; }

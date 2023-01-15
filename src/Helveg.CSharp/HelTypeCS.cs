@@ -9,6 +9,8 @@ public record HelTypeCS : HelSymbolBaseCS
 
     public ImmutableArray<IHelSymbolCS> Members { get; init; } = ImmutableArray.Create<IHelSymbolCS>();
 
+    public HelNullabilityCS NullableAnnotation { get; init; }
+
     [JsonIgnore]
     public ImmutableArray<HelTypeCS> NestedTypes { get; init; } = ImmutableArray.Create<HelTypeCS>();
 
