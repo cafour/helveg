@@ -20,7 +20,17 @@ public record HelSymbolBaseCS : IHelSymbolCS
 
     public bool IsVirtual { get; init; }
 
-    public HelNamespaceCS ContainingNamespace { get; init; } = HelNamespaceCS.Invalid;
+    public HelNamespaceCS? ContainingNamespace { get; init; }
 
     public HelTypeCS? ContainingType { get; init; }
+
+    public bool IsImplicitlyDeclared { get; init; }
+
+    public bool CanBeReferencedByName { get; init; }
+
+    public IHelSymbolCS? ContainingSymbol { get; init; }
+
+    public HelAssemblyCS? ContainingAssembly { get; init; }
+
+    public HelModuleCS? ContainingModule { get; init; }
 }

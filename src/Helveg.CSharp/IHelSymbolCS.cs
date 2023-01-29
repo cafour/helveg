@@ -1,5 +1,3 @@
-using System.Text.Json.Serialization;
-
 namespace Helveg.CSharp;
 
 public interface IHelSymbolCS : IHelEntityCS
@@ -22,9 +20,15 @@ public interface IHelSymbolCS : IHelEntityCS
 
     bool IsImplicitlyDeclared { get; }
 
-    [JsonIgnore]
-    HelNamespaceCS ContainingNamespace { get; }
+    bool CanBeReferencedByName { get; }
 
-    [JsonIgnore]
+    IHelSymbolCS? ContainingSymbol { get; }
+
+    HelAssemblyCS? ContainingAssembly { get; }
+
+    HelModuleCS? ContainingModule { get; }
+
     HelTypeCS? ContainingType { get; }
+
+    HelNamespaceCS? ContainingNamespace { get; }
 }

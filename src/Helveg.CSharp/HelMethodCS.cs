@@ -51,6 +51,4 @@ public record HelMethodCS : HelSymbolBaseCS
     public ImmutableArray<HelMethodCS> ExplicitInterfaceImplementations { get; init; }
 
     public IHelSymbolCS? AssociatedSymbol { get; init; }
-    
-    
 }
