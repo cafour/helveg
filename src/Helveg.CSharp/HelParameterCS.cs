@@ -13,4 +13,12 @@ public record HelParameterCS : HelSymbolBaseCS
     public HelRefKindCS RefKind { get; init; }
 
     public int Ordinal { get; init; }
+
+    public bool IsParams { get; init; }
+
+    public bool IsOptional { get; init; }
+
+    public bool IsThis { get; init; }
+
+    public bool HasExplicitDefaultValue { get; init; }
 }
