@@ -1,6 +1,6 @@
 namespace Helveg.CSharp;
 
-public record HelSymbolBaseCS : IHelSymbolCS
+public abstract record HelSymbolBaseCS : IHelSymbolCS
 {
     public string Name { get; init; } = IHelEntityCS.InvalidName;
 
