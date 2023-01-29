@@ -5,18 +5,17 @@ using System.Text.Json.Serialization;
 
 namespace Helveg.CSharp;
 
-public record HelNamespaceCS : IHelEntityCS
+public record HelNamespaceCS : HelSymbolBaseCS
 {
     public static readonly HelNamespaceCS Invalid = new();
 
-    public string Name { get; init; } = IHelEntityCS.InvalidName;
+    public override HelSymbolKindCS Kind => HelSymbolKindCS.Namespace;
 
     public ImmutableArray<HelTypeCS> Types { get; init; } = ImmutableArray.Create<HelTypeCS>();
 
-    public HelNamespaceCS? ContainingNamespace { get; init; }
+    public bool IsGlobalNamespace => ContainingNamespace is null;
 
-    [JsonIgnore]
-    public bool IsGlobal => ContainingNamespace is null;
+    public HelNamespaceKindCS NamespaceKind { get; init; }
 
     public IEnumerable<IHelSymbolCS> GetAllSymbols()
     {

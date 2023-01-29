@@ -6,6 +6,8 @@ public record HelAssemblyCS : HelSymbolBaseCS
 {
     public static readonly HelAssemblyCS Invalid = new();
 
+    public override HelSymbolKindCS Kind => HelSymbolKindCS.Assembly;
+
     public HelAssemblyIdCS Identity { get; init; } = HelAssemblyIdCS.Invalid;
 
     public HelNamespaceCS GlobalNamespace { get; init; } = HelNamespaceCS.Invalid;
