@@ -12,17 +12,45 @@ public record HelMethodCS : HelSymbolBaseCS
 
     public override HelSymbolKindCS Kind => HelSymbolKindCS.Method;
 
-    public ImmutableArray<HelParameterCS> Parameters { get; init; } = ImmutableArray.Create<HelParameterCS>();
+    public HelMethodKindCS MethodKind { get; init; }
+
+    public ImmutableArray<HelParameterCS> Parameters { get; init; } = ImmutableArray<HelParameterCS>.Empty;
 
     public ImmutableArray<HelTypeParameterCS> TypeParameters { get; init; } = ImmutableArray<HelTypeParameterCS>.Empty;
+
+    public ImmutableArray<HelTypeCS> TypeArguments { get; init; } = ImmutableArray<HelTypeCS>.Empty;
 
     public HelTypeCS? ReturnType { get; init; }
 
     public bool IsExtensionMethod { get; init; }
 
-    [JsonIgnore]
-    public bool IsConstructor => Name == ConstructorName;
+    public int Arity => TypeParameters.Length;
+    
+    public bool IsGenericMethod => TypeParameters.Length > 0;
 
-    [JsonIgnore]
-    public bool IsStaticConstructor => Name == StaticConstructorName;
+    public bool IsAsync { get; init; }
+
+    public bool ReturnsVoid => ReturnType is null;
+
+    public bool ReturnsByRef => RefKind == HelRefKindCS.Ref;
+
+    public bool ReturnsByRefReadonly => RefKind == HelRefKindCS.RefReadOnly;
+
+    public HelRefKindCS RefKind { get; init; }
+
+    public HelMethodCS ConstructedFrom { get; init; } = HelMethodCS.Invalid;
+
+    public bool IsReadOnly { get; init; }
+
+    public bool IsInitOnly { get; init; }
+
+    public HelMethodCS? OverridenMethod { get; init; }
+
+    public HelTypeCS? ReceiverType { get; init; }
+
+    public ImmutableArray<HelMethodCS> ExplicitInterfaceImplementations { get; init; }
+
+    public IHelSymbolCS? AssociatedSymbol { get; init; }
+    
+    
 }
