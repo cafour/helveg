@@ -11,7 +11,9 @@ public record HelNamespaceCS : HelSymbolBaseCS
 
     public override HelSymbolKindCS Kind => HelSymbolKindCS.Namespace;
 
-    public ImmutableArray<HelTypeCS> Types { get; init; } = ImmutableArray.Create<HelTypeCS>();
+    public ImmutableArray<HelTypeCS> TypeMembers { get; init; } = ImmutableArray<HelTypeCS>.Empty;
+
+    public ImmutableArray<HelNamespaceCS> NamespaceMembers { get; init; } = ImmutableArray<HelNamespaceCS>.Empty;
 
     public bool IsGlobalNamespace => ContainingNamespace is null;
 

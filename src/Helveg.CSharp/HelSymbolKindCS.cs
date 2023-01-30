@@ -3,18 +3,17 @@ namespace Helveg.CSharp;
 public enum HelSymbolKindCS
 {
     Invalid = 0,
-    Namespace,
     Assembly,
-    Class,
-    Struct,
-    Interface,
-    Enum,
-    Delegate,
-    Record,
+    Module,
+    Namespace,
+    TypeParameter,
+    NamedType,
+    ArrayType,
+    PointerType,
     Method,
     Field,
     Property,
     Event,
     Parameter,
-    TypeParameter
+    Local
 }
