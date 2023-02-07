@@ -7,4 +7,6 @@ public interface IHelEntityCS
     string Name { get; }
 
     bool IsInvalid => Name == InvalidName;
+
+    bool IsDefinition { get; }
 }
