@@ -1,12 +1,14 @@
 namespace Helveg.CSharp;
 
-public record HelTypeParameterCS : HelSymbolBaseCS
+public record HelTypeParameterCS : HelTypeReferenceCS, IInvalidable<HelTypeParameterCS>
 {
-    public static readonly HelTypeParameterCS Invalid = new();
+    public new static HelTypeParameterCS Invalid { get; } = new();
 
-    public override HelSymbolKindCS Kind => HelSymbolKindCS.TypeParameter;
+    public override HelTypeKindCS TypeKind => HelTypeKindCS.TypeParameter;
 
     public int Ordinal { get; init; }
 
-    public HelMethodCS? ContainingMethod { get; init; }
+    public HelMethodReferenceCS? DeclaringMethod { get; init; }
+
+    public HelTypeReferenceCS? DeclaringType { get; init; }
 }

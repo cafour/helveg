@@ -2,10 +2,30 @@ using System.Collections.Immutable;
 
 namespace Helveg.CSharp;
 
-// Merges ITypeSymbol, INamedTypeSymbol
-public record HelTypeCS : HelSymbolBaseCS
+public record HelTypeReferenceCS : HelMemberReferenceCS, IInvalidable<HelTypeReferenceCS>
 {
-    public static readonly HelTypeCS Invalid = new();
+    public static HelTypeReferenceCS Invalid { get; } = new();
+
+    public virtual HelTypeKindCS TypeKind { get; init; }
+
+    public HelNullabilityCS Nullability { get; init; }
+
+    public ImmutableArray<HelTypeParameterCS> TypeParameters { get; init; } = ImmutableArray<HelTypeParameterCS>.Empty;
+}
+
+// Merges ITypeSymbol, INamedTypeSymbol
+public record HelTypeCS : HelMemberCS<HelTypeReferenceCS>, IInvalidable<HelTypeReferenceCS>
+{
+    public static HelTypeReferenceCS Invalid { get; } = new();
+
+    public override HelTypeReferenceCS Reference => new()
+    {
+        Name = Name,
+        ContainingNamespace = ContainingNamespace,
+        ContainingType = ContainingType,
+        TypeKind = TypeKind,
+        TypeParameters = TypeParameters
+    };
 
     public ImmutableArray<IHelSymbolCS> Members { get; init; } = ImmutableArray<IHelSymbolCS>.Empty;
 
@@ -15,11 +35,11 @@ public record HelTypeCS : HelSymbolBaseCS
 
     public HelTypeKindCS TypeKind { get; init; }
 
-    public HelTypeCS? BaseType { get; init; }
+    public HelTypeReferenceCS? BaseType { get; init; }
 
-    public ImmutableArray<HelTypeCS> Interfaces { get; init; } = ImmutableArray<HelTypeCS>.Empty;
+    public ImmutableArray<HelTypeReferenceCS> Interfaces { get; init; } = ImmutableArray<HelTypeReferenceCS>.Empty;
 
-    public ImmutableArray<HelTypeCS> AllInterfaces { get; init; } = ImmutableArray<HelTypeCS>.Empty;
+    public ImmutableArray<HelTypeReferenceCS> AllInterfaces { get; init; } = ImmutableArray<HelTypeReferenceCS>.Empty;
 
     public bool IsReferenceType { get; init; }
 
@@ -45,15 +65,5 @@ public record HelTypeCS : HelSymbolBaseCS
 
     public bool IsGenericType => TypeParameters.Length > 0;
 
-    public bool IsUnboundGenericType { get; init; }
-
     public bool IsImplicitClass { get; init; }
-
-    public ImmutableArray<HelTypeCS> TypeArguments { get; init; } = ImmutableArray<HelTypeCS>.Empty;
-
-    public HelTypeCS? EnumUnderlyingType { get; init; }
-
-    public HelTypeCS ConstructedFrom { get; init; } = HelTypeCS.Invalid;
-
-    public IHelSymbolCS? AssociatedSymbol { get; init; }
 }

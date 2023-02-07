@@ -5,22 +5,33 @@ using System.Text.Json.Serialization;
 
 namespace Helveg.CSharp;
 
-public record HelNamespaceCS : HelSymbolBaseCS
+public record HelNamespaceReferenceCS : HelReferenceCS, IInvalidable<HelNamespaceReferenceCS>
 {
-    public static readonly HelNamespaceCS Invalid = new();
+    public static HelNamespaceReferenceCS Invalid { get; } = new();
 
-    public override HelSymbolKindCS Kind => HelSymbolKindCS.Namespace;
+    public HelModuleReferenceCS ContainingModule { get; init; } = HelModuleReferenceCS.Invalid;
 
-    public ImmutableArray<HelTypeCS> TypeMembers { get; init; } = ImmutableArray<HelTypeCS>.Empty;
+    public HelNamespaceReferenceCS? ContainingNamespace { get; init; }
+}
 
-    public ImmutableArray<HelNamespaceCS> NamespaceMembers { get; init; } = ImmutableArray<HelNamespaceCS>.Empty;
+public record HelNamespaceCS : HelDefinitionCS<HelNamespaceReferenceCS>, IInvalidable<HelNamespaceCS>
+{
+    public static HelNamespaceCS Invalid { get; } = new();
+
+    public override HelNamespaceReferenceCS Reference => new()
+    {
+        Name = Name,
+        ContainingModule = ContainingModule,
+        ContainingNamespace = ContainingNamespace
+    };
+
+    public ImmutableArray<HelTypeCS> Types { get; init; } = ImmutableArray<HelTypeCS>.Empty;
+
+    public ImmutableArray<HelNamespaceCS> Namespaces { get; init; } = ImmutableArray<HelNamespaceCS>.Empty;
+
+    public HelModuleReferenceCS ContainingModule { get; init; } = HelModuleReferenceCS.Invalid;
+
+    public HelNamespaceReferenceCS? ContainingNamespace { get; init; }
 
     public bool IsGlobalNamespace => ContainingNamespace is null;
-
-    public HelNamespaceKindCS NamespaceKind { get; init; }
-
-    public IEnumerable<IHelSymbolCS> GetAllSymbols()
-    {
-        return Types.SelectMany(t => t.Members);
-    }
 }

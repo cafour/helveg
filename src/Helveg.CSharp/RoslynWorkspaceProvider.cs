@@ -85,8 +85,8 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
     {
         var helNamespace = new HelNamespaceCS
         {
-            TypeMembers = @namespace.GetTypeMembers().Select(GetType).ToImmutableArray(),
-            NamespaceMembers = @namespace.GetNamespaceMembers().Select(GetNamespace).ToImmutableArray()
+            Types = @namespace.GetTypeMembers().Select(GetType).ToImmutableArray(),
+            Namespaces = @namespace.GetNamespaceMembers().Select(GetNamespace).ToImmutableArray()
         };
         return PopulateSymbol(@namespace, helNamespace);
     }

@@ -3,18 +3,17 @@ using System.Globalization;
 
 namespace Helveg.CSharp;
 
-public record HelAssemblyIdCS(
-    string Name,
-    Version Version,
-    string CultureName,
-    string? PublicKeyToken)
+public record HelAssemblyIdCS : IInvalidable<HelAssemblyIdCS>
 {
-    public static readonly HelAssemblyIdCS Invalid = new(
-        Name: IHelEntityCS.InvalidName,
-        Version: new(),
-        CultureName: CultureInfo.InvariantCulture.Name,
-        PublicKeyToken: null
-    );
-    
+    public static HelAssemblyIdCS Invalid { get; } = new();
+
+    public string Name { get; init; } = IHelEntityCS.InvalidName;
+
+    public Version Version { get; init; } = new();
+
+    public string CultureName { get; init; } = CultureInfo.InvariantCulture.Name;
+
+    public string? PublicKeyToken { get; init; }
+
     public bool IsInvalid => Name == IHelEntityCS.InvalidName;
 }

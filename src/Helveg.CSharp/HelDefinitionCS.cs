@@ -6,15 +6,12 @@ using System.Threading.Tasks;
 
 namespace Helveg.CSharp;
 
-public abstract record HelDefinitionCS : IHelEntityCS
+public abstract record HelDefinitionCS<TReference> : IHelEntityCS
+    where TReference : HelReferenceCS
 {
     public string Name { get; init; } = IHelEntityCS.InvalidName;
 
     public bool IsDefinition => true;
-}
 
-public abstract record HelDefinitionCS<TReference> : HelDefinitionCS
-    where TReference : HelReferenceCS
-{
     public abstract TReference Reference { get; }
 }
