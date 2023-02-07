@@ -1,16 +1,26 @@
 namespace Helveg.CSharp;
 
-public record HelEventCS : HelSymbolBaseCS
+public record HelEventReferenceCS : HelMemberReferenceCS, IInvalidable<HelEventReferenceCS>
 {
-    public static readonly HelEventCS Invalid = new();
+    public static HelEventReferenceCS Invalid { get; } = new();
+}
 
-    public override HelSymbolKindCS Kind => HelSymbolKindCS.Event;
+public record HelEventCS : HelMemberCS<HelEventReferenceCS>, IInvalidable<HelEventCS>
+{
+    public static HelEventCS Invalid { get; } = new();
 
-    public HelTypeCS Type { get; init; } = HelTypeCS.Invalid;
+    public override HelEventReferenceCS Reference => new()
+    {
+        Name = Name,
+        ContainingNamespace = ContainingNamespace,
+        ContainingType = ContainingType
+    };
 
-    public HelMethodCS? AddMethod { get; init; }
+    public HelTypeReferenceCS EventType { get; init; } = HelTypeReferenceCS.Invalid;
 
-    public HelMethodCS? RemoveMethod { get; init; }
+    public HelMethodReferenceCS? AddMethod { get; init; }
 
-    public HelMethodCS? RaiseMethod { get; init; }
+    public HelMethodReferenceCS? RemoveMethod { get; init; }
+
+    public HelMethodReferenceCS? RaiseMethod { get; init; }
 }

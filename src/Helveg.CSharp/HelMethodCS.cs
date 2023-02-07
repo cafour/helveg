@@ -3,14 +3,21 @@ using System.Text.Json.Serialization;
 
 namespace Helveg.CSharp;
 
-public record HelMethodCS : HelSymbolBaseCS
+public record HelMethodReferenceCS : HelMemberReferenceCS, IInvalidable<HelMethodReferenceCS>
+{
+    public static HelMethodReferenceCS Invalid { get; } = new();
+
+    public ImmutableArray<HelTypeCS> TypeArguments { get; init; } = ImmutableArray<HelTypeCS>.Empty;
+
+    public HelMethodReferenceCS ConstructedFrom { get; init; } = HelMethodReferenceCS.Invalid;
+}
+
+public record HelMethodCS : HelMemberCS<HelMethodReferenceCS>, IInvalidable<HelMethodCS>
 {
     public const string ConstructorName = ".ctor";
     public const string StaticConstructorName = ".cctor";
 
-    public static readonly HelMethodCS Invalid = new();
-
-    public override HelSymbolKindCS Kind => HelSymbolKindCS.Method;
+    public static HelMethodCS Invalid { get; } = new();
 
     public HelMethodKindCS MethodKind { get; init; }
 
@@ -18,9 +25,7 @@ public record HelMethodCS : HelSymbolBaseCS
 
     public ImmutableArray<HelTypeParameterCS> TypeParameters { get; init; } = ImmutableArray<HelTypeParameterCS>.Empty;
 
-    public ImmutableArray<HelTypeCS> TypeArguments { get; init; } = ImmutableArray<HelTypeCS>.Empty;
-
-    public HelTypeCS? ReturnType { get; init; }
+    public HelTypeReferenceCS? ReturnType { get; init; }
 
     public bool IsExtensionMethod { get; init; }
 
@@ -38,17 +43,15 @@ public record HelMethodCS : HelSymbolBaseCS
 
     public HelRefKindCS RefKind { get; init; }
 
-    public HelMethodCS ConstructedFrom { get; init; } = HelMethodCS.Invalid;
-
     public bool IsReadOnly { get; init; }
 
     public bool IsInitOnly { get; init; }
 
-    public HelMethodCS? OverridenMethod { get; init; }
+    public HelMethodReferenceCS? OverridenMethod { get; init; }
 
-    public HelTypeCS? ReceiverType { get; init; }
+    public HelTypeReferenceCS? ReceiverType { get; init; }
 
-    public ImmutableArray<HelMethodCS> ExplicitInterfaceImplementations { get; init; }
+    public ImmutableArray<HelMethodReferenceCS> ExplicitInterfaceImplementations { get; init; }
 
     public IHelSymbolCS? AssociatedSymbol { get; init; }
 }
