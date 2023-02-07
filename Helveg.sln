@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Helveg", "src\Helveg\Helveg
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Helveg.CSharp", "src\Helveg.CSharp\Helveg.CSharp.csproj", "{E34ACA44-B424-4D49-9B4B-09A58EBC540A}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{13529830-9A11-414D-AF24-273A8166CE4C}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6898D2C5-50A8-4448-8F7F-02E4A9F5C385}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 	EndProjectSection
@@ -37,6 +37,6 @@ Global
 		{E34ACA44-B424-4D49-9B4B-09A58EBC540A} = {3C2301C0-129B-4FAA-8ED5-73E23146E200}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {B82569EB-1C94-45B9-9FAD-29E3F38DCC50}
+		SolutionGuid = {307F2699-A32F-4386-A8D3-2DBE2B0F6B15}
 	EndGlobalSection
 EndGlobal
