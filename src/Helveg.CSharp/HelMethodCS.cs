@@ -1,3 +1,4 @@
+using Helveg.Abstractions;
 using System.Collections.Immutable;
 using System.Text.Json.Serialization;
 
@@ -9,7 +10,10 @@ public record HelMethodReferenceCS : HelMemberReferenceCS, IInvalidable<HelMetho
 
     public ImmutableArray<HelTypeCS> TypeArguments { get; init; } = ImmutableArray<HelTypeCS>.Empty;
 
-    public HelMethodReferenceCS ConstructedFrom { get; init; } = HelMethodReferenceCS.Invalid;
+    public HelMethodReferenceCS? ConstructedFrom { get; init; }
+
+    public ImmutableArray<HelParameterReferenceCS> Parameters { get; init; }
+        = ImmutableArray<HelParameterReferenceCS>.Empty;
 }
 
 public record HelMethodCS : HelMemberCS<HelMethodReferenceCS>, IInvalidable<HelMethodCS>
@@ -18,6 +22,12 @@ public record HelMethodCS : HelMemberCS<HelMethodReferenceCS>, IInvalidable<HelM
     public const string StaticConstructorName = ".cctor";
 
     public static HelMethodCS Invalid { get; } = new();
+
+    public HelMethodReferenceCS Reference => new()
+    {
+        Name = Name,
+        Type
+    };
 
     public HelMethodKindCS MethodKind { get; init; }
 
@@ -53,5 +63,7 @@ public record HelMethodCS : HelMemberCS<HelMethodReferenceCS>, IInvalidable<HelM
 
     public ImmutableArray<HelMethodReferenceCS> ExplicitInterfaceImplementations { get; init; }
 
-    public IHelSymbolCS? AssociatedSymbol { get; init; }
+    public HelEventReferenceCS? AssociatedEvent { get; init; }
+
+    public HelPropertyReferenceCS? AssociatedProperty { get; init; }
 }

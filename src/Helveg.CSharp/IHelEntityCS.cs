@@ -9,4 +9,6 @@ public interface IHelEntityCS
     bool IsInvalid => Name == InvalidName;
 
     bool IsDefinition { get; }
+
+    HelEntityTokenCS Token { get; }
 }

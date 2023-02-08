@@ -1,3 +1,5 @@
+using Helveg.Abstractions;
+
 namespace Helveg.CSharp;
 
 public record HelEventReferenceCS : HelMemberReferenceCS, IInvalidable<HelEventReferenceCS>

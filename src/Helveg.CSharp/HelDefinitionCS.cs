@@ -14,4 +14,11 @@ public abstract record HelDefinitionCS<TReference> : IHelEntityCS
     public bool IsDefinition => true;
 
     public abstract TReference Reference { get; }
+
+    public abstract HelEntityTokenCS Token { get; }
+
+    public static implicit operator TReference(HelDefinitionCS<TReference> def)
+    {
+        return def.Reference;
+    }
 }
