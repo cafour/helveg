@@ -1,16 +1,17 @@
+using Helveg.Abstractions;
 using System;
 
 namespace Helveg.CSharp;
 
-public record HelWorkspaceCS
+public record HelWorkspaceCS : IInvalidable<HelWorkspaceCS>
 {
-    public static readonly HelWorkspaceCS Invalid = new();
+    public static HelWorkspaceCS Invalid { get; } = new();
 
     public DateTimeOffset CreatedAt { get; init; }
 
     public string? Revision { get; set; }
 
-    public HelSolutionCS Solution { get; init; } = IInvalidable<HelSolutionCS>.Invalid;
+    public HelSolutionCS Solution { get; init; } = HelSolutionCS.Invalid;
 
     public string Name { get; init; } = IHelEntityCS.InvalidName;
 

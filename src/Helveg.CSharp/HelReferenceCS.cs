@@ -11,4 +11,6 @@ public abstract record HelReferenceCS : IHelEntityCS
     public string Name { get; init; } = IHelEntityCS.InvalidName;
 
     public bool IsDefinition => false;
+
+    public HelEntityTokenCS Token { get; init; } = HelEntityTokenCS.Invalid;
 }

@@ -5,7 +5,7 @@
 /// </summary>
 /// <typeparam name="T"></typeparam>
 public interface IInvalidable<T>
-    where T : IInvalidable<T>, new()
+    where T : IInvalidable<T>
 {
     public abstract static T Invalid { get; }
 }

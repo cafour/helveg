@@ -1,3 +1,4 @@
+using Helveg.Abstractions;
 using System.Collections.Immutable;
 
 namespace Helveg.CSharp;
@@ -15,6 +16,7 @@ public record HelSolutionCS : HelDefinitionCS<HelSolutionReferenceCS>, IInvalida
 
     public override HelSolutionReferenceCS Reference => new()
     {
+        Token = Token,
         FullName = FullName,
         Name = Name
     };
