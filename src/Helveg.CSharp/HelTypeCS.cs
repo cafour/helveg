@@ -28,7 +28,13 @@ public record HelTypeCS : HelMemberCS<HelTypeReferenceCS>, IInvalidable<HelTypeR
         TypeParameters = TypeParameters
     };
 
-    public ImmutableArray<IHelSymbolCS> Members { get; init; } = ImmutableArray<IHelSymbolCS>.Empty;
+    public ImmutableArray<HelPropertyCS> Properties { get; init; } = ImmutableArray<HelPropertyCS>.Empty;
+
+    public ImmutableArray<HelFieldCS> Fields { get; init; } = ImmutableArray<HelFieldCS>.Empty;
+
+    public ImmutableArray<HelEventCS> Events { get; init; } = ImmutableArray<HelEventCS>.Empty;
+
+    public ImmutableArray<HelMethodCS> Methods { get; init; } = ImmutableArray<HelMethodCS>.Empty;
 
     public ImmutableArray<HelTypeCS> NestedTypes { get; init; } = ImmutableArray<HelTypeCS>.Empty;
 
