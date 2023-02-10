@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Helveg.CSharp;
 
-public record HelEntityTokenCS(HelEntityKindCS Kind, int Id) : IInvalidable<HelEntityTokenCS>
+public record struct HelEntityTokenCS(HelEntityKindCS Kind, int Id) : IInvalidable<HelEntityTokenCS>
 {
     public static HelEntityTokenCS Invalid { get; } = new(HelEntityKindCS.Invalid, 0);
 }

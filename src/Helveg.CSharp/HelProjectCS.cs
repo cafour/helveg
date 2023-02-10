@@ -1,3 +1,4 @@
+using Helveg.Abstractions;
 using System.Collections.Immutable;
 
 namespace Helveg.CSharp;
@@ -7,8 +8,6 @@ public record HelProjectReferenceCS : HelReferenceCS, IInvalidable<HelProjectRef
     public static HelProjectReferenceCS Invalid { get; } = new();
 
     public string? FullName { get; init; }
-
-    public HelSolutionReferenceCS ContainingSolution { get; init; } = HelSolutionReferenceCS.Invalid;
 }
 
 public record HelProjectCS : HelDefinitionCS<HelProjectReferenceCS>, IInvalidable<HelProjectCS>
@@ -17,6 +16,7 @@ public record HelProjectCS : HelDefinitionCS<HelProjectReferenceCS>, IInvalidabl
 
     public override HelProjectReferenceCS Reference => new()
     {
+        Token = Token,
         Name = Name,
         FullName = FullName
     };
@@ -26,9 +26,11 @@ public record HelProjectCS : HelDefinitionCS<HelProjectReferenceCS>, IInvalidabl
     /// </summary>
     public string? FullName { get; init; }
 
-    public ImmutableArray<HelProjectCS> ProjectDependencies { get; init; } = ImmutableArray<HelProjectCS>.Empty;
+    public ImmutableArray<HelProjectReferenceCS> ProjectDependencies { get; init; }
+        = ImmutableArray<HelProjectReferenceCS>.Empty;
 
-    public ImmutableArray<HelPackageCS> PackageDependencies { get; init; } = ImmutableArray<HelPackageCS>.Empty;
+    public ImmutableArray<HelPackageReferenceCS> PackageDependencies { get; init; }
+        = ImmutableArray<HelPackageReferenceCS>.Empty;
 
     public HelAssemblyCS Assembly { get; init; } = HelAssemblyCS.Invalid;
 

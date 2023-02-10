@@ -1,3 +1,5 @@
+using Helveg.Abstractions;
+
 namespace Helveg.CSharp;
 
 public record HelParameterReferenceCS : HelReferenceCS, IInvalidable<HelParameterReferenceCS>
@@ -15,6 +17,7 @@ public record HelParameterCS : HelDefinitionCS<HelParameterReferenceCS>, IInvali
 
     public override HelParameterReferenceCS Reference => new()
     {
+        Token = Token,
         Name = Name,
         Ordinal = Ordinal,
         Method = Method

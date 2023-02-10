@@ -12,7 +12,8 @@ public record HelConstructedTypeCS : HelTypeReferenceCS, IInvalidable<HelConstru
 {
     public new static HelConstructedTypeCS Invalid { get; } = new();
 
-    public ImmutableArray<HelTypeCS> TypeArguments { get; init; } = ImmutableArray<HelTypeCS>.Empty;
+    public ImmutableArray<HelTypeReferenceCS> TypeArguments { get; init; }
+        = ImmutableArray<HelTypeReferenceCS>.Empty;
 
     public HelTypeReferenceCS ConstructedFrom { get; init; } = HelTypeReferenceCS.Invalid;
 }

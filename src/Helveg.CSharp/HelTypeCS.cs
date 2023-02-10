@@ -1,3 +1,4 @@
+using Helveg.Abstractions;
 using System.Collections.Immutable;
 
 namespace Helveg.CSharp;
@@ -13,13 +14,13 @@ public record HelTypeReferenceCS : HelMemberReferenceCS, IInvalidable<HelTypeRef
     public ImmutableArray<HelTypeParameterCS> TypeParameters { get; init; } = ImmutableArray<HelTypeParameterCS>.Empty;
 }
 
-// Merges ITypeSymbol, INamedTypeSymbol
 public record HelTypeCS : HelMemberCS<HelTypeReferenceCS>, IInvalidable<HelTypeReferenceCS>
 {
     public static HelTypeReferenceCS Invalid { get; } = new();
 
     public override HelTypeReferenceCS Reference => new()
     {
+        Token = Token,
         Name = Name,
         ContainingNamespace = ContainingNamespace,
         ContainingType = ContainingType,

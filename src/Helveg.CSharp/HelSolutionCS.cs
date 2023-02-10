@@ -27,4 +27,6 @@ public record HelSolutionCS : HelDefinitionCS<HelSolutionReferenceCS>, IInvalida
     public string? FullName { get; init; }
 
     public ImmutableArray<HelProjectCS> Projects { get; init; } = ImmutableArray<HelProjectCS>.Empty;
+
+    public ImmutableArray<HelPackageCS> Packages { get; init; } = ImmutableArray<HelPackageCS>.Empty;
 }

@@ -1,18 +1,30 @@
+using Helveg.Abstractions;
 using System.Collections.Immutable;
 
 namespace Helveg.CSharp;
 
-public record HelPropertyCS : HelSymbolBaseCS
+public record HelPropertyReferenceCS : HelMemberReferenceCS, IInvalidable<HelPropertyReferenceCS>
 {
-    public static readonly HelPropertyCS Invalid = new();
+    public static HelPropertyReferenceCS Invalid { get; } = new();
+}
 
-    public override HelSymbolKindCS Kind => HelSymbolKindCS.Property;
+public record HelPropertyCS : HelMemberCS<HelPropertyReferenceCS>, IInvalidable<HelPropertyCS>
+{
+    public static HelPropertyCS Invalid { get; } = new();
 
-    public HelTypeCS Type { get; init; } = HelTypeCS.Invalid;
+    public override HelPropertyReferenceCS Reference => new()
+    {
+        Token = Token,
+        Name = Name,
+        ContainingNamespace = ContainingNamespace,
+        ContainingType = ContainingType
+    };
 
-    public HelMethodCS? GetMethod { get; init; }
+    public HelTypeReferenceCS PropertyType { get; init; } = HelTypeReferenceCS.Invalid;
 
-    public HelMethodCS? SetMethod { get; init; }
+    public HelMethodReferenceCS? GetMethod { get; init; }
+
+    public HelMethodReferenceCS? SetMethod { get; init; }
 
     public bool IsIndex { get; init; }
 
@@ -30,5 +42,5 @@ public record HelPropertyCS : HelSymbolBaseCS
 
     public ImmutableArray<HelParameterCS> Parameters { get; init; } = ImmutableArray<HelParameterCS>.Empty;
 
-    public HelPropertyCS? OverriddenProperty { get; init; }
+    public HelPropertyReferenceCS? OverriddenProperty { get; init; }
 }

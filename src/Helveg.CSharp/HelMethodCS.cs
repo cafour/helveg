@@ -1,5 +1,6 @@
 using Helveg.Abstractions;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Text.Json.Serialization;
 
 namespace Helveg.CSharp;
@@ -23,10 +24,11 @@ public record HelMethodCS : HelMemberCS<HelMethodReferenceCS>, IInvalidable<HelM
 
     public static HelMethodCS Invalid { get; } = new();
 
-    public HelMethodReferenceCS Reference => new()
+    public override HelMethodReferenceCS Reference => new()
     {
+        Token = Token,
         Name = Name,
-        Type
+        Parameters = Parameters.Select(p => p.Reference).ToImmutableArray()
     };
 
     public HelMethodKindCS MethodKind { get; init; }

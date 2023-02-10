@@ -1,14 +1,27 @@
+using Helveg.Abstractions;
+
 namespace Helveg.CSharp;
 
-public record HelFieldCS : HelSymbolBaseCS
+public record HelFieldReferenceCS : HelMemberReferenceCS, IInvalidable<HelFieldReferenceCS>
 {
-    public static readonly HelFieldCS Invalid = new();
+    public static HelFieldReferenceCS Invalid { get; } = new();
+}
 
-    public override HelSymbolKindCS Kind => HelSymbolKindCS.Field;
+public record HelFieldCS : HelMemberCS<HelFieldReferenceCS>, IInvalidable<HelFieldCS>
+{
+    public static HelFieldCS Invalid { get; } = new();
 
-    public HelTypeCS Type { get; init; } = HelTypeCS.Invalid;
+    public override HelFieldReferenceCS Reference => new()
+    {
+        Token = Token,
+        Name = Name
+    };
 
-    public IHelSymbolCS? AssociatedSymbol { get; init; }
+    public HelTypeReferenceCS FieldType { get; init; } = HelTypeReferenceCS.Invalid;
+
+    public HelPropertyReferenceCS? AssociatedProperty { get; init; }
+
+    public HelEventReferenceCS? AssociatedEvent { get; init; }
 
     public bool IsReadOnly { get; init; }
 

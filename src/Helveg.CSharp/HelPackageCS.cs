@@ -1,8 +1,28 @@
+using Helveg.Abstractions;
+using System;
+using System.Collections.Immutable;
+
 namespace Helveg.CSharp;
 
-public record HelPackageCS : IHelEntityCS
+public record HelPackageReferenceCS : HelReferenceCS, IInvalidable<HelPackageReferenceCS>
 {
-    public static readonly HelPackageCS Invalid = new();
-    
-    public string Name { get; init; } = IHelEntityCS.InvalidName;
+    public static HelPackageReferenceCS Invalid { get; } = new();
+
+    public string? Version { get; init; }
+}
+
+public record HelPackageCS : HelDefinitionCS<HelPackageReferenceCS>, IInvalidable<HelPackageCS>
+{
+    public static HelPackageCS Invalid { get; } = new();
+
+    public override HelPackageReferenceCS Reference => new()
+    {
+        Token = Token,
+        Name = Name,
+        Version = Version
+    };
+
+    public string? Version { get; init; }
+
+    public ImmutableArray<HelAssemblyCS> Assemblies { get; set; }
 }

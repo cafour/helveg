@@ -13,6 +13,7 @@ public record HelEventCS : HelMemberCS<HelEventReferenceCS>, IInvalidable<HelEve
 
     public override HelEventReferenceCS Reference => new()
     {
+        Token = Token,
         Name = Name,
         ContainingNamespace = ContainingNamespace,
         ContainingType = ContainingType
