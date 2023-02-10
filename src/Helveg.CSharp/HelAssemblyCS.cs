@@ -9,7 +9,9 @@ public record HelAssemblyReferenceCS : HelReferenceCS, IInvalidable<HelAssemblyR
 
     public HelAssemblyIdCS Identity { get; init; } = HelAssemblyIdCS.Invalid;
 
-    public HelProjectReferenceCS ContainingProject { get; init; } = HelProjectReferenceCS.Invalid;
+    public HelProjectReferenceCS? ContainingProject { get; init; }
+
+    public HelPackageReferenceCS? ContainingPackage { get; init; }
 }
 
 public record HelAssemblyCS : HelDefinitionCS<HelAssemblyReferenceCS>, IInvalidable<HelAssemblyCS>
@@ -26,9 +28,9 @@ public record HelAssemblyCS : HelDefinitionCS<HelAssemblyReferenceCS>, IInvalida
 
     public HelAssemblyIdCS Identity { get; init; } = HelAssemblyIdCS.Invalid;
 
-    public HelNamespaceCS GlobalNamespace { get; init; } = HelNamespaceCS.Invalid;
-
     public ImmutableArray<HelModuleCS> Modules { get; init; } = ImmutableArray<HelModuleCS>.Empty;
 
-    public HelProjectReferenceCS ContainingProject { get; init; } = HelProjectReferenceCS.Invalid;
+    public HelProjectReferenceCS? ContainingProject { get; init; }
+
+    public HelPackageReferenceCS? ContainingPackage { get; init; }
 }

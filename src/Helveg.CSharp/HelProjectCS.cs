@@ -8,6 +8,8 @@ public record HelProjectReferenceCS : HelReferenceCS, IInvalidable<HelProjectRef
     public static HelProjectReferenceCS Invalid { get; } = new();
 
     public string? FullName { get; init; }
+
+    public HelSolutionReferenceCS ContainingSolution { get; init; } = HelSolutionReferenceCS.Invalid;
 }
 
 public record HelProjectCS : HelDefinitionCS<HelProjectReferenceCS>, IInvalidable<HelProjectCS>
@@ -18,7 +20,8 @@ public record HelProjectCS : HelDefinitionCS<HelProjectReferenceCS>, IInvalidabl
     {
         Token = Token,
         Name = Name,
-        FullName = FullName
+        FullName = FullName,
+        ContainingSolution = ContainingSolution
     };
 
     /// <summary>

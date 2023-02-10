@@ -13,6 +13,7 @@ public enum HelEntityKindCS
     Project,
     Assembly,
     Module,
+    Namespace,
 
     Type,
     TypeParameter,

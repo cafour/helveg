@@ -26,7 +26,10 @@ public record HelPropertyCS : HelMemberCS<HelPropertyReferenceCS>, IInvalidable<
 
     public HelMethodReferenceCS? SetMethod { get; init; }
 
-    public bool IsIndex { get; init; }
+    // NOTE: https://github.com/dotnet/roslyn/pull/49659
+    // public HelFieldReferenceCS? BackingField { get; init; }
+
+    public bool IsIndexer { get; init; }
 
     public bool IsReadOnly => GetMethod is not null && SetMethod is null;
 

@@ -46,8 +46,6 @@ public record HelTypeCS : HelMemberCS<HelTypeReferenceCS>, IInvalidable<HelTypeR
 
     public ImmutableArray<HelTypeReferenceCS> Interfaces { get; init; } = ImmutableArray<HelTypeReferenceCS>.Empty;
 
-    public ImmutableArray<HelTypeReferenceCS> AllInterfaces { get; init; } = ImmutableArray<HelTypeReferenceCS>.Empty;
-
     public bool IsReferenceType { get; init; }
 
     public bool IsValueType { get; init; }
