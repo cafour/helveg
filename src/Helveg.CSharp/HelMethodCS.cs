@@ -9,12 +9,15 @@ public record HelMethodReferenceCS : HelMemberReferenceCS, IInvalidable<HelMetho
 {
     public static HelMethodReferenceCS Invalid { get; } = new();
 
-    public ImmutableArray<HelTypeCS> TypeArguments { get; init; } = ImmutableArray<HelTypeCS>.Empty;
+    public int Arity { get; init; }
+
+    public ImmutableArray<HelTypeReferenceCS> TypeArguments { get; init; }
+        = ImmutableArray<HelTypeReferenceCS>.Empty;
 
     public HelMethodReferenceCS? ConstructedFrom { get; init; }
 
-    public ImmutableArray<HelParameterReferenceCS> Parameters { get; init; }
-        = ImmutableArray<HelParameterReferenceCS>.Empty;
+    public ImmutableArray<HelTypeReferenceCS> ParameterTypes { get; init; }
+        = ImmutableArray<HelTypeReferenceCS>.Empty;
 }
 
 public record HelMethodCS : HelMemberCS<HelMethodReferenceCS>, IInvalidable<HelMethodCS>
@@ -26,9 +29,10 @@ public record HelMethodCS : HelMemberCS<HelMethodReferenceCS>, IInvalidable<HelM
 
     public override HelMethodReferenceCS Reference => new()
     {
-        Token = Token,
+        DefinitionToken = DefinitionToken,
         Name = Name,
-        Parameters = Parameters.Select(p => p.Reference).ToImmutableArray()
+        ParameterTypes = Parameters.Select(p => p.ParameterType).ToImmutableArray(),
+        Arity = Arity
     };
 
     public HelMethodKindCS MethodKind { get; init; }

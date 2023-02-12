@@ -16,7 +16,7 @@ public record HelModuleCS : HelDefinitionCS<HelModuleReferenceCS>, IInvalidable<
 
     public override HelModuleReferenceCS Reference => new()
     {
-        Token = Token,
+        DefinitionToken = DefinitionToken,
         Name = Name,
         ContainingAssembly = ContainingAssembly
     };

@@ -14,7 +14,7 @@ public record HelPropertyCS : HelMemberCS<HelPropertyReferenceCS>, IInvalidable<
 
     public override HelPropertyReferenceCS Reference => new()
     {
-        Token = Token,
+        DefinitionToken = DefinitionToken,
         Name = Name,
         ContainingNamespace = ContainingNamespace,
         ContainingType = ContainingType

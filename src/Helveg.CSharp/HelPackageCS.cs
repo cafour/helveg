@@ -17,7 +17,7 @@ public record HelPackageCS : HelDefinitionCS<HelPackageReferenceCS>, IInvalidabl
 
     public override HelPackageReferenceCS Reference => new()
     {
-        Token = Token,
+        DefinitionToken = DefinitionToken,
         Name = Name,
         Version = Version
     };

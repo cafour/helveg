@@ -18,7 +18,7 @@ public record HelProjectCS : HelDefinitionCS<HelProjectReferenceCS>, IInvalidabl
 
     public override HelProjectReferenceCS Reference => new()
     {
-        Token = Token,
+        DefinitionToken = DefinitionToken,
         Name = Name,
         FullName = FullName,
         ContainingSolution = ContainingSolution

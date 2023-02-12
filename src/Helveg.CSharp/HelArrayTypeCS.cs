@@ -12,7 +12,11 @@ public record HelArrayTypeCS : HelTypeReferenceCS, IInvalidable<HelArrayTypeCS>
 {
     public new static HelArrayTypeCS Invalid { get; } = new();
 
+    public override HelTypeKindCS TypeKind => HelTypeKindCS.Array;
+
     public HelTypeReferenceCS ElementType { get; init; } = HelTypeReferenceCS.Invalid;
 
-    public ImmutableArray<int> Dimensions { get; init; } = ImmutableArray<int>.Empty;
+    public ImmutableArray<int> Sizes { get; init; } = ImmutableArray<int>.Empty;
+
+    public int Rank { get; init; }
 }

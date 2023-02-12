@@ -8,7 +8,9 @@ public record HelParameterReferenceCS : HelReferenceCS, IInvalidable<HelParamete
 
     public int Ordinal { get; init; }
 
-    public HelMethodReferenceCS Method { get; init; } = HelMethodReferenceCS.Invalid;
+    public HelMethodReferenceCS? DeclaringMethod { get; init; }
+
+    public HelPropertyReferenceCS? DeclaringProperty { get; init; }
 }
 
 public record HelParameterCS : HelDefinitionCS<HelParameterReferenceCS>, IInvalidable<HelParameterCS>
@@ -17,10 +19,11 @@ public record HelParameterCS : HelDefinitionCS<HelParameterReferenceCS>, IInvali
 
     public override HelParameterReferenceCS Reference => new()
     {
-        Token = Token,
+        DefinitionToken = DefinitionToken,
         Name = Name,
         Ordinal = Ordinal,
-        Method = Method
+        DeclaringMethod = DeclaringMethod,
+        DeclaringProperty = DeclaringProperty
     };
 
     public HelTypeReferenceCS ParameterType { get; set; } = HelTypeReferenceCS.Invalid;
@@ -39,5 +42,7 @@ public record HelParameterCS : HelDefinitionCS<HelParameterReferenceCS>, IInvali
 
     public bool HasExplicitDefaultValue { get; init; }
 
-    public HelMethodReferenceCS Method { get; init; } = HelMethodReferenceCS.Invalid;
+    public HelMethodReferenceCS? DeclaringMethod { get; init; }
+
+    public HelPropertyReferenceCS? DeclaringProperty { get; init; }
 }

@@ -20,7 +20,7 @@ public record HelTypeCS : HelMemberCS<HelTypeReferenceCS>, IInvalidable<HelTypeR
 
     public override HelTypeReferenceCS Reference => new()
     {
-        Token = Token,
+        DefinitionToken = DefinitionToken,
         Name = Name,
         ContainingNamespace = ContainingNamespace,
         ContainingType = ContainingType,

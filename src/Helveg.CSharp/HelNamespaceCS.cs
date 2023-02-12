@@ -9,6 +9,10 @@ namespace Helveg.CSharp;
 public record HelNamespaceReferenceCS : HelReferenceCS, IInvalidable<HelNamespaceReferenceCS>
 {
     public static HelNamespaceReferenceCS Invalid { get; } = new();
+
+    public HelNamespaceReferenceCS? ContainingNamespace { get; init; }
+
+    public HelModuleReferenceCS ContainingModule { get; init; } = HelModuleReferenceCS.Invalid;
 }
 
 public record HelNamespaceCS : HelDefinitionCS<HelNamespaceReferenceCS>, IInvalidable<HelNamespaceCS>
@@ -17,8 +21,10 @@ public record HelNamespaceCS : HelDefinitionCS<HelNamespaceReferenceCS>, IInvali
 
     public override HelNamespaceReferenceCS Reference => new()
     {
-        Token = Token,
-        Name = Name
+        DefinitionToken = DefinitionToken,
+        Name = Name,
+        ContainingModule = ContainingModule,
+        ContainingNamespace = ContainingNamespace
     };
 
     public ImmutableArray<HelTypeCS> Types { get; init; } = ImmutableArray<HelTypeCS>.Empty;

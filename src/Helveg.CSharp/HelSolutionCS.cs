@@ -16,7 +16,7 @@ public record HelSolutionCS : HelDefinitionCS<HelSolutionReferenceCS>, IInvalida
 
     public override HelSolutionReferenceCS Reference => new()
     {
-        Token = Token,
+        DefinitionToken = DefinitionToken,
         FullName = FullName,
         Name = Name
     };
