@@ -10,7 +10,7 @@ public abstract record HelMemberReferenceCS : HelReferenceCS
 {
     public HelTypeReferenceCS? ContainingType { get; init; }
 
-    public HelNamespaceReferenceCS ContainingNamespace { get; init; } = HelNamespaceReferenceCS.Invalid;
+    public HelNamespaceReferenceCS? ContainingNamespace { get; init; }
 }
 
 public abstract record HelMemberCS<TReference> : HelDefinitionCS<TReference>

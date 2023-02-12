@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace Helveg.CSharp;
 
+// TODO: Merge into HelTypeReferenceCS to be consistent with HelMethodReferenceCS
 public record HelConstructedTypeCS : HelTypeReferenceCS, IInvalidable<HelConstructedTypeCS>
 {
     public new static HelConstructedTypeCS Invalid { get; } = new();

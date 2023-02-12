@@ -11,7 +11,7 @@ public record HelTypeReferenceCS : HelMemberReferenceCS, IInvalidable<HelTypeRef
 
     public HelNullabilityCS Nullability { get; init; }
 
-    public ImmutableArray<HelTypeParameterCS> TypeParameters { get; init; } = ImmutableArray<HelTypeParameterCS>.Empty;
+    public int Arity { get; init; }
 }
 
 public record HelTypeCS : HelMemberCS<HelTypeReferenceCS>, IInvalidable<HelTypeReferenceCS>
@@ -25,7 +25,7 @@ public record HelTypeCS : HelMemberCS<HelTypeReferenceCS>, IInvalidable<HelTypeR
         ContainingNamespace = ContainingNamespace,
         ContainingType = ContainingType,
         TypeKind = TypeKind,
-        TypeParameters = TypeParameters
+        Arity = Arity
     };
 
     public ImmutableArray<HelPropertyCS> Properties { get; init; } = ImmutableArray<HelPropertyCS>.Empty;

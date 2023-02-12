@@ -141,9 +141,10 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
         HelNamespaceReferenceCS containingNamespace,
         HelTypeReferenceCS? containingType = null)
     {
-        if (!type.IsUnboundGenericType)
+        if (!type.IsOriginalDefinition())
         {
-            throw new ArgumentException($"A constructed generic type cannot be turned into a {nameof(HelTypeCS)}.");
+            throw new ArgumentException("Only the original definition of a type symbol " +
+                $"can be turned into a {nameof(HelTypeCS)}.");
         }
 
         var helType = new HelTypeCS
@@ -303,10 +304,10 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
         IMethodSymbol symbol,
         HelTypeReferenceCS containingType)
     {
-        // TODO: This is probably wrong, but I didn't find an equivalent of the IsUnboundGenericType prop.
-        if (symbol.TypeArguments.Length > 0)
+        if (!symbol.IsOriginalDefinition())
         {
-            throw new ArgumentException($"A constructed generic method cannot be turned into a {nameof(HelMethodCS)}.");
+            throw new ArgumentException("Only the original definition of a method " +
+                $"can be turned into a {nameof(HelMethodCS)}.");
         }
 
         var helMethod = new HelMethodCS
@@ -446,7 +447,11 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
                 };
                 break;
             case INamedTypeSymbol namedType:
-                if (namedType.IsUnboundGenericType)
+                if (namedType.IsOriginalDefinition())
+                {
+                    reference = new HelTypeReferenceCS();
+                }
+                else
                 {
                     reference = new HelConstructedTypeCS
                     {
@@ -456,15 +461,9 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
                             .ToImmutableArray()
                     };
                 }
-                else
-                {
-                    reference = new HelTypeReferenceCS();
-                }
                 reference = reference with
                 {
-                    TypeParameters = namedType.TypeParameters
-                        .Select(p => (HelTypeParameterCS)GetUnresolvedTypeReference(p))
-                        .ToImmutableArray()
+                    Arity = namedType.TypeParameters.Length
                 };
                 break;
             case IFunctionPointerTypeSymbol fpType:
@@ -483,9 +482,10 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
                 reference = new HelTypeParameterCS
                 {
                     Ordinal = typeParameter.Ordinal,
-                    DeclaringMethod = typeParameter.DeclaringMethod is null
-                        ? null
-                        : GetUnresolvedMethodReference(typeParameter.DeclaringMethod),
+                    // TODO: Fix the reference cycle of Method->Parameter (of type TypeParameter)->DeclaringMethod
+                    //DeclaringMethod = typeParameter.DeclaringMethod is null
+                    //    ? null
+                    //    : GetUnresolvedMethodReference(typeParameter.DeclaringMethod),
                     DeclaringType = typeParameter.DeclaringType is null
                         ? null
                         : GetUnresolvedTypeReference(typeParameter.DeclaringType),
@@ -504,7 +504,9 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
             ContainingType = symbol.ContainingType is null
                 ? null
                 : GetUnresolvedTypeReference(symbol.ContainingType),
-            ContainingNamespace = GetUnresolvedNamespaceReference(symbol.ContainingNamespace),
+            ContainingNamespace = symbol.ContainingNamespace is null
+                ? null
+                : GetUnresolvedNamespaceReference(symbol.ContainingNamespace),
             Nullability = GetNullability(symbol.NullableAnnotation)
         };
         unresolvedReferences.Push(reference);
@@ -513,21 +515,21 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
 
     private HelMethodReferenceCS GetUnresolvedMethodReference(IMethodSymbol symbol)
     {
-        var isConstructed = symbol.TypeArguments.Any(a => a.TypeKind != TypeKind.TypeParameter);
+        var isOriginal = symbol.IsOriginalDefinition();
 
         var reference = new HelMethodReferenceCS
         {
             DefinitionToken = HelEntityTokenCS.GetUnresolved(HelEntityKindCS.Method),
             Name = symbol.Name,
             Arity = symbol.TypeParameters.Length,
-            TypeArguments = isConstructed
+            TypeArguments = isOriginal
                 ? ImmutableArray<HelTypeReferenceCS>.Empty
                 : symbol.TypeArguments
                     .Select(GetUnresolvedTypeReference)
                     .ToImmutableArray(),
-            ConstructedFrom = isConstructed
-                ? GetUnresolvedMethodReference(symbol.ConstructedFrom)
-                : null,
+            ConstructedFrom = isOriginal
+                ? null
+                : GetUnresolvedMethodReference(symbol.OriginalDefinition),
             ContainingNamespace = GetUnresolvedNamespaceReference(symbol.ContainingNamespace),
             ContainingType = GetUnresolvedTypeReference(symbol.ContainingType),
             ParameterTypes = symbol.Parameters
