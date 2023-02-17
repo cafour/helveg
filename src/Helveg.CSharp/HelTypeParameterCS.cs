@@ -32,7 +32,7 @@ public record HelTypeParameterCS : HelTypeCS, IInvalidable<HelTypeParameterCS>
 
     public override HelTypeReferenceCS Reference => new HelTypeParameterReferenceCS
     {
-        DefinitionToken = DefinitionToken,
+        Token = Token,
         Name = Name,
         ContainingNamespace = ContainingNamespace,
         ContainingType = ContainingType,

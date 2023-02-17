@@ -19,7 +19,7 @@ public record HelParameterCS : HelDefinitionCS<HelParameterReferenceCS>, IInvali
 
     public override HelParameterReferenceCS Reference => new()
     {
-        DefinitionToken = DefinitionToken,
+        Token = Token,
         Name = Name,
         Ordinal = Ordinal,
         DeclaringMethod = DeclaringMethod,

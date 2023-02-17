@@ -10,5 +10,5 @@ public interface IHelEntityCS
 
     bool IsDefinition { get; }
 
-    HelEntityTokenCS DefinitionToken { get; }
+    HelEntityTokenCS Token { get; }
 }

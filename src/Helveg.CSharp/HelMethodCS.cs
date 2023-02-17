@@ -18,6 +18,8 @@ public record HelMethodReferenceCS : HelMemberReferenceCS, IInvalidable<HelMetho
 
     public ImmutableArray<HelTypeReferenceCS> ParameterTypes { get; init; }
         = ImmutableArray<HelTypeReferenceCS>.Empty;
+
+    public HelTypeReferenceCS? ReturnType { get; init; }
 }
 
 public record HelMethodCS : HelMemberCS<HelMethodReferenceCS>, IInvalidable<HelMethodCS>
@@ -29,10 +31,11 @@ public record HelMethodCS : HelMemberCS<HelMethodReferenceCS>, IInvalidable<HelM
 
     public override HelMethodReferenceCS Reference => new()
     {
-        DefinitionToken = DefinitionToken,
+        Token = Token,
         Name = Name,
         ParameterTypes = Parameters.Select(p => p.ParameterType).ToImmutableArray(),
-        Arity = Arity
+        Arity = Arity,
+        ReturnType = ReturnType
     };
 
     public HelMethodKindCS MethodKind { get; init; }

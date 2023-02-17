@@ -13,7 +13,7 @@ public record HelFieldCS : HelMemberCS<HelFieldReferenceCS>, IInvalidable<HelFie
 
     public override HelFieldReferenceCS Reference => new()
     {
-        DefinitionToken = DefinitionToken,
+        Token = Token,
         Name = Name
     };
 

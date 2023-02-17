@@ -12,5 +12,5 @@ public abstract record HelReferenceCS : IHelEntityCS
 
     public bool IsDefinition => false;
 
-    public HelEntityTokenCS DefinitionToken { get; set; } = HelEntityTokenCS.Invalid;
+    public HelEntityTokenCS Token { get; set; } = HelEntityTokenCS.Invalid;
 }

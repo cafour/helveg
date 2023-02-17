@@ -20,7 +20,7 @@ public record HelAssemblyCS : HelDefinitionCS<HelAssemblyReferenceCS>, IInvalida
 
     public override HelAssemblyReferenceCS Reference => new()
     {
-        DefinitionToken = DefinitionToken,
+        Token = Token,
         Identity = Identity,
         Name = Name,
         ContainingProject = ContainingProject,

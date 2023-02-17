@@ -15,7 +15,7 @@ public abstract record HelDefinitionCS<TReference> : IHelEntityCS
 
     public abstract TReference Reference { get; }
 
-    public HelEntityTokenCS DefinitionToken { get; init; } = HelEntityTokenCS.Invalid;
+    public HelEntityTokenCS Token { get; init; } = HelEntityTokenCS.Invalid;
 
     public static implicit operator TReference(HelDefinitionCS<TReference> def)
     {

@@ -21,7 +21,7 @@ public record HelNamespaceCS : HelDefinitionCS<HelNamespaceReferenceCS>, IInvali
 
     public override HelNamespaceReferenceCS Reference => new()
     {
-        DefinitionToken = DefinitionToken,
+        Token = Token,
         Name = Name,
         ContainingModule = ContainingModule,
         ContainingNamespace = ContainingNamespace
