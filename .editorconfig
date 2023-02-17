@@ -1,5 +1,6 @@
 root = true
 
+[*]
 guidelines = 120
 
 [*.cs]
@@ -101,7 +102,7 @@ dotnet_style_prefer_compound_assignment = true:suggestion
 dotnet_style_prefer_simplified_interpolation = true:suggestion
 dotnet_style_namespace_match_folder = true:suggestion
 
-[*.csproj]
+[*.{csproj,props,targets}]
 tab_width = 2
 indent_size = 2
 indent_style = space

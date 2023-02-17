@@ -202,7 +202,7 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
         };
     }
 
-    private HelTypeParameterCS GetTypeParameter(
+    private HelTypeParameterReferenceCS GetTypeParameter(
         ITypeParameterSymbol symbol,
         HelTypeReferenceCS? declaringType,
         HelMethodReferenceCS? declaringMethod)
@@ -213,7 +213,7 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
                 "must not be null.");
         }
 
-        return new HelTypeParameterCS
+        return new HelTypeParameterReferenceCS
         {
             DefinitionToken = GetToken(HelEntityKindCS.Type),
             Name = symbol.Name,
@@ -479,7 +479,7 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
                 };
                 break;
             case ITypeParameterSymbol typeParameter:
-                reference = new HelTypeParameterCS
+                reference = new HelTypeParameterReferenceCS
                 {
                     Ordinal = typeParameter.Ordinal,
                     // TODO: Fix the reference cycle of Method->Parameter (of type TypeParameter)->DeclaringMethod

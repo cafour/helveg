@@ -14,9 +14,9 @@ public record HelTypeReferenceCS : HelMemberReferenceCS, IInvalidable<HelTypeRef
     public int Arity { get; init; }
 }
 
-public record HelTypeCS : HelMemberCS<HelTypeReferenceCS>, IInvalidable<HelTypeReferenceCS>
+public record HelTypeCS : HelMemberCS<HelTypeReferenceCS>, IInvalidable<HelTypeCS>
 {
-    public static HelTypeReferenceCS Invalid { get; } = new();
+    public static HelTypeCS Invalid { get; } = new();
 
     public override HelTypeReferenceCS Reference => new()
     {
