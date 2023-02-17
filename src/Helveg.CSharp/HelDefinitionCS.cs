@@ -6,19 +6,22 @@ using System.Threading.Tasks;
 
 namespace Helveg.CSharp;
 
-public abstract record HelDefinitionCS<TReference> : IHelEntityCS
-    where TReference : HelReferenceCS
+public interface IHelDefinitionCS : IHelEntityCS
+{
+    IHelReferenceCS GetReference()
+    {
+        return new HelReferenceCS { Token = Token };
+    }
+}
+
+public abstract record HelDefinitionCS : IHelDefinitionCS
 {
     public string Name { get; init; } = IHelEntityCS.InvalidName;
 
-    public bool IsDefinition => true;
-
-    public abstract TReference Reference { get; }
-
     public HelEntityTokenCS Token { get; init; } = HelEntityTokenCS.Invalid;
 
-    public static implicit operator TReference(HelDefinitionCS<TReference> def)
+    public virtual IHelReferenceCS GetReference()
     {
-        return def.Reference;
+        return new HelReferenceCS { Token = Token };
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Helveg.Abstractions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,11 +7,14 @@ using System.Threading.Tasks;
 
 namespace Helveg.CSharp;
 
-public abstract record HelReferenceCS : IHelEntityCS
+public interface IHelReferenceCS
 {
-    public string Name { get; init; } = IHelEntityCS.InvalidName;
+    HelEntityTokenCS Token { get; }
+}
 
-    public bool IsDefinition => false;
+public record HelReferenceCS: IHelReferenceCS, IInvalidable<HelReferenceCS>
+{
+    public static HelReferenceCS Invalid { get; } = new();
 
     public HelEntityTokenCS Token { get; set; } = HelEntityTokenCS.Invalid;
 }

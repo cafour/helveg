@@ -15,7 +15,7 @@ public record HelWorkspaceCS : IInvalidable<HelWorkspaceCS>
 
     public string Name { get; init; } = IHelEntityCS.InvalidName;
 
-    public IHelEntityCS Resolve(IHelEntityCS reference)
+    public IHelDefinitionCS Resolve(IHelReferenceCS reference)
     {
         throw new NotImplementedException();
     }

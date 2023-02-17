@@ -3,30 +3,21 @@ using System.Collections.Immutable;
 
 namespace Helveg.CSharp;
 
-public record HelTypeReferenceCS : HelMemberReferenceCS, IInvalidable<HelTypeReferenceCS>
+public record HelTypeReferenceCS : HelReferenceCS, IInvalidable<HelTypeReferenceCS>
 {
-    public static HelTypeReferenceCS Invalid { get; } = new();
+    public new static HelTypeReferenceCS Invalid { get; } = new();
 
     public virtual HelTypeKindCS TypeKind { get; init; }
 
     public HelNullabilityCS Nullability { get; init; }
 
-    public int Arity { get; init; }
+    public ImmutableArray<HelTypeReferenceCS> TypeArguments { get; init; }
+        = ImmutableArray<HelTypeReferenceCS>.Empty;
 }
 
-public record HelTypeCS : HelMemberCS<HelTypeReferenceCS>, IInvalidable<HelTypeCS>
+public record HelTypeCS : HelMemberCS, IInvalidable<HelTypeCS>
 {
     public static HelTypeCS Invalid { get; } = new();
-
-    public override HelTypeReferenceCS Reference => new()
-    {
-        Token = Token,
-        Name = Name,
-        ContainingNamespace = ContainingNamespace,
-        ContainingType = ContainingType,
-        TypeKind = TypeKind,
-        Arity = Arity
-    };
 
     public ImmutableArray<HelPropertyCS> Properties { get; init; } = ImmutableArray<HelPropertyCS>.Empty;
 
@@ -71,4 +62,13 @@ public record HelTypeCS : HelMemberCS<HelTypeReferenceCS>, IInvalidable<HelTypeC
     public bool IsGenericType => TypeParameters.Length > 0;
 
     public bool IsImplicitClass { get; init; }
+
+    public override HelTypeReferenceCS GetReference()
+    {
+        return new HelTypeReferenceCS
+        {
+            Token = Token,
+            TypeKind = TypeKind
+        };
+    }
 }

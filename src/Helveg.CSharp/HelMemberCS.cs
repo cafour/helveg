@@ -6,15 +6,7 @@ using System.Threading.Tasks;
 
 namespace Helveg.CSharp;
 
-public abstract record HelMemberReferenceCS : HelReferenceCS
-{
-    public HelTypeReferenceCS? ContainingType { get; init; }
-
-    public HelNamespaceReferenceCS? ContainingNamespace { get; init; }
-}
-
-public abstract record HelMemberCS<TReference> : HelDefinitionCS<TReference>
-    where TReference : HelMemberReferenceCS
+public abstract record HelMemberCS : HelDefinitionCS
 {
     public HelAccessibilityCS Accessibility { get; init; }
 
