@@ -33,6 +33,6 @@ public record HelParameterCS : HelDefinitionCS, IInvalidable<HelParameterCS>
 
     public override HelParameterReferenceCS GetReference()
     {
-        return new() { Token = Token };
+        return new() { Token = Token, IsResolved = true };
     }
 }

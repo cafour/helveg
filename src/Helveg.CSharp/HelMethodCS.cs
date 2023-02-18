@@ -60,6 +60,6 @@ public record HelMethodCS : HelMemberCS, IInvalidable<HelMethodCS>
 
     public override HelMethodReferenceCS GetReference()
     {
-        return new() { Token = Token };
+        return new() { Token = Token, IsResolved = true };
     }
 }

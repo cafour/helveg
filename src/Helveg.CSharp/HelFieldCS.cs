@@ -29,6 +29,6 @@ public record HelFieldCS : HelMemberCS, IInvalidable<HelFieldCS>
 
     public override HelFieldReferenceCS GetReference()
     {
-        return new() { Token = Token };
+        return new() { Token = Token, IsResolved = true };
     }
 }

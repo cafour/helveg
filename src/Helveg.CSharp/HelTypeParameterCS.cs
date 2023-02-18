@@ -21,6 +21,6 @@ public record HelTypeParameterCS : HelTypeCS, IInvalidable<HelTypeParameterCS>
 
     public override HelTypeParameterReferenceCS GetReference()
     {
-        return new() { Token = Token };
+        return new() { Token = Token, IsResolved = true };
     }
 }

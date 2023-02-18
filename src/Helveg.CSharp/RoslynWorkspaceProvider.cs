@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -13,11 +14,10 @@ namespace Helveg.CSharp;
 public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
 {
     private int counter = 0;
-
-    private readonly ConditionalWeakTable<IHelEntityCS, ISymbol> symbolTable = new();
+    private int unresolvedCounter = 0;
 
     // TODO: make this a HashSet to prevent multiple resolutions of the same reference
-    private readonly Stack<HelReferenceCS> unresolvedReferences = new();
+    private readonly ConcurrentDictionary<HelEntityTokenCS, ISymbol> unresolvedReferences = new();
 
     public async Task<HelWorkspaceCS> GetWorkspace(string path, CancellationToken cancellationToken = default)
     {
@@ -30,23 +30,28 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
         };
     }
 
-    private HelEntityTokenCS GetToken(HelEntityKindCS kind)
+    private HelEntityTokenCS GetResolvedToken(HelEntityKindCS kind)
     {
-        return new HelEntityTokenCS(kind, ++counter);
+        return new HelEntityTokenCS(kind, Interlocked.Increment(ref counter));
+    }
+
+    private HelEntityTokenCS GetUnresolvedToken(HelEntityKindCS kind)
+    {
+        return new HelEntityTokenCS(kind, Interlocked.Increment(ref unresolvedCounter));
     }
 
     private async Task<HelSolutionCS> GetSolution(Solution solution, CancellationToken cancellationToken = default)
     {
         var helSolution = new HelSolutionCS
         {
-            Token = GetToken(HelEntityKindCS.Solution),
+            Token = GetResolvedToken(HelEntityKindCS.Solution),
             Name = solution.FilePath ?? IHelEntityCS.InvalidName,
             FullName = solution.FilePath
         };
 
         var projects = (await Task.WhenAll(solution.Projects
             .Select(p => GetProject(p, cancellationToken))))
-            .Select(p => p with { ContainingSolution = helSolution.Reference })
+            .Select(p => p with { ContainingSolution = helSolution.GetReference() })
             .ToImmutableArray();
 
         return helSolution with { Projects = projects };
@@ -62,14 +67,14 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
 
         var helProject = new HelProjectCS
         {
-            Token = GetToken(HelEntityKindCS.Project),
+            Token = GetResolvedToken(HelEntityKindCS.Project),
             Name = project.Name,
             FullName = project.FilePath,
         };
 
         return helProject with
         {
-            Assembly = GetAssembly(compilation.Assembly) with { ContainingProject = helProject.Reference }
+            Assembly = GetAssembly(compilation.Assembly) with { ContainingProject = helProject.GetReference() }
         };
     }
 
@@ -77,7 +82,7 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
     {
         var helAssembly = new HelAssemblyCS
         {
-            Token = GetToken(HelEntityKindCS.Assembly),
+            Token = GetResolvedToken(HelEntityKindCS.Assembly),
             Name = assembly.Name,
             Identity = GetAssemblyId(assembly.Identity)
         };
@@ -85,7 +90,7 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
         return helAssembly with
         {
             Modules = assembly.Modules
-                .Select(m => GetModule(m, helAssembly.Reference))
+                .Select(m => GetModule(m, helAssembly.GetReference()))
                 .ToImmutableArray()
         };
     }
@@ -105,7 +110,7 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
     {
         var helModule = new HelModuleCS
         {
-            Token = GetToken(HelEntityKindCS.Module),
+            Token = GetResolvedToken(HelEntityKindCS.Module),
             ReferencedAssemblies = module.ReferencedAssemblySymbols
                 .Select(GetUnresolvedAssemblyReference)
                 .ToImmutableArray(),
@@ -113,7 +118,7 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
         };
         return helModule with
         {
-            GlobalNamespace = GetNamespace(module.GlobalNamespace, helModule.Reference)
+            GlobalNamespace = GetNamespace(module.GlobalNamespace, helModule.GetReference())
         };
     }
 
@@ -121,7 +126,7 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
     {
         var helNamespace = new HelNamespaceCS
         {
-            Token = GetToken(HelEntityKindCS.Namespace),
+            Token = GetResolvedToken(HelEntityKindCS.Namespace),
             Name = @namespace.Name,
             ContainingModule = containingModule
         };
@@ -129,7 +134,7 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
         return helNamespace with
         {
             Types = @namespace.GetTypeMembers()
-                .Select(t => GetType(t, helNamespace))
+                .Select(t => GetType(t, helNamespace.GetReference()))
                 .ToImmutableArray(),
             Namespaces = @namespace.GetNamespaceMembers()
                 .Select(n => GetNamespace(n, containingModule))
@@ -149,7 +154,7 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
 
         var helType = new HelTypeCS
         {
-            Token = GetToken(HelEntityKindCS.Type),
+            Token = GetResolvedToken(HelEntityKindCS.Type),
             ContainingNamespace = containingNamespace,
             ContainingType = containingType,
             TypeKind = GetTypeKind(type.TypeKind),
@@ -167,36 +172,38 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
             Interfaces = type.Interfaces.Select(GetUnresolvedTypeReference).ToImmutableArray(),
         };
 
-        helType = PopulateMember<HelTypeCS, HelTypeReferenceCS>(type, helType);
+        helType = PopulateMember(type, helType);
+
+        var reference = helType.GetReference();
 
         return helType with
         {
             TypeParameters = type.TypeParameters
-                .Select(p => GetTypeParameter(p, helType, null))
+                .Select(p => GetTypeParameter(p, reference, null, reference, containingNamespace))
                 .ToImmutableArray(),
             NestedTypes = type.GetTypeMembers()
-                .Select(t => GetType(t, containingNamespace))
+                .Select(t => GetType(t, containingNamespace, reference))
                 .ToImmutableArray(),
             // TODO: Does GetMembers() contain nested types as well?
             Fields = type.GetMembers()
                 .Where(m => m.Kind == SymbolKind.Field)
                 .Cast<IFieldSymbol>()
-                .Select(f => GetField(f, helType.Reference))
+                .Select(f => GetField(f, reference, containingNamespace))
                 .ToImmutableArray(),
             Events = type.GetMembers()
                 .Where(m => m.Kind == SymbolKind.Event)
                 .Cast<IEventSymbol>()
-                .Select(e => GetEvent(e, helType.Reference))
+                .Select(e => GetEvent(e, reference, containingNamespace))
                 .ToImmutableArray(),
             Properties = type.GetMembers()
                 .Where(m => m.Kind == SymbolKind.Property)
                 .Cast<IPropertySymbol>()
-                .Select(p => GetProperty(p, helType.Reference))
+                .Select(p => GetProperty(p, reference, containingNamespace))
                 .ToImmutableArray(),
             Methods = type.GetMembers()
                 .Where(m => m.Kind == SymbolKind.Method)
                 .Cast<IMethodSymbol>()
-                .Select(m => GetMethod(m, helType.Reference))
+                .Select(m => GetMethod(m, reference, containingNamespace))
                 .ToImmutableArray(),
 
         };
@@ -205,7 +212,9 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
     private HelTypeParameterCS GetTypeParameter(
         ITypeParameterSymbol symbol,
         HelTypeReferenceCS? declaringType,
-        HelMethodReferenceCS? declaringMethod)
+        HelMethodReferenceCS? declaringMethod,
+        HelTypeReferenceCS containingType,
+        HelNamespaceReferenceCS containingNamespace)
     {
         if (declaringType is null && declaringMethod is null)
         {
@@ -215,44 +224,46 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
 
         return new HelTypeParameterCS
         {
-            Token = GetToken(HelEntityKindCS.TypeParameter),
+            Token = GetResolvedToken(HelEntityKindCS.TypeParameter),
             Name = symbol.Name,
             DeclaringType = declaringType,
             DeclaringMethod = declaringMethod,
-            ContainingNamespace = (declaringType?.ContainingNamespace ?? declaringMethod?.ContainingNamespace)!,
+            ContainingNamespace = containingNamespace,
             // TODO: what does Roslyn return here? we should be consistent with them
-            ContainingType = (declaringType ?? declaringMethod?.ContainingType)!,
+            ContainingType = containingType,
         };
     }
 
     private HelEventCS GetEvent(
         IEventSymbol symbol,
-        HelTypeReferenceCS containingType)
+        HelTypeReferenceCS containingType,
+        HelNamespaceReferenceCS containingNamespace)
     {
         var helEvent = new HelEventCS
         {
-            Token = GetToken(HelEntityKindCS.Event),
+            Token = GetResolvedToken(HelEntityKindCS.Event),
             EventType = GetUnresolvedTypeReference(symbol.Type),
             ContainingType = containingType,
-            ContainingNamespace = containingType.ContainingNamespace,
+            ContainingNamespace = containingNamespace,
             AddMethod = symbol.AddMethod is null ? null : GetUnresolvedMethodReference(symbol.AddMethod),
             RemoveMethod = symbol.RemoveMethod is null ? null : GetUnresolvedMethodReference(symbol.RemoveMethod),
             RaiseMethod = symbol.RaiseMethod is null ? null : GetUnresolvedMethodReference(symbol.RaiseMethod)
         };
 
-        return PopulateMember<HelEventCS, HelEventReferenceCS>(symbol, helEvent);
+        return PopulateMember(symbol, helEvent);
     }
 
     private HelFieldCS GetField(
         IFieldSymbol symbol,
-        HelTypeReferenceCS containingType)
+        HelTypeReferenceCS containingType,
+        HelNamespaceReferenceCS containingNamespace)
     {
         var helField = new HelFieldCS
         {
-            Token = GetToken(HelEntityKindCS.Field),
+            Token = GetResolvedToken(HelEntityKindCS.Field),
             FieldType = GetUnresolvedTypeReference(symbol.Type),
             ContainingType = containingType,
-            ContainingNamespace = containingType.ContainingNamespace,
+            ContainingNamespace = containingNamespace,
             AssociatedEvent = symbol.AssociatedSymbol is not null && symbol.AssociatedSymbol is IEventSymbol e
                 ? GetUnresolvedEventReference(e)
                 : null,
@@ -266,19 +277,20 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
             RefKind = GetRefKind(symbol.RefKind)
         };
 
-        return PopulateMember<HelFieldCS, HelFieldReferenceCS>(symbol, helField);
+        return PopulateMember(symbol, helField);
     }
 
     private HelPropertyCS GetProperty(
         IPropertySymbol symbol,
-        HelTypeReferenceCS containingType)
+        HelTypeReferenceCS containingType,
+        HelNamespaceReferenceCS containingNamespace)
     {
         var helProperty = new HelPropertyCS
         {
-            Token = GetToken(HelEntityKindCS.Property),
+            Token = GetResolvedToken(HelEntityKindCS.Property),
             PropertyType = GetUnresolvedTypeReference(symbol.Type),
             ContainingType = containingType,
-            ContainingNamespace = containingType.ContainingNamespace,
+            ContainingNamespace = containingNamespace,
             GetMethod = symbol.GetMethod is null ? null : GetUnresolvedMethodReference(symbol.GetMethod),
             SetMethod = symbol.SetMethod is null ? null : GetUnresolvedMethodReference(symbol.SetMethod),
             IsIndexer = symbol.IsIndexer,
@@ -289,19 +301,20 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
             RefKind = GetRefKind(symbol.RefKind)
         };
 
-        helProperty = PopulateMember<HelPropertyCS, HelPropertyReferenceCS>(symbol, helProperty);
+        helProperty = PopulateMember(symbol, helProperty);
 
         return helProperty with
         {
             Parameters = symbol.Parameters
-                .Select(p => GetParameter(p, null, helProperty.Reference))
+                .Select(p => GetParameter(p, null, helProperty.GetReference()))
                 .ToImmutableArray()
         };
     }
 
     private HelMethodCS GetMethod(
         IMethodSymbol symbol,
-        HelTypeReferenceCS containingType)
+        HelTypeReferenceCS containingType,
+        HelNamespaceReferenceCS containingNamespace)
     {
         if (!symbol.IsOriginalDefinition())
         {
@@ -311,7 +324,7 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
 
         var helMethod = new HelMethodCS
         {
-            Token = GetToken(HelEntityKindCS.Method),
+            Token = GetResolvedToken(HelEntityKindCS.Method),
             AssociatedEvent = symbol.AssociatedSymbol is not null && symbol.AssociatedSymbol is IEventSymbol e
                 ? GetUnresolvedEventReference(e)
                 : null,
@@ -319,7 +332,7 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
                 ? GetUnresolvedPropertyReference(p)
                 : null,
             ContainingType = containingType,
-            ContainingNamespace = containingType.ContainingNamespace,
+            ContainingNamespace = containingNamespace,
             IsAsync = symbol.IsAsync,
             IsExtensionMethod = symbol.IsExtensionMethod,
             IsInitOnly = symbol.IsInitOnly,
@@ -331,7 +344,7 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
             ReturnType = GetUnresolvedTypeReference(symbol.ReturnType)
         };
 
-        helMethod = PopulateMember<HelMethodCS, HelMethodReferenceCS>(symbol, helMethod);
+        helMethod = PopulateMember(symbol, helMethod);
 
         return helMethod with
         {
@@ -339,10 +352,10 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
                 .Select(GetUnresolvedMethodReference)
                 .ToImmutableArray(),
             TypeParameters = symbol.TypeParameters
-                .Select(p => GetTypeParameter(p, null, helMethod.Reference))
+                .Select(p => GetTypeParameter(p, null, helMethod.GetReference(), containingType, containingNamespace))
                 .ToImmutableArray(),
             Parameters = symbol.Parameters
-                .Select(p => GetParameter(p, helMethod.Reference, null))
+                .Select(p => GetParameter(p, helMethod.GetReference(), null))
                 .ToImmutableArray()
         };
     }
@@ -369,9 +382,8 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
         };
     }
 
-    private TMember PopulateMember<TMember, TMemberReference>(ISymbol symbol, TMember helMember)
-        where TMemberReference : HelMemberReferenceCS
-        where TMember : HelMemberCS<TMemberReference>
+    private TMember PopulateMember<TMember>(ISymbol symbol, TMember helMember)
+        where TMember : HelMemberCS
     {
         return helMember with
         {
@@ -392,11 +404,10 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
     {
         var reference = new HelAssemblyReferenceCS
         {
-            Token = HelEntityTokenCS.GetUnresolved(HelEntityKindCS.Assembly),
-            Identity = GetAssemblyId(symbol.Identity),
-            Name = symbol.Name
+            Token = GetUnresolvedToken(HelEntityKindCS.Assembly),
+            IsResolved = false
         };
-        unresolvedReferences.Push(reference);
+        unresolvedReferences.TryAdd(reference.Token, symbol);
         return reference;
     }
 
@@ -404,11 +415,9 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
     {
         var reference = new HelModuleReferenceCS
         {
-            Token = HelEntityTokenCS.GetUnresolved(HelEntityKindCS.Module),
-            Name = symbol.Name,
-            ContainingAssembly = GetUnresolvedAssemblyReference(symbol.ContainingAssembly)
+            Token = GetUnresolvedToken(HelEntityKindCS.Module),
         };
-        unresolvedReferences.Push(reference);
+        unresolvedReferences.TryAdd(reference.Token, symbol);
         return reference;
     }
 
@@ -421,11 +430,9 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
 
         var reference = new HelNamespaceReferenceCS
         {
-            Token = HelEntityTokenCS.GetUnresolved(HelEntityKindCS.Namespace),
-            Name = symbol.Name,
-            ContainingModule = GetUnresolvedModuleReference(symbol.ContainingModule)
+            Token = GetUnresolvedToken(HelEntityKindCS.Namespace),
         };
-        unresolvedReferences.Push(reference);
+        unresolvedReferences.TryAdd(reference.Token, symbol);
         return reference;
     }
 
@@ -446,24 +453,16 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
                 };
                 break;
             case INamedTypeSymbol namedType:
-                if (namedType.IsOriginalDefinition())
+                reference = new HelTypeReferenceCS();
+                if (!namedType.IsOriginalDefinition())
                 {
-                    reference = new HelTypeReferenceCS();
-                }
-                else
-                {
-                    reference = new HelConstructedTypeCS
+                    reference = reference with
                     {
-                        ConstructedFrom = GetUnresolvedTypeReference(namedType.ConstructedFrom),
                         TypeArguments = namedType.TypeArguments
                             .Select(GetUnresolvedTypeReference)
                             .ToImmutableArray()
                     };
                 }
-                reference = reference with
-                {
-                    Arity = namedType.TypeParameters.Length
-                };
                 break;
             case IFunctionPointerTypeSymbol fpType:
                 reference = new HelFunctionPointerTypeCS
@@ -478,16 +477,7 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
                 };
                 break;
             case ITypeParameterSymbol typeParameter:
-                reference = new HelTypeParameterReferenceCS
-                {
-                    Ordinal = typeParameter.Ordinal,
-                    DeclaringMethod = typeParameter.DeclaringMethod is null
-                        ? null
-                        : GetUnresolvedMethodReference(typeParameter.DeclaringMethod),
-                    DeclaringType = typeParameter.DeclaringType is null
-                        ? null
-                        : GetUnresolvedTypeReference(typeParameter.DeclaringType),
-                };
+                reference = new HelTypeParameterReferenceCS();
                 break;
 
             default:
@@ -496,18 +486,11 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
         }
         reference = reference with
         {
-            Token = HelEntityTokenCS.GetUnresolved(HelEntityKindCS.Type),
-            Name = symbol.Name,
+            Token = GetUnresolvedToken(HelEntityKindCS.Type),
             TypeKind = GetTypeKind(symbol.TypeKind),
-            ContainingType = symbol.ContainingType is null
-                ? null
-                : GetUnresolvedTypeReference(symbol.ContainingType),
-            ContainingNamespace = symbol.ContainingNamespace is null
-                ? null
-                : GetUnresolvedNamespaceReference(symbol.ContainingNamespace),
             Nullability = GetNullability(symbol.NullableAnnotation)
         };
-        unresolvedReferences.Push(reference);
+        unresolvedReferences.TryAdd(reference.Token, symbol);
         return reference;
     }
 
@@ -515,46 +498,17 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
     {
         var isOriginal = symbol.IsOriginalDefinition();
 
-        HelTypeReferenceCS GetLocalTypeReference(ITypeSymbol type)
-        {
-            if (symbol.TypeParameters.Any(t => SymbolEqualityComparer.Default.Equals(type, t)))
-            {
-                var typeParameter = (ITypeParameterSymbol)type;
-                return new HelImmediateTypeReferenceCS
-                {
-                    Token = GetToken(HelEntityKindCS.TypeParameter),
-                    Name = typeParameter.Name,
-                    Ordinal = typeParameter.Ordinal,
-                    ContainingNamespace = GetUnresolvedNamespaceReference(typeParameter.ContainingNamespace),
-                    ContainingType = GetUnresolvedTypeReference(typeParameter.ContainingType)
-                };
-            }
-            else
-            {
-                return GetUnresolvedTypeReference(type);
-            }
-        }
-
         var reference = new HelMethodReferenceCS
         {
-            Token = HelEntityTokenCS.GetUnresolved(HelEntityKindCS.Method),
-            Name = symbol.Name,
-            Arity = symbol.TypeParameters.Length,
+            Token = GetUnresolvedToken(HelEntityKindCS.Method),
             TypeArguments = isOriginal
                 ? ImmutableArray<HelTypeReferenceCS>.Empty
                 : symbol.TypeArguments
                     .Select(GetUnresolvedTypeReference)
                     .ToImmutableArray(),
-            ConstructedFrom = isOriginal
-                ? null
-                : GetUnresolvedMethodReference(symbol.OriginalDefinition),
-            ContainingNamespace = GetUnresolvedNamespaceReference(symbol.ContainingNamespace),
-            ContainingType = GetUnresolvedTypeReference(symbol.ContainingType),
-            ReturnType = GetLocalTypeReference(symbol.ReturnType),
-            ParameterTypes = symbol.Parameters.Select(p => GetLocalTypeReference(p.Type)).ToImmutableArray()
         };
 
-        unresolvedReferences.Push(reference);
+        unresolvedReferences.TryAdd(reference.Token, symbol);
         return reference;
     }
 
@@ -562,12 +516,9 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
     {
         var reference = new HelEventReferenceCS
         {
-            Token = HelEntityTokenCS.GetUnresolved(HelEntityKindCS.Event),
-            Name = symbol.Name,
-            ContainingNamespace = GetUnresolvedNamespaceReference(symbol.ContainingNamespace),
-            ContainingType = GetUnresolvedTypeReference(symbol.ContainingType)
+            Token = GetUnresolvedToken(HelEntityKindCS.Event),
         };
-        unresolvedReferences.Push(reference);
+        unresolvedReferences.TryAdd(reference.Token, symbol);
         return reference;
     }
 
@@ -575,12 +526,9 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
     {
         var reference = new HelPropertyReferenceCS
         {
-            Token = HelEntityTokenCS.GetUnresolved(HelEntityKindCS.Property),
-            Name = symbol.Name,
-            ContainingNamespace = GetUnresolvedNamespaceReference(symbol.ContainingNamespace),
-            ContainingType = GetUnresolvedTypeReference(symbol.ContainingType)
+            Token = GetUnresolvedToken(HelEntityKindCS.Property),
         };
-        unresolvedReferences.Push(reference);
+        unresolvedReferences.TryAdd(reference.Token, symbol);
         return reference;
     }
 
@@ -588,12 +536,9 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
     {
         var reference = new HelFieldReferenceCS
         {
-            Token = HelEntityTokenCS.GetUnresolved(HelEntityKindCS.Field),
-            Name = symbol.Name,
-            ContainingNamespace = GetUnresolvedNamespaceReference(symbol.ContainingNamespace),
-            ContainingType = GetUnresolvedTypeReference(symbol.ContainingType)
+            Token = GetUnresolvedToken(HelEntityKindCS.Field),
         };
-        unresolvedReferences.Push(reference);
+        unresolvedReferences.TryAdd(reference.Token, symbol);
         return reference;
     }
 

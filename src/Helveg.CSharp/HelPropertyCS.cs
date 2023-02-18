@@ -41,6 +41,6 @@ public record HelPropertyCS : HelMemberCS, IInvalidable<HelPropertyCS>
 
     public override HelPropertyReferenceCS GetReference()
     {
-        return new() { Token = Token };
+        return new() { Token = Token, IsResolved = true };
     }
 }

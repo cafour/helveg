@@ -9,14 +9,5 @@ namespace Helveg.CSharp;
 
 public record struct HelEntityTokenCS(HelEntityKindCS Kind, int Id) : IInvalidable<HelEntityTokenCS>
 {
-    public const int UnresolvedId = -1;
-
     public static HelEntityTokenCS Invalid { get; } = new(HelEntityKindCS.Invalid, 0);
-
-    public bool IsUnresolved => Id == UnresolvedId;
-
-    public static HelEntityTokenCS GetUnresolved(HelEntityKindCS Kind)
-    {
-        return new(Kind, UnresolvedId);
-    }
 }

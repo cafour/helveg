@@ -29,6 +29,6 @@ public record HelProjectCS : HelDefinitionCS, IInvalidable<HelProjectCS>
 
     public override HelProjectReferenceCS GetReference()
     {
-        return new() { Token = Token };
+        return new() { Token = Token, IsResolved = true };
     }
 }
