@@ -5,26 +5,11 @@ namespace Helveg.CSharp;
 public record HelParameterReferenceCS : HelReferenceCS, IInvalidable<HelParameterReferenceCS>
 {
     public static HelParameterReferenceCS Invalid { get; } = new();
-
-    public int Ordinal { get; init; }
-
-    public HelMethodReferenceCS? DeclaringMethod { get; init; }
-
-    public HelPropertyReferenceCS? DeclaringProperty { get; init; }
 }
 
-public record HelParameterCS : HelDefinitionCS<HelParameterReferenceCS>, IInvalidable<HelParameterCS>
+public record HelParameterCS : HelDefinitionCS, IInvalidable<HelParameterCS>
 {
     public static HelParameterCS Invalid { get; } = new();
-
-    public override HelParameterReferenceCS Reference => new()
-    {
-        Token = Token,
-        Name = Name,
-        Ordinal = Ordinal,
-        DeclaringMethod = DeclaringMethod,
-        DeclaringProperty = DeclaringProperty
-    };
 
     public HelTypeReferenceCS ParameterType { get; set; } = HelTypeReferenceCS.Invalid;
 
@@ -45,4 +30,9 @@ public record HelParameterCS : HelDefinitionCS<HelParameterReferenceCS>, IInvali
     public HelMethodReferenceCS? DeclaringMethod { get; init; }
 
     public HelPropertyReferenceCS? DeclaringProperty { get; init; }
+
+    public override HelParameterReferenceCS GetReference()
+    {
+        return new() { Token = Token };
+    }
 }

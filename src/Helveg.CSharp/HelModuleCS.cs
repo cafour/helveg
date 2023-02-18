@@ -3,14 +3,24 @@ using System.Collections.Immutable;
 
 namespace Helveg.CSharp;
 
+public record HelModuleReferenceCS : HelReferenceCS, IInvalidable<HelModuleReferenceCS>
+{
+    public static HelModuleReferenceCS Invalid { get; } = new();
+}
+
 public record HelModuleCS : HelDefinitionCS, IInvalidable<HelModuleCS>
 {
     public static HelModuleCS Invalid { get; } = new();
 
     public HelNamespaceCS GlobalNamespace { get; init; } = HelNamespaceCS.Invalid;
 
-    public ImmutableArray<HelReferenceCS> ReferencedAssemblies { get; init; }
-        = ImmutableArray<HelReferenceCS>.Empty;
+    public ImmutableArray<HelAssemblyReferenceCS> ReferencedAssemblies { get; init; }
+        = ImmutableArray<HelAssemblyReferenceCS>.Empty;
 
-    public HelReferenceCS ContainingAssembly { get; init; } = HelReferenceCS.Invalid;
+    public HelAssemblyReferenceCS ContainingAssembly { get; init; } = HelAssemblyReferenceCS.Invalid;
+
+    public override HelModuleReferenceCS GetReference()
+    {
+        return new() { Token = Token };
+    }
 }

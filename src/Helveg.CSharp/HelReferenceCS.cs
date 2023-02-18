@@ -12,9 +12,7 @@ public interface IHelReferenceCS
     HelEntityTokenCS Token { get; }
 }
 
-public record HelReferenceCS: IHelReferenceCS, IInvalidable<HelReferenceCS>
+public abstract record HelReferenceCS : IHelReferenceCS
 {
-    public static HelReferenceCS Invalid { get; } = new();
-
-    public HelEntityTokenCS Token { get; set; } = HelEntityTokenCS.Invalid;
+    public HelEntityTokenCS Token { get; init; } = HelEntityTokenCS.Invalid;
 }

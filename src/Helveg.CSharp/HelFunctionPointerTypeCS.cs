@@ -13,5 +13,6 @@ public record HelFunctionPointerTypeCS : HelTypeReferenceCS, IInvalidable<HelFun
 
     public override HelTypeKindCS TypeKind => HelTypeKindCS.FunctionPointer;
 
+    // TODO: Test what Roslyn actually puts in here
     public HelMethodReferenceCS Signature { get; init; } = HelMethodReferenceCS.Invalid;
 }

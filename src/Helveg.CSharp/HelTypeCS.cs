@@ -5,7 +5,7 @@ namespace Helveg.CSharp;
 
 public record HelTypeReferenceCS : HelReferenceCS, IInvalidable<HelTypeReferenceCS>
 {
-    public new static HelTypeReferenceCS Invalid { get; } = new();
+    public static HelTypeReferenceCS Invalid { get; } = new();
 
     public virtual HelTypeKindCS TypeKind { get; init; }
 

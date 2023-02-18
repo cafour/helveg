@@ -8,10 +8,7 @@ namespace Helveg.CSharp;
 
 public interface IHelDefinitionCS : IHelEntityCS
 {
-    IHelReferenceCS GetReference()
-    {
-        return new HelReferenceCS { Token = Token };
-    }
+    IHelReferenceCS GetReference();
 }
 
 public abstract record HelDefinitionCS : IHelDefinitionCS
@@ -20,8 +17,5 @@ public abstract record HelDefinitionCS : IHelDefinitionCS
 
     public HelEntityTokenCS Token { get; init; } = HelEntityTokenCS.Invalid;
 
-    public virtual IHelReferenceCS GetReference()
-    {
-        return new HelReferenceCS { Token = Token };
-    }
+    public abstract IHelReferenceCS GetReference();
 }

@@ -3,22 +3,14 @@ using System.Collections.Immutable;
 
 namespace Helveg.CSharp;
 
-public record HelPropertyReferenceCS : HelMemberReferenceCS, IInvalidable<HelPropertyReferenceCS>
+public record HelPropertyReferenceCS : HelReferenceCS, IInvalidable<HelPropertyReferenceCS>
 {
     public static HelPropertyReferenceCS Invalid { get; } = new();
 }
 
-public record HelPropertyCS : HelMemberCS<HelPropertyReferenceCS>, IInvalidable<HelPropertyCS>
+public record HelPropertyCS : HelMemberCS, IInvalidable<HelPropertyCS>
 {
     public static HelPropertyCS Invalid { get; } = new();
-
-    public override HelPropertyReferenceCS Reference => new()
-    {
-        Token = Token,
-        Name = Name,
-        ContainingNamespace = ContainingNamespace,
-        ContainingType = ContainingType
-    };
 
     public HelTypeReferenceCS PropertyType { get; init; } = HelTypeReferenceCS.Invalid;
 
@@ -46,4 +38,9 @@ public record HelPropertyCS : HelMemberCS<HelPropertyReferenceCS>, IInvalidable<
     public ImmutableArray<HelParameterCS> Parameters { get; init; } = ImmutableArray<HelParameterCS>.Empty;
 
     public HelPropertyReferenceCS? OverriddenProperty { get; init; }
+
+    public override HelPropertyReferenceCS GetReference()
+    {
+        return new() { Token = Token };
+    }
 }

@@ -5,38 +5,20 @@ using System.Text.Json.Serialization;
 
 namespace Helveg.CSharp;
 
-public record HelMethodReferenceCS : HelMemberReferenceCS, IInvalidable<HelMethodReferenceCS>
+public record HelMethodReferenceCS : HelReferenceCS, IInvalidable<HelMethodReferenceCS>
 {
     public static HelMethodReferenceCS Invalid { get; } = new();
 
-    public int Arity { get; init; }
-
     public ImmutableArray<HelTypeReferenceCS> TypeArguments { get; init; }
         = ImmutableArray<HelTypeReferenceCS>.Empty;
-
-    public HelMethodReferenceCS? ConstructedFrom { get; init; }
-
-    public ImmutableArray<HelTypeReferenceCS> ParameterTypes { get; init; }
-        = ImmutableArray<HelTypeReferenceCS>.Empty;
-
-    public HelTypeReferenceCS? ReturnType { get; init; }
 }
 
-public record HelMethodCS : HelMemberCS<HelMethodReferenceCS>, IInvalidable<HelMethodCS>
+public record HelMethodCS : HelMemberCS, IInvalidable<HelMethodCS>
 {
     public const string ConstructorName = ".ctor";
     public const string StaticConstructorName = ".cctor";
 
     public static HelMethodCS Invalid { get; } = new();
-
-    public override HelMethodReferenceCS Reference => new()
-    {
-        Token = Token,
-        Name = Name,
-        ParameterTypes = Parameters.Select(p => p.ParameterType).ToImmutableArray(),
-        Arity = Arity,
-        ReturnType = ReturnType
-    };
 
     public HelMethodKindCS MethodKind { get; init; }
 
@@ -66,13 +48,18 @@ public record HelMethodCS : HelMemberCS<HelMethodReferenceCS>, IInvalidable<HelM
 
     public bool IsInitOnly { get; init; }
 
-    public HelMethodReferenceCS? OverridenMethod { get; init; }
+    public HelReferenceCS? OverridenMethod { get; init; }
 
     public HelTypeReferenceCS? ReceiverType { get; init; }
 
     public ImmutableArray<HelMethodReferenceCS> ExplicitInterfaceImplementations { get; init; }
 
-    public HelEventReferenceCS? AssociatedEvent { get; init; }
+    public HelReferenceCS? AssociatedEvent { get; init; }
 
-    public HelPropertyReferenceCS? AssociatedProperty { get; init; }
+    public HelReferenceCS? AssociatedProperty { get; init; }
+
+    public override HelMethodReferenceCS GetReference()
+    {
+        return new() { Token = Token };
+    }
 }

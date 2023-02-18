@@ -6,6 +6,11 @@ using System.Text.Json.Serialization;
 
 namespace Helveg.CSharp;
 
+public record HelNamespaceReferenceCS : HelReferenceCS, IInvalidable<HelNamespaceReferenceCS>
+{
+    public static HelNamespaceReferenceCS Invalid { get; } = new();
+}
+
 public record HelNamespaceCS : HelDefinitionCS, IInvalidable<HelNamespaceCS>
 {
     public static HelNamespaceCS Invalid { get; } = new();
@@ -19,4 +24,9 @@ public record HelNamespaceCS : HelDefinitionCS, IInvalidable<HelNamespaceCS>
     public HelReferenceCS? ContainingNamespace { get; init; }
 
     public bool IsGlobalNamespace => ContainingNamespace is null;
+
+    public override HelNamespaceReferenceCS GetReference()
+    {
+        return new() { Token = Token };
+    }
 }

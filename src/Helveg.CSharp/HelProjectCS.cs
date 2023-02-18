@@ -3,6 +3,11 @@ using System.Collections.Immutable;
 
 namespace Helveg.CSharp;
 
+public record HelProjectReferenceCS : HelReferenceCS, IInvalidable<HelProjectReferenceCS>
+{
+    public static HelProjectReferenceCS Invalid { get; } = new();
+}
+
 public record HelProjectCS : HelDefinitionCS, IInvalidable<HelProjectCS>
 {
     public static HelProjectCS Invalid { get; } = new();
@@ -20,5 +25,10 @@ public record HelProjectCS : HelDefinitionCS, IInvalidable<HelProjectCS>
 
     public HelAssemblyCS Assembly { get; init; } = HelAssemblyCS.Invalid;
 
-    public HelReferenceCS ContainingSolution { get; init; } = HelReferenceCS.Invalid;
+    public HelSolutionReferenceCS ContainingSolution { get; init; } = HelSolutionReferenceCS.Invalid;
+
+    public override HelProjectReferenceCS GetReference()
+    {
+        return new() { Token = Token };
+    }
 }

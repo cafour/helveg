@@ -2,22 +2,14 @@ using Helveg.Abstractions;
 
 namespace Helveg.CSharp;
 
-public record HelEventReferenceCS : HelMemberReferenceCS, IInvalidable<HelEventReferenceCS>
+public record HelEventReferenceCS : HelReferenceCS, IInvalidable<HelEventReferenceCS>
 {
     public static HelEventReferenceCS Invalid { get; } = new();
 }
 
-public record HelEventCS : HelMemberCS<HelEventReferenceCS>, IInvalidable<HelEventCS>
+public record HelEventCS : HelMemberCS, IInvalidable<HelEventCS>
 {
     public static HelEventCS Invalid { get; } = new();
-
-    public override HelEventReferenceCS Reference => new()
-    {
-        Token = Token,
-        Name = Name,
-        ContainingNamespace = ContainingNamespace,
-        ContainingType = ContainingType
-    };
 
     public HelTypeReferenceCS EventType { get; init; } = HelTypeReferenceCS.Invalid;
 
@@ -26,4 +18,9 @@ public record HelEventCS : HelMemberCS<HelEventReferenceCS>, IInvalidable<HelEve
     public HelMethodReferenceCS? RemoveMethod { get; init; }
 
     public HelMethodReferenceCS? RaiseMethod { get; init; }
+
+    public override HelEventReferenceCS GetReference()
+    {
+        return new() { Token = Token };
+    }
 }
