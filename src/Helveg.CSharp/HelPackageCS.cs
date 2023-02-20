@@ -19,6 +19,6 @@ public record HelPackageCS : HelDefinitionCS, IInvalidable<HelPackageCS>
 
     public override HelPackageReferenceCS GetReference()
     {
-        return new() { Token = Token, IsResolved = true };
+        return new() { Token = Token };
     }
 }

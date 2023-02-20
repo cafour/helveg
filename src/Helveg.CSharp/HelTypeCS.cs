@@ -68,8 +68,7 @@ public record HelTypeCS : HelMemberCS, IInvalidable<HelTypeCS>
         return new HelTypeReferenceCS
         {
             Token = Token,
-            TypeKind = TypeKind,
-            IsResolved = true
+            TypeKind = TypeKind
         };
     }
 }

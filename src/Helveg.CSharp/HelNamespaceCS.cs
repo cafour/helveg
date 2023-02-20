@@ -27,6 +27,6 @@ public record HelNamespaceCS : HelDefinitionCS, IInvalidable<HelNamespaceCS>
 
     public override HelNamespaceReferenceCS GetReference()
     {
-        return new() { Token = Token, IsResolved = true };
+        return new() { Token = Token };
     }
 }

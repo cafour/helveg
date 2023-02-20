@@ -21,6 +21,6 @@ public record HelEventCS : HelMemberCS, IInvalidable<HelEventCS>
 
     public override HelEventReferenceCS GetReference()
     {
-        return new() { Token = Token, IsResolved = true };
+        return new() { Token = Token };
     }
 }

@@ -9,12 +9,12 @@ namespace Helveg.CSharp;
 
 public interface IHelReferenceCS
 {
-    bool IsResolved { get; }
+    bool IsError { get; }
     HelEntityTokenCS Token { get; }
 }
 
 public abstract record HelReferenceCS : IHelReferenceCS
 {
-    public bool IsResolved { get; init; }
+    public bool IsError { get; init; }
     public HelEntityTokenCS Token { get; init; } = HelEntityTokenCS.Invalid;
 }

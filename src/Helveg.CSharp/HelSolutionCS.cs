@@ -23,6 +23,6 @@ public record HelSolutionCS : HelDefinitionCS, IInvalidable<HelSolutionCS>
 
     public override HelSolutionReferenceCS GetReference()
     {
-        return new() { Token = Token, IsResolved = true };
+        return new() { Token = Token };
     }
 }

@@ -21,6 +21,6 @@ public record HelModuleCS : HelDefinitionCS, IInvalidable<HelModuleCS>
 
     public override HelModuleReferenceCS GetReference()
     {
-        return new() { Token = Token, IsResolved = true };
+        return new() { Token = Token };
     }
 }
