@@ -17,11 +17,11 @@ public record HelProjectCS : HelDefinitionCS, IInvalidable<HelProjectCS>
     /// </summary>
     public string? FullName { get; init; }
 
-    public ImmutableArray<HelReferenceCS> ProjectDependencies { get; init; }
-        = ImmutableArray<HelReferenceCS>.Empty;
+    public ImmutableArray<HelProjectReferenceCS> ProjectDependencies { get; init; }
+        = ImmutableArray<HelProjectReferenceCS>.Empty;
 
-    public ImmutableArray<HelReferenceCS> PackageDependencies { get; init; }
-        = ImmutableArray<HelReferenceCS>.Empty;
+    public ImmutableArray<HelProjectReferenceCS> PackageDependencies { get; init; }
+        = ImmutableArray<HelProjectReferenceCS>.Empty;
 
     public HelAssemblyCS Assembly { get; init; } = HelAssemblyCS.Invalid;
 

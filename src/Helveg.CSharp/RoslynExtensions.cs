@@ -13,4 +13,15 @@ internal static class RoslynExtensions
     {
         return SymbolEqualityComparer.Default.Equals(symbol, symbol.OriginalDefinition);
     }
+
+    public static HelAssemblyIdCS ToAssemblyId(this AssemblyIdentity identity)
+    {
+        return new HelAssemblyIdCS
+        {
+            Name = identity.Name,
+            Version = identity.Version,
+            CultureName = identity.CultureName,
+            PublicKeyToken = string.Concat(identity.PublicKeyToken.Select(b => b.ToString("x")))
+        };
+    }
 }

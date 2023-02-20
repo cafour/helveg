@@ -15,6 +15,4 @@ public class ReferenceResolver
     {
         this.solution = solution;
     }
-
-    public 
 }

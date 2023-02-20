@@ -16,7 +16,7 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
     private int counter = 0;
     private int errorCounter = 0;
 
-    // TODO: make this a HashSet to prevent multiple resolutions of the same reference
+    private readonly ConcurrentDictionary<HelEntityTokenCS, ISymbol> underlyingSymbols = new();
     private readonly ConcurrentDictionary<HelEntityTokenCS, ISymbol> errorReferences = new();
 
     public async Task<HelWorkspaceCS> GetWorkspace(string path, CancellationToken cancellationToken = default)
@@ -84,25 +84,15 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
         {
             Token = GetResolvedToken(HelEntityKindCS.Assembly),
             Name = assembly.Name,
-            Identity = GetAssemblyId(assembly.Identity)
+            Identity = assembly.Identity.ToAssemblyId()
         };
+        underlyingSymbols.AddOrUpdate(helAssembly.Token, assembly, (_, _) => assembly);
 
         return helAssembly with
         {
             Modules = assembly.Modules
                 .Select(m => GetModule(m, helAssembly.GetReference()))
                 .ToImmutableArray()
-        };
-    }
-
-    private HelAssemblyIdCS GetAssemblyId(AssemblyIdentity assemblyIdentity)
-    {
-        return new HelAssemblyIdCS
-        {
-            Name = assemblyIdentity.Name,
-            Version = assemblyIdentity.Version,
-            CultureName = assemblyIdentity.CultureName,
-            PublicKeyToken = string.Concat(assemblyIdentity.PublicKeyToken.Select(b => b.ToString("x")))
         };
     }
 
@@ -116,6 +106,8 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
                 .ToImmutableArray(),
             ContainingAssembly = containingAssembly
         };
+        underlyingSymbols.AddOrUpdate(helModule.Token, module, (_, _) => module);
+
         return helModule with
         {
             GlobalNamespace = GetNamespace(module.GlobalNamespace, helModule.GetReference())
@@ -130,6 +122,7 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
             Name = @namespace.Name,
             ContainingModule = containingModule
         };
+        underlyingSymbols.AddOrUpdate(helNamespace.Token, @namespace, (_, _) => @namespace);
 
         return helNamespace with
         {
@@ -171,6 +164,8 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
             BaseType = type.BaseType is null ? null : GetErrorTypeReference(type.BaseType),
             Interfaces = type.Interfaces.Select(GetErrorTypeReference).ToImmutableArray(),
         };
+
+        underlyingSymbols.AddOrUpdate(helType.Token, type, (_, _) => type);
 
         helType = PopulateMember(type, helType);
 
@@ -222,7 +217,7 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
                 "must not be null.");
         }
 
-        return new HelTypeParameterCS
+        var helTypeParameter = new HelTypeParameterCS
         {
             Token = GetResolvedToken(HelEntityKindCS.TypeParameter),
             Name = symbol.Name,
@@ -232,6 +227,9 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
             // TODO: what does Roslyn return here? we should be consistent with them
             ContainingType = containingType,
         };
+        underlyingSymbols.AddOrUpdate(helTypeParameter.Token, symbol, (_, _) => symbol);
+
+        return helTypeParameter;
     }
 
     private HelEventCS GetEvent(
@@ -249,6 +247,7 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
             RemoveMethod = symbol.RemoveMethod is null ? null : GetErrorMethodReference(symbol.RemoveMethod),
             RaiseMethod = symbol.RaiseMethod is null ? null : GetErrorMethodReference(symbol.RaiseMethod)
         };
+        underlyingSymbols.AddOrUpdate(helEvent.Token, symbol, (_, _) => symbol);
 
         return PopulateMember(symbol, helEvent);
     }
@@ -276,6 +275,7 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
             IsConst = symbol.IsConst,
             RefKind = GetRefKind(symbol.RefKind)
         };
+        underlyingSymbols.AddOrUpdate(helField.Token, symbol, (_, _) => symbol);
 
         return PopulateMember(symbol, helField);
     }
@@ -300,6 +300,8 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
                 : GetErrorPropertyReference(symbol.OverriddenProperty),
             RefKind = GetRefKind(symbol.RefKind)
         };
+
+        underlyingSymbols.AddOrUpdate(helProperty.Token, symbol, (_, _) => symbol);
 
         helProperty = PopulateMember(symbol, helProperty);
 
@@ -343,6 +345,7 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
             RefKind = GetRefKind(symbol.RefKind),
             ReturnType = GetErrorTypeReference(symbol.ReturnType)
         };
+        underlyingSymbols.AddOrUpdate(helMethod.Token, symbol, (_, _) => symbol);
 
         helMethod = PopulateMember(symbol, helMethod);
 
@@ -365,7 +368,7 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
         HelMethodReferenceCS? declaringMethod,
         HelPropertyReferenceCS? declaringProperty)
     {
-        return new HelParameterCS
+        var helParameter = new HelParameterCS
         {
             Token = new HelEntityTokenCS(HelEntityKindCS.Parameter, ++counter),
             Name = symbol.Name,
@@ -380,6 +383,9 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
             ParameterType = GetErrorTypeReference(symbol.Type),
             RefKind = GetRefKind(symbol.RefKind)
         };
+        underlyingSymbols.AddOrUpdate(helParameter.Token, symbol, (_, _) => symbol);
+
+        return helParameter;
     }
 
     private TMember PopulateMember<TMember>(ISymbol symbol, TMember helMember)
@@ -633,5 +639,28 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
             NullableAnnotation.Annotated => HelNullabilityCS.Annotated,
             _ => HelNullabilityCS.None
         };
+    }
+
+    private class SymbolErrorReferenceRewriter : HelEntityRewriterCS
+    {
+        private HelEntityLocator locator = null!;
+        private readonly ConcurrentDictionary<HelEntityTokenCS, ISymbol> underlyingSymbols;
+        private readonly ConcurrentDictionary<HelEntityTokenCS, ISymbol> errorReferences;
+
+        public SymbolErrorReferenceRewriter(
+            ConcurrentDictionary<HelEntityTokenCS, ISymbol> underlyingSymbols,
+            ConcurrentDictionary<HelEntityTokenCS, ISymbol> errorReferences)
+        {
+            this.underlyingSymbols = underlyingSymbols;
+            this.errorReferences = errorReferences;
+        }
+
+        public override HelSolutionCS RewriteSolution(HelSolutionCS solution)
+        {
+            locator = new HelEntityLocator(solution);
+            var newSolution = base.RewriteSolution(solution);
+            locator = null!;
+            return newSolution;
+        }
     }
 }
