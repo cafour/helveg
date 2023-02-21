@@ -18,6 +18,13 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
 
     private readonly ConcurrentDictionary<HelEntityTokenCS, ISymbol> underlyingSymbols = new();
     private readonly ConcurrentDictionary<HelEntityTokenCS, ISymbol> errorReferences = new();
+    private readonly EntityTokenGenerator tokenGenerator = new();
+    private readonly EntityTokenSymbolVisitor visitor;
+
+    public RoslynWorkspaceProvider()
+    {
+        visitor = new(tokenGenerator);
+    }
 
     public async Task<HelWorkspaceCS> GetWorkspace(string path, CancellationToken cancellationToken = default)
     {
@@ -44,7 +51,7 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
     {
         var helSolution = new HelSolutionCS
         {
-            Token = GetResolvedToken(HelEntityKindCS.Solution),
+            Token = tokenGenerator.GetToken(HelEntityKindCS.Solution),
             Name = solution.FilePath ?? IHelEntityCS.InvalidName,
             FullName = solution.FilePath
         };
@@ -67,7 +74,7 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
 
         var helProject = new HelProjectCS
         {
-            Token = GetResolvedToken(HelEntityKindCS.Project),
+            Token = tokenGenerator.GetToken(HelEntityKindCS.Project),
             Name = project.Name,
             FullName = project.FilePath,
         };
@@ -80,6 +87,7 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
 
     private HelAssemblyCS GetAssembly(IAssemblySymbol assembly)
     {
+        visitor.Visit(assembly);
         var helAssembly = new HelAssemblyCS
         {
             Token = GetResolvedToken(HelEntityKindCS.Assembly),
@@ -661,6 +669,126 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
             var newSolution = base.RewriteSolution(solution);
             locator = null!;
             return newSolution;
+        }
+    }
+
+    private class EntityTokenSymbolVisitor : SymbolVisitor
+    {
+        private readonly EntityTokenGenerator gen;
+
+        public ConcurrentDictionary<ISymbol, HelEntityTokenCS> Tokens { get; }
+            = new(SymbolEqualityComparer.Default);
+
+        public EntityTokenSymbolVisitor(EntityTokenGenerator gen)
+        {
+            this.gen = gen;
+        }
+
+        public override void VisitAssembly(IAssemblySymbol symbol)
+        {
+            Tokens.AddOrUpdate(symbol, _ => gen.GetToken(HelEntityKindCS.Assembly), (_, e) => e);
+
+            foreach (var module in symbol.Modules)
+            {
+                VisitModule(module);
+            }
+        }
+
+        public override void VisitModule(IModuleSymbol symbol)
+        {
+            Tokens.AddOrUpdate(symbol, _ => gen.GetToken(HelEntityKindCS.Module), (_, e) => e);
+
+            VisitNamespace(symbol.GlobalNamespace);
+        }
+
+        public override void VisitNamespace(INamespaceSymbol symbol)
+        {
+            Tokens.AddOrUpdate(symbol, _ => gen.GetToken(HelEntityKindCS.Namespace), (_, e) => e);
+
+            foreach (var ns in symbol.GetNamespaceMembers())
+            {
+                VisitNamespace(ns);
+            }
+
+            foreach (var type in symbol.GetTypeMembers())
+            {
+                VisitNamedType(type);
+            }
+        }
+
+        public override void VisitNamedType(INamedTypeSymbol symbol)
+        {
+            Tokens.AddOrUpdate(symbol, _ => gen.GetToken(HelEntityKindCS.Type), (_, e) => e);
+
+            foreach (var typeParameter in symbol.TypeParameters)
+            {
+                VisitTypeParameter(typeParameter);
+            }
+
+            foreach (var type in symbol.GetTypeMembers())
+            {
+                VisitNamedType(type);
+            }
+
+            foreach (var member in symbol.GetMembers())
+            {
+                Visit(member);
+            }
+        }
+
+        public override void VisitField(IFieldSymbol symbol)
+        {
+            Tokens.AddOrUpdate(symbol, _ => gen.GetToken(HelEntityKindCS.Field), (_, e) => e);
+        }
+
+        public override void VisitEvent(IEventSymbol symbol)
+        {
+            Tokens.AddOrUpdate(symbol, _ => gen.GetToken(HelEntityKindCS.Event), (_, e) => e);
+        }
+
+        public override void VisitProperty(IPropertySymbol symbol)
+        {
+            Tokens.AddOrUpdate(symbol, _ => gen.GetToken(HelEntityKindCS.Property), (_, e) => e);
+
+            foreach (var parameter in symbol.Parameters)
+            {
+                VisitParameter(parameter);
+            }
+        }
+
+        public override void VisitMethod(IMethodSymbol symbol)
+        {
+            Tokens.AddOrUpdate(symbol, _ => gen.GetToken(HelEntityKindCS.Method), (_, e) => e);
+
+            foreach (var typeParameter in symbol.TypeParameters)
+            {
+                VisitTypeParameter(typeParameter);
+            }
+
+            foreach (var parameter in symbol.Parameters)
+            {
+                VisitParameter(parameter);
+            }
+        }
+
+        public override void VisitParameter(IParameterSymbol symbol)
+        {
+            Tokens.AddOrUpdate(symbol, _ => gen.GetToken(HelEntityKindCS.Parameter), (_, e) => e);
+        }
+
+        public override void VisitTypeParameter(ITypeParameterSymbol symbol)
+        {
+            Tokens.AddOrUpdate(symbol, _ => gen.GetToken(HelEntityKindCS.TypeParameter), (_, e) => e);
+        }
+    }
+
+    private class EntityTokenGenerator
+    {
+        private int counter = 0;
+
+        public HelEntityTokenCS GetToken(HelEntityKindCS kind)
+        {
+            return new HelEntityTokenCS(kind, Interlocked.Increment(ref counter));
         }
     }
 }

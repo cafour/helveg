@@ -128,10 +128,14 @@ public class RoslynSymbolEntityLocator
 
     private HelParameterCS? FindParameter(IParameterSymbol symbol)
     {
+        var test = new ConcurrentDictionary<ISymbol, HelEntityTokenCS>(SymbolEqualityComparer.Default);
+
         if (symbol.ContainingSymbol is IMethodSymbol methodSymbol)
         {
             var method = FindMethod(methodSymbol);
 
         }
+
+        throw new NotImplementedException();
     }
 }

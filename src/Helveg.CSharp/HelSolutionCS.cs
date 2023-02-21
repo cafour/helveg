@@ -5,7 +5,7 @@ namespace Helveg.CSharp;
 
 public record HelSolutionReferenceCS : HelReferenceCS, IInvalidable<HelSolutionReferenceCS>
 {
-    public static HelSolutionReferenceCS Invalid { get; }
+    public static HelSolutionReferenceCS Invalid { get; } = new();
 }
 
 public record HelSolutionCS : HelDefinitionCS, IInvalidable<HelSolutionCS>
