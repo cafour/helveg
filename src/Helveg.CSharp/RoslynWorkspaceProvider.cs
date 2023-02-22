@@ -92,7 +92,7 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
         {
             Token = GetResolvedToken(HelEntityKindCS.Assembly),
             Name = assembly.Name,
-            Identity = assembly.Identity.ToAssemblyId()
+            Identity = assembly.Identity.ToHelvegAssemblyId()
         };
         underlyingSymbols.AddOrUpdate(helAssembly.Token, assembly, (_, _) => assembly);
 
@@ -158,7 +158,7 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
             Token = GetResolvedToken(HelEntityKindCS.Type),
             ContainingNamespace = containingNamespace,
             ContainingType = containingType,
-            TypeKind = GetTypeKind(type.TypeKind),
+            TypeKind = type.TypeKind.ToHelvegTypeKind(),
             IsReferenceType = type.IsReferenceType,
             IsValueType = type.IsValueType,
             IsAnonymousType = type.IsAnonymousType,
@@ -281,7 +281,7 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
             IsReadOnly = symbol.IsReadOnly,
             IsRequired = symbol.IsRequired,
             IsConst = symbol.IsConst,
-            RefKind = GetRefKind(symbol.RefKind)
+            RefKind = symbol.RefKind.ToHelvegRefKind()
         };
         underlyingSymbols.AddOrUpdate(helField.Token, symbol, (_, _) => symbol);
 
@@ -306,7 +306,7 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
             OverriddenProperty = symbol.OverriddenProperty is null
                 ? null
                 : GetErrorPropertyReference(symbol.OverriddenProperty),
-            RefKind = GetRefKind(symbol.RefKind)
+            RefKind = symbol.RefKind.ToHelvegRefKind()
         };
 
         underlyingSymbols.AddOrUpdate(helProperty.Token, symbol, (_, _) => symbol);
@@ -347,10 +347,10 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
             IsExtensionMethod = symbol.IsExtensionMethod,
             IsInitOnly = symbol.IsInitOnly,
             IsReadOnly = symbol.IsReadOnly,
-            MethodKind = GetMethodKind(symbol.MethodKind),
+            MethodKind = symbol.MethodKind.ToHelvegMethodKind(),
             OverridenMethod = symbol.OverriddenMethod is null ? null : GetErrorMethodReference(symbol.OverriddenMethod),
             ReceiverType = symbol.ReceiverType is null ? null : GetErrorTypeReference(symbol.ReceiverType),
-            RefKind = GetRefKind(symbol.RefKind),
+            RefKind = symbol.RefKind.ToHelvegRefKind(),
             ReturnType = GetErrorTypeReference(symbol.ReturnType)
         };
         underlyingSymbols.AddOrUpdate(helMethod.Token, symbol, (_, _) => symbol);
@@ -389,7 +389,7 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
             IsParams = symbol.IsParams,
             IsThis = symbol.IsThis,
             ParameterType = GetErrorTypeReference(symbol.Type),
-            RefKind = GetRefKind(symbol.RefKind)
+            RefKind = symbol.RefKind.ToHelvegRefKind()
         };
         underlyingSymbols.AddOrUpdate(helParameter.Token, symbol, (_, _) => symbol);
 
@@ -402,7 +402,7 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
         return helMember with
         {
             Name = symbol.Name,
-            Accessibility = GetAccessibility(symbol.DeclaredAccessibility),
+            Accessibility = symbol.DeclaredAccessibility.ToHelvegAccessibility(),
             CanBeReferencedByName = symbol.CanBeReferencedByName,
             IsAbstract = symbol.IsAbstract,
             IsExtern = symbol.IsExtern,
@@ -504,8 +504,8 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
         {
             Token = GetErrorToken(HelEntityKindCS.Type),
             IsError = true,
-            TypeKind = GetTypeKind(symbol.TypeKind),
-            Nullability = GetNullability(symbol.NullableAnnotation)
+            TypeKind = symbol.TypeKind.ToHelvegTypeKind(),
+            Nullability = symbol.NullableAnnotation.ToHelvegNullability()
         };
         errorReferences.TryAdd(reference.Token, symbol);
         return reference;
@@ -563,92 +563,6 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
         return reference;
     }
 
-    private static HelAccessibilityCS GetAccessibility(Accessibility value)
-    {
-        return value switch
-        {
-            Accessibility.Private => HelAccessibilityCS.Private,
-            Accessibility.ProtectedAndInternal => HelAccessibilityCS.ProtectedAndInternal,
-            Accessibility.Protected => HelAccessibilityCS.Protected,
-            Accessibility.Internal => HelAccessibilityCS.Internal,
-            Accessibility.ProtectedOrInternal => HelAccessibilityCS.ProtectedOrInternal,
-            Accessibility.Public => HelAccessibilityCS.Public,
-            _ => HelAccessibilityCS.Invalid
-        };
-    }
-
-    private static HelTypeKindCS GetTypeKind(TypeKind value)
-    {
-        return value switch
-        {
-            TypeKind.Unknown => HelTypeKindCS.Unknown,
-            TypeKind.Array => HelTypeKindCS.Array,
-            TypeKind.Class => HelTypeKindCS.Class,
-            TypeKind.Delegate => HelTypeKindCS.Delegate,
-            TypeKind.Dynamic => HelTypeKindCS.Dynamic,
-            TypeKind.Enum => HelTypeKindCS.Enum,
-            TypeKind.Error => HelTypeKindCS.Error,
-            TypeKind.Interface => HelTypeKindCS.Interface,
-            TypeKind.Module => HelTypeKindCS.Module,
-            TypeKind.Pointer => HelTypeKindCS.Pointer,
-            TypeKind.Struct => HelTypeKindCS.Struct,
-            TypeKind.TypeParameter => HelTypeKindCS.TypeParameter,
-            TypeKind.Submission => HelTypeKindCS.Submission,
-            TypeKind.FunctionPointer => HelTypeKindCS.FunctionPointer,
-            _ => HelTypeKindCS.Unknown
-        };
-    }
-
-    private static HelRefKindCS GetRefKind(RefKind value)
-    {
-        return value switch
-        {
-            RefKind.None => HelRefKindCS.None,
-            RefKind.Ref => HelRefKindCS.Ref,
-            RefKind.Out => HelRefKindCS.Out,
-            RefKind.In => HelRefKindCS.In,
-            _ => HelRefKindCS.None
-        };
-    }
-
-    private static HelMethodKindCS GetMethodKind(MethodKind value)
-    {
-        return value switch
-        {
-            MethodKind.AnonymousFunction => HelMethodKindCS.AnonymousFunction,
-            MethodKind.Constructor => HelMethodKindCS.Constructor,
-            MethodKind.Conversion => HelMethodKindCS.Conversion,
-            MethodKind.DelegateInvoke => HelMethodKindCS.DelegateInvoke,
-            MethodKind.Destructor => HelMethodKindCS.Destructor,
-            MethodKind.EventAdd => HelMethodKindCS.EventAdd,
-            MethodKind.EventRaise => HelMethodKindCS.EventRaise,
-            MethodKind.EventRemove => HelMethodKindCS.EventRemove,
-            MethodKind.ExplicitInterfaceImplementation => HelMethodKindCS.ExplicitInterfaceImplementation,
-            MethodKind.UserDefinedOperator => HelMethodKindCS.UserDefinedOperator,
-            MethodKind.Ordinary => HelMethodKindCS.Ordinary,
-            MethodKind.PropertyGet => HelMethodKindCS.PropertyGet,
-            MethodKind.PropertySet => HelMethodKindCS.PropertySet,
-            MethodKind.ReducedExtension => HelMethodKindCS.ReducedExtension,
-            MethodKind.StaticConstructor => HelMethodKindCS.StaticConstructor,
-            MethodKind.BuiltinOperator => HelMethodKindCS.BuiltinOperator,
-            MethodKind.DeclareMethod => HelMethodKindCS.DeclareMethod,
-            MethodKind.LocalFunction => HelMethodKindCS.LocalFunction,
-            MethodKind.FunctionPointerSignature => HelMethodKindCS.FunctionPointerSignature,
-            _ => HelMethodKindCS.Invalid
-        };
-    }
-
-    private static HelNullabilityCS GetNullability(NullableAnnotation value)
-    {
-        return value switch
-        {
-            NullableAnnotation.None => HelNullabilityCS.None,
-            NullableAnnotation.NotAnnotated => HelNullabilityCS.NotAnnotated,
-            NullableAnnotation.Annotated => HelNullabilityCS.Annotated,
-            _ => HelNullabilityCS.None
-        };
-    }
-
     private class SymbolErrorReferenceRewriter : HelEntityRewriterCS
     {
         private HelEntityLocator locator = null!;
@@ -669,126 +583,6 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
             var newSolution = base.RewriteSolution(solution);
             locator = null!;
             return newSolution;
-        }
-    }
-
-    private class EntityTokenSymbolVisitor : SymbolVisitor
-    {
-        private readonly EntityTokenGenerator gen;
-
-        public ConcurrentDictionary<ISymbol, HelEntityTokenCS> Tokens { get; }
-            = new(SymbolEqualityComparer.Default);
-
-        public EntityTokenSymbolVisitor(EntityTokenGenerator gen)
-        {
-            this.gen = gen;
-        }
-
-        public override void VisitAssembly(IAssemblySymbol symbol)
-        {
-            Tokens.AddOrUpdate(symbol, _ => gen.GetToken(HelEntityKindCS.Assembly), (_, e) => e);
-
-            foreach (var module in symbol.Modules)
-            {
-                VisitModule(module);
-            }
-        }
-
-        public override void VisitModule(IModuleSymbol symbol)
-        {
-            Tokens.AddOrUpdate(symbol, _ => gen.GetToken(HelEntityKindCS.Module), (_, e) => e);
-
-            VisitNamespace(symbol.GlobalNamespace);
-        }
-
-        public override void VisitNamespace(INamespaceSymbol symbol)
-        {
-            Tokens.AddOrUpdate(symbol, _ => gen.GetToken(HelEntityKindCS.Namespace), (_, e) => e);
-
-            foreach (var ns in symbol.GetNamespaceMembers())
-            {
-                VisitNamespace(ns);
-            }
-
-            foreach (var type in symbol.GetTypeMembers())
-            {
-                VisitNamedType(type);
-            }
-        }
-
-        public override void VisitNamedType(INamedTypeSymbol symbol)
-        {
-            Tokens.AddOrUpdate(symbol, _ => gen.GetToken(HelEntityKindCS.Type), (_, e) => e);
-
-            foreach (var typeParameter in symbol.TypeParameters)
-            {
-                VisitTypeParameter(typeParameter);
-            }
-
-            foreach (var type in symbol.GetTypeMembers())
-            {
-                VisitNamedType(type);
-            }
-
-            foreach (var member in symbol.GetMembers())
-            {
-                Visit(member);
-            }
-        }
-
-        public override void VisitField(IFieldSymbol symbol)
-        {
-            Tokens.AddOrUpdate(symbol, _ => gen.GetToken(HelEntityKindCS.Field), (_, e) => e);
-        }
-
-        public override void VisitEvent(IEventSymbol symbol)
-        {
-            Tokens.AddOrUpdate(symbol, _ => gen.GetToken(HelEntityKindCS.Event), (_, e) => e);
-        }
-
-        public override void VisitProperty(IPropertySymbol symbol)
-        {
-            Tokens.AddOrUpdate(symbol, _ => gen.GetToken(HelEntityKindCS.Property), (_, e) => e);
-
-            foreach (var parameter in symbol.Parameters)
-            {
-                VisitParameter(parameter);
-            }
-        }
-
-        public override void VisitMethod(IMethodSymbol symbol)
-        {
-            Tokens.AddOrUpdate(symbol, _ => gen.GetToken(HelEntityKindCS.Method), (_, e) => e);
-
-            foreach (var typeParameter in symbol.TypeParameters)
-            {
-                VisitTypeParameter(typeParameter);
-            }
-
-            foreach (var parameter in symbol.Parameters)
-            {
-                VisitParameter(parameter);
-            }
-        }
-
-        public override void VisitParameter(IParameterSymbol symbol)
-        {
-            Tokens.AddOrUpdate(symbol, _ => gen.GetToken(HelEntityKindCS.Parameter), (_, e) => e);
-        }
-
-        public override void VisitTypeParameter(ITypeParameterSymbol symbol)
-        {
-            Tokens.AddOrUpdate(symbol, _ => gen.GetToken(HelEntityKindCS.TypeParameter), (_, e) => e);
-        }
-    }
-
-    private class EntityTokenGenerator
-    {
-        private int counter = 0;
-
-        public HelEntityTokenCS GetToken(HelEntityKindCS kind)
-        {
-            return new HelEntityTokenCS(kind, Interlocked.Increment(ref counter));
         }
     }
 }

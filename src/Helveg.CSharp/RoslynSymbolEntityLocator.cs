@@ -23,7 +23,7 @@ public class RoslynSymbolEntityLocator
             throw new InvalidOperationException("Search can only be conducted on a non-null solution.");
         }
 
-        var id = symbol.Identity.ToAssemblyId();
+        var id = symbol.Identity.ToHelvegAssemblyId();
         return CurrentSolution
             .Projects.Select(p => p.Assembly)
             .Concat(CurrentSolution.Packages.SelectMany(p => p.Assemblies))
