@@ -15,6 +15,11 @@ public class EntityTokenSymbolVisitor : SymbolVisitor
     public ConcurrentDictionary<ISymbol, HelEntityTokenCS> Tokens { get; }
         = new(SymbolEqualityComparer.Default);
 
+    public HashSet<AssemblyIdentity> VisitedAssemblies { get; }
+        = new();
+
+    private readonly object visitedAssembliesLock = new();
+
     public EntityTokenSymbolVisitor(EntityTokenGenerator gen)
     {
         this.gen = gen;
@@ -22,6 +27,18 @@ public class EntityTokenSymbolVisitor : SymbolVisitor
 
     public override void VisitAssembly(IAssemblySymbol symbol)
     {
+        // NB: `VisitAssembly` can and will be called from multiple threads. This prevents multiple visits to the same
+        //     assembly.
+        lock (visitedAssembliesLock)
+        {
+            if (VisitedAssemblies.Contains(symbol.Identity))
+            {
+                return;
+            }
+
+            VisitedAssemblies.Add(symbol.Identity);
+        }
+
         Tokens.AddOrUpdate(symbol, _ => gen.GetToken(HelEntityKindCS.Assembly), (_, e) => e);
 
         foreach (var module in symbol.Modules)

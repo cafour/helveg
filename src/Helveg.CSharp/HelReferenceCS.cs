@@ -11,10 +11,12 @@ public interface IHelReferenceCS
 {
     bool IsError { get; }
     HelEntityTokenCS Token { get; }
+    string? Hint { get; }
 }
 
 public abstract record HelReferenceCS : IHelReferenceCS
 {
     public bool IsError { get; init; }
+    public string? Hint { get; init; }
     public HelEntityTokenCS Token { get; init; } = HelEntityTokenCS.Invalid;
 }
