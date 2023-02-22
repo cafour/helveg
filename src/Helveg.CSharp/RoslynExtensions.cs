@@ -110,4 +110,22 @@ internal static class RoslynExtensions
             _ => HelNullabilityCS.None
         };
     }
+
+    public static HelEntityKindCS GetEntityKind(this ISymbol symbol)
+    {
+        return symbol switch
+        {
+            IAssemblySymbol => HelEntityKindCS.Assembly,
+            IModuleSymbol => HelEntityKindCS.Module,
+            INamespaceSymbol => HelEntityKindCS.Namespace,
+            ITypeParameterSymbol => HelEntityKindCS.TypeParameter,
+            IFieldSymbol => HelEntityKindCS.Field,
+            IEventSymbol => HelEntityKindCS.Event,
+            IPropertySymbol => HelEntityKindCS.Property,
+            IMethodSymbol => HelEntityKindCS.Method,
+            INamedTypeSymbol => HelEntityKindCS.Type,
+            _ => throw new ArgumentException($"Could not assign {nameof(HelEntityKindCS)} to a Roslyn symbol of type " +
+                $"'{symbol.GetType()}'.")
+        };
+    }
 }

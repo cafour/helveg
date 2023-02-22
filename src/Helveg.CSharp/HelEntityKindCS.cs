@@ -8,7 +8,7 @@ namespace Helveg.CSharp;
 
 public enum HelEntityKindCS
 {
-    Invalid = 0,
+    Unknown = 0,
     Solution,
     Project,
     Assembly,
