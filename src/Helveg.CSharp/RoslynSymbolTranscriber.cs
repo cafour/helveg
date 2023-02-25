@@ -17,13 +17,13 @@ internal class RoslynSymbolTranscriber
 {
     private readonly Project project;
     private readonly EntityTokenGenerator tokenGenerator;
-    private readonly EntityTokenSymbolVisitor visitor;
+    private readonly RoslynEntityTokenSymbolVisitor visitor;
     private Compilation compilation = null!;
 
     public RoslynSymbolTranscriber(
         Project project,
         EntityTokenGenerator tokenGenerator,
-        EntityTokenSymbolVisitor visitor)
+        RoslynEntityTokenSymbolVisitor visitor)
     {
         this.project = project;
         this.tokenGenerator = tokenGenerator;
@@ -560,6 +560,6 @@ internal class RoslynSymbolTranscriber
         return visitor.Tokens.TryGetValue(symbol, out var token)
             ? token
             : throw new InvalidOperationException($"Symbol '{symbol}' does not have a token even though it is " +
-                $"required. This could be a bug in {nameof(EntityTokenSymbolVisitor)}.");
+                $"required. This could be a bug in {nameof(RoslynEntityTokenSymbolVisitor)}.");
     }
 }

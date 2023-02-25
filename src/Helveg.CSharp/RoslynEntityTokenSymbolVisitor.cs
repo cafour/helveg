@@ -12,7 +12,7 @@ namespace Helveg.CSharp;
 /// A Roslyn <see cref="SymbolVisitor"/> that assigns <see cref="EntityToken"/>s to all symbol definitions
 /// it visits.
 /// </summary>
-internal class EntityTokenSymbolVisitor : SymbolVisitor
+internal class RoslynEntityTokenSymbolVisitor : SymbolVisitor
 {
     private readonly EntityTokenGenerator gen;
 
@@ -24,7 +24,7 @@ internal class EntityTokenSymbolVisitor : SymbolVisitor
 
     private readonly object visitedAssembliesLock = new();
 
-    public EntityTokenSymbolVisitor(EntityTokenGenerator gen)
+    public RoslynEntityTokenSymbolVisitor(EntityTokenGenerator gen)
     {
         this.gen = gen;
     }

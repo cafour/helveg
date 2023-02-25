@@ -15,7 +15,7 @@ namespace Helveg.CSharp;
 public class RoslynWorkspaceProvider : EntityWorkspaceProvider
 {
     private readonly EntityTokenGenerator tokenGenerator = new();
-    private readonly EntityTokenSymbolVisitor visitor;
+    private readonly RoslynEntityTokenSymbolVisitor visitor;
 
     public RoslynWorkspaceProvider()
     {
