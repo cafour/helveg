@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.MSBuild;
 
 namespace Helveg.CSharp;
 
-public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
+public class RoslynWorkspaceProvider : EntityWorkspaceProvider
 {
     private readonly EntityTokenGenerator tokenGenerator = new();
     private readonly EntityTokenSymbolVisitor visitor;
@@ -22,23 +22,23 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
         visitor = new(tokenGenerator);
     }
 
-    public async Task<HelWorkspaceCS> GetWorkspace(string path, CancellationToken cancellationToken = default)
+    public async Task<EntityWorkspace> GetWorkspace(string path, CancellationToken cancellationToken = default)
     {
         var workspace = MSBuildWorkspace.Create();
         await workspace.OpenSolutionAsync(path, cancellationToken: cancellationToken);
 
-        return new HelWorkspaceCS
+        return new EntityWorkspace
         {
             Solution = await GetSolution(workspace.CurrentSolution, cancellationToken)
         };
     }
 
-    private async Task<HelSolutionCS> GetSolution(Solution solution, CancellationToken cancellationToken = default)
+    private async Task<SolutionDefinition> GetSolution(Solution solution, CancellationToken cancellationToken = default)
     {
-        var helSolution = new HelSolutionCS
+        var helSolution = new SolutionDefinition
         {
-            Token = tokenGenerator.GetToken(HelEntityKindCS.Solution),
-            Name = solution.FilePath ?? IHelEntityCS.InvalidName,
+            Token = tokenGenerator.GetToken(EntityKind.Solution),
+            Name = solution.FilePath ?? IEntityDefinition.InvalidName,
             FullName = solution.FilePath
         };
 
@@ -50,29 +50,29 @@ public class RoslynWorkspaceProvider : IHelWorkspaceCSProvider
         return helSolution with { Projects = projects };
     }
 
-    private async Task<HelProjectCS> GetProject(Project project, CancellationToken cancellationToken = default)
+    private async Task<ProjectDefinition> GetProject(Project project, CancellationToken cancellationToken = default)
     {
         var transcriber = new RoslynSymbolTranscriber(project, tokenGenerator, visitor);
         return await transcriber.Transcribe(cancellationToken);
     }
 
-    private class SymbolErrorReferenceRewriter : HelEntityRewriterCS
+    private class SymbolErrorReferenceRewriter : EntityRewriter
     {
-        private HelEntityLocator locator = null!;
-        private readonly ConcurrentDictionary<HelEntityTokenCS, ISymbol> underlyingSymbols;
-        private readonly ConcurrentDictionary<HelEntityTokenCS, ISymbol> errorReferences;
+        private EntityLocator locator = null!;
+        private readonly ConcurrentDictionary<EntityToken, ISymbol> underlyingSymbols;
+        private readonly ConcurrentDictionary<EntityToken, ISymbol> errorReferences;
 
         public SymbolErrorReferenceRewriter(
-            ConcurrentDictionary<HelEntityTokenCS, ISymbol> underlyingSymbols,
-            ConcurrentDictionary<HelEntityTokenCS, ISymbol> errorReferences)
+            ConcurrentDictionary<EntityToken, ISymbol> underlyingSymbols,
+            ConcurrentDictionary<EntityToken, ISymbol> errorReferences)
         {
             this.underlyingSymbols = underlyingSymbols;
             this.errorReferences = errorReferences;
         }
 
-        public override HelSolutionCS RewriteSolution(HelSolutionCS solution)
+        public override SolutionDefinition RewriteSolution(SolutionDefinition solution)
         {
-            locator = new HelEntityLocator(solution);
+            locator = new EntityLocator(solution);
             var newSolution = base.RewriteSolution(solution);
             locator = null!;
             return newSolution;

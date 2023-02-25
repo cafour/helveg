@@ -10,13 +10,13 @@ namespace Helveg.CSharp;
 
 public class RoslynSymbolEntityLocator
 {
-    public ConcurrentDictionary<HelEntityTokenCS, ISymbol> UnderlyingSymbols { get; } = new();
+    public ConcurrentDictionary<EntityToken, ISymbol> UnderlyingSymbols { get; } = new();
 
-    public ConcurrentDictionary<HelEntityTokenCS, ISymbol> ErrorReferenceSymbol { get; } = new();
+    public ConcurrentDictionary<EntityToken, ISymbol> ErrorReferenceSymbol { get; } = new();
 
-    public HelSolutionCS? CurrentSolution { get; set; }
+    public SolutionDefinition? CurrentSolution { get; set; }
 
-    public HelAssemblyCS? FindAssembly(IAssemblySymbol symbol)
+    public AssemblyDefinition? FindAssembly(IAssemblySymbol symbol)
     {
         if (CurrentSolution is null)
         {
@@ -30,7 +30,7 @@ public class RoslynSymbolEntityLocator
             .SingleOrDefault(a => a.Identity == id);
     }
 
-    private HelModuleCS? FindModule(IModuleSymbol symbol)
+    private ModuleDefinition? FindModule(IModuleSymbol symbol)
     {
         var assembly = FindAssembly(symbol.ContainingAssembly);
         if (assembly is null)
@@ -41,7 +41,7 @@ public class RoslynSymbolEntityLocator
         return assembly.Modules.SingleOrDefault(m => m.Name == symbol.Name);
     }
 
-    private HelNamespaceCS? FindNamespace(INamespaceSymbol symbol)
+    private NamespaceDefinition? FindNamespace(INamespaceSymbol symbol)
     {
         if (symbol.NamespaceKind != NamespaceKind.Module)
         {
@@ -63,7 +63,7 @@ public class RoslynSymbolEntityLocator
         return parentNamespace?.Namespaces.SingleOrDefault(n => n.Name == symbol.Name);
     }
 
-    private HelTypeCS? FindType(INamedTypeSymbol symbol)
+    private TypeDefinition? FindType(INamedTypeSymbol symbol)
     {
         if (symbol.ContainingType is not null)
         {
@@ -80,19 +80,19 @@ public class RoslynSymbolEntityLocator
         return @namespace.Types.SingleOrDefault(t => t.Name == symbol.Name && t.Arity == symbol.Arity);
     }
 
-    private HelFieldCS? FindField(IFieldSymbol symbol)
+    private FieldDefinition? FindField(IFieldSymbol symbol)
     {
         var type = FindType(symbol.ContainingType);
         return type?.Fields.SingleOrDefault(f => f.Name == symbol.Name);
     }
 
-    private HelEventCS? FindEvent(IEventSymbol symbol)
+    private EventDefinition? FindEvent(IEventSymbol symbol)
     {
         var type = FindType(symbol.ContainingType);
         return type?.Events.SingleOrDefault(e => e.Name == symbol.Name);
     }
 
-    private HelPropertyCS? FindProperty(IPropertySymbol symbol)
+    private PropertyDefinition? FindProperty(IPropertySymbol symbol)
     {
         var type = FindType(symbol.ContainingType);
         // NB: Properties can be indexers, indexers have parameters, and parameter types can be erroneous thus we
@@ -101,14 +101,14 @@ public class RoslynSymbolEntityLocator
             SymbolEqualityComparer.Default.Equals(UnderlyingSymbols.GetValueOrDefault(p.Token), symbol));
     }
 
-    private HelMethodCS? FindMethod(IMethodSymbol symbol)
+    private MethodDefinition? FindMethod(IMethodSymbol symbol)
     {
         var type = FindType(symbol.ContainingType);
         return type?.Methods.SingleOrDefault(m =>
             SymbolEqualityComparer.Default.Equals(UnderlyingSymbols.GetValueOrDefault(m.Token), symbol));
     }
 
-    private HelTypeParameterCS? FindTypeParameter(ITypeParameterSymbol symbol)
+    private TypeParameterDefinition? FindTypeParameter(ITypeParameterSymbol symbol)
     {
         if (symbol.TypeParameterKind == TypeParameterKind.Type)
         {
@@ -126,9 +126,9 @@ public class RoslynSymbolEntityLocator
         }
     }
 
-    private HelParameterCS? FindParameter(IParameterSymbol symbol)
+    private ParameterDefinition? FindParameter(IParameterSymbol symbol)
     {
-        var test = new ConcurrentDictionary<ISymbol, HelEntityTokenCS>(SymbolEqualityComparer.Default);
+        var test = new ConcurrentDictionary<ISymbol, EntityToken>(SymbolEqualityComparer.Default);
 
         if (symbol.ContainingSymbol is IMethodSymbol methodSymbol)
         {

@@ -1,0 +1,27 @@
+using Helveg.Abstractions;
+using System.Collections.Immutable;
+
+namespace Helveg.CSharp;
+
+public record AssemblyReference : EntityReference, IInvalidable<AssemblyReference>
+{
+    public static AssemblyReference Invalid { get; } = new();
+}
+
+public record AssemblyDefinition : EntityDefinition, IInvalidable<AssemblyDefinition>
+{
+    public static AssemblyDefinition Invalid { get; } = new();
+
+    public AssemblyId Identity { get; init; } = AssemblyId.Invalid;
+
+    public ImmutableArray<ModuleDefinition> Modules { get; init; } = ImmutableArray<ModuleDefinition>.Empty;
+
+    public ProjectReference? ContainingProject { get; init; }
+
+    public PackageReference? ContainingPackage { get; init; }
+
+    public override AssemblyReference GetReference()
+    {
+        return new() { Token = Token };
+    }
+}

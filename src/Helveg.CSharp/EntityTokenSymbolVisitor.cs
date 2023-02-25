@@ -8,11 +8,15 @@ using System.Threading.Tasks;
 
 namespace Helveg.CSharp;
 
-public class EntityTokenSymbolVisitor : SymbolVisitor
+/// <summary>
+/// A Roslyn <see cref="SymbolVisitor"/> that assigns <see cref="EntityToken"/>s to all symbol definitions
+/// it visits.
+/// </summary>
+internal class EntityTokenSymbolVisitor : SymbolVisitor
 {
     private readonly EntityTokenGenerator gen;
 
-    public ConcurrentDictionary<ISymbol, HelEntityTokenCS> Tokens { get; }
+    public ConcurrentDictionary<ISymbol, EntityToken> Tokens { get; }
         = new(SymbolEqualityComparer.Default);
 
     public HashSet<AssemblyIdentity> VisitedAssemblies { get; }
@@ -39,7 +43,7 @@ public class EntityTokenSymbolVisitor : SymbolVisitor
             VisitedAssemblies.Add(symbol.Identity);
         }
 
-        Tokens.AddOrUpdate(symbol, _ => gen.GetToken(HelEntityKindCS.Assembly), (_, e) => e);
+        Tokens.AddOrUpdate(symbol, _ => gen.GetToken(EntityKind.Assembly), (_, e) => e);
 
         foreach (var module in symbol.Modules)
         {
@@ -49,14 +53,14 @@ public class EntityTokenSymbolVisitor : SymbolVisitor
 
     public override void VisitModule(IModuleSymbol symbol)
     {
-        Tokens.AddOrUpdate(symbol, _ => gen.GetToken(HelEntityKindCS.Module), (_, e) => e);
+        Tokens.AddOrUpdate(symbol, _ => gen.GetToken(EntityKind.Module), (_, e) => e);
 
         VisitNamespace(symbol.GlobalNamespace);
     }
 
     public override void VisitNamespace(INamespaceSymbol symbol)
     {
-        Tokens.AddOrUpdate(symbol, _ => gen.GetToken(HelEntityKindCS.Namespace), (_, e) => e);
+        Tokens.AddOrUpdate(symbol, _ => gen.GetToken(EntityKind.Namespace), (_, e) => e);
 
         foreach (var ns in symbol.GetNamespaceMembers())
         {
@@ -71,7 +75,7 @@ public class EntityTokenSymbolVisitor : SymbolVisitor
 
     public override void VisitNamedType(INamedTypeSymbol symbol)
     {
-        Tokens.AddOrUpdate(symbol, _ => gen.GetToken(HelEntityKindCS.Type), (_, e) => e);
+        Tokens.AddOrUpdate(symbol, _ => gen.GetToken(EntityKind.Type), (_, e) => e);
 
         foreach (var typeParameter in symbol.TypeParameters)
         {
@@ -91,17 +95,17 @@ public class EntityTokenSymbolVisitor : SymbolVisitor
 
     public override void VisitField(IFieldSymbol symbol)
     {
-        Tokens.AddOrUpdate(symbol, _ => gen.GetToken(HelEntityKindCS.Field), (_, e) => e);
+        Tokens.AddOrUpdate(symbol, _ => gen.GetToken(EntityKind.Field), (_, e) => e);
     }
 
     public override void VisitEvent(IEventSymbol symbol)
     {
-        Tokens.AddOrUpdate(symbol, _ => gen.GetToken(HelEntityKindCS.Event), (_, e) => e);
+        Tokens.AddOrUpdate(symbol, _ => gen.GetToken(EntityKind.Event), (_, e) => e);
     }
 
     public override void VisitProperty(IPropertySymbol symbol)
     {
-        Tokens.AddOrUpdate(symbol, _ => gen.GetToken(HelEntityKindCS.Property), (_, e) => e);
+        Tokens.AddOrUpdate(symbol, _ => gen.GetToken(EntityKind.Property), (_, e) => e);
 
         foreach (var parameter in symbol.Parameters)
         {
@@ -111,7 +115,7 @@ public class EntityTokenSymbolVisitor : SymbolVisitor
 
     public override void VisitMethod(IMethodSymbol symbol)
     {
-        Tokens.AddOrUpdate(symbol, _ => gen.GetToken(HelEntityKindCS.Method), (_, e) => e);
+        Tokens.AddOrUpdate(symbol, _ => gen.GetToken(EntityKind.Method), (_, e) => e);
 
         foreach (var typeParameter in symbol.TypeParameters)
         {
@@ -126,11 +130,11 @@ public class EntityTokenSymbolVisitor : SymbolVisitor
 
     public override void VisitParameter(IParameterSymbol symbol)
     {
-        Tokens.AddOrUpdate(symbol, _ => gen.GetToken(HelEntityKindCS.Parameter), (_, e) => e);
+        Tokens.AddOrUpdate(symbol, _ => gen.GetToken(EntityKind.Parameter), (_, e) => e);
     }
 
     public override void VisitTypeParameter(ITypeParameterSymbol symbol)
     {
-        Tokens.AddOrUpdate(symbol, _ => gen.GetToken(HelEntityKindCS.TypeParameter), (_, e) => e);
+        Tokens.AddOrUpdate(symbol, _ => gen.GetToken(EntityKind.TypeParameter), (_, e) => e);
     }
 }

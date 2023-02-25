@@ -7,12 +7,15 @@ using System.Threading.Tasks;
 
 namespace Helveg.CSharp;
 
-public class EntityTokenGenerator
+/// <summary>
+/// A thread-safe way of generating <see cref="EntityToken"/>s.
+/// </summary>
+internal class EntityTokenGenerator
 {
     private int counter = 0;
 
-    public HelEntityTokenCS GetToken(HelEntityKindCS kind)
+    public EntityToken GetToken(EntityKind kind)
     {
-        return new HelEntityTokenCS(kind, Interlocked.Increment(ref counter));
+        return new EntityToken(kind, Interlocked.Increment(ref counter));
     }
 }

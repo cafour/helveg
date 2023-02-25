@@ -14,9 +14,9 @@ internal static class RoslynExtensions
         return SymbolEqualityComparer.Default.Equals(symbol, symbol.OriginalDefinition);
     }
 
-    public static HelAssemblyIdCS ToHelvegAssemblyId(this AssemblyIdentity identity)
+    public static AssemblyId ToHelvegAssemblyId(this AssemblyIdentity identity)
     {
-        return new HelAssemblyIdCS
+        return new AssemblyId
         {
             Name = identity.Name,
             Version = identity.Version,
@@ -25,106 +25,106 @@ internal static class RoslynExtensions
         };
     }
 
-    public static HelAccessibilityCS ToHelvegAccessibility(this Accessibility value)
+    public static MemberAccessibility ToHelvegAccessibility(this Accessibility value)
     {
         return value switch
         {
-            Accessibility.Private => HelAccessibilityCS.Private,
-            Accessibility.ProtectedAndInternal => HelAccessibilityCS.ProtectedAndInternal,
-            Accessibility.Protected => HelAccessibilityCS.Protected,
-            Accessibility.Internal => HelAccessibilityCS.Internal,
-            Accessibility.ProtectedOrInternal => HelAccessibilityCS.ProtectedOrInternal,
-            Accessibility.Public => HelAccessibilityCS.Public,
-            _ => HelAccessibilityCS.Invalid
+            Accessibility.Private => MemberAccessibility.Private,
+            Accessibility.ProtectedAndInternal => MemberAccessibility.ProtectedAndInternal,
+            Accessibility.Protected => MemberAccessibility.Protected,
+            Accessibility.Internal => MemberAccessibility.Internal,
+            Accessibility.ProtectedOrInternal => MemberAccessibility.ProtectedOrInternal,
+            Accessibility.Public => MemberAccessibility.Public,
+            _ => MemberAccessibility.Invalid
         };
     }
 
-    public static HelTypeKindCS ToHelvegTypeKind(this TypeKind value)
+    public static TypeKind ToHelvegTypeKind(this Microsoft.CodeAnalysis.TypeKind value)
     {
         return value switch
         {
-            TypeKind.Unknown => HelTypeKindCS.Unknown,
-            TypeKind.Array => HelTypeKindCS.Array,
-            TypeKind.Class => HelTypeKindCS.Class,
-            TypeKind.Delegate => HelTypeKindCS.Delegate,
-            TypeKind.Dynamic => HelTypeKindCS.Dynamic,
-            TypeKind.Enum => HelTypeKindCS.Enum,
-            TypeKind.Error => HelTypeKindCS.Error,
-            TypeKind.Interface => HelTypeKindCS.Interface,
-            TypeKind.Module => HelTypeKindCS.Module,
-            TypeKind.Pointer => HelTypeKindCS.Pointer,
-            TypeKind.Struct => HelTypeKindCS.Struct,
-            TypeKind.TypeParameter => HelTypeKindCS.TypeParameter,
-            TypeKind.Submission => HelTypeKindCS.Submission,
-            TypeKind.FunctionPointer => HelTypeKindCS.FunctionPointer,
-            _ => HelTypeKindCS.Unknown
+            Microsoft.CodeAnalysis.TypeKind.Unknown => TypeKind.Unknown,
+            Microsoft.CodeAnalysis.TypeKind.Array => TypeKind.Array,
+            Microsoft.CodeAnalysis.TypeKind.Class => TypeKind.Class,
+            Microsoft.CodeAnalysis.TypeKind.Delegate => TypeKind.Delegate,
+            Microsoft.CodeAnalysis.TypeKind.Dynamic => TypeKind.Dynamic,
+            Microsoft.CodeAnalysis.TypeKind.Enum => TypeKind.Enum,
+            Microsoft.CodeAnalysis.TypeKind.Error => TypeKind.Error,
+            Microsoft.CodeAnalysis.TypeKind.Interface => TypeKind.Interface,
+            Microsoft.CodeAnalysis.TypeKind.Module => TypeKind.Module,
+            Microsoft.CodeAnalysis.TypeKind.Pointer => TypeKind.Pointer,
+            Microsoft.CodeAnalysis.TypeKind.Struct => TypeKind.Struct,
+            Microsoft.CodeAnalysis.TypeKind.TypeParameter => TypeKind.TypeParameter,
+            Microsoft.CodeAnalysis.TypeKind.Submission => TypeKind.Submission,
+            Microsoft.CodeAnalysis.TypeKind.FunctionPointer => TypeKind.FunctionPointer,
+            _ => TypeKind.Unknown
         };
     }
 
-    public static HelRefKindCS ToHelvegRefKind(this RefKind value)
+    public static RefKind ToHelvegRefKind(this Microsoft.CodeAnalysis.RefKind value)
     {
         return value switch
         {
-            RefKind.None => HelRefKindCS.None,
-            RefKind.Ref => HelRefKindCS.Ref,
-            RefKind.Out => HelRefKindCS.Out,
-            RefKind.In => HelRefKindCS.In,
-            _ => HelRefKindCS.None
+            Microsoft.CodeAnalysis.RefKind.None => RefKind.None,
+            Microsoft.CodeAnalysis.RefKind.Ref => RefKind.Ref,
+            Microsoft.CodeAnalysis.RefKind.Out => RefKind.Out,
+            Microsoft.CodeAnalysis.RefKind.In => RefKind.In,
+            _ => RefKind.None
         };
     }
 
-    public static HelMethodKindCS ToHelvegMethodKind(this MethodKind value)
+    public static MethodKind ToHelvegMethodKind(this Microsoft.CodeAnalysis.MethodKind value)
     {
         return value switch
         {
-            MethodKind.AnonymousFunction => HelMethodKindCS.AnonymousFunction,
-            MethodKind.Constructor => HelMethodKindCS.Constructor,
-            MethodKind.Conversion => HelMethodKindCS.Conversion,
-            MethodKind.DelegateInvoke => HelMethodKindCS.DelegateInvoke,
-            MethodKind.Destructor => HelMethodKindCS.Destructor,
-            MethodKind.EventAdd => HelMethodKindCS.EventAdd,
-            MethodKind.EventRaise => HelMethodKindCS.EventRaise,
-            MethodKind.EventRemove => HelMethodKindCS.EventRemove,
-            MethodKind.ExplicitInterfaceImplementation => HelMethodKindCS.ExplicitInterfaceImplementation,
-            MethodKind.UserDefinedOperator => HelMethodKindCS.UserDefinedOperator,
-            MethodKind.Ordinary => HelMethodKindCS.Ordinary,
-            MethodKind.PropertyGet => HelMethodKindCS.PropertyGet,
-            MethodKind.PropertySet => HelMethodKindCS.PropertySet,
-            MethodKind.ReducedExtension => HelMethodKindCS.ReducedExtension,
-            MethodKind.StaticConstructor => HelMethodKindCS.StaticConstructor,
-            MethodKind.BuiltinOperator => HelMethodKindCS.BuiltinOperator,
-            MethodKind.DeclareMethod => HelMethodKindCS.DeclareMethod,
-            MethodKind.LocalFunction => HelMethodKindCS.LocalFunction,
-            MethodKind.FunctionPointerSignature => HelMethodKindCS.FunctionPointerSignature,
-            _ => HelMethodKindCS.Invalid
+            Microsoft.CodeAnalysis.MethodKind.AnonymousFunction => MethodKind.AnonymousFunction,
+            Microsoft.CodeAnalysis.MethodKind.Constructor => MethodKind.Constructor,
+            Microsoft.CodeAnalysis.MethodKind.Conversion => MethodKind.Conversion,
+            Microsoft.CodeAnalysis.MethodKind.DelegateInvoke => MethodKind.DelegateInvoke,
+            Microsoft.CodeAnalysis.MethodKind.Destructor => MethodKind.Destructor,
+            Microsoft.CodeAnalysis.MethodKind.EventAdd => MethodKind.EventAdd,
+            Microsoft.CodeAnalysis.MethodKind.EventRaise => MethodKind.EventRaise,
+            Microsoft.CodeAnalysis.MethodKind.EventRemove => MethodKind.EventRemove,
+            Microsoft.CodeAnalysis.MethodKind.ExplicitInterfaceImplementation => MethodKind.ExplicitInterfaceImplementation,
+            Microsoft.CodeAnalysis.MethodKind.UserDefinedOperator => MethodKind.UserDefinedOperator,
+            Microsoft.CodeAnalysis.MethodKind.Ordinary => MethodKind.Ordinary,
+            Microsoft.CodeAnalysis.MethodKind.PropertyGet => MethodKind.PropertyGet,
+            Microsoft.CodeAnalysis.MethodKind.PropertySet => MethodKind.PropertySet,
+            Microsoft.CodeAnalysis.MethodKind.ReducedExtension => MethodKind.ReducedExtension,
+            Microsoft.CodeAnalysis.MethodKind.StaticConstructor => MethodKind.StaticConstructor,
+            Microsoft.CodeAnalysis.MethodKind.BuiltinOperator => MethodKind.BuiltinOperator,
+            Microsoft.CodeAnalysis.MethodKind.DeclareMethod => MethodKind.DeclareMethod,
+            Microsoft.CodeAnalysis.MethodKind.LocalFunction => MethodKind.LocalFunction,
+            Microsoft.CodeAnalysis.MethodKind.FunctionPointerSignature => MethodKind.FunctionPointerSignature,
+            _ => MethodKind.Invalid
         };
     }
 
-    public static HelNullabilityCS ToHelvegNullability(this NullableAnnotation value)
+    public static TypeNullability ToHelvegNullability(this NullableAnnotation value)
     {
         return value switch
         {
-            NullableAnnotation.None => HelNullabilityCS.None,
-            NullableAnnotation.NotAnnotated => HelNullabilityCS.NotAnnotated,
-            NullableAnnotation.Annotated => HelNullabilityCS.Annotated,
-            _ => HelNullabilityCS.None
+            NullableAnnotation.None => TypeNullability.None,
+            NullableAnnotation.NotAnnotated => TypeNullability.NotAnnotated,
+            NullableAnnotation.Annotated => TypeNullability.Annotated,
+            _ => TypeNullability.None
         };
     }
 
-    public static HelEntityKindCS GetEntityKind(this ISymbol symbol)
+    public static EntityKind GetEntityKind(this ISymbol symbol)
     {
         return symbol switch
         {
-            IAssemblySymbol => HelEntityKindCS.Assembly,
-            IModuleSymbol => HelEntityKindCS.Module,
-            INamespaceSymbol => HelEntityKindCS.Namespace,
-            ITypeParameterSymbol => HelEntityKindCS.TypeParameter,
-            IFieldSymbol => HelEntityKindCS.Field,
-            IEventSymbol => HelEntityKindCS.Event,
-            IPropertySymbol => HelEntityKindCS.Property,
-            IMethodSymbol => HelEntityKindCS.Method,
-            INamedTypeSymbol => HelEntityKindCS.Type,
-            _ => throw new ArgumentException($"Could not assign {nameof(HelEntityKindCS)} to a Roslyn symbol of type " +
+            IAssemblySymbol => EntityKind.Assembly,
+            IModuleSymbol => EntityKind.Module,
+            INamespaceSymbol => EntityKind.Namespace,
+            ITypeParameterSymbol => EntityKind.TypeParameter,
+            IFieldSymbol => EntityKind.Field,
+            IEventSymbol => EntityKind.Event,
+            IPropertySymbol => EntityKind.Property,
+            IMethodSymbol => EntityKind.Method,
+            INamedTypeSymbol => EntityKind.Type,
+            _ => throw new ArgumentException($"Could not assign {nameof(EntityKind)} to a Roslyn symbol of type " +
                 $"'{symbol.GetType()}'.")
         };
     }

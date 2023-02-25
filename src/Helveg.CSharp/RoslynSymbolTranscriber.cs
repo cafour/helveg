@@ -30,19 +30,19 @@ internal class RoslynSymbolTranscriber
         this.visitor = visitor;
     }
 
-    public async Task<HelProjectCS> Transcribe(CancellationToken cancellationToken = default)
+    public async Task<ProjectDefinition> Transcribe(CancellationToken cancellationToken = default)
     {
         var compilation = await project.GetCompilationAsync(cancellationToken);
         if (compilation is null)
         {
-            return HelProjectCS.Invalid;
+            return ProjectDefinition.Invalid;
         }
 
         this.compilation = compilation;
 
-        var helProject = new HelProjectCS
+        var helProject = new ProjectDefinition
         {
-            Token = tokenGenerator.GetToken(HelEntityKindCS.Project),
+            Token = tokenGenerator.GetToken(EntityKind.Project),
             Name = project.Name,
             FullName = project.FilePath,
         };
@@ -83,10 +83,10 @@ internal class RoslynSymbolTranscriber
         }
     }
 
-    private HelAssemblyCS GetAssembly(IAssemblySymbol assembly)
+    private AssemblyDefinition GetAssembly(IAssemblySymbol assembly)
     {
         visitor.Visit(assembly);
-        var helAssembly = new HelAssemblyCS
+        var helAssembly = new AssemblyDefinition
         {
             Token = RequireSymbolToken(assembly),
             Name = assembly.Name,
@@ -101,9 +101,9 @@ internal class RoslynSymbolTranscriber
         };
     }
 
-    private HelModuleCS GetModule(IModuleSymbol module, HelAssemblyReferenceCS containingAssembly)
+    private ModuleDefinition GetModule(IModuleSymbol module, AssemblyReference containingAssembly)
     {
-        var helModule = new HelModuleCS
+        var helModule = new ModuleDefinition
         {
             Token = RequireSymbolToken(module),
             ReferencedAssemblies = module.ReferencedAssemblySymbols
@@ -118,9 +118,9 @@ internal class RoslynSymbolTranscriber
         };
     }
 
-    private HelNamespaceCS GetNamespace(INamespaceSymbol @namespace, HelModuleReferenceCS containingModule)
+    private NamespaceDefinition GetNamespace(INamespaceSymbol @namespace, ModuleReference containingModule)
     {
-        var helNamespace = new HelNamespaceCS
+        var helNamespace = new NamespaceDefinition
         {
             Token = RequireSymbolToken(@namespace),
             Name = @namespace.Name,
@@ -138,17 +138,17 @@ internal class RoslynSymbolTranscriber
         };
     }
 
-    private HelTypeCS GetType(INamedTypeSymbol type,
-        HelNamespaceReferenceCS containingNamespace,
-        HelTypeReferenceCS? containingType = null)
+    private TypeDefinition GetType(INamedTypeSymbol type,
+        NamespaceReference containingNamespace,
+        TypeReference? containingType = null)
     {
         if (!type.IsOriginalDefinition())
         {
             throw new ArgumentException("Only the original definition of a type symbol " +
-                $"can be turned into a {nameof(HelTypeCS)}.");
+                $"can be turned into a {nameof(TypeDefinition)}.");
         }
 
-        var helType = new HelTypeCS
+        var helType = new TypeDefinition
         {
             Token = RequireSymbolToken(type),
             ContainingNamespace = containingNamespace,
@@ -205,12 +205,12 @@ internal class RoslynSymbolTranscriber
         };
     }
 
-    private HelTypeParameterCS GetTypeParameter(
+    private TypeParameterDefinition GetTypeParameter(
         ITypeParameterSymbol symbol,
-        HelTypeReferenceCS? declaringType,
-        HelMethodReferenceCS? declaringMethod,
-        HelTypeReferenceCS containingType,
-        HelNamespaceReferenceCS containingNamespace)
+        TypeReference? declaringType,
+        MethodReference? declaringMethod,
+        TypeReference containingType,
+        NamespaceReference containingNamespace)
     {
         if (declaringType is null && declaringMethod is null)
         {
@@ -218,7 +218,7 @@ internal class RoslynSymbolTranscriber
                 "must not be null.");
         }
 
-        var helTypeParameter = new HelTypeParameterCS
+        var helTypeParameter = new TypeParameterDefinition
         {
             Token = RequireSymbolToken(symbol),
             Name = symbol.Name,
@@ -232,12 +232,12 @@ internal class RoslynSymbolTranscriber
         return helTypeParameter;
     }
 
-    private HelEventCS GetEvent(
+    private EventDefinition GetEvent(
         IEventSymbol symbol,
-        HelTypeReferenceCS containingType,
-        HelNamespaceReferenceCS containingNamespace)
+        TypeReference containingType,
+        NamespaceReference containingNamespace)
     {
-        var helEvent = new HelEventCS
+        var helEvent = new EventDefinition
         {
             Token = RequireSymbolToken(symbol),
             EventType = GetTypeReference(symbol.Type),
@@ -251,12 +251,12 @@ internal class RoslynSymbolTranscriber
         return PopulateMember(symbol, helEvent);
     }
 
-    private HelFieldCS GetField(
+    private FieldDefinition GetField(
         IFieldSymbol symbol,
-        HelTypeReferenceCS containingType,
-        HelNamespaceReferenceCS containingNamespace)
+        TypeReference containingType,
+        NamespaceReference containingNamespace)
     {
-        var helField = new HelFieldCS
+        var helField = new FieldDefinition
         {
             Token = RequireSymbolToken(symbol),
             FieldType = GetTypeReference(symbol.Type),
@@ -278,12 +278,12 @@ internal class RoslynSymbolTranscriber
         return PopulateMember(symbol, helField);
     }
 
-    private HelPropertyCS GetProperty(
+    private PropertyDefinition GetProperty(
         IPropertySymbol symbol,
-        HelTypeReferenceCS containingType,
-        HelNamespaceReferenceCS containingNamespace)
+        TypeReference containingType,
+        NamespaceReference containingNamespace)
     {
-        var helProperty = new HelPropertyCS
+        var helProperty = new PropertyDefinition
         {
             Token = RequireSymbolToken(symbol),
             PropertyType = GetTypeReference(symbol.Type),
@@ -309,18 +309,18 @@ internal class RoslynSymbolTranscriber
         };
     }
 
-    private HelMethodCS GetMethod(
+    private MethodDefinition GetMethod(
         IMethodSymbol symbol,
-        HelTypeReferenceCS containingType,
-        HelNamespaceReferenceCS containingNamespace)
+        TypeReference containingType,
+        NamespaceReference containingNamespace)
     {
         if (!symbol.IsOriginalDefinition())
         {
             throw new ArgumentException("Only the original definition of a method " +
-                $"can be turned into a {nameof(HelMethodCS)}.");
+                $"can be turned into a {nameof(MethodDefinition)}.");
         }
 
-        var helMethod = new HelMethodCS
+        var helMethod = new MethodDefinition
         {
             Token = RequireSymbolToken(symbol),
             AssociatedEvent = symbol.AssociatedSymbol is not null && symbol.AssociatedSymbol is IEventSymbol e
@@ -358,12 +358,12 @@ internal class RoslynSymbolTranscriber
         };
     }
 
-    private HelParameterCS GetParameter(
+    private ParameterDefinition GetParameter(
         IParameterSymbol symbol,
-        HelMethodReferenceCS? declaringMethod,
-        HelPropertyReferenceCS? declaringProperty)
+        MethodReference? declaringMethod,
+        PropertyReference? declaringProperty)
     {
-        var helParameter = new HelParameterCS
+        var helParameter = new ParameterDefinition
         {
             Token = RequireSymbolToken(symbol),
             Name = symbol.Name,
@@ -383,7 +383,7 @@ internal class RoslynSymbolTranscriber
     }
 
     private TMember PopulateMember<TMember>(ISymbol symbol, TMember helMember)
-        where TMember : HelMemberCS
+        where TMember : MemberDefinition
     {
         return helMember with
         {
@@ -400,9 +400,9 @@ internal class RoslynSymbolTranscriber
         };
     }
 
-    private HelAssemblyReferenceCS GetAssemblyReference(IAssemblySymbol symbol)
+    private AssemblyReference GetAssemblyReference(IAssemblySymbol symbol)
     {
-        var reference = new HelAssemblyReferenceCS
+        var reference = new AssemblyReference
         {
             Token = GetSymbolToken(symbol),
             Hint = symbol.ToDisplayString()
@@ -410,9 +410,9 @@ internal class RoslynSymbolTranscriber
         return reference;
     }
 
-    private HelModuleReferenceCS GetModuleReference(IModuleSymbol symbol)
+    private ModuleReference GetModuleReference(IModuleSymbol symbol)
     {
-        var reference = new HelModuleReferenceCS
+        var reference = new ModuleReference
         {
             Token = GetSymbolToken(symbol),
             Hint = symbol.ToDisplayString()
@@ -420,14 +420,14 @@ internal class RoslynSymbolTranscriber
         return reference;
     }
 
-    private HelNamespaceReferenceCS GetNamespaceReference(INamespaceSymbol symbol)
+    private NamespaceReference GetNamespaceReference(INamespaceSymbol symbol)
     {
         if (symbol.NamespaceKind != NamespaceKind.Module)
         {
-            throw new ArgumentException($"Only 'module' namespaces can be turned into a {nameof(HelNamespaceReferenceCS)}.");
+            throw new ArgumentException($"Only 'module' namespaces can be turned into a {nameof(NamespaceReference)}.");
         }
 
-        var reference = new HelNamespaceReferenceCS
+        var reference = new NamespaceReference
         {
             Token = GetSymbolToken(symbol),
             Hint = symbol.ToDisplayString()
@@ -435,26 +435,26 @@ internal class RoslynSymbolTranscriber
         return reference;
     }
 
-    private HelTypeReferenceCS GetTypeReference(ITypeSymbol symbol)
+    private TypeReference GetTypeReference(ITypeSymbol symbol)
     {
-        HelTypeReferenceCS? reference;
+        TypeReference? reference;
         // TODO: IDynamicTypeSymbol
         // TODO: IErrorTypeSymbol
         switch (symbol)
         {
             case IArrayTypeSymbol arrayType:
                 var arrayToken = RequireSymbolToken(compilation.GetSpecialType(SpecialType.System_Array));
-                reference = new HelArrayTypeCS
+                reference = new ArrayTypeReference
                 {
                     Token = arrayToken,
                     ElementType = GetTypeReference(arrayType.ElementType),
-                    TypeKind = HelTypeKindCS.Array,
+                    TypeKind = TypeKind.Array,
                     Sizes = arrayType.Sizes,
                     Rank = arrayType.Rank,
                 };
                 break;
             case INamedTypeSymbol namedType:
-                reference = new HelTypeReferenceCS
+                reference = new TypeReference
                 {
                     Token = GetSymbolToken(symbol),
                 };
@@ -470,7 +470,7 @@ internal class RoslynSymbolTranscriber
                 break;
             case IFunctionPointerTypeSymbol fpType:
                 var fnPtrToken = RequireSymbolToken(compilation.GetSpecialType(SpecialType.System_IntPtr));
-                reference = new HelFunctionPointerTypeCS
+                reference = new FunctionPointerTypeReference
                 {
                     Token = fnPtrToken,
                     Signature = GetMethodReference(fpType.Signature)
@@ -478,21 +478,21 @@ internal class RoslynSymbolTranscriber
                 break;
             case IPointerTypeSymbol pointerType:
                 var intPtrToken = RequireSymbolToken(compilation.GetSpecialType(SpecialType.System_IntPtr));
-                reference = new HelPointerTypeCS
+                reference = new PointerTypeReference
                 {
                     Token = intPtrToken,
                     PointedAtType = GetTypeReference(pointerType.PointedAtType)
                 };
                 break;
             case ITypeParameterSymbol typeParameter:
-                reference = new HelTypeParameterReferenceCS
+                reference = new TypeParameterReference
                 {
                     Token = GetSymbolToken(typeParameter)
                 };
                 break;
 
             default:
-                reference = HelTypeReferenceCS.Invalid;
+                reference = TypeReference.Invalid;
                 break;
         }
         reference = reference with
@@ -504,15 +504,15 @@ internal class RoslynSymbolTranscriber
         return reference;
     }
 
-    private HelMethodReferenceCS GetMethodReference(IMethodSymbol symbol)
+    private MethodReference GetMethodReference(IMethodSymbol symbol)
     {
         var isOriginal = symbol.IsOriginalDefinition();
 
-        var reference = new HelMethodReferenceCS
+        var reference = new MethodReference
         {
             Token = GetSymbolToken(symbol),
             TypeArguments = isOriginal
-                ? ImmutableArray<HelTypeReferenceCS>.Empty
+                ? ImmutableArray<TypeReference>.Empty
                 : symbol.TypeArguments
                     .Select(GetTypeReference)
                     .ToImmutableArray(),
@@ -521,41 +521,41 @@ internal class RoslynSymbolTranscriber
         return reference;
     }
 
-    private HelEventReferenceCS GetEventReference(IEventSymbol symbol)
+    private EventReference GetEventReference(IEventSymbol symbol)
     {
-        var reference = new HelEventReferenceCS
+        var reference = new EventReference
         {
             Token = GetSymbolToken(symbol)
         };
         return reference;
     }
 
-    private HelPropertyReferenceCS GetPropertyReference(IPropertySymbol symbol)
+    private PropertyReference GetPropertyReference(IPropertySymbol symbol)
     {
-        var reference = new HelPropertyReferenceCS
+        var reference = new PropertyReference
         {
             Token = GetSymbolToken(symbol)
         };
         return reference;
     }
 
-    private HelFieldReferenceCS GetFieldReference(IFieldSymbol symbol)
+    private FieldReference GetFieldReference(IFieldSymbol symbol)
     {
-        var reference = new HelFieldReferenceCS
+        var reference = new FieldReference
         {
             Token = GetSymbolToken(symbol)
         };
         return reference;
     }
 
-    private HelEntityTokenCS GetSymbolToken(ISymbol symbol)
+    private EntityToken GetSymbolToken(ISymbol symbol)
     {
         return visitor.Tokens.TryGetValue(symbol, out var token)
             ? token
-            : HelEntityTokenCS.CreateError(symbol.GetEntityKind());
+            : EntityToken.CreateError(symbol.GetEntityKind());
     }
 
-    private HelEntityTokenCS RequireSymbolToken(ISymbol symbol)
+    private EntityToken RequireSymbolToken(ISymbol symbol)
     {
         return visitor.Tokens.TryGetValue(symbol, out var token)
             ? token

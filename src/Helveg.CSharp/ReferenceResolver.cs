@@ -9,9 +9,9 @@ namespace Helveg.CSharp;
 
 public class ReferenceResolver
 {
-    private readonly HelSolutionCS solution;
+    private readonly SolutionDefinition solution;
 
-    public ReferenceResolver(HelSolutionCS solution)
+    public ReferenceResolver(SolutionDefinition solution)
     {
         this.solution = solution;
     }
