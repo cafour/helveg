@@ -5,12 +5,14 @@ namespace Helveg.CSharp;
 
 public record ProjectReference : EntityReference, IInvalidable<ProjectReference>
 {
-    public static ProjectReference Invalid { get; } = new();
+    public static ProjectReference Invalid { get; }
+        = new() { Token = EntityToken.CreateError(EntityKind.Project) };
 }
 
 public record ProjectDefinition : EntityDefinition, IInvalidable<ProjectDefinition>
 {
-    public static ProjectDefinition Invalid { get; } = new();
+    public static ProjectDefinition Invalid { get; }
+        = new() { Token = EntityToken.CreateError(EntityKind.Project) };
 
     /// <summary>
     /// The FullName of the project file.
@@ -22,6 +24,9 @@ public record ProjectDefinition : EntityDefinition, IInvalidable<ProjectDefiniti
 
     public ImmutableArray<ProjectReference> PackageDependencies { get; init; }
         = ImmutableArray<ProjectReference>.Empty;
+
+    public ImmutableArray<ExternalDependencyReference> ExternalDependencies { get; init; }
+        = ImmutableArray<ExternalDependencyReference>.Empty;
 
     public AssemblyDefinition Assembly { get; init; } = AssemblyDefinition.Invalid;
 

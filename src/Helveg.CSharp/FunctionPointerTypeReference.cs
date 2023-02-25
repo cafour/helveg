@@ -9,7 +9,8 @@ namespace Helveg.CSharp;
 
 public record FunctionPointerTypeReference : TypeReference, IInvalidable<FunctionPointerTypeReference>
 {
-    public new static FunctionPointerTypeReference Invalid { get; } = new();
+    public new static FunctionPointerTypeReference Invalid { get; }
+        = new() { Token = EntityToken.CreateError(EntityKind.Type) };
 
     public override TypeKind TypeKind => TypeKind.FunctionPointer;
 

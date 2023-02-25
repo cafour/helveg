@@ -4,12 +4,14 @@ namespace Helveg.CSharp;
 
 public record EventReference : EntityReference, IInvalidable<EventReference>
 {
-    public static EventReference Invalid { get; } = new();
+    public static EventReference Invalid { get; }
+        = new() { Token = EntityToken.CreateError(EntityKind.Event) };
 }
 
 public record EventDefinition : MemberDefinition, IInvalidable<EventDefinition>
 {
-    public static EventDefinition Invalid { get; } = new();
+    public static EventDefinition Invalid { get; }
+        = new() { Token = EntityToken.CreateError(EntityKind.Event) };
 
     public TypeReference EventType { get; init; } = TypeReference.Invalid;
 

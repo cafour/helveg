@@ -12,7 +12,7 @@ public interface IEntityDefinition
 
     string Name { get; }
 
-    bool IsInvalid => Name == InvalidName;
+    bool IsInvalid => Token.IsError || Name == InvalidName;
 
     EntityToken Token { get; }
 

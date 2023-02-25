@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Helveg.CSharp;
 
-public interface EntityWorkspaceProvider
+public interface IEntityWorkspaceProvider
 {
     Task<EntityWorkspace> GetWorkspace(string path, CancellationToken cancellationToken = default);
 }

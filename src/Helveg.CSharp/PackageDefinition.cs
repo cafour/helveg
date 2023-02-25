@@ -6,12 +6,14 @@ namespace Helveg.CSharp;
 
 public record PackageReference : EntityReference, IInvalidable<PackageReference>
 {
-    public static PackageReference Invalid { get; } = new();
+    public static PackageReference Invalid { get; }
+        = new() { Token = EntityToken.CreateError(EntityKind.Package) };
 }
 
 public record PackageDefinition : EntityDefinition, IInvalidable<PackageDefinition>
 {
-    public static PackageDefinition Invalid { get; } = new();
+    public static PackageDefinition Invalid { get; }
+        = new() { Token = EntityToken.CreateError(EntityKind.Package) };
 
     public string? Version { get; init; }
 

@@ -5,12 +5,14 @@ namespace Helveg.CSharp;
 
 public record PropertyReference : EntityReference, IInvalidable<PropertyReference>
 {
-    public static PropertyReference Invalid { get; } = new();
+    public static PropertyReference Invalid { get; }
+        = new() { Token = EntityToken.CreateError(EntityKind.Property) };
 }
 
 public record PropertyDefinition : MemberDefinition, IInvalidable<PropertyDefinition>
 {
-    public static PropertyDefinition Invalid { get; } = new();
+    public static PropertyDefinition Invalid { get; }
+        = new() { Token = EntityToken.CreateError(EntityKind.Property) };
 
     public TypeReference PropertyType { get; init; } = TypeReference.Invalid;
 

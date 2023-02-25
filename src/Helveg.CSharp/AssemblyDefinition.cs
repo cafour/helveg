@@ -5,12 +5,14 @@ namespace Helveg.CSharp;
 
 public record AssemblyReference : EntityReference, IInvalidable<AssemblyReference>
 {
-    public static AssemblyReference Invalid { get; } = new();
+    public static AssemblyReference Invalid { get; }
+        = new() { Token = EntityToken.CreateError(EntityKind.Assembly) };
 }
 
 public record AssemblyDefinition : EntityDefinition, IInvalidable<AssemblyDefinition>
 {
-    public static AssemblyDefinition Invalid { get; } = new();
+    public static AssemblyDefinition Invalid { get; }
+        = new() { Token = EntityToken.CreateError(EntityKind.Assembly) };
 
     public AssemblyId Identity { get; init; } = AssemblyId.Invalid;
 

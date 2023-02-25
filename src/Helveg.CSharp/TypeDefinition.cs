@@ -5,7 +5,8 @@ namespace Helveg.CSharp;
 
 public record TypeReference : EntityReference, IInvalidable<TypeReference>
 {
-    public static TypeReference Invalid { get; } = new();
+    public static TypeReference Invalid { get; }
+        = new() { Token = EntityToken.CreateError(EntityKind.Type) };
 
     public virtual TypeKind TypeKind { get; init; }
 
@@ -17,7 +18,8 @@ public record TypeReference : EntityReference, IInvalidable<TypeReference>
 
 public record TypeDefinition : MemberDefinition, IInvalidable<TypeDefinition>
 {
-    public static TypeDefinition Invalid { get; } = new();
+    public static TypeDefinition Invalid { get; }
+        = new() { Token = EntityToken.CreateError(EntityKind.Type) };
 
     public ImmutableArray<PropertyDefinition> Properties { get; init; } = ImmutableArray<PropertyDefinition>.Empty;
 

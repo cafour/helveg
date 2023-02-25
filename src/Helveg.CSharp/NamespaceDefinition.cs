@@ -8,12 +8,14 @@ namespace Helveg.CSharp;
 
 public record NamespaceReference : EntityReference, IInvalidable<NamespaceReference>
 {
-    public static NamespaceReference Invalid { get; } = new();
+    public static NamespaceReference Invalid { get; }
+        = new() { Token = EntityToken.CreateError(EntityKind.Namespace) };
 }
 
 public record NamespaceDefinition : EntityDefinition, IInvalidable<NamespaceDefinition>
 {
-    public static NamespaceDefinition Invalid { get; } = new();
+    public static NamespaceDefinition Invalid { get; }
+        = new() { Token = EntityToken.CreateError(EntityKind.Namespace) };
 
     public ImmutableArray<TypeDefinition> Types { get; init; } = ImmutableArray<TypeDefinition>.Empty;
 

@@ -7,7 +7,8 @@ namespace Helveg.CSharp;
 
 public record MethodReference : EntityReference, IInvalidable<MethodReference>
 {
-    public static MethodReference Invalid { get; } = new();
+    public static MethodReference Invalid { get; }
+        = new() { Token = EntityToken.CreateError(EntityKind.Method) };
 
     public ImmutableArray<TypeReference> TypeArguments { get; init; }
         = ImmutableArray<TypeReference>.Empty;
@@ -18,7 +19,8 @@ public record MethodDefinition : MemberDefinition, IInvalidable<MethodDefinition
     public const string ConstructorName = ".ctor";
     public const string StaticConstructorName = ".cctor";
 
-    public static MethodDefinition Invalid { get; } = new();
+    public static MethodDefinition Invalid { get; }
+        = new() { Token = EntityToken.CreateError(EntityKind.Method) };
 
     public MethodKind MethodKind { get; init; }
 

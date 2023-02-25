@@ -6,9 +6,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Helveg.CSharp;
+namespace Helveg.CSharp.Roslyn;
 
-public class RoslynSymbolEntityLocator
+internal class RoslynSymbolEntityLocator
 {
     public ConcurrentDictionary<EntityToken, ISymbol> UnderlyingSymbols { get; } = new();
 

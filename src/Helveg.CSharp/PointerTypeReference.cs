@@ -9,7 +9,8 @@ namespace Helveg.CSharp;
 
 public record PointerTypeReference : TypeReference, IInvalidable<PointerTypeReference>
 {
-    public static new PointerTypeReference Invalid { get; } = new();
+    public static new PointerTypeReference Invalid { get; }
+        = new() { Token = EntityToken.CreateError(EntityKind.Type) };
 
     public override TypeKind TypeKind => TypeKind.Pointer;
 

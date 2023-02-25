@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Helveg.CSharp;
+namespace Helveg.CSharp.Roslyn;
 
 /// <summary>
 /// A Roslyn <see cref="SymbolVisitor"/> that assigns <see cref="EntityToken"/>s to all symbol definitions
@@ -136,5 +136,20 @@ internal class RoslynEntityTokenSymbolVisitor : SymbolVisitor
     public override void VisitTypeParameter(ITypeParameterSymbol symbol)
     {
         Tokens.AddOrUpdate(symbol, _ => gen.GetToken(EntityKind.TypeParameter), (_, e) => e);
+    }
+
+    public EntityToken GetSymbolToken(ISymbol symbol)
+    {
+        return Tokens.TryGetValue(symbol, out var token)
+            ? token
+            : EntityToken.CreateError(symbol.GetEntityKind());
+    }
+
+    public EntityToken RequireSymbolToken(ISymbol symbol)
+    {
+        return Tokens.TryGetValue(symbol, out var token)
+            ? token
+            : throw new InvalidOperationException($"Symbol '{symbol}' does not have a token even though it is " +
+                $"required. This could be a bug in {nameof(RoslynEntityTokenSymbolVisitor)}.");
     }
 }

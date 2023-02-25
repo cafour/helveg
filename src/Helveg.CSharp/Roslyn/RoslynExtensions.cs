@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Helveg.CSharp;
+namespace Helveg.CSharp.Roslyn;
 
 internal static class RoslynExtensions
 {

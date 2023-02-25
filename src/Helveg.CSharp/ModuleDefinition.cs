@@ -5,12 +5,14 @@ namespace Helveg.CSharp;
 
 public record ModuleReference : EntityReference, IInvalidable<ModuleReference>
 {
-    public static ModuleReference Invalid { get; } = new();
+    public static ModuleReference Invalid { get; }
+        = new() { Token = EntityToken.CreateError(EntityKind.Module) };
 }
 
 public record ModuleDefinition : EntityDefinition, IInvalidable<ModuleDefinition>
 {
-    public static ModuleDefinition Invalid { get; } = new();
+    public static ModuleDefinition Invalid { get; }
+        = new() { Token = EntityToken.CreateError(EntityKind.Module) };
 
     public NamespaceDefinition GlobalNamespace { get; init; } = NamespaceDefinition.Invalid;
 

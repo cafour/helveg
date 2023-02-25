@@ -4,12 +4,14 @@ namespace Helveg.CSharp;
 
 public record ParameterReference : EntityReference, IInvalidable<ParameterReference>
 {
-    public static ParameterReference Invalid { get; } = new();
+    public static ParameterReference Invalid { get; }
+        = new() { Token = EntityToken.CreateError(EntityKind.Parameter) };
 }
 
 public record ParameterDefinition : EntityDefinition, IInvalidable<ParameterDefinition>
 {
-    public static ParameterDefinition Invalid { get; } = new();
+    public static ParameterDefinition Invalid { get; }
+        = new() { Token = EntityToken.CreateError(EntityKind.Parameter) };
 
     public TypeReference ParameterType { get; set; } = TypeReference.Invalid;
 

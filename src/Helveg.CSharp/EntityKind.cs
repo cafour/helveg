@@ -18,6 +18,8 @@ public enum EntityKind
     Unknown = 0,
     Solution,
     Project,
+    Package,
+    ExternalDependency,
     Assembly,
     Module,
     Namespace,

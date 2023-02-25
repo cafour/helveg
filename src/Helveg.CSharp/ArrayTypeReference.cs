@@ -10,7 +10,8 @@ namespace Helveg.CSharp;
 
 public record ArrayTypeReference : TypeReference, IInvalidable<ArrayTypeReference>
 {
-    public new static ArrayTypeReference Invalid { get; } = new();
+    public new static ArrayTypeReference Invalid { get; }
+        = new() { Token = EntityToken.CreateError(EntityKind.Type) };
 
     public override TypeKind TypeKind => TypeKind.Array;
 
