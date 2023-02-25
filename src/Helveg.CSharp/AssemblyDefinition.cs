@@ -1,5 +1,7 @@
 using Helveg.Abstractions;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 
 namespace Helveg.CSharp;
 
@@ -25,5 +27,10 @@ public record AssemblyDefinition : EntityDefinition, IInvalidable<AssemblyDefini
     public override AssemblyReference GetReference()
     {
         return new() { Token = Token };
+    }
+
+    public IEnumerable<TypeDefinition> GetAllTypes()
+    {
+        return Modules.SelectMany(m => m.GetAllTypes());
     }
 }

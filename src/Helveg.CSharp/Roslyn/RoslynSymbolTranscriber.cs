@@ -139,6 +139,7 @@ internal class RoslynSymbolTranscriber
         var helType = new TypeDefinition
         {
             Token = visitor.RequireSymbolToken(type),
+            MetadataName = type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
             ContainingNamespace = containingNamespace,
             ContainingType = containingType,
             TypeKind = type.TypeKind.ToHelvegTypeKind(),

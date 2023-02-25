@@ -2,7 +2,9 @@
 using Microsoft.Build.Locator;
 using System;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace Helveg.Playground;
@@ -16,11 +18,27 @@ public static class Program
         if (workspace is not null)
         {
             Console.WriteLine(workspace);
+
+            var typeCounts = workspace.Solution.Projects
+                .Select(p => p.Assembly)
+                .SelectMany(a => a.GetAllTypes())
+                .Concat(workspace.Solution.ExternalDependencies
+                    .Select(e => e.Assembly)
+                    .SelectMany(a => a.GetAllTypes()))
+                .GroupBy(t => t.MetadataName)
+                .Select(t => (name: t.Key, count: t.Count()))
+                .OrderBy(p => p.count);
+            foreach(var typeCount in typeCounts)
+            {
+                Console.WriteLine($"{typeCount.count}\t{typeCount.name}");
+            }
+
             using var stream = new FileStream("./analysis.json", FileMode.Create, FileAccess.ReadWrite);
             var options = new JsonSerializerOptions
             {
                 WriteIndented = true
             };
+            options.Converters.Add(new JsonStringEnumConverter());
             await JsonSerializer.SerializeAsync(stream, workspace, options);
         }
     }

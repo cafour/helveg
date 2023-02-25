@@ -26,8 +26,13 @@ public class DefaultEntityWorkspaceProvider : IEntityWorkspaceProvider
         symbolVisitor = new(tokenGenerator);
     }
 
-    public async Task<EntityWorkspace> GetWorkspace(string path, CancellationToken cancellationToken = default)
+    public async Task<EntityWorkspace> GetWorkspace(
+        string path,
+        EntityWorkspaceAnalysisOptions? options = default,
+        CancellationToken cancellationToken = default)
     {
+        options ??= EntityWorkspaceAnalysisOptions.Default;
+
         var workspace = MSBuildWorkspace.Create();
         await workspace.OpenSolutionAsync(path, cancellationToken: cancellationToken);
 
@@ -35,13 +40,16 @@ public class DefaultEntityWorkspaceProvider : IEntityWorkspaceProvider
 
         return new EntityWorkspace
         {
-            Solution = await GetSolution(workspace.CurrentSolution, cancellationToken),
+            Solution = await GetSolution(workspace.CurrentSolution, options, cancellationToken),
             CreatedAt = DateTimeOffset.UtcNow,
             Name = Path.GetFileNameWithoutExtension(path)
         };
     }
 
-    private async Task<SolutionDefinition> GetSolution(Solution solution, CancellationToken cancellationToken = default)
+    private async Task<SolutionDefinition> GetSolution(
+        Solution solution,
+        EntityWorkspaceAnalysisOptions options,
+        CancellationToken cancellationToken = default)
     {
         var helSolution = new SolutionDefinition
         {
@@ -57,13 +65,22 @@ public class DefaultEntityWorkspaceProvider : IEntityWorkspaceProvider
             .Select(p => p with { ContainingSolution = helSolution.GetReference() })
             .ToImmutableArray();
 
-        return helSolution with
+        helSolution = helSolution with
         {
-            Projects = projects,
-            ExternalDependencies = externalDependencies.Values
+            Projects = projects
+        };
+
+        if (options.IncludeExternalDepedencies)
+        {
+            helSolution = helSolution with
+            {
+                ExternalDependencies = externalDependencies.Values
                 .Select(e => e with { ContainingSolution = helSolution.GetReference() })
                 .ToImmutableArray()
-        };
+            };
+        }
+
+        return helSolution;
     }
 
     private async Task<ProjectDefinition> GetProject(

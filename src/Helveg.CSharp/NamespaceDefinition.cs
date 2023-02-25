@@ -31,4 +31,11 @@ public record NamespaceDefinition : EntityDefinition, IInvalidable<NamespaceDefi
     {
         return new() { Token = Token };
     }
+
+    public IEnumerable<TypeDefinition> GetAllTypes()
+    {
+        return Types
+            .Concat(Types.SelectMany(t => t.NestedTypes))
+            .Concat(Namespaces.SelectMany(n => n.GetAllTypes()));
+    }
 }

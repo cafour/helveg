@@ -21,6 +21,8 @@ public record TypeDefinition : MemberDefinition, IInvalidable<TypeDefinition>
     public static TypeDefinition Invalid { get; }
         = new() { Token = EntityToken.CreateError(EntityKind.Type) };
 
+    public string MetadataName { get; init; } = IEntityDefinition.InvalidName;
+
     public ImmutableArray<PropertyDefinition> Properties { get; init; } = ImmutableArray<PropertyDefinition>.Empty;
 
     public ImmutableArray<FieldDefinition> Fields { get; init; } = ImmutableArray<FieldDefinition>.Empty;

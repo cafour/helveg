@@ -5,5 +5,8 @@ namespace Helveg.CSharp;
 
 public interface IEntityWorkspaceProvider
 {
-    Task<EntityWorkspace> GetWorkspace(string path, CancellationToken cancellationToken = default);
+    Task<EntityWorkspace> GetWorkspace(
+        string path,
+        EntityWorkspaceAnalysisOptions? options = null,
+        CancellationToken cancellationToken = default);
 }
