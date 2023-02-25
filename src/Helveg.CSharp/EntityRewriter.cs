@@ -10,7 +10,7 @@ namespace Helveg.CSharp;
 /// <summary>
 /// A visitor of the entity tree that can make changes to the entities.
 /// </summary>
-internal abstract class EntityRewriter
+public abstract class EntityRewriter
 {
     public virtual SolutionDefinition RewriteSolution(SolutionDefinition solution)
     {
