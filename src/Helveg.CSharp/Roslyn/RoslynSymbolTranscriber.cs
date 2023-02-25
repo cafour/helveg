@@ -445,7 +445,7 @@ internal class RoslynSymbolTranscriber
             case INamedTypeSymbol namedType:
                 reference = new TypeReference
                 {
-                    Token = visitor.GetSymbolToken(symbol),
+                    Token = visitor.GetSymbolToken(symbol.OriginalDefinition),
                 };
                 if (!namedType.IsOriginalDefinition())
                 {

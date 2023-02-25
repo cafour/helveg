@@ -107,11 +107,11 @@ public class DefaultEntityWorkspaceProvider : IEntityWorkspaceProvider
                     var token = documentVisitor.GetProjectToken(r.ProjectId);
                     if (token.IsError)
                     {
-                        return ProjectReference.Invalid with { Hint = r.ToString() };
+                        return ProjectReference.Invalid;
                     }
                     else
                     {
-                        return new ProjectReference { Token = token, Hint = r.ToString() };
+                        return new ProjectReference { Token = token };
                     }
                 })
                 .ToImmutableArray(),
@@ -121,11 +121,11 @@ public class DefaultEntityWorkspaceProvider : IEntityWorkspaceProvider
                     var token = documentVisitor.GetMetadataReferenceToken(r);
                     if (token.IsError)
                     {
-                        return ExternalDependencyReference.Invalid with { Hint = r.ToString() };
+                        return ExternalDependencyReference.Invalid with { Hint = r.Display };
                     }
                     else
                     {
-                        return new ExternalDependencyReference { Token = token, Hint = r.ToString() };
+                        return new ExternalDependencyReference { Token = token, Hint = r.Display };
                     }
                 })
                 .ToImmutableArray()

@@ -28,7 +28,7 @@ public static class Program
                 .GroupBy(t => t.MetadataName)
                 .Select(t => (name: t.Key, count: t.Count()))
                 .OrderBy(p => p.count);
-            foreach(var typeCount in typeCounts)
+            foreach (var typeCount in typeCounts)
             {
                 Console.WriteLine($"{typeCount.count}\t{typeCount.name}");
             }
