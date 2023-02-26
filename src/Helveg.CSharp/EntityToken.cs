@@ -1,6 +1,7 @@
 ﻿using Helveg.Abstractions;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
@@ -13,7 +14,8 @@ namespace Helveg.CSharp;
 /// A structure that uniquely identifies an <see cref="IEntityDefinition"/> in a <see cref="EntityWorkspace"/>.
 /// </summary>
 [JsonConverter(typeof(EntityTokenJsonConverter))]
-public record struct EntityToken(EntityKind Kind, int Id) : IInvalidable<EntityToken>
+[DebuggerDisplay("{ToString(),nq}")]
+public record struct EntityToken : IInvalidable<EntityToken>
 {
     public const string Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
 
@@ -21,27 +23,35 @@ public record struct EntityToken(EntityKind Kind, int Id) : IInvalidable<EntityT
 
     public static EntityToken Invalid { get; } = new(EntityKind.Unknown, ErrorId);
 
+    public EntityKind Kind { get; init; }
+
+    public int Id { get; init; }
+
+    [JsonIgnore]
+    public bool IsError => Id == ErrorId;
+
+    private readonly Lazy<string> encodedValue;
+
+    public EntityToken(EntityKind kind, int id)
+    {
+        Kind = kind;
+        Id = id;
+        encodedValue = new(Encode);
+    }
+
     public static EntityToken CreateError(EntityKind kind)
     {
         return new EntityToken(kind, ErrorId);
     }
 
-    [JsonIgnore]
-    public bool IsError => Id == ErrorId;
+    public static implicit operator string(EntityToken token)
+    {
+        return token.encodedValue.Value;
+    }
 
     public override string ToString()
     {
-        uint id = (uint)Id;
-        var sb = new StringBuilder(Kind.ToString());
-        sb.Append('-');
-        var index = sb.Length;
-        do
-        {
-            sb.Insert(index, Alphabet[(int)(id % 64)]);
-            id /= 64;
-        }
-        while (id != 0);
-        return sb.ToString();
+        return encodedValue.Value;
     }
 
     public static bool TryParse(string value, out EntityToken token)
@@ -69,6 +79,21 @@ public record struct EntityToken(EntityKind Kind, int Id) : IInvalidable<EntityT
 
         token = new(kind, (int)id);
         return true;
+    }
+
+    private string Encode()
+    {
+        uint id = (uint)Id;
+        var sb = new StringBuilder(Kind.ToString());
+        sb.Append('-');
+        var index = sb.Length;
+        do
+        {
+            sb.Insert(index, Alphabet[(int)(id % 64)]);
+            id /= 64;
+        }
+        while (id != 0);
+        return sb.ToString();
     }
 }
 

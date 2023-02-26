@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../Helveg.Abstractions/Helveg.Abstractions.csproj" />
+    <ProjectReference Include="../Helveg.Visualization/Helveg.Visualization.csproj" />
   </ItemGroup>
 
   <ItemGroup>

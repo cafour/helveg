@@ -19,6 +19,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Helveg.Abstractions", "src\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Helveg.Playground", "src\Helveg.Playground\Helveg.Playground.csproj", "{91F82255-EE85-4DAF-AB4C-A8E649EE5716}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Helveg.Visualization", "src\Helveg.Visualization\Helveg.Visualization.csproj", "{10A8EA67-0D49-4EFE-A846-28363CA2B9E2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +43,10 @@ Global
 		{91F82255-EE85-4DAF-AB4C-A8E649EE5716}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{91F82255-EE85-4DAF-AB4C-A8E649EE5716}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{91F82255-EE85-4DAF-AB4C-A8E649EE5716}.Release|Any CPU.Build.0 = Release|Any CPU
+		{10A8EA67-0D49-4EFE-A846-28363CA2B9E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{10A8EA67-0D49-4EFE-A846-28363CA2B9E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{10A8EA67-0D49-4EFE-A846-28363CA2B9E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{10A8EA67-0D49-4EFE-A846-28363CA2B9E2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -50,6 +56,7 @@ Global
 		{E34ACA44-B424-4D49-9B4B-09A58EBC540A} = {3C2301C0-129B-4FAA-8ED5-73E23146E200}
 		{3AB45091-373A-42D8-B13C-2840FD7365A1} = {3C2301C0-129B-4FAA-8ED5-73E23146E200}
 		{91F82255-EE85-4DAF-AB4C-A8E649EE5716} = {3C2301C0-129B-4FAA-8ED5-73E23146E200}
+		{10A8EA67-0D49-4EFE-A846-28363CA2B9E2} = {3C2301C0-129B-4FAA-8ED5-73E23146E200}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {307F2699-A32F-4386-A8D3-2DBE2B0F6B15}

@@ -16,8 +16,10 @@ internal class RoslynEntityTokenSymbolVisitor : SymbolVisitor
 {
     private readonly EntityTokenGenerator gen;
 
+#pragma warning disable RS1024 // Symbols should be compared for equality
     public ConcurrentDictionary<ISymbol, EntityToken> Tokens { get; }
-        = new(SymbolEqualityComparer.Default);
+        = new(new RoslynCrossCompilationSymbolEqualityComparer());
+#pragma warning restore RS1024 // Symbols should be compared for equality
 
     public HashSet<AssemblyIdentity> VisitedAssemblies { get; }
         = new();

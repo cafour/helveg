@@ -61,7 +61,7 @@ public class DefaultEntityWorkspaceProvider : IEntityWorkspaceProvider
         var externalDependencies = new ConcurrentDictionary<EntityToken, ExternalDependencyDefinition>();
 
         var projects = (await Task.WhenAll(solution.Projects
-            .Select(p => GetProject(p, externalDependencies, cancellationToken))))
+            .Select(p => GetProject(p, options, externalDependencies, cancellationToken))))
             .Select(p => p with { ContainingSolution = helSolution.GetReference() })
             .ToImmutableArray();
 
@@ -85,6 +85,7 @@ public class DefaultEntityWorkspaceProvider : IEntityWorkspaceProvider
 
     private async Task<ProjectDefinition> GetProject(
         Project project,
+        EntityWorkspaceAnalysisOptions options,
         ConcurrentDictionary<EntityToken, ExternalDependencyDefinition> externalDependencies,
         CancellationToken cancellationToken = default)
     {
@@ -114,8 +115,13 @@ public class DefaultEntityWorkspaceProvider : IEntityWorkspaceProvider
                         return new ProjectReference { Token = token };
                     }
                 })
-                .ToImmutableArray(),
-            ExternalDependencies = project.MetadataReferences
+                .ToImmutableArray()
+        };
+        if (options.IncludeExternalDepedencies)
+        {
+            helProject = helProject with
+            {
+                ExternalDependencies = project.MetadataReferences
                 .Select(r =>
                 {
                     var token = documentVisitor.GetMetadataReferenceToken(r);
@@ -129,28 +135,29 @@ public class DefaultEntityWorkspaceProvider : IEntityWorkspaceProvider
                     }
                 })
                 .ToImmutableArray()
-        };
+            };
 
-        foreach (var reference in project.MetadataReferences)
-        {
-            var token = documentVisitor.RequireMetadataReferenceToken(reference);
-            externalDependencies.AddOrUpdate(token, _ =>
+            foreach (var reference in project.MetadataReferences)
             {
-                var assembly = transcriber.TranscribeReference(reference);
-                if (assembly is null)
+                var token = documentVisitor.RequireMetadataReferenceToken(reference);
+                externalDependencies.AddOrUpdate(token, _ =>
                 {
-                    return ExternalDependencyDefinition.Invalid with
+                    var assembly = transcriber.TranscribeReference(reference);
+                    if (assembly is null)
                     {
-                        Name = reference.Display ?? IEntityDefinition.InvalidName
+                        return ExternalDependencyDefinition.Invalid with
+                        {
+                            Name = reference.Display ?? IEntityDefinition.InvalidName
+                        };
+                    }
+                    return new ExternalDependencyDefinition
+                    {
+                        Name = reference.Display ?? IEntityDefinition.InvalidName,
+                        Token = token,
+                        Assembly = assembly
                     };
-                }
-                return new ExternalDependencyDefinition
-                {
-                    Name = reference.Display ?? IEntityDefinition.InvalidName,
-                    Token = token,
-                    Assembly = assembly
-                };
-            }, (_, e) => e);
+                }, (_, e) => e);
+            }
         }
 
         return helProject;

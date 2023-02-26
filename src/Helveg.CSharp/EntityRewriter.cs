@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Helveg.CSharp;
 
 /// <summary>
-/// A visitor of the entity tree that can make changes to the entities.
+/// A visitor of the <see cref="EntityDefinition"/> tree that can make changes to the entities.
 /// </summary>
 public abstract class EntityRewriter
 {

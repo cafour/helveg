@@ -8,15 +8,73 @@ using System.Threading.Tasks;
 namespace Helveg.CSharp;
 
 /// <summary>
-/// A visitor of the entity tree.
+/// A visitor of the <see cref="EntityDefinition"/> tree.
 /// </summary>
 public abstract class EntityVisitor
 {
-    public virtual void DefaultVisit(IEntityDefinition entity)
+    public void Visit(EntityWorkspace workspace)
+    {
+        VisitWorkspace(workspace);
+    }
+
+    public void Visit(IEntityDefinition entity)
+    {
+        switch (entity)
+        {
+            case SolutionDefinition solution:
+                VisitSolution(solution);
+                break;
+            case ProjectDefinition project:
+                VisitProject(project);
+                break;
+            case PackageDefinition package:
+                VisitPackage(package);
+                break;
+            case AssemblyDefinition assembly:
+                VisitAssembly(assembly);
+                break;
+            case ModuleDefinition module:
+                VisitModule(module);
+                break;
+            case NamespaceDefinition @namespace:
+                VisitNamespace(@namespace);
+                break;
+            case TypeParameterDefinition typeParameter:
+                VisitTypeParameter(typeParameter);
+                break;
+            case TypeDefinition type:
+                VisitType(type);
+                break;
+            case FieldDefinition field:
+                VisitField(field);
+                break;
+            case EventDefinition @event:
+                VisitEvent(@event);
+                break;
+            case PropertyDefinition property:
+                VisitProperty(property);
+                break;
+            case MethodDefinition method:
+                VisitMethod(method);
+                break;
+            case ParameterDefinition parameter:
+                VisitParameter(parameter);
+                break;
+            default:
+                throw new NotSupportedException($"Entity type '{entity.GetType()}' is not supported.");
+        }
+    }
+
+    protected virtual void DefaultVisit(IEntityDefinition entity)
     {
     }
 
-    public virtual void VisitSolution(SolutionDefinition solution)
+    protected virtual void VisitWorkspace(EntityWorkspace workspace)
+    {
+        VisitSolution(workspace.Solution);
+    }
+
+    protected virtual void VisitSolution(SolutionDefinition solution)
     {
         DefaultVisit(solution);
 
@@ -31,7 +89,7 @@ public abstract class EntityVisitor
         }
     }
 
-    public virtual void VisitPackage(PackageDefinition package)
+    protected virtual void VisitPackage(PackageDefinition package)
     {
         DefaultVisit(package);
 
@@ -41,14 +99,14 @@ public abstract class EntityVisitor
         }
     }
 
-    public virtual void VisitProject(ProjectDefinition project)
+    protected virtual void VisitProject(ProjectDefinition project)
     {
         DefaultVisit(project);
 
         VisitAssembly(project.Assembly);
     }
 
-    public virtual void VisitAssembly(AssemblyDefinition assembly)
+    protected virtual void VisitAssembly(AssemblyDefinition assembly)
     {
         DefaultVisit(assembly);
 
@@ -58,14 +116,14 @@ public abstract class EntityVisitor
         }
     }
 
-    public virtual void VisitModule(ModuleDefinition module)
+    protected virtual void VisitModule(ModuleDefinition module)
     {
         DefaultVisit(module);
 
         VisitNamespace(module.GlobalNamespace);
     }
 
-    public virtual void VisitNamespace(NamespaceDefinition @namespace)
+    protected virtual void VisitNamespace(NamespaceDefinition @namespace)
     {
         DefaultVisit(@namespace);
 
@@ -80,7 +138,7 @@ public abstract class EntityVisitor
         }
     }
 
-    public virtual void VisitType(TypeDefinition type)
+    protected virtual void VisitType(TypeDefinition type)
     {
         DefaultVisit(type);
 
@@ -115,17 +173,17 @@ public abstract class EntityVisitor
         }
     }
 
-    public virtual void VisitField(FieldDefinition field)
+    protected virtual void VisitField(FieldDefinition field)
     {
         DefaultVisit(field);
     }
 
-    public virtual void VisitEvent(EventDefinition @event)
+    protected virtual void VisitEvent(EventDefinition @event)
     {
         DefaultVisit(@event);
     }
 
-    public virtual void VisitProperty(PropertyDefinition property)
+    protected virtual void VisitProperty(PropertyDefinition property)
     {
         DefaultVisit(property);
 
@@ -135,7 +193,7 @@ public abstract class EntityVisitor
         }
     }
 
-    public virtual void VisitMethod(MethodDefinition method)
+    protected virtual void VisitMethod(MethodDefinition method)
     {
         DefaultVisit(method);
 
@@ -150,12 +208,12 @@ public abstract class EntityVisitor
         }
     }
 
-    public virtual void VisitParameter(ParameterDefinition parameter)
+    protected virtual void VisitParameter(ParameterDefinition parameter)
     {
         DefaultVisit(parameter);
     }
 
-    public virtual void VisitTypeParameter(TypeParameterDefinition typeParameter)
+    protected virtual void VisitTypeParameter(TypeParameterDefinition typeParameter)
     {
         DefaultVisit(typeParameter);
     }

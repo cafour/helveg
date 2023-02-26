@@ -33,13 +33,21 @@ public static class Program
                 Console.WriteLine($"{typeCount.count}\t{typeCount.name}");
             }
 
-            using var stream = new FileStream("./analysis.json", FileMode.Create, FileAccess.ReadWrite);
+
+            using var analysisStream = new FileStream("./analysis.json", FileMode.Create, FileAccess.ReadWrite);
             var options = new JsonSerializerOptions
             {
                 WriteIndented = true
             };
             options.Converters.Add(new JsonStringEnumConverter());
-            await JsonSerializer.SerializeAsync(stream, workspace, options);
+            await JsonSerializer.SerializeAsync(analysisStream, workspace, options);
+
+            var visualizationVisitor = new VisualizationEntityVisitor();
+            visualizationVisitor.Visit(workspace);
+            var multigraph = visualizationVisitor.Build();
+
+            using var multigraphStream = new FileStream("./multigraph.json", FileMode.Create, FileAccess.ReadWrite);
+            await JsonSerializer.SerializeAsync(multigraphStream, multigraph, options);
         }
     }
 }
