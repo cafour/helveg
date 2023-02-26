@@ -72,7 +72,8 @@ public record TypeDefinition : MemberDefinition, IInvalidable<TypeDefinition>
         return new TypeReference
         {
             Token = Token,
-            TypeKind = TypeKind
+            TypeKind = TypeKind,
+            Hint = Name
         };
     }
 }

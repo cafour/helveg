@@ -29,7 +29,7 @@ public record NamespaceDefinition : EntityDefinition, IInvalidable<NamespaceDefi
 
     public override NamespaceReference GetReference()
     {
-        return new() { Token = Token };
+        return new() { Token = Token, Hint = Name };
     }
 
     public IEnumerable<TypeDefinition> GetAllTypes()

@@ -24,7 +24,7 @@ public record ModuleDefinition : EntityDefinition, IInvalidable<ModuleDefinition
 
     public override ModuleReference GetReference()
     {
-        return new() { Token = Token };
+        return new() { Token = Token, Hint = Name };
     }
 
     public IEnumerable<TypeDefinition> GetAllTypes()

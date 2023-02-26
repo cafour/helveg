@@ -21,6 +21,6 @@ public record PackageDefinition : EntityDefinition, IInvalidable<PackageDefiniti
 
     public override PackageReference GetReference()
     {
-        return new() { Token = Token };
+        return new() { Token = Token, Hint = Name };
     }
 }

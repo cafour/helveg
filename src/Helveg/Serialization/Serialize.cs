@@ -11,7 +11,10 @@ namespace Helveg.Serialization
 
         static Serialize()
         {
-            JsonOptions = new JsonSerializerOptions();
+            JsonOptions = new JsonSerializerOptions
+            {
+                WriteIndented = true
+            };
             JsonOptions.Converters.Add(new Vector3JsonConverter());
             JsonOptions.Converters.Add(new Vector2JsonConverter());
         }

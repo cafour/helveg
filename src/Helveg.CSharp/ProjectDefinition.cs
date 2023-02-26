@@ -34,6 +34,6 @@ public record ProjectDefinition : EntityDefinition, IInvalidable<ProjectDefiniti
 
     public override ProjectReference GetReference()
     {
-        return new() { Token = Token };
+        return new() { Token = Token, Hint = Name };
     }
 }

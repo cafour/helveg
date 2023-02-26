@@ -28,6 +28,6 @@ public record SolutionDefinition : EntityDefinition, IInvalidable<SolutionDefini
 
     public override SolutionReference GetReference()
     {
-        return new() { Token = Token };
+        return new() { Token = Token, Hint = Name };
     }
 }

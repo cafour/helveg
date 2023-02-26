@@ -43,6 +43,6 @@ public record PropertyDefinition : MemberDefinition, IInvalidable<PropertyDefini
 
     public override PropertyReference GetReference()
     {
-        return new() { Token = Token };
+        return new() { Token = Token, Hint = Name };
     }
 }

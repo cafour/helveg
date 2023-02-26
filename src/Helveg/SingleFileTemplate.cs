@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Text.Json;
 using Helveg.Analysis;
 using Helveg.Serialization;
+using Helveg.Visualization;
 
 namespace Helveg;
 
@@ -12,15 +13,13 @@ public static class SingleFileTemplate
     private const string CssResource = "helveg.css";
     private const string JsResource = "helveg.js";
     
-    public static string Create(AnalyzedSolution solution)
+    public static string Create(Multigraph multigraph)
     {
-        var serializable = SerializableSolution.FromAnalyzed(solution);
-        
         return
 @$"<!DOCTYPE html>
 <html lang=""en"">
     <head>
-        <title>{solution.Name} | Helveg</title>
+        <title>{multigraph.Label ?? multigraph.Id} | Helveg</title>
         <meta charset=""utf-8"" />
         <meta content=""width=device-width, initial-scale=1.0"" name=""viewport"" />
         <style>
@@ -32,7 +31,7 @@ public static class SingleFileTemplate
         <div id=""sigma-container"">
         </div>
         <script type=""application/json"" id=""helveg-data"">
-            {JsonSerializer.Serialize<SerializableSolution>(serializable, Serialize.JsonOptions)}
+            {JsonSerializer.Serialize(multigraph, Serialize.JsonOptions)}
         </script>
         <script>
             {GetResource(JsResource)}

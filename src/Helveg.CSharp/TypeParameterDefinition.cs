@@ -23,6 +23,6 @@ public record TypeParameterDefinition : TypeDefinition, IInvalidable<TypeParamet
 
     public override TypeParameterReference GetReference()
     {
-        return new() { Token = Token };
+        return new() { Token = Token, Hint = Name };
     }
 }

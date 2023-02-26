@@ -12,41 +12,19 @@ const dataScript = document.getElementById(dataElementId);
 if (dataScript == null) {
     throw new Error(`Could not find the '${dataElementId}' element.`);
 }
-const data = <Model.Solution>JSON.parse(dataScript.textContent!)
+const data = <Model.Multigraph>JSON.parse(dataScript.textContent!)
 const graph = new Graph();
 
 // 2. Build the graph:
-if (data.Projects == null || Object.keys(data.Projects).length == 0) {
-    throw new Error("Solution contains no projects.");
+for (const node of data.Nodes) {
+    graph.addNode(node.Id, {
+        label: node.Label || node.Id
+    });
 }
 
-let edgeQueue = [];
-
-for (const projectName of Object.keys(data.Projects)) {
-    const project = data.Projects[projectName];
-    if (project.Types == null || Object.keys(project.Types).length == 0) {
-        console.warn(`The '${project.Name}' project contains no types!`);
-        continue;
-    }
-
-    for (const typeName of Object.keys(project.Types)) {
-        const type = project.Types[typeName];
-        graph.addNode(type.Id, {
-            label: type.Id,
-            kind: type.Kind
-        });
-        if (type.Relations == null || Object.keys(type.Relations).length == 0) {
-            continue;
-        }
-
-        for (const relationName of Object.keys(type.Relations)) {
-            edgeQueue.push({ source: type.Id, target: relationName });
-        }
-    }
-}
-
-for (const edge of edgeQueue) {
-    graph.addDirectedEdge(edge.source, edge.target);
+var containsRelation = data.Relations.filter(r => r.Id === "contains")[0];
+for (const edge of containsRelation.Edges) {
+    graph.addDirectedEdge(edge.Src, edge.Dst);
 }
 
 // 3. Only keep the main connected component:

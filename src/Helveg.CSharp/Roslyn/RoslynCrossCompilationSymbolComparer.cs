@@ -31,6 +31,7 @@ internal class RoslynCrossCompilationSymbolEqualityComparer : IEqualityComparer<
         }
 
         return lhs.MetadataName.Equals(rhs.MetadataName)
+            && Equals(lhs.ContainingSymbol.OriginalDefinition, rhs.ContainingSymbol.OriginalDefinition)
             && Enumerable.SequenceEqual(lhs.Locations, rhs.Locations, locationComparer);
 
         //return lhs.Kind switch
@@ -56,7 +57,7 @@ internal class RoslynCrossCompilationSymbolEqualityComparer : IEqualityComparer<
 
     public int GetHashCode([DisallowNull] ISymbol? obj)
     {
-        return obj.MetadataToken.GetHashCode();
+        return obj.MetadataName.GetHashCode();
     }
 
     private bool AssemblyEquals(IAssemblySymbol lhs, IAssemblySymbol rhs)

@@ -26,7 +26,7 @@ public record AssemblyDefinition : EntityDefinition, IInvalidable<AssemblyDefini
 
     public override AssemblyReference GetReference()
     {
-        return new() { Token = Token };
+        return new() { Token = Token, Hint = Name };
     }
 
     public IEnumerable<TypeDefinition> GetAllTypes()

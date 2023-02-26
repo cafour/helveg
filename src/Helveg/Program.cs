@@ -17,6 +17,10 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Numerics;
 using System.CommandLine.NamingConventionBinder;
+using Helveg.Visualization;
+using Helveg.CSharp;
+using System.Collections.Immutable;
+using System.Text.Json;
 
 namespace Helveg
 {
@@ -40,7 +44,7 @@ namespace Helveg
         public static ILoggerFactory Logging = new NullLoggerFactory();
         public static bool IsForced = false;
 
-        public static async Task<AnalyzedSolution?> RunAnalysis(
+        public static async Task<Multigraph?> RunAnalysis(
             FileSystemInfo source,
             IDictionary<string, string> properties)
         {
@@ -66,15 +70,19 @@ namespace Helveg
             NuGetLocator.Register(vsInstance.MSBuildPath);
             logger.LogDebug($"Using MSBuild at '{vsInstance.MSBuildPath}'.");
 
-            var analyzedSolution = await Analyze.AnalyzeProjectOrSolution(file, properties, logger, null);
-            // if (analyzedSolution is object)
-            // {
-            //     await Serialize.SetCache(
-            //         AnalysisCacheFilename,
-            //         SerializableSolution.FromAnalyzed(analyzedSolution.Value),
-            //         logger);
-            // }
-            return analyzedSolution;
+            var options = new EntityWorkspaceAnalysisOptions
+            {
+                MSBuildProperties = properties.ToImmutableDictionary()
+            };
+            var workspaceProvider = new DefaultEntityWorkspaceProvider(
+                Logging.CreateLogger<DefaultEntityWorkspaceProvider>());
+            var workspace = await workspaceProvider.GetWorkspace(file.FullName, options);
+            using var analysisStream = new FileStream("analysis.json", FileMode.Create, FileAccess.ReadWrite);
+            await JsonSerializer.SerializeAsync(analysisStream, workspace, Serialize.JsonOptions);
+
+            var visualizationVisitor = new VisualizationEntityVisitor();
+            visualizationVisitor.Visit(workspace);
+            return visualizationVisitor.Build();
         }
 
         public static Graph RunFdg(
@@ -227,13 +235,13 @@ namespace Helveg
         public static async Task<int> RunPipeline(FileSystemInfo source, Dictionary<string, string> properties)
         {
             // code analysis
-            var solution = await RunAnalysis(source, properties);
-            if (solution is null)
+            var multigraph = await RunAnalysis(source, properties);
+            if (multigraph is null)
             {
                 return 1;
             }
 
-            var output = SingleFileTemplate.Create(solution.Value);
+            var output = SingleFileTemplate.Create(multigraph);
             File.WriteAllText("output.html", output);
             return 0;
         }

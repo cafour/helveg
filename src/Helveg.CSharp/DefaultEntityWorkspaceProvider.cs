@@ -11,6 +11,8 @@ using Helveg.CSharp.Roslyn;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.MSBuild;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Helveg.CSharp;
 
@@ -19,11 +21,13 @@ public class DefaultEntityWorkspaceProvider : IEntityWorkspaceProvider
     private readonly EntityTokenGenerator tokenGenerator = new();
     private readonly RoslynEntityTokenDocumentVisitor documentVisitor;
     private readonly RoslynEntityTokenSymbolVisitor symbolVisitor;
+    private readonly ILogger<DefaultEntityWorkspaceProvider> logger;
 
-    public DefaultEntityWorkspaceProvider()
+    public DefaultEntityWorkspaceProvider(ILogger<DefaultEntityWorkspaceProvider>? logger = null)
     {
         documentVisitor = new(tokenGenerator);
         symbolVisitor = new(tokenGenerator);
+        this.logger = logger ?? NullLoggerFactory.Instance.CreateLogger<DefaultEntityWorkspaceProvider>();
     }
 
     public async Task<EntityWorkspace> GetWorkspace(
@@ -33,8 +37,35 @@ public class DefaultEntityWorkspaceProvider : IEntityWorkspaceProvider
     {
         options ??= EntityWorkspaceAnalysisOptions.Default;
 
-        var workspace = MSBuildWorkspace.Create();
-        await workspace.OpenSolutionAsync(path, cancellationToken: cancellationToken);
+        var workspace = MSBuildWorkspace.Create(options.MSBuildProperties);
+        var file = new FileInfo(path);
+        try
+        {
+            switch (file.Extension)
+            {
+                case ".sln":
+                    await workspace.OpenSolutionAsync(file.FullName, cancellationToken: cancellationToken);
+                    break;
+                case ".csproj":
+                    await workspace.OpenProjectAsync(file.FullName, cancellationToken: cancellationToken);
+                    break;
+                default:
+                    logger.LogCritical($"File extension '{file.Extension}' is not supported.");
+                    return EntityWorkspace.Invalid;
+            }
+        }
+        catch (Exception e)
+        {
+            logger.LogCritical($"MSBuild failed to load the '{file}' project or solution. "
+                + "Run with '--verbose' for more information.");
+            logger.LogDebug(e, "MSBuildWorkspace threw an exception.");
+            return EntityWorkspace.Invalid;
+        }
+        LogMSBuildDiagnostics(workspace);
+        if (workspace.Diagnostics.Any(d => d.Kind == WorkspaceDiagnosticKind.Failure))
+        {
+            return EntityWorkspace.Invalid;
+        }
 
         documentVisitor.VisitSolution(workspace.CurrentSolution);
 
@@ -161,6 +192,29 @@ public class DefaultEntityWorkspaceProvider : IEntityWorkspaceProvider
         }
 
         return helProject;
+    }
+
+    private void LogMSBuildDiagnostics(MSBuildWorkspace workspace)
+    {
+        if (workspace.Diagnostics.IsEmpty)
+        {
+            return;
+        }
+
+        logger.LogDebug("MSBuildWorkspace reported the following diagnostics.");
+        foreach (var diagnostic in workspace.Diagnostics)
+        {
+            for (int i = 0; i < workspace.Diagnostics.Count; ++i)
+            {
+                logger.LogDebug(new EventId(0, "MSBuildWorkspace"), workspace.Diagnostics[i].Message);
+            }
+        }
+
+        if (workspace.Diagnostics.Any(d => d.Kind == WorkspaceDiagnosticKind.Failure))
+        {
+            logger.LogCritical($"Failed to load the project or solution. "
+                + "Make sure it can be built with 'dotnet build'.");
+        }
     }
 
     private class SymbolErrorReferenceRewriter : EntityRewriter

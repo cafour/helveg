@@ -35,6 +35,6 @@ public record ParameterDefinition : EntityDefinition, IInvalidable<ParameterDefi
 
     public override ParameterReference GetReference()
     {
-        return new() { Token = Token };
+        return new() { Token = Token, Hint = Name };
     }
 }

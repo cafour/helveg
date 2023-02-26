@@ -23,6 +23,6 @@ public record EventDefinition : MemberDefinition, IInvalidable<EventDefinition>
 
     public override EventReference GetReference()
     {
-        return new() { Token = Token };
+        return new() { Token = Token, Hint = Name };
     }
 }

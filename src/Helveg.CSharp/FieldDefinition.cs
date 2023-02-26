@@ -31,6 +31,6 @@ public record FieldDefinition : MemberDefinition, IInvalidable<FieldDefinition>
 
     public override FieldReference GetReference()
     {
-        return new() { Token = Token };
+        return new() { Token = Token, Hint = Name };
     }
 }

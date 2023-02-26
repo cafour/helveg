@@ -62,6 +62,6 @@ public record MethodDefinition : MemberDefinition, IInvalidable<MethodDefinition
 
     public override MethodReference GetReference()
     {
-        return new() { Token = Token };
+        return new() { Token = Token, Hint = Name };
     }
 }
