@@ -20,13 +20,11 @@ public class DefaultEntityWorkspaceProvider : IEntityWorkspaceProvider
 {
     private readonly EntityTokenGenerator tokenGenerator = new();
     private readonly RoslynEntityTokenDocumentVisitor documentVisitor;
-    private readonly RoslynEntityTokenSymbolVisitor symbolVisitor;
     private readonly ILogger<DefaultEntityWorkspaceProvider> logger;
 
     public DefaultEntityWorkspaceProvider(ILogger<DefaultEntityWorkspaceProvider>? logger = null)
     {
         documentVisitor = new(tokenGenerator);
-        symbolVisitor = new(tokenGenerator);
         this.logger = logger ?? NullLoggerFactory.Instance.CreateLogger<DefaultEntityWorkspaceProvider>();
     }
 
@@ -82,6 +80,9 @@ public class DefaultEntityWorkspaceProvider : IEntityWorkspaceProvider
         EntityWorkspaceAnalysisOptions options,
         CancellationToken cancellationToken = default)
     {
+        var tokenCache = new RoslynEntityTokenSymbolCache(solution, tokenGenerator);
+        var visitor = new RoslynEntityTokenSymbolVisitor(tokenCache);
+
         var helSolution = new SolutionDefinition
         {
             Token = tokenGenerator.GetToken(EntityKind.Solution),
@@ -92,7 +93,7 @@ public class DefaultEntityWorkspaceProvider : IEntityWorkspaceProvider
         var externalDependencies = new ConcurrentDictionary<EntityToken, ExternalDependencyDefinition>();
 
         var projects = (await Task.WhenAll(solution.Projects
-            .Select(p => GetProject(p, options, externalDependencies, cancellationToken))))
+            .Select(p => GetProject(p, options, externalDependencies, tokenCache, visitor, cancellationToken))))
             .Select(p => p with { ContainingSolution = helSolution.GetReference() })
             .ToImmutableArray();
 
@@ -118,6 +119,8 @@ public class DefaultEntityWorkspaceProvider : IEntityWorkspaceProvider
         Project project,
         EntityWorkspaceAnalysisOptions options,
         ConcurrentDictionary<EntityToken, ExternalDependencyDefinition> externalDependencies,
+        RoslynEntityTokenSymbolCache tokens,
+        RoslynEntityTokenSymbolVisitor symbolVisitor,
         CancellationToken cancellationToken = default)
     {
         var compilation = await project.GetCompilationAsync(cancellationToken);
@@ -126,7 +129,23 @@ public class DefaultEntityWorkspaceProvider : IEntityWorkspaceProvider
             return ProjectDefinition.Invalid;
         }
 
-        var transcriber = new RoslynSymbolTranscriber(compilation, tokenGenerator, symbolVisitor);
+        await symbolVisitor.VisitAssembly(compilation.Assembly);
+
+        if (options.IncludeExternalDepedencies)
+        {
+            foreach(var reference in compilation.References)
+            {
+                var referenceSymbol = compilation.GetAssemblyOrModuleSymbol(reference);
+                if (referenceSymbol is not IAssemblySymbol referencedAssembly)
+                {
+                    throw new ArgumentException($"Could not obtain an assembly symbol for '{reference.Display}'.");
+                }
+
+                await symbolVisitor.VisitAssembly(referencedAssembly);
+            }
+        }
+
+        var transcriber = new RoslynSymbolTranscriber(compilation, tokens);
         var helProject = new ProjectDefinition
         {
             Token = documentVisitor.RequireProjectToken(project.Id),

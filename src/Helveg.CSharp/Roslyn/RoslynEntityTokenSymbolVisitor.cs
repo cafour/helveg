@@ -12,26 +12,27 @@ namespace Helveg.CSharp.Roslyn;
 /// A Roslyn <see cref="SymbolVisitor"/> that assigns <see cref="EntityToken"/>s to all symbol definitions
 /// it visits.
 /// </summary>
-internal class RoslynEntityTokenSymbolVisitor : SymbolVisitor
+internal class RoslynEntityTokenSymbolVisitor : SymbolVisitor<Task>
 {
-    private readonly EntityTokenGenerator gen;
-
-#pragma warning disable RS1024 // Symbols should be compared for equality
-    public ConcurrentDictionary<ISymbol, EntityToken> Tokens { get; }
-        = new(new RoslynCrossCompilationSymbolEqualityComparer());
-#pragma warning restore RS1024 // Symbols should be compared for equality
+    private readonly RoslynEntityTokenSymbolCache tokens;
 
     public HashSet<AssemblyIdentity> VisitedAssemblies { get; }
         = new();
 
     private readonly object visitedAssembliesLock = new();
 
-    public RoslynEntityTokenSymbolVisitor(EntityTokenGenerator gen)
+    public RoslynEntityTokenSymbolVisitor(
+        RoslynEntityTokenSymbolCache tokens)
     {
-        this.gen = gen;
+        this.tokens = tokens;
     }
 
-    public override void VisitAssembly(IAssemblySymbol symbol)
+    public override Task? DefaultVisit(ISymbol symbol)
+    {
+        return Task.CompletedTask;
+    }
+
+    public override async Task VisitAssembly(IAssemblySymbol symbol)
     {
         // NB: `VisitAssembly` can and will be called from multiple threads. This prevents multiple visits to the same
         //     assembly.
@@ -45,113 +46,98 @@ internal class RoslynEntityTokenSymbolVisitor : SymbolVisitor
             VisitedAssemblies.Add(symbol.Identity);
         }
 
-        Tokens.AddOrUpdate(symbol, _ => gen.GetToken(EntityKind.Assembly), (_, e) => e);
+        await tokens.Add(symbol);
 
         foreach (var module in symbol.Modules)
         {
-            VisitModule(module);
+            await VisitModule(module);
         }
     }
 
-    public override void VisitModule(IModuleSymbol symbol)
+    public override async Task VisitModule(IModuleSymbol symbol)
     {
-        Tokens.AddOrUpdate(symbol, _ => gen.GetToken(EntityKind.Module), (_, e) => e);
+        await tokens.Add(symbol);
 
-        VisitNamespace(symbol.GlobalNamespace);
+        await VisitNamespace(symbol.GlobalNamespace);
     }
 
-    public override void VisitNamespace(INamespaceSymbol symbol)
+    public override async Task VisitNamespace(INamespaceSymbol symbol)
     {
-        Tokens.AddOrUpdate(symbol, _ => gen.GetToken(EntityKind.Namespace), (_, e) => e);
+        await tokens.Add(symbol);
 
         foreach (var ns in symbol.GetNamespaceMembers())
         {
-            VisitNamespace(ns);
+            await VisitNamespace(ns);
         }
 
         foreach (var type in symbol.GetTypeMembers())
         {
-            VisitNamedType(type);
+            await VisitNamedType(type);
         }
     }
 
-    public override void VisitNamedType(INamedTypeSymbol symbol)
+    public override async Task VisitNamedType(INamedTypeSymbol symbol)
     {
-        Tokens.AddOrUpdate(symbol, _ => gen.GetToken(EntityKind.Type), (_, e) => e);
+        await tokens.Add(symbol);
 
         foreach (var typeParameter in symbol.TypeParameters)
         {
-            VisitTypeParameter(typeParameter);
+            await VisitTypeParameter(typeParameter);
         }
 
         foreach (var type in symbol.GetTypeMembers())
         {
-            VisitNamedType(type);
+            await VisitNamedType(type);
         }
 
         foreach (var member in symbol.GetMembers())
         {
-            Visit(member);
+            await Visit(member)!;
         }
     }
 
-    public override void VisitField(IFieldSymbol symbol)
+    public override Task VisitField(IFieldSymbol symbol)
     {
-        Tokens.AddOrUpdate(symbol, _ => gen.GetToken(EntityKind.Field), (_, e) => e);
+        return tokens.Add(symbol);
     }
 
-    public override void VisitEvent(IEventSymbol symbol)
+    public override Task VisitEvent(IEventSymbol symbol)
     {
-        Tokens.AddOrUpdate(symbol, _ => gen.GetToken(EntityKind.Event), (_, e) => e);
+        return tokens.Add(symbol);
     }
 
-    public override void VisitProperty(IPropertySymbol symbol)
+    public override async Task VisitProperty(IPropertySymbol symbol)
     {
-        Tokens.AddOrUpdate(symbol, _ => gen.GetToken(EntityKind.Property), (_, e) => e);
+        await tokens.Add(symbol);
 
         foreach (var parameter in symbol.Parameters)
         {
-            VisitParameter(parameter);
+            await VisitParameter(parameter);
         }
     }
 
-    public override void VisitMethod(IMethodSymbol symbol)
+    public override async Task VisitMethod(IMethodSymbol symbol)
     {
-        Tokens.AddOrUpdate(symbol, _ => gen.GetToken(EntityKind.Method), (_, e) => e);
+        await tokens.Add(symbol);
 
         foreach (var typeParameter in symbol.TypeParameters)
         {
-            VisitTypeParameter(typeParameter);
+            await VisitTypeParameter(typeParameter);
         }
 
         foreach (var parameter in symbol.Parameters)
         {
-            VisitParameter(parameter);
+            await VisitParameter(parameter);
         }
     }
 
-    public override void VisitParameter(IParameterSymbol symbol)
+    public override Task VisitParameter(IParameterSymbol symbol)
     {
-        Tokens.AddOrUpdate(symbol, _ => gen.GetToken(EntityKind.Parameter), (_, e) => e);
+        return tokens.Add(symbol);
     }
 
-    public override void VisitTypeParameter(ITypeParameterSymbol symbol)
+    public override Task VisitTypeParameter(ITypeParameterSymbol symbol)
     {
-        Tokens.AddOrUpdate(symbol, _ => gen.GetToken(EntityKind.TypeParameter), (_, e) => e);
-    }
-
-    public EntityToken GetSymbolToken(ISymbol symbol)
-    {
-        return Tokens.TryGetValue(symbol, out var token)
-            ? token
-            : EntityToken.CreateError(symbol.GetEntityKind());
-    }
-
-    public EntityToken RequireSymbolToken(ISymbol symbol)
-    {
-        return Tokens.TryGetValue(symbol, out var token)
-            ? token
-            : throw new InvalidOperationException($"Symbol '{symbol}' does not have a token even though it is " +
-                $"required. This could be a bug in {nameof(RoslynEntityTokenSymbolVisitor)}.");
+        return tokens.Add(symbol);
     }
 }

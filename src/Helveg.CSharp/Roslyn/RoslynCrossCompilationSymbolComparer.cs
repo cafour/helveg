@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.FindSymbols;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
