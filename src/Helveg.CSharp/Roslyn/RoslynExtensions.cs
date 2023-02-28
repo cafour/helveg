@@ -124,6 +124,7 @@ internal static class RoslynExtensions
             IPropertySymbol => EntityKind.Property,
             IMethodSymbol => EntityKind.Method,
             INamedTypeSymbol => EntityKind.Type,
+            IParameterSymbol => EntityKind.Parameter,
             _ => throw new ArgumentException($"Could not assign {nameof(EntityKind)} to a Roslyn symbol of type " +
                 $"'{symbol.GetType()}'.")
         };

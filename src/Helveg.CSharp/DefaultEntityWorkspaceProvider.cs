@@ -19,12 +19,16 @@ namespace Helveg.CSharp;
 public class DefaultEntityWorkspaceProvider : IEntityWorkspaceProvider
 {
     private readonly EntityTokenGenerator tokenGenerator = new();
+    private readonly RoslynEntityTokenSymbolCache tokenCache;
+    private readonly RoslynEntityTokenSymbolVisitor symbolVisitor;
     private readonly RoslynEntityTokenDocumentVisitor documentVisitor;
     private readonly ILogger<DefaultEntityWorkspaceProvider> logger;
 
     public DefaultEntityWorkspaceProvider(ILogger<DefaultEntityWorkspaceProvider>? logger = null)
     {
         documentVisitor = new(tokenGenerator);
+        tokenCache = new(tokenGenerator);
+        symbolVisitor = new(tokenCache);
         this.logger = logger ?? NullLoggerFactory.Instance.CreateLogger<DefaultEntityWorkspaceProvider>();
     }
 
@@ -80,9 +84,6 @@ public class DefaultEntityWorkspaceProvider : IEntityWorkspaceProvider
         EntityWorkspaceAnalysisOptions options,
         CancellationToken cancellationToken = default)
     {
-        var tokenCache = new RoslynEntityTokenSymbolCache(solution, tokenGenerator);
-        var visitor = new RoslynEntityTokenSymbolVisitor(tokenCache);
-
         var helSolution = new SolutionDefinition
         {
             Token = tokenGenerator.GetToken(EntityKind.Solution),
@@ -93,7 +94,7 @@ public class DefaultEntityWorkspaceProvider : IEntityWorkspaceProvider
         var externalDependencies = new ConcurrentDictionary<EntityToken, ExternalDependencyDefinition>();
 
         var projects = (await Task.WhenAll(solution.Projects
-            .Select(p => GetProject(p, options, externalDependencies, tokenCache, visitor, cancellationToken))))
+            .Select(p => GetProject(p, options, externalDependencies, cancellationToken))))
             .Select(p => p with { ContainingSolution = helSolution.GetReference() })
             .ToImmutableArray();
 
@@ -119,8 +120,6 @@ public class DefaultEntityWorkspaceProvider : IEntityWorkspaceProvider
         Project project,
         EntityWorkspaceAnalysisOptions options,
         ConcurrentDictionary<EntityToken, ExternalDependencyDefinition> externalDependencies,
-        RoslynEntityTokenSymbolCache tokens,
-        RoslynEntityTokenSymbolVisitor symbolVisitor,
         CancellationToken cancellationToken = default)
     {
         var compilation = await project.GetCompilationAsync(cancellationToken);
@@ -129,9 +128,12 @@ public class DefaultEntityWorkspaceProvider : IEntityWorkspaceProvider
             return ProjectDefinition.Invalid;
         }
 
-        await symbolVisitor.VisitAssembly(compilation.Assembly);
+        // TODO: Classify references into BCL, Packages, and Other.
+        tokenCache.TrackCompilation(compilation, true);
 
-        if (options.IncludeExternalDepedencies)
+        symbolVisitor.VisitAssembly(compilation.Assembly);
+
+        if (true)
         {
             foreach(var reference in compilation.References)
             {
@@ -141,11 +143,11 @@ public class DefaultEntityWorkspaceProvider : IEntityWorkspaceProvider
                     throw new ArgumentException($"Could not obtain an assembly symbol for '{reference.Display}'.");
                 }
 
-                await symbolVisitor.VisitAssembly(referencedAssembly);
+                symbolVisitor.VisitAssembly(referencedAssembly);
             }
         }
 
-        var transcriber = new RoslynSymbolTranscriber(compilation, tokens);
+        var transcriber = new RoslynSymbolTranscriber(compilation, tokenCache);
         var helProject = new ProjectDefinition
         {
             Token = documentVisitor.RequireProjectToken(project.Id),

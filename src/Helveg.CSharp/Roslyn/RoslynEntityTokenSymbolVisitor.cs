@@ -12,7 +12,7 @@ namespace Helveg.CSharp.Roslyn;
 /// A Roslyn <see cref="SymbolVisitor"/> that assigns <see cref="EntityToken"/>s to all symbol definitions
 /// it visits.
 /// </summary>
-internal class RoslynEntityTokenSymbolVisitor : SymbolVisitor<Task>
+internal class RoslynEntityTokenSymbolVisitor : SymbolVisitor
 {
     private readonly RoslynEntityTokenSymbolCache tokens;
 
@@ -27,12 +27,7 @@ internal class RoslynEntityTokenSymbolVisitor : SymbolVisitor<Task>
         this.tokens = tokens;
     }
 
-    public override Task? DefaultVisit(ISymbol symbol)
-    {
-        return Task.CompletedTask;
-    }
-
-    public override async Task VisitAssembly(IAssemblySymbol symbol)
+    public override void VisitAssembly(IAssemblySymbol symbol)
     {
         // NB: `VisitAssembly` can and will be called from multiple threads. This prevents multiple visits to the same
         //     assembly.
@@ -46,98 +41,98 @@ internal class RoslynEntityTokenSymbolVisitor : SymbolVisitor<Task>
             VisitedAssemblies.Add(symbol.Identity);
         }
 
-        await tokens.Add(symbol);
+        tokens.Add(symbol);
 
         foreach (var module in symbol.Modules)
         {
-            await VisitModule(module);
+            VisitModule(module);
         }
     }
 
-    public override async Task VisitModule(IModuleSymbol symbol)
+    public override void VisitModule(IModuleSymbol symbol)
     {
-        await tokens.Add(symbol);
+        tokens.Add(symbol);
 
-        await VisitNamespace(symbol.GlobalNamespace);
+        VisitNamespace(symbol.GlobalNamespace);
     }
 
-    public override async Task VisitNamespace(INamespaceSymbol symbol)
+    public override void VisitNamespace(INamespaceSymbol symbol)
     {
-        await tokens.Add(symbol);
+        tokens.Add(symbol);
 
         foreach (var ns in symbol.GetNamespaceMembers())
         {
-            await VisitNamespace(ns);
+            VisitNamespace(ns);
         }
 
         foreach (var type in symbol.GetTypeMembers())
         {
-            await VisitNamedType(type);
+            VisitNamedType(type);
         }
     }
 
-    public override async Task VisitNamedType(INamedTypeSymbol symbol)
+    public override void VisitNamedType(INamedTypeSymbol symbol)
     {
-        await tokens.Add(symbol);
+        tokens.Add(symbol);
 
         foreach (var typeParameter in symbol.TypeParameters)
         {
-            await VisitTypeParameter(typeParameter);
+            VisitTypeParameter(typeParameter);
         }
 
         foreach (var type in symbol.GetTypeMembers())
         {
-            await VisitNamedType(type);
+            VisitNamedType(type);
         }
 
         foreach (var member in symbol.GetMembers())
         {
-            await Visit(member)!;
+            Visit(member);
         }
     }
 
-    public override Task VisitField(IFieldSymbol symbol)
+    public override void VisitField(IFieldSymbol symbol)
     {
-        return tokens.Add(symbol);
+        tokens.Add(symbol);
     }
 
-    public override Task VisitEvent(IEventSymbol symbol)
+    public override void VisitEvent(IEventSymbol symbol)
     {
-        return tokens.Add(symbol);
+        tokens.Add(symbol);
     }
 
-    public override async Task VisitProperty(IPropertySymbol symbol)
+    public override void VisitProperty(IPropertySymbol symbol)
     {
-        await tokens.Add(symbol);
+        tokens.Add(symbol);
 
         foreach (var parameter in symbol.Parameters)
         {
-            await VisitParameter(parameter);
+            VisitParameter(parameter);
         }
     }
 
-    public override async Task VisitMethod(IMethodSymbol symbol)
+    public override void VisitMethod(IMethodSymbol symbol)
     {
-        await tokens.Add(symbol);
+        tokens.Add(symbol);
 
         foreach (var typeParameter in symbol.TypeParameters)
         {
-            await VisitTypeParameter(typeParameter);
+            VisitTypeParameter(typeParameter);
         }
 
         foreach (var parameter in symbol.Parameters)
         {
-            await VisitParameter(parameter);
+            VisitParameter(parameter);
         }
     }
 
-    public override Task VisitParameter(IParameterSymbol symbol)
+    public override void VisitParameter(IParameterSymbol symbol)
     {
-        return tokens.Add(symbol);
+        tokens.Add(symbol);
     }
 
-    public override Task VisitTypeParameter(ITypeParameterSymbol symbol)
+    public override void VisitTypeParameter(ITypeParameterSymbol symbol)
     {
-        return tokens.Add(symbol);
+        tokens.Add(symbol);
     }
 }

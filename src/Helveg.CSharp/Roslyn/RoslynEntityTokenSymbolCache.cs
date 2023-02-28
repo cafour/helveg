@@ -12,36 +12,63 @@ namespace Helveg.CSharp.Roslyn;
 
 internal class RoslynEntityTokenSymbolCache
 {
-    private readonly Solution solution;
     private readonly EntityTokenGenerator gen;
 
     public ConcurrentDictionary<ISymbol, EntityToken> Tokens { get; }
         = new(SymbolEqualityComparer.Default);
-    //public ConcurrentDictionary<AssemblyIdentity, Compilation> Compilations { get; }
-    //    = new();
+    public ConcurrentDictionary<AssemblyIdentity, Compilation> Compilations { get; }
+        = new();
 
-    public RoslynEntityTokenSymbolCache(Solution solution, EntityTokenGenerator gen)
+    public RoslynEntityTokenSymbolCache(EntityTokenGenerator gen)
     {
-        this.solution = solution;
         this.gen = gen;
     }
 
-    public Task Add(ISymbol symbol, CancellationToken cancellationToken = default)
+    public void TrackCompilation(Compilation compilation, bool includeReferences)
     {
-        var token = gen.GetToken(symbol.GetEntityKind());
-        return Add(symbol, token, cancellationToken);
+        Compilations.AddOrUpdate(compilation.Assembly.Identity, compilation, (_, c) => c);
+
+        if (includeReferences)
+        {
+            foreach(var reference in compilation.References)
+            {
+                var assemblyReference = compilation.GetAssemblyOrModuleSymbol(reference);
+                if (assemblyReference is not IAssemblySymbol assemblyReferenceSymbol)
+                {
+                    throw new ArgumentException($"Could not resolve reference '{reference.Display}'.");
+                }
+
+                Compilations.AddOrUpdate(assemblyReferenceSymbol.Identity, compilation, (_, c) => c);
+            }
+        }
     }
 
-    public async Task Add(ISymbol symbol, EntityToken token, CancellationToken cancellationToken = default)
+    public void Add(ISymbol symbol, CancellationToken cancellationToken = default)
     {
-        var definition = await GetDefinition(symbol, cancellationToken);
+        var token = gen.GetToken(symbol.GetEntityKind());
+        Add(symbol, token, cancellationToken);
+    }
+
+    public void Add(ISymbol symbol, EntityToken token, CancellationToken cancellationToken = default)
+    {
+        if (Tokens.ContainsKey(symbol))
+        {
+            return;
+        }
+
+        var definition = GetDefinition(symbol, cancellationToken);
+        if (definition is null)
+        {
+            throw new ArgumentException($"A definition for the '{symbol}' symbol could not be found.");
+        }
+
         Tokens.AddOrUpdate(definition, token, (_, _) => token);
     }
 
-    public async Task<EntityToken> GetAsync(ISymbol symbol, CancellationToken cancellationToken = default)
+    public EntityToken Get(ISymbol symbol, CancellationToken cancellationToken = default)
     {
-        var definition = await GetDefinition(symbol, cancellationToken);
-        if (!Tokens.TryGetValue(definition, out var token))
+        var definition = GetDefinition(symbol, cancellationToken);
+        if (definition is null || !Tokens.TryGetValue(definition, out var token))
         {
             return EntityToken.CreateError(symbol.GetEntityKind());
         }
@@ -49,9 +76,9 @@ internal class RoslynEntityTokenSymbolCache
         return token;
     }
 
-    public async Task<EntityToken> RequireAsync(ISymbol symbol, CancellationToken cancellationToken = default)
+    public EntityToken Require(ISymbol symbol, CancellationToken cancellationToken = default)
     {
-        var token = await GetAsync(symbol, cancellationToken);
+        var token = Get(symbol, cancellationToken);
         if (token.IsError)
         {
             throw new InvalidOperationException($"Symbol '{symbol}' does not have a token even though it is " +
@@ -61,23 +88,31 @@ internal class RoslynEntityTokenSymbolCache
         return token;
     }
 
-    public EntityToken Get(ISymbol symbol)
+    private ISymbol? GetDefinition(ISymbol symbol, CancellationToken cancellationToken)
     {
-        return GetAsync(symbol).GetAwaiter().GetResult();
-    }
+        var assemblyIdentity = symbol is IAssemblySymbol assembly
+            ? assembly.Identity
+            : symbol.ContainingAssembly?.Identity;
 
-    public EntityToken Require(ISymbol symbol)
-    {
-        return RequireAsync(symbol).GetAwaiter().GetResult();
-    }
-
-    private async Task<ISymbol> GetDefinition(ISymbol symbol, CancellationToken cancellationToken)
-    {
-        var definition = await SymbolFinder.FindSourceDefinitionAsync(symbol, solution, cancellationToken);
-        if (definition is null)
+        if (assemblyIdentity is null)
         {
-            throw new ArgumentException($"Could not find definition of '{symbol}'.");
+            throw new ArgumentException("Symbol shared across assemblies cannot have entity tokens.");
         }
-        return definition;
+
+        var parentCompilation = Compilations.GetValueOrDefault(assemblyIdentity);
+        if (parentCompilation is null)
+        {
+            return null;
+        }
+
+        var candidates = SymbolFinder.FindSimilarSymbols(symbol.OriginalDefinition, parentCompilation, cancellationToken)
+            .ToArray();
+        if (candidates.Length == 0 || candidates.Length > 1)
+        {
+            throw new ArgumentException($"Symbol '{symbol}' has either no or too many similar symbols in the " +
+                $"tracked compilation.");
+        }
+
+        return candidates[0];
     }
 }
