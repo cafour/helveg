@@ -25,7 +25,7 @@ public static class Program
                 .Concat(workspace.Solution.ExternalDependencies
                     .Select(e => e.Assembly)
                     .SelectMany(a => a.GetAllTypes()))
-                .GroupBy(t => t.MetadataName)
+                .GroupBy(t => t.MetadataName) 
                 .Select(t => (name: t.Key, count: t.Count()))
                 .OrderBy(p => p.count);
             foreach (var typeCount in typeCounts)

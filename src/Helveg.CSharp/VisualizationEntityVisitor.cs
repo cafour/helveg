@@ -32,7 +32,7 @@ public class VisualizationEntityVisitor : EntityVisitor
 
     protected override void DefaultVisit(IEntityDefinition entity)
     {
-        nodes.Add(new Node(entity.Token));
+        nodes.Add(new Node(entity.Token, entity.Name));
     }
 
     protected override void VisitWorkspace(EntityWorkspace workspace)

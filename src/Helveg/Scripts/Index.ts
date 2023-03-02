@@ -31,16 +31,16 @@ for (const edge of containsRelation.Edges) {
 cropToLargestConnectedComponent(graph);
 
 // 4. Add colors to the nodes, based on node types:
-const colors: Record<Model.TypeKind, string> = {
-    "0": "#DCDCDC", // none -> VS label
-    "1": "#4EC9B0", // class -> VS class
-    "2": "#86C691", // struct -> VS struct
-    "3": "#B8D7A3", // interface -> VS interface
-    "4": "#4EC9B0", // delegate -> VS delegate
-    "5": "#B8D7A3", // enum -> VS enum
+const colors: Record<string, string> = {
+    "Unknown": "#DCDCDC", // none -> VS label
+    "Class": "#4EC9B0", // class -> VS class
+    "Struct": "#86C691", // struct -> VS struct
+    "Interface": "#B8D7A3", // interface -> VS interface
+    "Delegate": "#4EC9B0", // delegate -> VS delegate
+    "Enum": "#B8D7A3", // enum -> VS enum
 };
 graph.forEachNode((node, attributes) =>
-    graph.setNodeAttribute(node, "color", colors[<Model.TypeKind>attributes.kind]),
+    graph.setNodeAttribute(node, "color", colors[attributes.TypeKind]),
 );
 
 const degrees = graph.nodes().map((node) => graph.degree(node));
