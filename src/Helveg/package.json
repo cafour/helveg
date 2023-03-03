@@ -1,26 +1,27 @@
 {
-    "version": "0.0.0",
-    "name": "helveg",
-    "type": "module",
-    "private": true,
-    "license": "BSD-3-Clause",
-    "devDependencies": {
-        "esbuild": "^0.16.10",
-        "esbuild-sass-plugin": "^2.4.4",
-        "graphology": "^0.25.1",
-        "graphology-components": "^1.5.4",
-        "graphology-layout": "^0.6.1",
-        "graphology-layout-forceatlas2": "^0.10.1",
-        "graphology-types": "^0.24.5",
-        "sigma": "^2.4.0",
-        "yargs": "^17.6.2"
-    },
-    "scripts": {
-        "build": "npm run build:Debug",
-        "build:Debug": "node ./build.js --config=Debug",
-        "build:Release": "node ./build.js --config=Release",
-        "watch": "npm run watch:Debug",
-        "watch:Debug": "node ./build.js --config=Debug --watch",
-        "watch:Release": "node ./build.js --config=Release --watch"
-    }
+  "version": "0.0.0",
+  "name": "helveg",
+  "type": "module",
+  "private": true,
+  "license": "BSD-3-Clause",
+  "devDependencies": {
+    "esbuild": "^0.16.10",
+    "esbuild-sass-plugin": "^2.4.4",
+    "graphology": "^0.25.1",
+    "graphology-components": "^1.5.4",
+    "graphology-layout": "^0.6.1",
+    "graphology-layout-forceatlas2": "^0.10.1",
+    "graphology-types": "^0.24.5",
+    "sigma": "^2.4.0",
+    "@yomguithereal/sigma-experiments-renderers": "^0.2.1",
+    "yargs": "^17.6.2"
+  },
+  "scripts": {
+    "build": "npm run build:Debug",
+    "build:Debug": "node ./build.js --config=Debug",
+    "build:Release": "node ./build.js --config=Release",
+    "watch": "npm run watch:Debug",
+    "watch:Debug": "node ./build.js --config=Debug --watch",
+    "watch:Release": "node ./build.js --config=Release --watch"
+  }
 }

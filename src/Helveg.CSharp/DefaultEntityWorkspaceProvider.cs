@@ -64,10 +64,10 @@ public class DefaultEntityWorkspaceProvider : IEntityWorkspaceProvider
             return EntityWorkspace.Invalid;
         }
         LogMSBuildDiagnostics(workspace);
-        if (workspace.Diagnostics.Any(d => d.Kind == WorkspaceDiagnosticKind.Failure))
-        {
-            return EntityWorkspace.Invalid;
-        }
+        //if (workspace.Diagnostics.Any(d => d.Kind == WorkspaceDiagnosticKind.Failure))
+        //{
+        //    return EntityWorkspace.Invalid;
+        //}
 
         documentVisitor.VisitSolution(workspace.CurrentSolution);
 
