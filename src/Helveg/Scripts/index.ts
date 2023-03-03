@@ -1,4 +1,4 @@
-import "../styles/index.scss";
+import "../Styles/index.scss";
 import { Sigma } from "sigma";
 import Graph from "graphology";
 import circular from "graphology-layout/circular";
