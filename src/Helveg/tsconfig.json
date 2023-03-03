@@ -5,6 +5,7 @@
         "strict": true,
         "noImplicitThis": true,
         "noEmitOnError": false,
+        "forceConsistentCasingInFileNames": true,
         "removeComments": false,
         "sourceMap": true,
         "inlineSources": true,
@@ -18,7 +19,7 @@
             "es2015.promise",
             "es5",
             "es6"
-        ],
+        ]
     },
     "exclude": [
         "obj/**",
