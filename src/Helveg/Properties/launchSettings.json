@@ -2,7 +2,7 @@
   "profiles": {
     "Helveg": {
       "commandName": "Project",
-      "workingDirectory": "C:\\dev\\helveg"
+      "workingDirectory": "C:\\dev\\riganti\\dotvvm\\src"
     }
   }
 }

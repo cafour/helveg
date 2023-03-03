@@ -10,7 +10,7 @@ const isWatch = args.watch === true;
 
 await esbuild.build({
     entryPoints: ["Scripts/Index.ts"],
-    format: "esm",
+    format: "iife",
     bundle: true,
     outfile: "obj/esbuild/helveg.js",
     minify: isRelease,
