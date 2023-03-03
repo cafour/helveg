@@ -1,10 +1,10 @@
-import "./Index.scss";
+import "../styles/index.scss";
 import { Sigma } from "sigma";
 import Graph from "graphology";
 import circular from "graphology-layout/circular";
 import forceAtlas2 from "graphology-layout-forceatlas2";
 import { cropToLargestConnectedComponent } from "graphology-components";
-import * as Model from "./Model";
+import * as Model from "./model";
 
 // 1. Load data:
 const dataElementId = "helveg-data";
