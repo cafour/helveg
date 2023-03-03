@@ -1,6 +1,14 @@
 build:
   stage: build
   image: mcr.microsoft.com/dotnet/sdk:7.0-alpine
+  artifacts:
+    paths:
+      - artifacts/
+    expire_in: 42s
+    expose_as: Package
+  cache:
+    paths:
+      - "~/.nuget"
   script:
     - apk update && apk add nodejs-current npm
     - dotnet restore Helveg.sln
