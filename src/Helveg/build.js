@@ -9,7 +9,7 @@ const isRelease = args.config === "Release";
 const isWatch = args.watch === true;
 
 await esbuild.build({
-    entryPoints: ["Scripts/Index.ts"],
+    entryPoints: ["Scripts/index.ts"],
     format: "iife",
     bundle: true,
     outfile: "obj/esbuild/helveg.js",

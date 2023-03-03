@@ -21,4 +21,8 @@
     <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="7.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="Icons/**.svg" LogicalName="Icons.%(filename)%(extension)" />
+  </ItemGroup>
+
 </Project>
