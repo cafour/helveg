@@ -12,14 +12,19 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6898D2C5-50A8-4448-8F7F-02E4A9F5C385}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		.gitignore = .gitignore
+		.gitlab-ci.yml = .gitlab-ci.yml
 		Directory.Build.props = Directory.Build.props
+		LICENSE = LICENSE
+		NuGet.config = NuGet.config
+		README.md = README.md
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Helveg.Abstractions", "src\Helveg.Abstractions\Helveg.Abstractions.csproj", "{3AB45091-373A-42D8-B13C-2840FD7365A1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Helveg.Playground", "src\Helveg.Playground\Helveg.Playground.csproj", "{91F82255-EE85-4DAF-AB4C-A8E649EE5716}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Helveg.Visualization", "src\Helveg.Visualization\Helveg.Visualization.csproj", "{10A8EA67-0D49-4EFE-A846-28363CA2B9E2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Helveg.Visualization", "src\Helveg.Visualization\Helveg.Visualization.csproj", "{10A8EA67-0D49-4EFE-A846-28363CA2B9E2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
