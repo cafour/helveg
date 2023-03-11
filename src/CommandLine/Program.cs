@@ -2,10 +2,6 @@
 using System.CommandLine.Invocation;
 using System.IO;
 using System.Linq;
-using Helveg.Serialization;
-using Helveg.Landscape;
-using Helveg.Analysis;
-using Helveg.Render;
 using Microsoft.Build.Locator;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -26,29 +22,17 @@ namespace Helveg
 {
     public class Program
     {
-        public const string AnalysisCacheFilename = "helveg-analysis.json";
-        public const string FdgCacheFilename = "helveg-fdg.json";
-        public const int RegularIterationCount = 2000;
-        public const int NoOverlapIterationCount = 4000;
-        public const int StrongGravityIterationCount = 500;
-        public const int IslandIterationCount = 1000;
-        public const float MinNodeSize = 6;
-        public const float IslandGapSize = 500f;
-        public const string VkDebugAlias = "--vk-debug";
         public const string VerboseAlias = "--verbose";
         public const string ForceAlias = "--force";
-        public const string RayTracingAlias = "--ray-tracing";
-        public const string ForceCursorAlias = "--force-cursor";
-        public const int DefaultCameraElevation = 12;
 
-        public static ILoggerFactory Logging = new NullLoggerFactory();
-        public static bool IsForced = false;
+        private ILoggerFactory logging = new NullLoggerFactory();
+        private bool isForced = false;
 
-        public static async Task<Multigraph?> RunAnalysis(
+        public async Task<Multigraph?> RunAnalysis(
             FileSystemInfo source,
             IDictionary<string, string> properties)
         {
-            var logger = Logging.CreateLogger("Analysis");
+            var logger = logging.CreateLogger("Analysis");
             FileInfo? file = source switch
             {
                 FileInfo f => f.Extension == ".sln" || f.Extension == ".csproj" ? f : null,
@@ -67,7 +51,6 @@ namespace Helveg
 
             // var cache = IsForced ? null : await Serialize.GetCache<SerializableSolution>(AnalysisCacheFilename, logger);
             var vsInstance = MSBuildLocator.RegisterDefaults();
-            NuGetLocator.Register(vsInstance.MSBuildPath);
             logger.LogDebug($"Using MSBuild at '{vsInstance.MSBuildPath}'.");
 
             var options = new EntityWorkspaceAnalysisOptions
@@ -75,164 +58,17 @@ namespace Helveg
                 MSBuildProperties = properties.ToImmutableDictionary()
             };
             var workspaceProvider = new DefaultEntityWorkspaceProvider(
-                Logging.CreateLogger<DefaultEntityWorkspaceProvider>());
+                logging.CreateLogger<DefaultEntityWorkspaceProvider>());
             var workspace = await workspaceProvider.GetWorkspace(file.FullName, options);
             using var analysisStream = new FileStream("analysis.json", FileMode.Create, FileAccess.ReadWrite);
-            await JsonSerializer.SerializeAsync(analysisStream, workspace, Serialize.JsonOptions);
+            await JsonSerializer.SerializeAsync(analysisStream, workspace, HelvegDefaults.JsonOptions);
 
             var visualizationVisitor = new VisualizationEntityVisitor();
             visualizationVisitor.Visit(workspace);
             return visualizationVisitor.Build();
         }
 
-        public static Graph RunFdg(
-            Graph graph,
-            int regularCount,
-            int strongGravityCount,
-            int overlapPreventionCount,
-            DateTime expectedTimeStamp = default,
-            SerializableGraphCollection? cache = null,
-            float repulsionFactor = 2.0f)
-        {
-            var logger = Logging.CreateLogger(string.IsNullOrEmpty(graph.Name) ? "Fdg" : $"{graph.Name}: Fdg");
-            if (cache is object
-                && cache.Graphs is object
-                && cache.Graphs.TryGetValue(graph.Name, out var cachedGraph)
-                && cachedGraph.TimeStamp == expectedTimeStamp)
-            {
-                logger.LogInformation("Using cached Fdg results.");
-                return cachedGraph.ToGraph();
-            }
-
-            var state = Fdg.Create(graph.Positions, graph.Weights, graph.Sizes);
-            state.RepulsionFactor = repulsionFactor;
-            logger.LogInformation("Processing regular iterations.");
-            for (int i = 0; i < regularCount; ++i)
-            {
-                Fdg.Step(ref state);
-            }
-            logger.LogInformation("Processing strong gravity iterations.");
-            state.IsGravityStrong = true;
-            for (int i = 0; i < strongGravityCount; ++i)
-            {
-                Fdg.Step(ref state);
-            }
-            logger.LogInformation("Processing overlap prevention iterations.");
-            state.IsGravityStrong = false;
-            state.PreventOverlapping = true;
-            for (int i = 0; i < overlapPreventionCount; ++i)
-            {
-                Fdg.Step(ref state);
-            }
-            return graph;
-        }
-
-        public static async Task<World> RunLandscapeGeneration(AnalyzedSolution solution)
-        {
-            var logger = Logging.CreateLogger($"Generator");
-            var cache = IsForced
-                ? null
-                : await Serialize.GetCache<SerializableGraphCollection>(FdgCacheFilename, logger);
-
-            var solutionGraph = Graph.FromAnalyzed(solution);
-            var graphs = await Task.WhenAll(solutionGraph.Labels
-                .Select(p => Task.Run(() =>
-                {
-                    var project = solution.Projects[p];
-                    var graph = Graph.FromAnalyzed(project);
-                    graph.LayInCircle(graph.Positions.Length);
-                    for (int i = 0; i < graph.Positions.Length; ++i)
-                    {
-                        graph.Sizes[i] = MathF.Max(graph.Sizes[i], MinNodeSize);
-                    }
-                    return RunFdg(
-                        graph: graph,
-                        regularCount: RegularIterationCount,
-                        strongGravityCount: StrongGravityIterationCount,
-                        overlapPreventionCount: NoOverlapIterationCount,
-                        expectedTimeStamp: project.LastWriteTime,
-                        cache: cache);
-                })));
-
-            var serializableGraphs = new SerializableGraphCollection
-            {
-                Graphs = solutionGraph.Labels.Zip(graphs)
-                    .ToDictionary(p => p.First, p => SerializableGraph
-                        .FromGraph(p.Second, solution.Projects[p.First].LastWriteTime))
-            };
-            await Serialize.SetCache(FdgCacheFilename, serializableGraphs, logger);
-
-            for (int i = 0; i < graphs.Length; ++i)
-            {
-                var bbox = graphs[i].GetBoundingBox();
-                solutionGraph.Sizes[i] = MathF.Max(bbox.Width, bbox.Height);
-            }
-            if (solutionGraph.Positions.Length > 1)
-            {
-                logger.LogInformation("Laying out islands.");
-                solutionGraph.LayInCircle();
-                var maxSize = solutionGraph.Sizes.Max();
-                var solutionFdgState = Fdg.Create(solutionGraph.Positions, solutionGraph.Weights, solutionGraph.Sizes);
-                solutionFdgState.RepulsionFactor = solutionGraph.Positions.Length * maxSize;
-                solutionFdgState.IsGravityStrong = true;
-                solutionFdgState.GravityFactor = 1.0f;
-                for (int i = 0; i < 3000; ++i)
-                {
-                    Fdg.Step(ref solutionFdgState);
-                }
-                solutionFdgState.PreventOverlapping = true;
-                for (int i = 0; i < 2000; ++i)
-                {
-                    Fdg.Step(ref solutionFdgState);
-                }
-            }
-
-            const int margin = 64;
-            var globalBbox = Rectangle.Round(RectangleF.Inflate(solutionGraph.GetBoundingBox(), margin, margin));
-            var heightmap = new Heightmap(globalBbox);
-            logger.LogInformation("Writing ocean heightmap.");
-            Terrain.WriteOceanFloorHeightmap(heightmap, solution.GetSeed());
-            for (int i = 0; i < graphs.Length; ++i)
-            {
-                var graph = graphs[i];
-                var pos = solutionGraph.Positions[i];
-                for (int j = 0; j < graph.Positions.Length; ++j)
-                {
-                    graph.Positions[j] += pos;
-                }
-                var radius = solutionGraph.Sizes[i];
-                var area = Rectangle.Round(RectangleF.Inflate(graph.GetBoundingBox(), margin, margin));
-                var project = solution.Projects[solutionGraph.Labels[i]];
-                logger.LogInformation($"Writing island heightmap of '{project.Name}'.");
-                Terrain.WriteIslandHeightmap(heightmap, area, project.GetSeed(), graph.Positions, graph.Sizes);
-            }
-
-            var world = new WorldBuilder(128, new Block { Flags = BlockFlags.IsAir }, Colors.IslandPalette);
-            logger.LogInformation("Generating terrain.");
-            Terrain.GenerateTerrain(heightmap, world);
-
-            for (int i = 0; i < graphs.Length; ++i)
-            {
-                var project = solution.Projects[solutionGraph.Labels[i]];
-                logger.LogInformation($"Placing structures of '{project.Name}'.");
-                var bbox = graphs[i].GetBoundingBox();
-                if (!Terrain.PlaceBridges(heightmap, world, solutionGraph, project))
-                {
-                    logger.LogError($"Bridge from the '{project.Name}' island could not be placed.");
-                }
-                Terrain.PlaceCargo(world, project, bbox);
-                Terrain.PlaceTypeStructures(heightmap, world, project, graphs[i].ToAnalyzed());
-            }
-            var cameraHeight = heightmap[heightmap.CenterX, heightmap.CenterY];
-            world.InitialCameraPosition = new Vector3(
-                heightmap.CenterX,
-                cameraHeight + DefaultCameraElevation,
-                heightmap.CenterY);
-
-            return world.Build();
-        }
-
-        public static async Task<int> RunPipeline(FileSystemInfo source, Dictionary<string, string> properties)
+        public async Task<int> RunPipeline(FileSystemInfo source, Dictionary<string, string> properties)
         {
             // code analysis
             var multigraph = await RunAnalysis(source, properties);
@@ -246,11 +82,12 @@ namespace Helveg
             return 0;
         }
 
-        public static int Main(string[] args)
+        public static async Task<int> Main(string[] args)
         {
+            var program = new Program();
             var rootCmd = new RootCommand("A software visualization tool")
             {
-                Handler = CommandHandler.Create(typeof(Program).GetMethod(nameof(RunPipeline))!)
+                Handler = CommandHandler.Create(typeof(Program).GetMethod(nameof(RunPipeline))!, program)
             };
             var verboseOption = new Option<bool>(new[] { "-v", VerboseAlias }, "Set logging level to Debug");
             var forceOption = new Option<bool>(new[] { "-f", ForceAlias }, "Overwrite cached results");
@@ -282,20 +119,20 @@ namespace Helveg
                 .UseHelp()
                 .AddMiddleware(c =>
                 {
-                    IsForced = c.ParseResult.GetValueForOption<bool>(forceOption);
+                    program.isForced = c.ParseResult.GetValueForOption<bool>(forceOption);
 
                     LogLevel minimumLevel = c.ParseResult.GetValueForOption<bool>(verboseOption)
                         ? LogLevel.Debug
                         : LogLevel.Information;
-                    Logging = LoggerFactory.Create(b =>
+                    program.logging = LoggerFactory.Create(b =>
                     {
                         b.AddConsole();
                         b.SetMinimumLevel(minimumLevel);
                     });
                 })
                 .Build(); // Sets ImplicitParser inside the root command. Yes, it's weird, I know.
-            var errorCode = builder.Invoke(args);
-            Logging.Dispose();
+            var errorCode = await builder.InvokeAsync(args);
+            program.logging.Dispose();
             return errorCode;
         }
     }

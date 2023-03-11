@@ -15,4 +15,8 @@
     <PackageReference Include="System.Text.Json" Version="7.0.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="../CSharp/Helveg.CSharp.csproj" />
+  </ItemGroup>
+
 </Project>

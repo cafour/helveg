@@ -29,7 +29,7 @@ public static class SingleFileTemplate
         <div id=""sigma-container"">
         </div>
         <script type=""application/json"" id=""helveg-data"">
-            {JsonSerializer.Serialize(multigraph, Serialize.JsonOptions)}
+            {JsonSerializer.Serialize(multigraph, HelvegDefaults.JsonOptions)}
         </script>
         <script>
             {GetResource(JsResource)}

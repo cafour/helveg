@@ -1,4 +1,4 @@
-﻿namespace Helveg.Abstractions;
+﻿namespace Helveg;
 
 /// <summary>
 /// Used for types that guaratee that their default instance is Invalid.
