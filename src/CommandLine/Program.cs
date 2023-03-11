@@ -22,147 +22,152 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.AspNetCore.Builder;
 using System.Threading;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace Helveg
+namespace Helveg.CommandLine;
+
+public class Program
 {
-    public class Program
+    public const string VerboseAlias = "--verbose";
+    public const string ForceAlias = "--force";
+
+    private ILoggerFactory logging = new NullLoggerFactory();
+    private bool isForced = false;
+
+    public async Task<Multigraph?> RunAnalysis(
+        FileSystemInfo source,
+        IDictionary<string, string> properties)
     {
-        public const string VerboseAlias = "--verbose";
-        public const string ForceAlias = "--force";
-
-        private ILoggerFactory logging = new NullLoggerFactory();
-        private bool isForced = false;
-
-        public async Task<Multigraph?> RunAnalysis(
-            FileSystemInfo source,
-            IDictionary<string, string> properties)
+        var logger = logging.CreateLogger("Analysis");
+        FileInfo? file = source switch
         {
-            var logger = logging.CreateLogger("Analysis");
-            FileInfo? file = source switch
-            {
-                FileInfo f => f.Extension == ".sln" || f.Extension == ".csproj" ? f : null,
-                DirectoryInfo d => d.EnumerateFiles("*.sln").FirstOrDefault()
-                    ?? d.EnumerateFiles("*.csproj").FirstOrDefault(),
-                _ => throw new NotImplementedException() // this should never happen
-            };
+            FileInfo f => f.Extension == ".sln" || f.Extension == ".csproj" ? f : null,
+            DirectoryInfo d => d.EnumerateFiles("*.sln").FirstOrDefault()
+                ?? d.EnumerateFiles("*.csproj").FirstOrDefault(),
+            _ => throw new NotImplementedException() // this should never happen
+        };
 
-            if (file is null)
-            {
-                logger.LogCritical($"No solution or project could be located in the '{source}' directory.");
-                return null;
-            }
-
-            logger.LogDebug($"Found '{file.FullName}'.");
-
-            // var cache = IsForced ? null : await Serialize.GetCache<SerializableSolution>(AnalysisCacheFilename, logger);
-            var vsInstance = MSBuildLocator.RegisterDefaults();
-            logger.LogDebug($"Using MSBuild at '{vsInstance.MSBuildPath}'.");
-
-            var options = new EntityWorkspaceAnalysisOptions
-            {
-                MSBuildProperties = properties.ToImmutableDictionary()
-            };
-            var workspaceProvider = new DefaultEntityWorkspaceProvider(
-                logging.CreateLogger<DefaultEntityWorkspaceProvider>());
-            var workspace = await workspaceProvider.GetWorkspace(file.FullName, options);
-            using var analysisStream = new FileStream("analysis.json", FileMode.Create, FileAccess.ReadWrite);
-            await JsonSerializer.SerializeAsync(analysisStream, workspace, HelvegDefaults.JsonOptions);
-
-            var visualizationVisitor = new VisualizationEntityVisitor();
-            visualizationVisitor.Visit(workspace);
-            return visualizationVisitor.Build();
+        if (file is null)
+        {
+            logger.LogCritical($"No solution or project could be located in the '{source}' directory.");
+            return null;
         }
 
-        public async Task<int> RunPipeline(FileSystemInfo source, Dictionary<string, string> properties)
-        {
-            // code analysis
-            var multigraph = await RunAnalysis(source, properties);
-            if (multigraph is null)
-            {
-                return 1;
-            }
+        logger.LogDebug($"Found '{file.FullName}'.");
 
-            var output = SingleFileTemplate.Create(multigraph);
-            File.WriteAllText("output.html", output);
-            return 0;
+        // var cache = IsForced ? null : await Serialize.GetCache<SerializableSolution>(AnalysisCacheFilename, logger);
+        var vsInstance = MSBuildLocator.RegisterDefaults();
+        logger.LogDebug($"Using MSBuild at '{vsInstance.MSBuildPath}'.");
+
+        var options = new EntityWorkspaceAnalysisOptions
+        {
+            MSBuildProperties = properties.ToImmutableDictionary()
+        };
+        var workspaceProvider = new DefaultEntityWorkspaceProvider(
+            logging.CreateLogger<DefaultEntityWorkspaceProvider>());
+        var workspace = await workspaceProvider.GetWorkspace(file.FullName, options);
+        using var analysisStream = new FileStream("analysis.json", FileMode.Create, FileAccess.ReadWrite);
+        await JsonSerializer.SerializeAsync(analysisStream, workspace, HelvegDefaults.JsonOptions);
+
+        var visualizationVisitor = new VisualizationEntityVisitor();
+        visualizationVisitor.Visit(workspace);
+        return visualizationVisitor.Build();
+    }
+
+    public async Task<int> RunPipeline(FileSystemInfo source, Dictionary<string, string> properties)
+    {
+        // code analysis
+        var multigraph = await RunAnalysis(source, properties);
+        if (multigraph is null)
+        {
+            return 1;
         }
 
-        public static WebApplication BuildWebApplication()
+        var output = SingleFileTemplate.Create(multigraph);
+        File.WriteAllText("output.html", output);
+        return 0;
+    }
+
+    public static WebApplication BuildWebApplication()
+    {
+        var builder = WebApplication.CreateBuilder();
+        builder.Services.AddResponseCompression();
+        builder.Services.AddRazorPages();
+        builder.WebHost.UseTestServer();
+
+        return builder.Build();
+    }
+
+    public static async Task RenderSingleFileApp()
+    {
+        var cts = new CancellationTokenSource();
+        var app = BuildWebApplication();
+        app.UseResponseCompression();
+        app.MapFallbackToPage("/_Host");
+
+        var runTask = app.RunAsync(cts.Token);
+
+        var request = app.GetTestServer().CreateRequest("/");
+        var response = await request.GetAsync();
+
+        using var outputStream = new FileStream(@"C:\dev\helveg\src\output.html", FileMode.Create, FileAccess.ReadWrite);
+        await response.Content.CopyToAsync(outputStream);
+
+        cts.Cancel();
+        await runTask;
+    }
+
+    public static async Task<int> Main(string[] args)
+    {
+        var program = new Program();
+        var rootCmd = new RootCommand("A software visualization tool")
         {
-            var builder = WebApplication.CreateBuilder();
-            builder.WebHost.UseTestServer();
-
-            return builder.Build();
-        }
-
-        public static async Task RenderSingleFileApp()
+            Handler = CommandHandler.Create(typeof(Program).GetMethod(nameof(RunPipeline))!, program)
+        };
+        var verboseOption = new Option<bool>(new[] { "-v", VerboseAlias }, "Set logging level to Debug");
+        var forceOption = new Option<bool>(new[] { "-f", ForceAlias }, "Overwrite cached results");
+        rootCmd.AddGlobalOption(verboseOption);
+        rootCmd.AddGlobalOption(forceOption);
+        rootCmd.AddArgument(new Argument<FileSystemInfo>(
+            name: "SOURCE",
+            description: "Path to a project or a solution",
+            getDefaultValue: () => new DirectoryInfo(Environment.CurrentDirectory)));
+        var propertyOption = new Option<Dictionary<string, string>>(
+            aliases: new[] { "-p", "--properties" },
+            parseArgument: a => a.Tokens
+                .Select(t => t.Value.Split('=', 2))
+                .ToDictionary(p => p[0], p => p[1]),
+            description: "Set an MSBuild property for the loading of projects");
+        propertyOption.AddValidator(r =>
         {
-            var cts = new CancellationTokenSource();
-            var app = BuildWebApplication();
-            var runTask = app.RunAsync(cts.Token);
-
-            var request = app.GetTestServer().CreateRequest("/");
-            var response = await request.GetAsync();
-
-            using var outputStream = new FileStream("output.html", FileMode.Create, FileAccess.ReadWrite);
-            await response.Content.CopyToAsync(outputStream);
-
-            cts.Cancel();
-            await runTask;
-        }
-
-        public static async Task<int> Main(string[] args)
-        {
-            var program = new Program();
-            var rootCmd = new RootCommand("A software visualization tool")
+            foreach (var token in r.Tokens)
             {
-                Handler = CommandHandler.Create(typeof(Program).GetMethod(nameof(RunPipeline))!, program)
-            };
-            var verboseOption = new Option<bool>(new[] { "-v", VerboseAlias }, "Set logging level to Debug");
-            var forceOption = new Option<bool>(new[] { "-f", ForceAlias }, "Overwrite cached results");
-            rootCmd.AddGlobalOption(verboseOption);
-            rootCmd.AddGlobalOption(forceOption);
-            rootCmd.AddArgument(new Argument<FileSystemInfo>(
-                name: "SOURCE",
-                description: "Path to a project or a solution",
-                getDefaultValue: () => new DirectoryInfo(Environment.CurrentDirectory)));
-            var propertyOption = new Option<Dictionary<string, string>>(
-                aliases: new[] { "-p", "--properties" },
-                parseArgument: a => a.Tokens
-                    .Select(t => t.Value.Split('=', 2))
-                    .ToDictionary(p => p[0], p => p[1]),
-                description: "Set an MSBuild property for the loading of projects");
-            propertyOption.AddValidator(r =>
-            {
-                foreach (var token in r.Tokens)
+                if (!token.Value.Contains('='))
                 {
-                    if (!token.Value.Contains('='))
-                    {
-                        r.ErrorMessage = "MSBuild properties must follow the '<n>=<v>' format.";
-                    }
+                    r.ErrorMessage = "MSBuild properties must follow the '<n>=<v>' format.";
                 }
-            });
-            rootCmd.AddOption(propertyOption);
+            }
+        });
+        rootCmd.AddOption(propertyOption);
 
-            var builder = new CommandLineBuilder(rootCmd)
-                .UseHelp()
-                .AddMiddleware(c =>
+        var builder = new CommandLineBuilder(rootCmd)
+            .UseHelp()
+            .AddMiddleware(c =>
+            {
+                program.isForced = c.ParseResult.GetValueForOption<bool>(forceOption);
+
+                LogLevel minimumLevel = c.ParseResult.GetValueForOption<bool>(verboseOption)
+                    ? LogLevel.Debug
+                    : LogLevel.Information;
+                program.logging = LoggerFactory.Create(b =>
                 {
-                    program.isForced = c.ParseResult.GetValueForOption<bool>(forceOption);
-
-                    LogLevel minimumLevel = c.ParseResult.GetValueForOption<bool>(verboseOption)
-                        ? LogLevel.Debug
-                        : LogLevel.Information;
-                    program.logging = LoggerFactory.Create(b =>
-                    {
-                        b.AddConsole();
-                        b.SetMinimumLevel(minimumLevel);
-                    });
-                })
-                .Build(); // Sets ImplicitParser inside the root command. Yes, it's weird, I know.
-            var errorCode = await builder.InvokeAsync(args);
-            program.logging.Dispose();
-            return errorCode;
-        }
+                    b.AddConsole();
+                    b.SetMinimumLevel(minimumLevel);
+                });
+            })
+            .Build(); // Sets ImplicitParser inside the root command. Yes, it's weird, I know.
+        var errorCode = await builder.InvokeAsync(args);
+        program.logging.Dispose();
+        return errorCode;
     }
 }

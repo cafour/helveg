@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../Visualization/Helveg.Visualization.csproj" />
+    <ProjectReference Include="../CSharp/Helveg.CSharp.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -30,10 +31,6 @@
   <ItemGroup>
     <NpmBuildOutputFiles Include="$(BaseIntermediateOutputPath)/esbuild/helveg.js" />
     <NpmBuildOutputFiles Include="$(BaseIntermediateOutputPath)/esbuild/helveg.css" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\CSharp\Helveg.CSharp.csproj" />
   </ItemGroup>
 
   <Target Name="NpmInstall" BeforeTargets="DispatchToInnerBuilds" Inputs="package.json" Outputs="node_modules/.install-stamp">

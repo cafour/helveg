@@ -41,6 +41,7 @@
 !*.scss
 !*.razor
 !*.js
+!*.cshtml
 
 # static files
 !**/wwwroot/**/*.html
