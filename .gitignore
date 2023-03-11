@@ -74,3 +74,4 @@ embedded/
 artifacts/
 *.gv.png
 node_modules/
+.vs/
