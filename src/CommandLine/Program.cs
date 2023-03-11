@@ -119,6 +119,7 @@ public class Program
 
     public static async Task<int> Main(string[] args)
     {
+        await RenderSingleFileApp();
         var program = new Program();
         var rootCmd = new RootCommand("A software visualization tool")
         {
