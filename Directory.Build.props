@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <PackageOutputPath>$(MSBuildThisFileDirectory)../artifacts</PackageOutputPath>
+    <PackageOutputPath>$(MSBuildThisFileDirectory)artifacts</PackageOutputPath>
     <DebugType>embedded</DebugType>
     <EmbedAllSources>true</EmbedAllSources>
     <DefaultTargetFrameworks>net7.0</DefaultTargetFrameworks>

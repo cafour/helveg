@@ -17,6 +17,11 @@ using Helveg.Visualization;
 using Helveg.CSharp;
 using System.Collections.Immutable;
 using System.Text.Json;
+using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.AspNetCore.Builder;
+using System.Threading;
 
 namespace Helveg
 {
@@ -80,6 +85,30 @@ namespace Helveg
             var output = SingleFileTemplate.Create(multigraph);
             File.WriteAllText("output.html", output);
             return 0;
+        }
+
+        public static WebApplication BuildWebApplication()
+        {
+            var builder = WebApplication.CreateBuilder();
+            builder.WebHost.UseTestServer();
+
+            return builder.Build();
+        }
+
+        public static async Task RenderSingleFileApp()
+        {
+            var cts = new CancellationTokenSource();
+            var app = BuildWebApplication();
+            var runTask = app.RunAsync(cts.Token);
+
+            var request = app.GetTestServer().CreateRequest("/");
+            var response = await request.GetAsync();
+
+            using var outputStream = new FileStream("output.html", FileMode.Create, FileAccess.ReadWrite);
+            await response.Content.CopyToAsync(outputStream);
+
+            cts.Cancel();
+            await runTask;
         }
 
         public static async Task<int> Main(string[] args)

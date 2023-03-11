@@ -10,6 +10,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="7.0.3" />
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
     <PackageReference Include="System.CommandLine.NamingConventionBinder" Version="2.0.0-beta4.22272.1" />
     <PackageReference Include="System.Text.Json" Version="7.0.1" />
@@ -17,6 +22,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../CSharp/Helveg.CSharp.csproj" />
+    <ProjectReference Include="../Visualization.UI/Helveg.Visualization.UI.csproj" />
   </ItemGroup>
 
 </Project>
