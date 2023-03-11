@@ -5,7 +5,7 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{3C2301C0-129B-4FAA-8ED5-73E23146E200}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Helveg", "src\Helveg\Helveg.csproj", "{601B61A9-A4D1-4A25-8A64-07C4144CC80A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Helveg.CommandLine", "src\Helveg\Helveg.CommandLine.csproj", "{601B61A9-A4D1-4A25-8A64-07C4144CC80A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Helveg.CSharp", "src\Helveg.CSharp\Helveg.CSharp.csproj", "{E34ACA44-B424-4D49-9B4B-09A58EBC540A}"
 EndProject
@@ -26,7 +26,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Helveg.Playground", "src\He
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Helveg.Visualization", "src\Helveg.Visualization\Helveg.Visualization.csproj", "{10A8EA67-0D49-4EFE-A846-28363CA2B9E2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Helveg.Visualization.UI", "src\Helveg.Visualization.UI\Helveg.Visualization.UI.csproj", "{243139FF-61A2-4A78-8D34-A35D45459D5F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Helveg.Visualization.UI", "src\Helveg.Visualization.UI\Helveg.Visualization.UI.csproj", "{243139FF-61A2-4A78-8D34-A35D45459D5F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
