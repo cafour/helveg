@@ -20,7 +20,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Helveg.Abstractions", "src\Abstractions\Helveg.Abstractions.csproj", "{3AB45091-373A-42D8-B13C-2840FD7365A1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Helveg.Common", "src\Common\Helveg.Common.csproj", "{3AB45091-373A-42D8-B13C-2840FD7365A1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Helveg.Playground", "src\Playground\Helveg.Playground.csproj", "{91F82255-EE85-4DAF-AB4C-A8E649EE5716}"
 EndProject

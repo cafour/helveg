@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+﻿<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
 
   <PropertyGroup>
     <TargetFrameworks>$(DefaultTargetFrameworks)</TargetFrameworks>
@@ -8,5 +8,43 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="7.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="7.0.3" PrivateAssets="all" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Visualization/Helveg.Visualization.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="$(BaseIntermediateOutputPath)/esbuild/helveg.js" LogicalName="helveg.js" />
+    <EmbeddedResource Include="$(BaseIntermediateOutputPath)/esbuild/helveg.css" LogicalName="helveg.css" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <NpmBuildInputFiles Include="Scripts/**/*.ts" />
+    <NpmBuildInputFiles Include="Scripts/**/*.scss" />
+    <NpmBuildInputFiles Include="tsconfig.json" />
+    <NpmBuildInputFiles Include="package.json" />
+    <NpmBuildInputFiles Include="package-lock.json" />
+    <NpmBuildInputFiles Include="build.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <NpmBuildOutputFiles Include="$(BaseIntermediateOutputPath)/esbuild/helveg.js" />
+    <NpmBuildOutputFiles Include="$(BaseIntermediateOutputPath)/esbuild/helveg.css" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CSharp\Helveg.CSharp.csproj" />
+  </ItemGroup>
+
+  <Target Name="NpmInstall" BeforeTargets="DispatchToInnerBuilds" Inputs="package.json" Outputs="node_modules/.install-stamp">
+    <Message Text="Restoring npm packages declared in package.json" Importance="High" />
+    <Exec Command="npm ci" EnvironmentVariables="$(EnvOverrides)" />
+    <Touch Files="node_modules/.install-stamp" AlwaysCreate="true" />
+  </Target>
+
+  <Target Name="NpmRunBuild" DependsOnTargets="NpmInstall" BeforeTargets="DispatchToInnerBuilds;BeforeBuild" Inputs="@(NpmBuildInputFiles)" Outputs="@(NpmBuildOutputFiles)">
+    <Message Text="Running npm target build:$(Configuration)" Importance="High" />
+    <Exec Command="npm run build:$(Configuration)" EnvironmentVariables="$(EnvOverrides)" />
+  </Target>
 
 </Project>

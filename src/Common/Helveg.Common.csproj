@@ -2,9 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>$(DefaultTargetFrameworks)</TargetFrameworks>
+    <RootNamespace>Helveg</RootNamespace>
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="../Common/Helveg.Common.csproj" />
-  </ItemGroup>
 </Project>
