@@ -38,8 +38,20 @@
 !*.props
 !*.targets
 !*.ts
-!*.js
 !*.scss
+!*.razor
+
+# static files
+!**/wwwroot/**/*.html
+!**/wwwroot/**/*.js
+!**/wwwroot/**/*.css
+!**/wwwroot/**/FONT-LICENSE
+!**/wwwroot/**/ICON-LICENSE
+!**/wwwroot/**/*.eot
+!**/wwwroot/**/*.otf
+!**/wwwroot/**/*.svg
+!**/wwwroot/**/*.ttf
+!**/wwwroot/**/*.woff
 
 # misc
 !.clang-format
