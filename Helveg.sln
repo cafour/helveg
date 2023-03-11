@@ -5,9 +5,9 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{3C2301C0-129B-4FAA-8ED5-73E23146E200}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Helveg.CommandLine", "src\Helveg\Helveg.CommandLine.csproj", "{601B61A9-A4D1-4A25-8A64-07C4144CC80A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Helveg.CommandLine", "src\CommandLine\Helveg.CommandLine.csproj", "{601B61A9-A4D1-4A25-8A64-07C4144CC80A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Helveg.CSharp", "src\Helveg.CSharp\Helveg.CSharp.csproj", "{E34ACA44-B424-4D49-9B4B-09A58EBC540A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Helveg.CSharp", "src\CSharp\Helveg.CSharp.csproj", "{E34ACA44-B424-4D49-9B4B-09A58EBC540A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6898D2C5-50A8-4448-8F7F-02E4A9F5C385}"
 	ProjectSection(SolutionItems) = preProject
@@ -20,13 +20,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Helveg.Abstractions", "src\Helveg.Abstractions\Helveg.Abstractions.csproj", "{3AB45091-373A-42D8-B13C-2840FD7365A1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Helveg.Abstractions", "src\Abstractions\Helveg.Abstractions.csproj", "{3AB45091-373A-42D8-B13C-2840FD7365A1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Helveg.Playground", "src\Helveg.Playground\Helveg.Playground.csproj", "{91F82255-EE85-4DAF-AB4C-A8E649EE5716}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Helveg.Playground", "src\Playground\Helveg.Playground.csproj", "{91F82255-EE85-4DAF-AB4C-A8E649EE5716}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Helveg.Visualization", "src\Helveg.Visualization\Helveg.Visualization.csproj", "{10A8EA67-0D49-4EFE-A846-28363CA2B9E2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Helveg.Visualization", "src\Visualization\Helveg.Visualization.csproj", "{10A8EA67-0D49-4EFE-A846-28363CA2B9E2}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Helveg.Visualization.UI", "src\Helveg.Visualization.UI\Helveg.Visualization.UI.csproj", "{243139FF-61A2-4A78-8D34-A35D45459D5F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Helveg.Visualization.UI", "src\Visualization.UI\Helveg.Visualization.UI.csproj", "{243139FF-61A2-4A78-8D34-A35D45459D5F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

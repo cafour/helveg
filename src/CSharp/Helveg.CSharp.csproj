@@ -5,8 +5,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../Helveg.Abstractions/Helveg.Abstractions.csproj" />
-    <ProjectReference Include="../Helveg.Visualization/Helveg.Visualization.csproj" />
+    <ProjectReference Include="../Abstractions/Helveg.Abstractions.csproj" />
+    <ProjectReference Include="../Visualization/Helveg.Visualization.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Helveg.CSharp\Helveg.CSharp.csproj" />
+    <ProjectReference Include="..\CSharp\Helveg.CSharp.csproj" />
   </ItemGroup>
 
 </Project>
