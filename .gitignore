@@ -40,20 +40,20 @@
 !*.ts
 !*.scss
 !*.razor
-!*.js
 !*.cshtml
+!*.svelte
 
 # static files
-!**/wwwroot/**/*.html
-!**/wwwroot/**/*.js
-!**/wwwroot/**/*.css
-!**/wwwroot/**/FONT-LICENSE
-!**/wwwroot/**/ICON-LICENSE
-!**/wwwroot/**/*.eot
-!**/wwwroot/**/*.otf
-!**/wwwroot/**/*.svg
-!**/wwwroot/**/*.ttf
-!**/wwwroot/**/*.woff
+!*.html
+!*.js
+!*.css
+!FONT-LICENSE
+!ICON-LICENSE
+!*.eot
+!*.otf
+!*.svg
+!*.ttf
+!*.woff
 
 # misc
 !.clang-format
@@ -77,3 +77,4 @@ artifacts/
 *.gv.png
 node_modules/
 .vs/
+output*.html
