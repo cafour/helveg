@@ -2,7 +2,7 @@
   "name": "svelte-test08",
   "type": "module",
   "scripts": {
-    "build": "node ./build.js"
+    "build": "ts-node --esm --project ./tsconfig.node.json ./build.ts"
   },
   "devDependencies": {
     "@tsconfig/svelte": "^3.0.0",
@@ -11,6 +11,7 @@
     "svelte": "^3.56.0",
     "svelte-check": "^3.1.2",
     "svelte-preprocess": "^5.0.1",
+    "ts-node": "^10.9.1",
     "typescript": "^4.9.5"
   }
 }
