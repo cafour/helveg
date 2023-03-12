@@ -5,6 +5,14 @@ import { ssr } from "vite-plugin-ssr/plugin";
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  build: {
+    modulePreload: false,
+    rollupOptions: {
+      output: {
+        manualChunks: () => "app"
+      }
+    }
+  },
   plugins: [
     svelte({
       compilerOptions: {
@@ -13,5 +21,7 @@ export default defineConfig({
     }),
     ssr({
       prerender: true
-    })],
+    }),
+    viteSingleFile()
+  ]
 })
