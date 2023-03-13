@@ -7,7 +7,6 @@ build:
     paths:
       - artifacts/*.nupkg
     expire_in: 42s
-    expose_as: Package
   cache:
     paths:
       - .nuget/
