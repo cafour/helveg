@@ -26,7 +26,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Helveg.Playground", "src\Pl
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Helveg.Visualization", "src\Visualization\Helveg.Visualization.csproj", "{10A8EA67-0D49-4EFE-A846-28363CA2B9E2}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Helveg.Visualization.UI", "src\Visualization.UI\Helveg.Visualization.UI.csproj", "{243139FF-61A2-4A78-8D34-A35D45459D5F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Helveg.UI", "src\UI\Helveg.UI.csproj", "{243139FF-61A2-4A78-8D34-A35D45459D5F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

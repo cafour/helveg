@@ -22,7 +22,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../CSharp/Helveg.CSharp.csproj" />
-    <ProjectReference Include="../Visualization.UI/Helveg.Visualization.UI.csproj" />
+    <ProjectReference Include="../UI/Helveg.UI.csproj" />
   </ItemGroup>
 
 </Project>
