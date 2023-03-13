@@ -5,10 +5,11 @@ import prerenderPlugin from "./prerender.js";
 
 await esbuild.build({
     entryPoints: ["main.client.ts"],
+    entryNames: "helveg",
     format: "iife",
-    outdir: "./dist",
+    outdir: "./obj/esbuild",
     mainFields: ["svelte", "browser", "module", "main"],
-    sourcemap: "inline",
+    sourcemap: false,
     splitting: false,
     write: true,
     logLevel: "info",
@@ -17,11 +18,11 @@ await esbuild.build({
         esbuildSvelte({
             preprocess: sveltePreprocess()
         }),
-        prerenderPlugin()
+        // prerenderPlugin()
     ],
     loader: {
         ".svg": "text"
     },
     metafile: true
 })
-// .catch(() => process.exit(1));
+.catch(() => process.exit(1));
