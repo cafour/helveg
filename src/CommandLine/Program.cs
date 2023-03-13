@@ -23,6 +23,7 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.AspNetCore.Builder;
 using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
+using Helveg.UI;
 
 namespace Helveg.CommandLine;
 

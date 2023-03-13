@@ -4,7 +4,7 @@ using System.Reflection;
 using System.Text.Json;
 using Helveg.Visualization;
 
-namespace Helveg;
+namespace Helveg.UI;
 
 public static class SingleFileTemplate
 {
