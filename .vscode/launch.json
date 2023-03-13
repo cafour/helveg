@@ -13,9 +13,24 @@
             "stopAtEntry": false
         },
         {
-            "name": ".NET Core Attach",
-            "type": "coreclr",
-            "request": "attach"
+            "type": "node",
+            "request": "launch",
+            "name": "svelte-test08",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "runtimeArgs": [
+              "--loader",
+              "ts-node/esm"
+            ],
+            "args": [
+              "${workspaceFolder}/src/svelte-test08/build.ts",
+              "--buildDeclarations"
+            ],
+            "cwd": "${workspaceFolder}/src/svelte-test08",
+            "env": {
+              "TS_NODE_PROJECT": "${workspaceFolder}/src/svelte-test08/tsconfig.node.json"
+            }
         }
     ]
 }

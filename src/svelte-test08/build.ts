@@ -1,9 +1,10 @@
 import esbuild from "esbuild";
 import esbuildSvelte from "esbuild-svelte";
 import sveltePreprocess from "svelte-preprocess";
+import prerenderPlugin from "./prerender.js";
 
 await esbuild.build({
-    entryPoints: ["main.ts"],
+    entryPoints: ["main.client.ts"],
     format: "iife",
     outdir: "./dist",
     mainFields: ["svelte", "browser", "module", "main"],
@@ -15,10 +16,12 @@ await esbuild.build({
     plugins: [
         esbuildSvelte({
             preprocess: sveltePreprocess()
-        })
+        }),
+        prerenderPlugin()
     ],
     loader: {
         ".svg": "text"
-    }
+    },
+    metafile: true
 })
-.catch(() => process.exit(1));
+// .catch(() => process.exit(1));

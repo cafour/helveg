@@ -1,4 +1,8 @@
 {
+  "extends": "ts-node/node16/tsconfig.json",
+  "ts-node": {
+    "files": true
+  },
   "compilerOptions": {
     "composite": true,
     "module": "ESNext",
@@ -6,5 +10,8 @@
     "moduleResolution": "Node",
     "allowSyntheticDefaultImports": true
   },
-  "include": ["build.ts"]
+  "files": [
+    "build.ts",
+    "prerender.ts"
+  ]
 }
