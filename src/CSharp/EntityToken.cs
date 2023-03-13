@@ -55,7 +55,7 @@ public record struct EntityToken
 
     public static bool TryParse(string value, out EntityToken token)
     {
-        var parts = value.Split('-', 2);
+        var parts = value.Split(new[] { '-' }, 2);
         if (parts.Length != 2 || !Enum.TryParse<EntityKind>(parts[0], out var kind))
         {
             token = Invalid;

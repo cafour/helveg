@@ -54,6 +54,9 @@ const context = await esbuild.context({
 if (isWatch) {
     await context.watch()
         .catch(() => process.exit(1));
+} else {
+    await context.rebuild()
+        .catch(() => process.exit(1));
 }
 
 await context.dispose();

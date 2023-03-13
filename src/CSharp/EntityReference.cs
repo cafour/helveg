@@ -12,6 +12,9 @@ public interface IEntityReference
     EntityToken Token { get; }
 }
 
+/// <summary>
+/// A class for sharing properties among all entity references.
+/// </summary>
 public abstract record EntityReference : IEntityReference
 {
     public string? Hint { get; init; }

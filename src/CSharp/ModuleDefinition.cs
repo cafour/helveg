@@ -9,7 +9,7 @@ public record ModuleReference : EntityReference
         = new() { Token = EntityToken.CreateError(EntityKind.Module) };
 }
 
-public record ModuleDefinition : EntityDefinition<ModuleReference>
+public record ModuleDefinition : EntityDefinition
 {
     public static ModuleDefinition Invalid { get; }
         = new() { Token = EntityToken.CreateError(EntityKind.Module) };
@@ -21,10 +21,9 @@ public record ModuleDefinition : EntityDefinition<ModuleReference>
 
     public AssemblyReference ContainingAssembly { get; init; } = AssemblyReference.Invalid;
 
-    public override ModuleReference GetReference()
-    {
-        return new() { Token = Token, Hint = Name };
-    }
+    public ModuleReference Reference => new() { Token = Token, Hint = Name };
+
+    public override IEntityReference GetReference() => Reference;
 
     public IEnumerable<TypeDefinition> GetAllTypes()
     {

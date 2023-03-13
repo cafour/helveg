@@ -12,7 +12,7 @@ public record EntityWorkspace
 
     public SolutionDefinition Solution { get; init; } = SolutionDefinition.Invalid;
 
-    public string Name { get; init; } = IEntityDefinition.InvalidName;
+    public string Name { get; init; } = CSharpConstants.InvalidName;
 
     public IEntityDefinition Resolve(IEntityReference reference)
     {

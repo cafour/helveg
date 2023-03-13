@@ -87,7 +87,7 @@ public class DefaultEntityWorkspaceProvider : IEntityWorkspaceProvider
         var helSolution = new SolutionDefinition
         {
             Token = tokenGenerator.GetToken(EntityKind.Solution),
-            Name = solution.FilePath ?? IEntityDefinition.InvalidName,
+            Name = solution.FilePath ?? CSharpConstants.InvalidName,
             FullName = solution.FilePath
         };
 
@@ -95,7 +95,7 @@ public class DefaultEntityWorkspaceProvider : IEntityWorkspaceProvider
 
         var projects = (await Task.WhenAll(solution.Projects
             .Select(p => GetProject(p, options, externalDependencies, cancellationToken))))
-            .Select(p => p with { ContainingSolution = helSolution.GetReference() })
+            .Select(p => p with { ContainingSolution = helSolution.Reference })
             .ToImmutableArray();
 
         helSolution = helSolution with
@@ -108,7 +108,7 @@ public class DefaultEntityWorkspaceProvider : IEntityWorkspaceProvider
             helSolution = helSolution with
             {
                 ExternalDependencies = externalDependencies.Values
-                .Select(e => e with { ContainingSolution = helSolution.GetReference() })
+                .Select(e => e with { ContainingSolution = helSolution.Reference })
                 .ToImmutableArray()
             };
         }
@@ -199,12 +199,12 @@ public class DefaultEntityWorkspaceProvider : IEntityWorkspaceProvider
                     {
                         return ExternalDependencyDefinition.Invalid with
                         {
-                            Name = reference.Display ?? IEntityDefinition.InvalidName
+                            Name = reference.Display ?? CSharpConstants.InvalidName
                         };
                     }
                     return new ExternalDependencyDefinition
                     {
-                        Name = reference.Display ?? IEntityDefinition.InvalidName,
+                        Name = reference.Display ?? CSharpConstants.InvalidName,
                         Token = token,
                         Assembly = assembly
                     };

@@ -10,7 +10,7 @@ namespace Helveg.CSharp;
 
 public class VisualizationEntityVisitor : EntityVisitor
 {
-    private string name = IEntityDefinition.InvalidName;
+    private string name = CSharpConstants.InvalidName;
     private readonly ImmutableArray<Node>.Builder nodes = ImmutableArray.CreateBuilder<Node>();
     private readonly ImmutableArray<Edge>.Builder implementsRelation = ImmutableArray.CreateBuilder<Edge>();
     private readonly ImmutableArray<Edge>.Builder isComposedOfRelation = ImmutableArray.CreateBuilder<Edge>();

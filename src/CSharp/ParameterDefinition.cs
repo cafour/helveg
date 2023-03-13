@@ -32,8 +32,7 @@ public record ParameterDefinition : EntityDefinition
 
     public PropertyReference? DeclaringProperty { get; init; }
 
-    public override ParameterReference GetReference()
-    {
-        return new() { Token = Token, Hint = Name };
-    }
+    public ParameterReference Reference => new() { Token = Token, Hint = Name };
+
+    public override IEntityReference GetReference() => Reference;
 }

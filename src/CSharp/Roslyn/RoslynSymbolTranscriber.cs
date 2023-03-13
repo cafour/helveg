@@ -81,7 +81,7 @@ internal class RoslynSymbolTranscriber
         return helAssembly with
         {
             Modules = assembly.Modules
-                .Select(m => GetModule(m, helAssembly.GetReference()))
+                .Select(m => GetModule(m, helAssembly.Reference))
                 .ToImmutableArray()
         };
     }
@@ -99,7 +99,7 @@ internal class RoslynSymbolTranscriber
 
         return helModule with
         {
-            GlobalNamespace = GetNamespace(module.GlobalNamespace, helModule.GetReference())
+            GlobalNamespace = GetNamespace(module.GlobalNamespace, helModule.Reference)
         };
     }
 
@@ -115,7 +115,7 @@ internal class RoslynSymbolTranscriber
         return helNamespace with
         {
             Types = @namespace.GetTypeMembers()
-                .Select(t => GetType(t, helNamespace.GetReference()))
+                .Select(t => GetType(t, helNamespace.Reference))
                 .ToImmutableArray(),
             Namespaces = @namespace.GetNamespaceMembers()
                 .Select(n => GetNamespace(n, containingModule))
@@ -156,7 +156,7 @@ internal class RoslynSymbolTranscriber
 
         helType = PopulateMember(type, helType);
 
-        var reference = helType.GetReference();
+        var reference = helType.Reference;
 
         return helType with
         {
@@ -290,7 +290,7 @@ internal class RoslynSymbolTranscriber
         return helProperty with
         {
             Parameters = symbol.Parameters
-                .Select(p => GetParameter(p, null, helProperty.GetReference()))
+                .Select(p => GetParameter(p, null, helProperty.Reference))
                 .ToImmutableArray()
         };
     }
@@ -336,10 +336,10 @@ internal class RoslynSymbolTranscriber
                 .Select(GetMethodReference)
                 .ToImmutableArray(),
             TypeParameters = symbol.TypeParameters
-                .Select(p => GetTypeParameter(p, null, helMethod.GetReference(), containingType, containingNamespace))
+                .Select(p => GetTypeParameter(p, null, helMethod.Reference, containingType, containingNamespace))
                 .ToImmutableArray(),
             Parameters = symbol.Parameters
-                .Select(p => GetParameter(p, helMethod.GetReference(), null))
+                .Select(p => GetParameter(p, helMethod.Reference, null))
                 .ToImmutableArray()
         };
     }

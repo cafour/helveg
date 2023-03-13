@@ -11,7 +11,7 @@ public record NamespaceReference : EntityReference
         = new() { Token = EntityToken.CreateError(EntityKind.Namespace) };
 }
 
-public record NamespaceDefinition : EntityDefinition<NamespaceReference>
+public record NamespaceDefinition : EntityDefinition
 {
     public static NamespaceDefinition Invalid { get; }
         = new() { Token = EntityToken.CreateError(EntityKind.Namespace) };
@@ -26,10 +26,9 @@ public record NamespaceDefinition : EntityDefinition<NamespaceReference>
 
     public bool IsGlobalNamespace => ContainingNamespace is null;
 
-    public override NamespaceReference GetReference()
-    {
-        return new() { Token = Token, Hint = Name };
-    }
+    public NamespaceReference Reference => new() { Token = Token, Hint = Name };
+
+    public override IEntityReference GetReference() => Reference;
 
     public IEnumerable<TypeDefinition> GetAllTypes()
     {

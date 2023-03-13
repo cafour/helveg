@@ -7,7 +7,7 @@ public record AssemblyId
 {
     public static AssemblyId Invalid { get; } = new();
 
-    public string Name { get; init; } = IEntityDefinition.InvalidName;
+    public string Name { get; init; } = CSharpConstants.InvalidName;
 
     public Version Version { get; init; } = new();
 
@@ -15,5 +15,5 @@ public record AssemblyId
 
     public string? PublicKeyToken { get; init; }
 
-    public bool IsInvalid => Name == IEntityDefinition.InvalidName;
+    public bool IsInvalid => Name == CSharpConstants.InvalidName;
 }

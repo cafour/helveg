@@ -59,8 +59,7 @@ public record MethodDefinition : MemberDefinition
 
     public EntityReference? AssociatedProperty { get; init; }
 
-    public override MethodReference GetReference()
-    {
-        return new() { Token = Token, Hint = Name };
-    }
+    public MethodReference Reference => new() { Token = Token, Hint = Name };
+
+    public override IEntityReference GetReference() => Reference;
 }

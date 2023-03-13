@@ -40,8 +40,7 @@ public record PropertyDefinition : MemberDefinition
 
     public PropertyReference? OverriddenProperty { get; init; }
 
-    public override PropertyReference GetReference()
-    {
-        return new() { Token = Token, Hint = Name };
-    }
+    public PropertyReference Reference => new() { Token = Token, Hint = Name };
+
+    public override IEntityReference GetReference() => Reference;
 }

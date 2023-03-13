@@ -20,8 +20,7 @@ public record EventDefinition : MemberDefinition
 
     public MethodReference? RaiseMethod { get; init; }
 
-    public override EventReference GetReference()
-    {
-        return new() { Token = Token, Hint = Name };
-    }
+    public EventReference Reference => new() { Token = Token, Hint = Name };
+
+    public override IEntityReference GetReference() => Reference;
 }

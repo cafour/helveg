@@ -31,8 +31,7 @@ public record ProjectDefinition : EntityDefinition
 
     public SolutionReference ContainingSolution { get; init; } = SolutionReference.Invalid;
 
-    public override ProjectReference GetReference()
-    {
-        return new() { Token = Token, Hint = Name };
-    }
+    public ProjectReference Reference => new() { Token = Token, Hint = Name };
+
+    public override IEntityReference GetReference() => Reference;
 }

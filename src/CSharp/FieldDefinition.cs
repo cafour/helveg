@@ -28,8 +28,7 @@ public record FieldDefinition : MemberDefinition
 
     public RefKind RefKind { get; init; }
 
-    public override FieldReference GetReference()
-    {
-        return new() { Token = Token, Hint = Name };
-    }
+    public FieldReference Reference => new() { Token = Token, Hint = Name };
+
+    public override IEntityReference GetReference() => Reference;
 }

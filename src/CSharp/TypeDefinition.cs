@@ -20,7 +20,7 @@ public record TypeDefinition : MemberDefinition
     public static TypeDefinition Invalid { get; }
         = new() { Token = EntityToken.CreateError(EntityKind.Type) };
 
-    public string MetadataName { get; init; } = IEntityDefinition.InvalidName;
+    public string MetadataName { get; init; } = CSharpConstants.InvalidName;
 
     public ImmutableArray<PropertyDefinition> Properties { get; init; } = ImmutableArray<PropertyDefinition>.Empty;
 
@@ -66,13 +66,7 @@ public record TypeDefinition : MemberDefinition
 
     public bool IsImplicitClass { get; init; }
 
-    public override TypeReference GetReference()
-    {
-        return new TypeReference
-        {
-            Token = Token,
-            TypeKind = TypeKind,
-            Hint = Name
-        };
-    }
+    public TypeReference Reference => new() { Token = Token, TypeKind = TypeKind, Hint = Name };
+
+    public override IEntityReference GetReference() => Reference;
 }

@@ -12,7 +12,7 @@ public record ExternalDependencyReference : EntityReference
         = new() { Token = EntityToken.CreateError(EntityKind.ExternalDependency) };
 }
 
-public record ExternalDependencyDefinition : EntityDefinition<ExternalDependencyReference>
+public record ExternalDependencyDefinition : EntityDefinition
 {
     public static ExternalDependencyDefinition Invalid { get; }
         = new() { Token = EntityToken.CreateError(EntityKind.ExternalDependency) };
@@ -21,8 +21,7 @@ public record ExternalDependencyDefinition : EntityDefinition<ExternalDependency
 
     public SolutionReference ContainingSolution { get; init; } = SolutionReference.Invalid;
 
-    public override ExternalDependencyReference GetReference()
-    {
-        return new() { Token = Token, Hint = Name };
-    }
+    public ExternalDependencyReference Reference => new() { Token = Token, Hint = Name };
+
+    public override IEntityReference GetReference() => Reference;
 }

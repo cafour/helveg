@@ -31,8 +31,11 @@ public interface IMemberDefinition
     NamespaceReference ContainingNamespace { get; }
 }
 
-public abstract record MemberDefinition<TReference> : EntityDefinition<TReference>, IMemberDefinition
-    where TReference : IEntityReference
+/// <summary>
+/// A class for sharing properties among all member definitions (fields, events, properties, methods).
+/// </summary>
+/// <typeparam name="TReference"></typeparam>
+public abstract record MemberDefinition : EntityDefinition, IMemberDefinition
 {
     public MemberAccessibility Accessibility { get; init; }
 

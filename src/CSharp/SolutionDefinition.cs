@@ -25,8 +25,7 @@ public record SolutionDefinition : EntityDefinition
     public ImmutableArray<ExternalDependencyDefinition> ExternalDependencies { get; init; }
         = ImmutableArray<ExternalDependencyDefinition>.Empty;
 
-    public override SolutionReference GetReference()
-    {
-        return new() { Token = Token, Hint = Name };
-    }
+    public SolutionReference Reference => new() { Token = Token, Hint = Name };
+
+    public override IEntityReference GetReference() => Reference;
 }

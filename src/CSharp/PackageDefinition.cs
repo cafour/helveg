@@ -18,8 +18,7 @@ public record PackageDefinition : EntityDefinition
 
     public ImmutableArray<AssemblyDefinition> Assemblies { get; set; }
 
-    public override PackageReference GetReference()
-    {
-        return new() { Token = Token, Hint = Name };
-    }
+    public PackageReference Reference => new() { Token = Token, Hint = Name };
+
+    public override IEntityReference GetReference() => Reference;
 }

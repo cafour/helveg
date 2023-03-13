@@ -10,7 +10,7 @@ public record AssemblyReference : EntityReference
         = new() { Token = EntityToken.CreateError(EntityKind.Assembly) };
 }
 
-public record AssemblyDefinition : EntityDefinition<AssemblyReference>
+public record AssemblyDefinition : EntityDefinition
 {
     public static AssemblyDefinition Invalid { get; }
         = new() { Token = EntityToken.CreateError(EntityKind.Assembly) };
@@ -23,10 +23,9 @@ public record AssemblyDefinition : EntityDefinition<AssemblyReference>
 
     public PackageReference? ContainingPackage { get; init; }
 
-    public override AssemblyReference GetReference()
-    {
-        return new() { Token = Token, Hint = Name };
-    }
+    public AssemblyReference Reference => new() { Token = Token, Hint = Name };
+
+    public override IEntityReference GetReference() => Reference;
 
     public IEnumerable<TypeDefinition> GetAllTypes()
     {

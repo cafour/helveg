@@ -3,8 +3,8 @@
     <PackageOutputPath>$(MSBuildThisFileDirectory)artifacts</PackageOutputPath>
     <DebugType>embedded</DebugType>
     <EmbedAllSources>true</EmbedAllSources>
-    <DefaultExeFramework>net7.0</DefaultExeFramework>
-    <DefaultTargetFrameworks>$(DefaultExeFramework);netstandard2.0</DefaultTargetFrameworks>
+    <DefaultExeFrameworks>net7.0</DefaultExeFrameworks>
+    <DefaultLibraryFrameworks>netstandard2.0</DefaultLibraryFrameworks>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
     <RollForward>LatestMajor</RollForward>

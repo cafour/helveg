@@ -20,8 +20,7 @@ public record TypeParameterDefinition : TypeDefinition
 
     public TypeReference? DeclaringType { get; init; }
 
-    public override TypeParameterReference GetReference()
-    {
-        return new() { Token = Token, Hint = Name };
-    }
+    public new TypeParameterReference Reference => new() { Token = Token, Hint = Name };
+
+    public override IEntityReference GetReference() => Reference;
 }
