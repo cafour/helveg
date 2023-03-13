@@ -17,12 +17,7 @@ using Helveg.Visualization;
 using Helveg.CSharp;
 using System.Collections.Immutable;
 using System.Text.Json;
-using Microsoft.Extensions.Hosting;
-using Microsoft.AspNetCore;
-using Microsoft.AspNetCore.TestHost;
-using Microsoft.AspNetCore.Builder;
 using System.Threading;
-using Microsoft.Extensions.DependencyInjection;
 using Helveg.UI;
 
 namespace Helveg.CommandLine;
@@ -89,38 +84,8 @@ public class Program
         return 0;
     }
 
-    public static WebApplication BuildWebApplication()
-    {
-        var builder = WebApplication.CreateBuilder();
-        builder.Services.AddResponseCompression();
-        builder.Services.AddRazorPages();
-        builder.WebHost.UseTestServer();
-
-        return builder.Build();
-    }
-
-    public static async Task RenderSingleFileApp()
-    {
-        var cts = new CancellationTokenSource();
-        var app = BuildWebApplication();
-        app.UseResponseCompression();
-        app.MapFallbackToPage("/_Host");
-
-        var runTask = app.RunAsync(cts.Token);
-
-        var request = app.GetTestServer().CreateRequest("/");
-        var response = await request.GetAsync();
-
-        using var outputStream = new FileStream(@"C:\dev\helveg\src\output.html", FileMode.Create, FileAccess.ReadWrite);
-        await response.Content.CopyToAsync(outputStream);
-
-        cts.Cancel();
-        await runTask;
-    }
-
     public static async Task<int> Main(string[] args)
     {
-        await RenderSingleFileApp();
         var program = new Program();
         var rootCmd = new RootCommand("A software visualization tool")
         {

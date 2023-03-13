@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Helveg.CSharp;
 
-public record PointerTypeReference : TypeReference, IInvalidable<PointerTypeReference>
+public record PointerTypeReference : TypeReference
 {
     public static new PointerTypeReference Invalid { get; }
         = new() { Token = EntityToken.CreateError(EntityKind.Type) };

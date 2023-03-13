@@ -2,13 +2,13 @@ using System.Collections.Immutable;
 
 namespace Helveg.CSharp;
 
-public record PropertyReference : EntityReference, IInvalidable<PropertyReference>
+public record PropertyReference : EntityReference
 {
     public static PropertyReference Invalid { get; }
         = new() { Token = EntityToken.CreateError(EntityKind.Property) };
 }
 
-public record PropertyDefinition : MemberDefinition, IInvalidable<PropertyDefinition>
+public record PropertyDefinition : MemberDefinition
 {
     public static PropertyDefinition Invalid { get; }
         = new() { Token = EntityToken.CreateError(EntityKind.Property) };

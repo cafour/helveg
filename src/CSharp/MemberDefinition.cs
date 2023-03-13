@@ -6,7 +6,33 @@ using System.Threading.Tasks;
 
 namespace Helveg.CSharp;
 
-public abstract record MemberDefinition : EntityDefinition
+public interface IMemberDefinition
+{
+    MemberAccessibility Accessibility { get; }
+
+    bool IsSealed { get; }
+
+    bool IsStatic { get; }
+
+    bool IsAbstract { get; }
+
+    bool IsExtern { get; }
+
+    bool IsOverride { get; }
+
+    bool IsVirtual { get; }
+
+    bool IsImplicitlyDeclared { get; }
+
+    bool CanBeReferencedByName { get; }
+
+    TypeReference? ContainingType { get; }
+
+    NamespaceReference ContainingNamespace { get; }
+}
+
+public abstract record MemberDefinition<TReference> : EntityDefinition<TReference>, IMemberDefinition
+    where TReference : IEntityReference
 {
     public MemberAccessibility Accessibility { get; init; }
 

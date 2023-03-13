@@ -2,7 +2,7 @@ using System.Collections.Immutable;
 
 namespace Helveg.CSharp;
 
-public record TypeReference : EntityReference, IInvalidable<TypeReference>
+public record TypeReference : EntityReference
 {
     public static TypeReference Invalid { get; }
         = new() { Token = EntityToken.CreateError(EntityKind.Type) };
@@ -15,7 +15,7 @@ public record TypeReference : EntityReference, IInvalidable<TypeReference>
         = ImmutableArray<TypeReference>.Empty;
 }
 
-public record TypeDefinition : MemberDefinition, IInvalidable<TypeDefinition>
+public record TypeDefinition : MemberDefinition
 {
     public static TypeDefinition Invalid { get; }
         = new() { Token = EntityToken.CreateError(EntityKind.Type) };

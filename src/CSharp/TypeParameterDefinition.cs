@@ -1,7 +1,7 @@
 
 namespace Helveg.CSharp;
 
-public record TypeParameterReference : TypeReference, IInvalidable<TypeParameterReference>
+public record TypeParameterReference : TypeReference
 {
     public new static TypeParameterReference Invalid { get; }
         = new() { Token = EntityToken.CreateError(EntityKind.TypeParameter) };
@@ -9,7 +9,7 @@ public record TypeParameterReference : TypeReference, IInvalidable<TypeParameter
     public override TypeKind TypeKind => TypeKind.TypeParameter;
 }
 
-public record TypeParameterDefinition : TypeDefinition, IInvalidable<TypeParameterDefinition>
+public record TypeParameterDefinition : TypeDefinition
 {
     public new static TypeParameterDefinition Invalid { get; }
         = new() { Token = EntityToken.CreateError(EntityKind.TypeParameter) };

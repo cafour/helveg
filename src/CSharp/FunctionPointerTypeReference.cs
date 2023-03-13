@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Helveg.CSharp;
 
-public record FunctionPointerTypeReference : TypeReference, IInvalidable<FunctionPointerTypeReference>
+public record FunctionPointerTypeReference : TypeReference
 {
     public new static FunctionPointerTypeReference Invalid { get; }
         = new() { Token = EntityToken.CreateError(EntityKind.Type) };

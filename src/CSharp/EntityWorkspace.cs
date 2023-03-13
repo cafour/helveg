@@ -2,7 +2,7 @@ using System;
 
 namespace Helveg.CSharp;
 
-public record EntityWorkspace : IInvalidable<EntityWorkspace>
+public record EntityWorkspace
 {
     public static EntityWorkspace Invalid { get; } = new();
 

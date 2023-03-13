@@ -14,7 +14,7 @@ namespace Helveg.CSharp;
 /// </summary>
 [JsonConverter(typeof(EntityTokenJsonConverter))]
 [DebuggerDisplay("{ToString(),nq}")]
-public record struct EntityToken : IInvalidable<EntityToken>
+public record struct EntityToken
 {
     public const string Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
 

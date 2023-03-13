@@ -3,7 +3,7 @@ using System.Globalization;
 
 namespace Helveg.CSharp;
 
-public record AssemblyId : IInvalidable<AssemblyId>
+public record AssemblyId
 {
     public static AssemblyId Invalid { get; } = new();
 

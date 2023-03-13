@@ -19,11 +19,16 @@ public interface IEntityDefinition
     IEntityReference GetReference();
 }
 
-public abstract record EntityDefinition : IEntityDefinition
+public abstract record EntityDefinition<TReference> : IEntityDefinition
+    where TReference : IEntityReference
 {
     public string Name { get; init; } = IEntityDefinition.InvalidName;
 
     public EntityToken Token { get; init; } = EntityToken.Invalid;
 
-    public abstract IEntityReference GetReference();
+    IEntityReference IEntityDefinition.GetReference()
+    {
+        return GetReference();
+    }
+    public abstract TReference GetReference();
 }

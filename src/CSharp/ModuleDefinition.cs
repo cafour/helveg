@@ -3,13 +3,13 @@ using System.Collections.Immutable;
 
 namespace Helveg.CSharp;
 
-public record ModuleReference : EntityReference, IInvalidable<ModuleReference>
+public record ModuleReference : EntityReference
 {
     public static ModuleReference Invalid { get; }
         = new() { Token = EntityToken.CreateError(EntityKind.Module) };
 }
 
-public record ModuleDefinition : EntityDefinition, IInvalidable<ModuleDefinition>
+public record ModuleDefinition : EntityDefinition<ModuleReference>
 {
     public static ModuleDefinition Invalid { get; }
         = new() { Token = EntityToken.CreateError(EntityKind.Module) };

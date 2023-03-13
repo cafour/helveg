@@ -1,13 +1,13 @@
 
 namespace Helveg.CSharp;
 
-public record FieldReference : EntityReference, IInvalidable<FieldReference>
+public record FieldReference : EntityReference
 {
     public static FieldReference Invalid { get; }
         = new() { Token = EntityToken.CreateError(EntityKind.Field) };
 }
 
-public record FieldDefinition : MemberDefinition, IInvalidable<FieldDefinition>
+public record FieldDefinition : MemberDefinition
 {
     public static FieldDefinition Invalid { get; }
         = new() { Token = EntityToken.CreateError(EntityKind.Field) };

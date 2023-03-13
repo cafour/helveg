@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 
 namespace Helveg.CSharp;
 
-public record MethodReference : EntityReference, IInvalidable<MethodReference>
+public record MethodReference : EntityReference
 {
     public static MethodReference Invalid { get; }
         = new() { Token = EntityToken.CreateError(EntityKind.Method) };
@@ -13,7 +13,7 @@ public record MethodReference : EntityReference, IInvalidable<MethodReference>
         = ImmutableArray<TypeReference>.Empty;
 }
 
-public record MethodDefinition : MemberDefinition, IInvalidable<MethodDefinition>
+public record MethodDefinition : MemberDefinition
 {
     public const string ConstructorName = ".ctor";
     public const string StaticConstructorName = ".cctor";

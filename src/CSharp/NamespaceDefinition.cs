@@ -5,13 +5,13 @@ using System.Text.Json.Serialization;
 
 namespace Helveg.CSharp;
 
-public record NamespaceReference : EntityReference, IInvalidable<NamespaceReference>
+public record NamespaceReference : EntityReference
 {
     public static NamespaceReference Invalid { get; }
         = new() { Token = EntityToken.CreateError(EntityKind.Namespace) };
 }
 
-public record NamespaceDefinition : EntityDefinition, IInvalidable<NamespaceDefinition>
+public record NamespaceDefinition : EntityDefinition<NamespaceReference>
 {
     public static NamespaceDefinition Invalid { get; }
         = new() { Token = EntityToken.CreateError(EntityKind.Namespace) };

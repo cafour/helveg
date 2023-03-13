@@ -4,13 +4,13 @@ using System.Linq;
 
 namespace Helveg.CSharp;
 
-public record AssemblyReference : EntityReference, IInvalidable<AssemblyReference>
+public record AssemblyReference : EntityReference
 {
     public static AssemblyReference Invalid { get; }
         = new() { Token = EntityToken.CreateError(EntityKind.Assembly) };
 }
 
-public record AssemblyDefinition : EntityDefinition, IInvalidable<AssemblyDefinition>
+public record AssemblyDefinition : EntityDefinition<AssemblyReference>
 {
     public static AssemblyDefinition Invalid { get; }
         = new() { Token = EntityToken.CreateError(EntityKind.Assembly) };

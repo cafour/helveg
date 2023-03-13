@@ -5,4 +5,8 @@
     <RootNamespace>Helveg</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="System.Text.Json" Version="7.0.2" />
+  </ItemGroup>
+
 </Project>

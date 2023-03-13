@@ -3,12 +3,14 @@
     <PackageOutputPath>$(MSBuildThisFileDirectory)artifacts</PackageOutputPath>
     <DebugType>embedded</DebugType>
     <EmbedAllSources>true</EmbedAllSources>
-    <DefaultTargetFrameworks>net7.0</DefaultTargetFrameworks>
+    <DefaultExeFramework>net7.0</DefaultExeFramework>
+    <DefaultTargetFrameworks>$(DefaultExeFramework);netstandard2.0</DefaultTargetFrameworks>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
     <RollForward>LatestMajor</RollForward>
     <ImplicitUsings>disable</ImplicitUsings>
     <TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>
+    <NoWarn>$(NoWarn);NU1701</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -20,6 +22,10 @@
 
   <ItemGroup>
     <PackageReference Include="GitVersion.MsBuild" Version="5.12.0">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="PolySharp" Version="1.12.1">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>

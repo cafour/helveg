@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 
 namespace Helveg.CSharp;
 
-public record ExternalDependencyReference : EntityReference, IInvalidable<ExternalDependencyReference>
+public record ExternalDependencyReference : EntityReference
 {
     public static ExternalDependencyReference Invalid { get; }
         = new() { Token = EntityToken.CreateError(EntityKind.ExternalDependency) };
 }
 
-public record ExternalDependencyDefinition : EntityDefinition, IInvalidable<ExternalDependencyDefinition>
+public record ExternalDependencyDefinition : EntityDefinition<ExternalDependencyReference>
 {
     public static ExternalDependencyDefinition Invalid { get; }
         = new() { Token = EntityToken.CreateError(EntityKind.ExternalDependency) };
