@@ -7,7 +7,7 @@ await esbuild.build({
     entryPoints: ["main.client.ts"],
     entryNames: "helveg",
     format: "iife",
-    outdir: "./obj/esbuild",
+    outdir: "../obj/esbuild",
     mainFields: ["svelte", "browser", "module", "main"],
     sourcemap: false,
     splitting: false,

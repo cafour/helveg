@@ -2,7 +2,9 @@
   "name": "svelte-test08",
   "type": "module",
   "scripts": {
-    "build": "ts-node --esm --project ./tsconfig.node.json ./build.ts"
+    "build": "npm run build:Debug",
+    "build:Debug": "ts-node --esm --project ./tsconfig.node.json ./build.ts",
+    "build:Release": "ts-node --esm --project ./tsconfig.node.json ./build.ts"
   },
   "devDependencies": {
     "@tsconfig/svelte": "^3.0.0",
