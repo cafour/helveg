@@ -59,6 +59,7 @@
 !.clang-format
 !.editorconfig
 !NuGet.config
+!*.rtf
 
 # images
 !*.png
