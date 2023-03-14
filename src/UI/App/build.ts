@@ -1,9 +1,20 @@
 import esbuild from "esbuild";
 import esbuildSvelte from "esbuild-svelte";
+import { sassPlugin } from "esbuild-sass-plugin"
+import stylePlugin from "esbuild-style-plugin";
+import postcss from "postcss";
+import postcssImport from "postcss-import";
+import tailwindcss from "tailwindcss";
+import autoprefixer from "autoprefixer";
 import sveltePreprocess from "svelte-preprocess";
 import prerenderPlugin from "./prerender.js";
 import yargs from "yargs";
 import { copy } from 'esbuild-plugin-copy';
+import path from "path";
+import skeletonTailwindPlugin from "@skeletonlabs/skeleton/tailwind/skeleton.cjs";
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
 
 const args = <any>yargs(process.argv).argv;
 const isRelease = args["release"] === true;
@@ -17,6 +28,8 @@ if (isRelease && isDebug) {
 if (!isRelease && !isDebug) {
     isDebug = true;
 }
+
+const skeletonPath = require.resolve("@skeletonlabs/skeleton");
 
 const context = await esbuild.context({
     entryPoints: ["helveg.ts", "index.html"],
@@ -33,15 +46,24 @@ const context = await esbuild.context({
         esbuildSvelte({
             preprocess: sveltePreprocess()
         }),
-        // copy({
-        //     assets: {
-        //         from: ["./index.html"],
-        //         to: ["../obj/esbuild/index.html"],
-        //         watch: true
-        //     },
-        //     resolveFrom: "cwd",
-        // })
-        // prerenderPlugin()
+        stylePlugin({
+            postcss: {
+                plugins: [
+                    postcssImport(),
+                    tailwindcss({
+                        content: [
+                            "./**/*.{html,js,svelte,ts}",
+                            path.join(skeletonPath, "../**/*.{html,js,svelte,ts}")
+                        ],
+                        darkMode: "class",
+                        plugins: [
+                            ...skeletonTailwindPlugin()
+                        ]
+                    }),
+                    autoprefixer
+                ]
+            }
+        })
     ],
     loader: {
         ".svg": "text",
@@ -57,6 +79,5 @@ if (isWatch) {
 } else {
     await context.rebuild()
         .catch(() => process.exit(1));
+    await context.dispose();
 }
-
-await context.dispose();

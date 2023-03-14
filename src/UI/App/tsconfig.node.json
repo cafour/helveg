@@ -1,7 +1,9 @@
 {
   "extends": "ts-node/node16/tsconfig.json",
   "ts-node": {
-    "files": true
+    "files": true,
+    "esm": true,
+    "experimentalResolver": true
   },
   "compilerOptions": {
     "composite": true,

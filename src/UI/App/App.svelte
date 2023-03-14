@@ -1,11 +1,14 @@
 <script lang="ts">
   import Counter from "./Counter.svelte";
+  import { AppShell } from '@skeletonlabs/skeleton';
+  import { FileButton } from '@skeletonlabs/skeleton';
 </script>
 
-<main>
-  <h1>Helveg</h1>
-
-  <div class="card">
+<AppShell>
+  <svelte:fragment slot="header">
+    <h1>Helveg</h1>
+  
     <Counter />
-  </div>
-</main>
+    <FileButton name="files" button="variant-soft-primary"/>
+  </svelte:fragment>
+</AppShell>
