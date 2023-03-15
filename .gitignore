@@ -42,6 +42,7 @@
 !*.razor
 !*.cshtml
 !*.svelte
+!*.config
 
 # static files
 !*.html

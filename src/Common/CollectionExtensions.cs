@@ -1,4 +1,7 @@
-namespace System.Collections.Generic;
+using System;
+using System.Collections.Generic;
+
+namespace Helveg;
 
 /// <summary>
 /// A polyfill for System.Collections.Generic.CollectionExtensions methods which are not available in netstandard2.0.

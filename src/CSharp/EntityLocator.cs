@@ -53,7 +53,7 @@ public class EntityLocator
             return module.GlobalNamespace;
         }
 
-        var segments = namespaceName.Split('.');
+        var segments = namespaceName?.Split('.') ?? Array.Empty<string>();
         var current = module.GlobalNamespace;
         foreach(var segment in segments)
         {
