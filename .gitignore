@@ -83,3 +83,4 @@ node_modules/
 .vs/
 output*.html
 dist/
+.pnpm-store/

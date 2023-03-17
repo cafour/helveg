@@ -12,7 +12,7 @@ build:
   cache:
     paths:
       - .nuget/
-      - .pnpm-store/
+      - src/App/UI/.pnpm-store/
   script:
     - apk update && apk add nodejs-current npm
     - corepack enable && corepack prepare pnpm@latest --activate
