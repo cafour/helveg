@@ -14,5 +14,6 @@ build:
       - .nuget/
   script:
     - apk update && apk add nodejs-current npm
+    - corepack enable && corepack prepare pnpm@latest --activate
     - dotnet build -bl -c Release Helveg.sln
     - dotnet pack --no-build src/CommandLine -o artifacts -c Release
