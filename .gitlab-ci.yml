@@ -14,6 +14,5 @@ build:
       - .nuget/
   script:
     - apk update && apk add nodejs-current npm
-    - dotnet restore Helveg.sln
     - dotnet build -bl -c Release Helveg.sln
     - dotnet pack --no-build src/CommandLine -o artifacts -c Release
