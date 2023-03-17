@@ -6,7 +6,7 @@ build:
   artifacts:
     paths:
       - artifacts/*.nupkg
-      - src/**/*.binlog
+      - "**/*.binlog"
     expire_in: 42s
     when: always
   cache:
