@@ -8,7 +8,7 @@ build:
       - artifacts/*.nupkg
       - src/**/*.binlog
     expire_in: 42s
-
+    when: always
   cache:
     paths:
       - .nuget/
