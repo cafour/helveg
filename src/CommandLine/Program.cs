@@ -102,7 +102,7 @@ public class Program
         var propertyOption = new Option<Dictionary<string, string>>(
             aliases: new[] { "-p", "--properties" },
             parseArgument: a => a.Tokens
-                .Select(t => t.Value.Split('=', 2))
+                .Select(t => t.Value.Split(new[] { '=' }, 2))
                 .ToDictionary(p => p[0], p => p[1]),
             description: "Set an MSBuild property for the loading of projects");
         propertyOption.AddValidator(r =>
