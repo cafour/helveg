@@ -1,6 +1,6 @@
 ﻿<Project>
   <Sdk Name="Microsoft.NET.Sdk" />
-  <Sdk Name="Cafour.MSBuild.JS" Version="0.1.0" />
+  <Sdk Name="Cafour.MSBuild.JS" Version="0.1.1" />
 
   <PropertyGroup>
     <TargetFrameworks>$(DefaultLibraryFrameworks)</TargetFrameworks>

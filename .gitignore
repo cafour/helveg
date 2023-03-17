@@ -43,6 +43,8 @@
 !*.cshtml
 !*.svelte
 !*.config
+!.npmrc
+!*.yaml
 
 # static files
 !*.html
