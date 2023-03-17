@@ -1,7 +1,10 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project>
+  <Sdk Name="Microsoft.NET.Sdk" />
+  <Sdk Name="Cafour.MSBuild.JS" Version="0.1.0" />
 
   <PropertyGroup>
     <TargetFrameworks>$(DefaultLibraryFrameworks)</TargetFrameworks>
+    <JSWorkingDirectory>$(MSBuildProjectDirectory)/App</JSWorkingDirectory>
   </PropertyGroup>
 
   <ItemGroup>
@@ -12,28 +15,4 @@
     <EmbeddedResource Include="$(BaseIntermediateOutputPath)/esbuild/helveg.js" LogicalName="helveg.js" />
     <EmbeddedResource Include="$(BaseIntermediateOutputPath)/esbuild/helveg.css" LogicalName="helveg.css" />
   </ItemGroup>
-
-  <ItemGroup>
-    <NpmBuildInputFiles Include="App/**/*.ts" />
-    <NpmBuildInputFiles Include="App/**/*.scss" />
-    <NpmBuildInputFiles Include="App/tsconfig*.json" />
-    <NpmBuildInputFiles Include="App/package*.json" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <NpmBuildOutputFiles Include="$(BaseIntermediateOutputPath)/esbuild/helveg.js" />
-    <NpmBuildOutputFiles Include="$(BaseIntermediateOutputPath)/esbuild/helveg.css" />
-  </ItemGroup>
-
-  <Target Name="NpmInstall" BeforeTargets="DispatchToInnerBuilds" Inputs="package.json" Outputs="App/node_modules/.install-stamp">
-    <Message Text="Restoring npm packages declared in package.json" Importance="High" />
-    <Exec Command="npm ci" EnvironmentVariables="$(EnvOverrides)" WorkingDirectory="App" />
-    <Touch Files="App/node_modules/.install-stamp" AlwaysCreate="true" />
-  </Target>
-
-  <Target Name="NpmRunBuild" DependsOnTargets="NpmInstall" BeforeTargets="DispatchToInnerBuilds" Inputs="@(NpmBuildInputFiles)" Outputs="@(NpmBuildOutputFiles)">
-    <Message Text="Running npm target build:$(Configuration)" Importance="High" />
-    <Exec Command="npm run build:$(Configuration)" EnvironmentVariables="$(EnvOverrides)" WorkingDirectory="App" />
-  </Target>
-
 </Project>
