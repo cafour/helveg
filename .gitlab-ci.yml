@@ -18,4 +18,4 @@ build:
     - corepack enable && corepack prepare pnpm@latest --activate
     - pnpm config set store-dir .pnpm-store
     - dotnet build -bl -c Release Helveg.sln
-    - dotnet pack --no-build src/CommandLine -o artifacts -c Release
+    # - dotnet pack --no-build src/CommandLine -o artifacts -c Release
