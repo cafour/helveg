@@ -12,8 +12,10 @@ build:
   cache:
     paths:
       - .nuget/
+      - .pnpm-store/
   script:
     - apk update && apk add nodejs-current npm
     - corepack enable && corepack prepare pnpm@latest --activate
+    - pnpm config set store-dir .pnpm-store
     - dotnet build -bl -c Release Helveg.sln
     - dotnet pack --no-build src/CommandLine -o artifacts -c Release
