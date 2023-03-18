@@ -16,11 +16,15 @@ specifiers:
   esbuild-sass-plugin: ^2.6.0
   esbuild-style-plugin: ^1.6.1
   esbuild-svelte: ^0.7.3
+  graphology: ^0.25.1
+  graphology-layout: ^0.6.1
+  graphology-layout-forceatlas2: ^0.10.1
   jsdom: ^21.1.1
   postcss: ^8.4.21
   postcss-import: ^15.1.0
   resolve: ^1.22.1
   sass: ^1.59.3
+  sigma: ^2.4.0
   svelte: ^3.56.0
   svelte-check: ^3.1.2
   svelte-preprocess: ^5.0.1
@@ -45,11 +49,15 @@ devDependencies:
   esbuild-sass-plugin: 2.6.0_b2osmdqmmrrmevlbokepb65ngq
   esbuild-style-plugin: 1.6.1
   esbuild-svelte: 0.7.3_kuj6yhbyhvtczkvjti3btksg3m
+  graphology: 0.25.1_graphology-types@0.24.7
+  graphology-layout: 0.6.1_graphology-types@0.24.7
+  graphology-layout-forceatlas2: 0.10.1_graphology-types@0.24.7
   jsdom: 21.1.1
   postcss: 8.4.21
   postcss-import: 15.1.0_postcss@8.4.21
   resolve: 1.22.1
   sass: 1.59.3
+  sigma: 2.4.0_graphology-types@0.24.7
   svelte: 3.57.0
   svelte-check: 3.1.4_eyegbnejjyv5fb6axahrjzur5q
   svelte-preprocess: 5.0.3_mmnaqqjo6sfpsrkeollosttdoi
@@ -1726,6 +1734,10 @@ packages:
     resolution: {integrity: sha512-NuHqBY1PB/D8xU6s/thBgOAiAP7HOYDQ32+BFZILJ8ivkUkAHQnWfn6WhL79Owj1qmUnoN/YPhktdIoucipkAQ==}
     dev: true
 
+  /@yomguithereal/helpers/1.1.1:
+    resolution: {integrity: sha512-UYvAq/XCA7xoh1juWDYsq3W0WywOB+pz8cgVnE1b45ZfdMhBvHDrgmSFG3jXeZSr2tMTYLGHFHON+ekG05Jebg==}
+    dev: true
+
   /abab/2.0.6:
     resolution: {integrity: sha512-j2afSsaIENvHZN2B8GOpF566vZ5WVk5opAiMTvWgaQT8DkbOqsTfvNAvHoRGU2zzP8cPoqys+xHTRDWW8L+/BA==}
     dev: true
@@ -2899,6 +2911,47 @@ packages:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
     dev: true
 
+  /graphology-layout-forceatlas2/0.10.1_graphology-types@0.24.7:
+    resolution: {integrity: sha512-ogzBeF1FvWzjkikrIFwxhlZXvD2+wlY54lqhsrWprcdPjopM2J9HoMweUmIgwaTvY4bUYVimpSsOdvDv1gPRFQ==}
+    peerDependencies:
+      graphology-types: '>=0.19.0'
+    dependencies:
+      graphology-types: 0.24.7
+      graphology-utils: 2.5.2_graphology-types@0.24.7
+    dev: true
+
+  /graphology-layout/0.6.1_graphology-types@0.24.7:
+    resolution: {integrity: sha512-m9aMvbd0uDPffUCFPng5ibRkb2pmfNvdKjQWeZrf71RS1aOoat5874+DcyNfMeCT4aQguKC7Lj9eCbqZj/h8Ag==}
+    peerDependencies:
+      graphology-types: '>=0.19.0'
+    dependencies:
+      graphology-types: 0.24.7
+      graphology-utils: 2.5.2_graphology-types@0.24.7
+      pandemonium: 2.4.1
+    dev: true
+
+  /graphology-types/0.24.7:
+    resolution: {integrity: sha512-tdcqOOpwArNjEr0gNQKCXwaNCWnQJrog14nJNQPeemcLnXQUUGrsCWpWkVKt46zLjcS6/KGoayeJfHHyPDlvwA==}
+    dev: true
+
+  /graphology-utils/2.5.2_graphology-types@0.24.7:
+    resolution: {integrity: sha512-ckHg8MXrXJkOARk56ZaSCM1g1Wihe2d6iTmz1enGOz4W/l831MBCKSayeFQfowgF8wd+PQ4rlch/56Vs/VZLDQ==}
+    peerDependencies:
+      graphology-types: '>=0.23.0'
+    dependencies:
+      graphology-types: 0.24.7
+    dev: true
+
+  /graphology/0.25.1_graphology-types@0.24.7:
+    resolution: {integrity: sha512-yYA7BJCcXN2DrKNQQ9Qf22zBHm/yTbyBR71T1MYBbGtywNHsv0QZtk8zaR6zxNcp2hCCZayUkHp9DyMSZCpoxQ==}
+    peerDependencies:
+      graphology-types: '>=0.24.0'
+    dependencies:
+      events: 3.3.0
+      graphology-types: 0.24.7
+      obliterator: 2.0.4
+    dev: true
+
   /has-flag/3.0.0:
     resolution: {integrity: sha512-sKJf1+ceQBr4SMkvQnBDNDtf4TXpVhVGateu0t918bl30FnbE2m4vNLX+VWe/dpjlb+HugGYzW7uQXH98HPEYw==}
     engines: {node: '>=4'}
@@ -3346,6 +3399,12 @@ packages:
       minimist: 1.2.8
     dev: true
 
+  /mnemonist/0.39.5:
+    resolution: {integrity: sha512-FPUtkhtJ0efmEFGpU14x7jGbTB+s18LrzRL2KgoWz9YvcY3cPomz8tih01GbHwnGk/OmkOKfqd/RAQoc8Lm7DQ==}
+    dependencies:
+      obliterator: 2.0.4
+    dev: true
+
   /mri/1.2.0:
     resolution: {integrity: sha512-tzzskb3bG8LvYGFF/mDTpq3jpI6Q9wc3LEmBaghu+DdCssd1FakN7Bc0hVNmEyGq1bq3RgfkCb3cmQLpNPOroA==}
     engines: {node: '>=4'}
@@ -3406,6 +3465,10 @@ packages:
     resolution: {integrity: sha512-geUvdk7c+eizMNUDkRpW1wJwgfOiOeHbxBR/hLXK1aT6zmVSO0jsQcs7fj6MGw89jC/cjGfLcNOrtMYtGqm81g==}
     dev: true
 
+  /obliterator/2.0.4:
+    resolution: {integrity: sha512-lgHwxlxV1qIg1Eap7LgIeoBWIMFibOjbrYPIPJZcI1mmGAI2m3lNYpK12Y+GBdPQ0U1hRwSord7GIaawz962qQ==}
+    dev: true
+
   /on-finished/2.3.0:
     resolution: {integrity: sha512-ikqdkGAAyf/X/gPhXGvfgAytDZtDbr+bkNUJ0N9h5MI/dmdgCs3l6hoHrcUv41sRKew3jIwrp4qQDXiK99Utww==}
     engines: {node: '>= 0.8'}
@@ -3459,6 +3522,12 @@ packages:
   /p-try/2.2.0:
     resolution: {integrity: sha512-R4nPAVTAU0B9D35/Gk3uJf/7XYbQcyohSKdvAxIRSNghFl4e71hVoGnBNQz9cWaXxO2I10KTC+3jMdvvoKw6dQ==}
     engines: {node: '>=6'}
+    dev: true
+
+  /pandemonium/2.4.1:
+    resolution: {integrity: sha512-wRqjisUyiUfXowgm7MFH2rwJzKIr20rca5FsHXCMNm1W5YPP1hCtrZfgmQ62kP7OZ7Xt+cR858aB28lu5NX55g==}
+    dependencies:
+      mnemonist: 0.39.5
     dev: true
 
   /parent-module/1.0.1:
@@ -3993,6 +4062,16 @@ packages:
       call-bind: 1.0.2
       get-intrinsic: 1.2.0
       object-inspect: 1.12.3
+    dev: true
+
+  /sigma/2.4.0_graphology-types@0.24.7:
+    resolution: {integrity: sha512-spi4C+c3cjlhCklT+RvAxJJcarMmjRpF6RPNvBIBYDduALq8iSNm7FwSpijQNGtI+ryeZ2EfvyBNLp36OFaZiw==}
+    dependencies:
+      '@yomguithereal/helpers': 1.1.1
+      events: 3.3.0
+      graphology-utils: 2.5.2_graphology-types@0.24.7
+    transitivePeerDependencies:
+      - graphology-types
     dev: true
 
   /slash/3.0.0:
