@@ -1,5 +1,6 @@
-import '@skeletonlabs/skeleton/themes/theme-rocket.css';
-import '@skeletonlabs/skeleton/styles/all.css';
+import "@skeletonlabs/skeleton/themes/theme-rocket.css";
+import "@skeletonlabs/skeleton/styles/all.css";
+import "./styles/helveg.scss";
 import App from "./App.svelte";
 
 const app = new App({
