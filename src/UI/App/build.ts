@@ -1,20 +1,14 @@
 import esbuild from "esbuild";
 import esbuildSvelte from "esbuild-svelte";
 import { sassPlugin } from "esbuild-sass-plugin"
-import stylePlugin from "esbuild-style-plugin";
 import postcss from "postcss";
-import postcssImport from "postcss-import";
 import tailwindcss from "tailwindcss";
 import autoprefixer from "autoprefixer";
 import sveltePreprocess from "svelte-preprocess";
 import prerenderPlugin from "./prerender.js";
 import yargs from "yargs";
-import { copy } from 'esbuild-plugin-copy';
 import path from "path";
-import skeletonTailwindPlugin from "@skeletonlabs/skeleton/tailwind/skeleton.cjs";
 import { createRequire } from 'node:module';
-
-const require = createRequire(import.meta.url);
 
 const args = <any>yargs(process.argv).argv;
 const isRelease = args["release"] === true;
@@ -28,8 +22,6 @@ if (isRelease && isDebug) {
 if (!isRelease && !isDebug) {
     isDebug = true;
 }
-
-const skeletonPath = require.resolve("@skeletonlabs/skeleton");
 
 const context = await esbuild.context({
     entryPoints: ["helveg.ts", "index.html"],
@@ -46,22 +38,23 @@ const context = await esbuild.context({
         esbuildSvelte({
             preprocess: sveltePreprocess()
         }),
-        stylePlugin({
-            postcss: {
-                plugins: [
-                    postcssImport(),
+        sassPlugin({
+            async transform(source, resolveDir) {
+                const { css } = await postcss([
                     tailwindcss({
                         content: [
-                            "./**/*.{html,js,svelte,ts}",
-                            path.join(skeletonPath, "../**/*.{html,js,svelte,ts}")
+                            "!**/node_modules/**",
+                            "!**/.pnpm-store/**",
+                            "**/*.{html,js,svelte,ts}",
                         ],
-                        darkMode: "class",
-                        plugins: [
-                            ...skeletonTailwindPlugin()
-                        ]
+                        darkMode: "class"
                     }),
                     autoprefixer
-                ]
+                ]).process(source, {
+                    from: resolveDir,
+                    to: "../obj/esbuild"
+                });
+                return css;
             }
         })
     ],

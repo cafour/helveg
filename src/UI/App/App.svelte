@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { AppShell } from "@skeletonlabs/skeleton";
-  import { TabGroup, Tab } from "@skeletonlabs/skeleton";
+  // import { AppShell } from "@skeletonlabs/skeleton";
+  // import { TabGroup, Tab } from "@skeletonlabs/skeleton";
   import Diagram from "Diagram.svelte";
   
   enum TabKind {
@@ -12,7 +12,9 @@
   let currentTab = TabKind.None;
 </script>
 
-<AppShell>
+<Diagram />
+
+<!-- <AppShell>
   <svelte:fragment slot=pageHeader>
     <div class=p-2>
       <h1>Helveg</h1>
@@ -44,4 +46,4 @@
   </svelte:fragment>
   
   <Diagram />
-</AppShell>
+</AppShell> -->

@@ -1,5 +1,3 @@
-import "@skeletonlabs/skeleton/themes/theme-rocket.css";
-import "@skeletonlabs/skeleton/styles/all.css";
 import "./styles/helveg.scss";
 import App from "./App.svelte";
 
