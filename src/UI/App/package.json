@@ -2,7 +2,7 @@
   "name": "helveg",
   "type": "module",
   "scripts": {
-    "raw": "ts-node --project ./tsconfig.node.json ./build.ts",
+    "raw": "ts-node --project ./eng/tsconfig.node.json ./eng/build.ts",
     "build:Debug": "npm run raw -- --debug",
     "build:Release": "npm run raw -- --release",
     "build": "npm run build:Debug",

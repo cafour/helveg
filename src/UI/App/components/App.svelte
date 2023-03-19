@@ -1,7 +1,7 @@
 <script lang="ts">
   // import { AppShell } from "@skeletonlabs/skeleton";
   // import { TabGroup, Tab } from "@skeletonlabs/skeleton";
-  import Diagram from "Diagram.svelte";
+  import Diagram from "./Diagram.svelte";
   
   enum TabKind {
     None,

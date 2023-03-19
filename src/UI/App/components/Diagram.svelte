@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import type { Multigraph } from "./model";
+  import type { Multigraph } from "../diagram/model";
   import { Sigma } from "sigma";
   import Graph from "graphology";
   import circular from "graphology-layout/circular";
@@ -29,8 +29,8 @@
   }
 
   circular.assign(graph);
-  // const settings = forceAtlas2.inferSettings(graph);
-  // forceAtlas2.assign(graph, { settings, iterations: 600 });
+  const settings = forceAtlas2.inferSettings(graph);
+  forceAtlas2.assign(graph, { settings, iterations: 600 });
 
   onMount(() => {
     new Sigma(graph, element);
