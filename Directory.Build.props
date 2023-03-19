@@ -5,6 +5,7 @@
     <EmbedAllSources>true</EmbedAllSources>
     <DefaultExeFrameworks>net6.0;net472</DefaultExeFrameworks>
     <DefaultLibraryFrameworks>net6.0;net472</DefaultLibraryFrameworks>
+    <DefaultToolFramework>net6.0</DefaultToolFramework>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
     <RollForward>LatestMajor</RollForward>

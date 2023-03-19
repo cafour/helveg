@@ -40,8 +40,8 @@
           (document info)
         {/if}
       </svelte:fragment>
-      
-      <Diagram />
     </TabGroup>
   </svelte:fragment>
+  
+  <Diagram />
 </AppShell>

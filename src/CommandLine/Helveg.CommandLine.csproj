@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>$(DefaultExeFrameworks)</TargetFrameworks>
+    <TargetFramework>$(DefaultToolFramework)</TargetFramework>
     <AssemblyName>helveg</AssemblyName>
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>helveg</ToolCommandName>

@@ -20,20 +20,21 @@
     graph.addNode(node.Id, {
         label: node.Label || node.Id
     });
+    graph.setNodeAttribute(node.Id, "size", 10);
   }
-  
+
   var containsRelation = data.Relations.filter(r => r.Id === "contains")[0];
   for (const edge of containsRelation.Edges) {
     graph.addDirectedEdge(edge.Src, edge.Dst);
   }
-  
+
   circular.assign(graph);
-  const settings = forceAtlas2.inferSettings(graph);
-  forceAtlas2.assign(graph, { settings, iterations: 600 });
+  // const settings = forceAtlas2.inferSettings(graph);
+  // forceAtlas2.assign(graph, { settings, iterations: 600 });
 
   onMount(() => {
     new Sigma(graph, element);
   });
 </script>
 
-<div bind:this={element} />
+<div bind:this={element} class=sigma-container />
