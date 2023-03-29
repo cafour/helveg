@@ -37,18 +37,18 @@
     let tabDescriptors = DockContext.tabDescriptors;
 </script>
 
-<div class="dock">
-    <ul class="tab-list">
+<div class="dock flex flex-row-reverse">
+    <div class="tab-list flex flex-col">
         {#each $tabDescriptors as tabDescriptor}
-            <li
-                class="tab-item"
+            <div
+                class="tab-item cursor-pointer"
                 on:click={() => $currentTab = tabDescriptor.value}
                 on:keypress
             >
                 {tabDescriptor.name}
-            </li>
+            </div>
         {/each}
-    </ul>
+        </div>
 
     <div class="tab-content">
         <slot />

@@ -1,14 +1,9 @@
 import esbuild from "esbuild";
 import esbuildSvelte from "esbuild-svelte";
 import { sassPlugin } from "esbuild-sass-plugin"
-import postcss from "postcss";
-import tailwindcss from "tailwindcss";
-import autoprefixer from "autoprefixer";
 import sveltePreprocess from "svelte-preprocess";
-import prerenderPlugin from "./prerender.js";
+// import prerenderPlugin from "./prerender.js";
 import yargs from "yargs";
-import path from "path";
-import { createRequire } from 'node:module';
 
 const args = <any>yargs(process.argv).argv;
 const isRelease = args["release"] === true;
@@ -39,23 +34,9 @@ const context = await esbuild.context({
             preprocess: sveltePreprocess()
         }),
         sassPlugin({
-            async transform(source, resolveDir) {
-                const { css } = await postcss([
-                    tailwindcss({
-                        content: [
-                            "!**/node_modules/**",
-                            "!**/.pnpm-store/**",
-                            "**/*.{html,js,svelte,ts}",
-                        ],
-                        darkMode: "class"
-                    }),
-                    autoprefixer
-                ]).process(source, {
-                    from: resolveDir,
-                    to: "../obj/esbuild"
-                });
-                return css;
-            }
+            loadPaths: [
+                "./node_modules/uniformcss"
+            ]
         })
     ],
     loader: {

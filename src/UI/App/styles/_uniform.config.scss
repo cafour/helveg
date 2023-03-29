@@ -1,0 +1,20 @@
+@use "uniform" as * with (
+  $config: (
+    excludes: (
+        all
+    ),
+    includes: (
+        reset,
+        margin,
+        padding,
+        visibility,
+        display,
+        flex,
+        flex-direction,
+        font-weight,
+        font-size,
+        line-height,
+        cursor
+    )
+  )
+);

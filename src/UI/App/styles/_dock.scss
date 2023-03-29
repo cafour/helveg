@@ -1,0 +1,12 @@
+@layer helveg {
+    .dock {
+        height: 100%;
+
+        .tab {
+            width: 20rem;
+            height: 100%;
+            background-color: rgb(var(--color-surface-900));
+            color: rgb(var(--color-surface-50))
+        }
+    }
+}
