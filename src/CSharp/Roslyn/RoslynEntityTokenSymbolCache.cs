@@ -90,14 +90,10 @@ internal class RoslynEntityTokenSymbolCache
 
     private ISymbol? GetDefinition(ISymbol symbol, CancellationToken cancellationToken)
     {
-        var assemblyIdentity = symbol is IAssemblySymbol assembly
+        var assemblyIdentity = (symbol is IAssemblySymbol assembly
             ? assembly.Identity
-            : symbol.ContainingAssembly?.Identity;
-
-        if (assemblyIdentity is null)
-        {
-            throw new ArgumentException("Symbol shared across assemblies cannot have entity tokens.");
-        }
+            : symbol.ContainingAssembly?.Identity)
+                ?? throw new ArgumentException("Symbol shared across assemblies cannot have entity tokens.");
 
         var parentCompilation = Compilations.GetValueOrDefault(assemblyIdentity);
         if (parentCompilation is null)

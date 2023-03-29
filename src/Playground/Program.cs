@@ -1,4 +1,5 @@
 ﻿using Helveg.CSharp;
+using Helveg.UI;
 using Microsoft.Build.Locator;
 using System;
 using System.IO;
@@ -12,6 +13,8 @@ public static class Program
 {
     public static async Task Main(string[] args)
     {
+        var iconSet = await IconSet.LoadFromAssembly("base", typeof(Icon).Assembly);
+
         var vsInstance = MSBuildLocator.RegisterDefaults();
         var provider = new DefaultEntityWorkspaceProvider();
         var workspace = await provider.GetWorkspace(@"C:\dev\helveg\Helveg.sln");

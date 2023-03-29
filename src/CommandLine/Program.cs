@@ -79,8 +79,12 @@ public class Program
             return 1;
         }
 
-        var output = SingleFileTemplate.Create(multigraph);
-        File.WriteAllText("output.html", output);
+        var sfb = await SingleFileBuilder.CreateDefault();
+        sfb.SetMultigraph(multigraph);
+
+        using var fileStream = new FileStream("output.html", FileMode.Create, FileAccess.ReadWrite);
+        using var writer = new StreamWriter(fileStream);
+        await sfb.Build(writer);
         return 0;
     }
 

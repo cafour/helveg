@@ -16,16 +16,16 @@
 
   const data = <Multigraph>JSON.parse(dataScript.textContent!);
   const graph = new Graph();
-  for (const node of data.Nodes) {
-    graph.addNode(node.Id, {
-        label: node.Label || node.Id
+  for (const node of data.nodes) {
+    graph.addNode(node.id, {
+        label: node.label || node.id
     });
-    graph.setNodeAttribute(node.Id, "size", 10);
+    graph.setNodeAttribute(node.id, "size", 10);
   }
 
-  var containsRelation = data.Relations.filter(r => r.Id === "contains")[0];
-  for (const edge of containsRelation.Edges) {
-    graph.addDirectedEdge(edge.Src, edge.Dst);
+  var containsRelation = data.relations.filter(r => r.id === "contains")[0];
+  for (const edge of containsRelation.edges) {
+    graph.addDirectedEdge(edge.src, edge.dst);
   }
 
   circular.assign(graph);

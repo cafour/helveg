@@ -3,23 +3,24 @@
     // import { TabGroup, Tab } from "@skeletonlabs/skeleton";
     // import Diagram from "./Diagram.svelte";
     import Dock from "./Dock.svelte";
+    import Icon from "./Icon.svelte";
     import Tab from "./Tab.svelte";
 </script>
 
 <Dock>
-    <Tab name="Data" value=data-panel>
+    <Tab name="Data" value=data-panel icon=base:Database>
         <strong>TODO: Data Panel Contents</strong>
     </Tab>
-    <Tab name="Layout" value=layout-panel>
+    <Tab name="Layout" value=layout-panel icon=base:Diagram>
         <strong>TODO: Layout Panel Contents</strong>
     </Tab>
-    <Tab name="Glyphs" value=glyphs-panel>
+    <Tab name="Glyphs" value=glyphs-panel icon=base:PolarChart>
         <strong>TODO: Glyphs Panel Contents</strong>
     </Tab>
-    <Tab name="Properties" value=properties-panel>
+    <Tab name="Properties" value=properties-panel icon=base:ShowAllConfigurations>
         <strong>TODO: Properties Panel Contents</strong>
     </Tab>
-    <Tab name="Document" value=document-panel>
+    <Tab name="Document" value=document-panel icon=base:Document>
         <strong>TODO: Document Panel Contents</strong>
     </Tab>
 </Dock>

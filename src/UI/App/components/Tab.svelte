@@ -7,13 +7,15 @@
 
     export let name: string;
     export let value: string;
+    export let icon: string | null;
 
     $: isSelected = value === $currentTab;
 
     onMount(() => {
         $tabDescriptors = [...$tabDescriptors, {
             name: name,
-            value: value
+            value: value,
+            icon: icon
         }];
     });
 </script>

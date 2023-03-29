@@ -13,6 +13,9 @@ public static class HelvegDefaults
 
     static HelvegDefaults()
     {
-        JsonOptions = new JsonSerializerOptions();
+        JsonOptions = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
     }
 }

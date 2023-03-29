@@ -5,6 +5,7 @@
     export interface TabDescriptor {
         name: string;
         value: string;
+        icon: string | null;
     }
 
     export const tabDescriptorsKey = Symbol("tabDescriptors");
@@ -30,6 +31,8 @@
 </script>
 
 <script lang="ts">
+    import Icon from "./Icon.svelte";
+
     DockContext.currentTab = writable<string | null>(null);
     DockContext.tabDescriptors = writable<TabDescriptor[]>([]);
 
@@ -45,6 +48,9 @@
                 on:click={() => $currentTab = tabDescriptor.value}
                 on:keypress
             >
+                {#if tabDescriptor.icon}
+                    <Icon name={tabDescriptor.icon} />
+                {/if}
                 {tabDescriptor.name}
             </div>
         {/each}

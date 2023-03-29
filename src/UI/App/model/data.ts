@@ -1,30 +1,30 @@
 export interface Multigraph {
-    Id: string,
-    Label: string | null,
-    Nodes: MultigraphNode[],
-    Relations: Relation[]
+    id: string,
+    label: string | null,
+    nodes: MultigraphNode[],
+    relations: Relation[]
 }
 
 export interface MultigraphNode {
-    Id: string,
-    Label: string | null,
-    Properties: MetadataProperty[]
+    id: string,
+    label: string | null,
+    properties: MetadataProperty[]
 }
 
 export interface Relation {
-    Id: string,
-    Label: string | null,
-    Edges: MultigraphEdge[]
+    id: string,
+    label: string | null,
+    edges: MultigraphEdge[]
 }
 
 export interface MultigraphEdge {
-    Src: string,
-    Dst: string,
-    Label: string | null,
-    Properties: MetadataProperty[]
+    src: string,
+    dst: string,
+    label: string | null,
+    properties: MetadataProperty[]
 }
 
 export interface MetadataProperty {
-    Key: string,
-    Value: string
+    key: string,
+    value: string
 }

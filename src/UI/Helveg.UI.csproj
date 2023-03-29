@@ -15,4 +15,8 @@
     <EmbeddedResource Include="$(BaseIntermediateOutputPath)/esbuild/helveg.js" LogicalName="helveg.js" />
     <EmbeddedResource Include="$(BaseIntermediateOutputPath)/esbuild/helveg.css" LogicalName="helveg.css" />
   </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Icons/**/*.svg" LogicalName="Icons.%(filename)%(extension)" />
+  </ItemGroup>
 </Project>
