@@ -12,11 +12,9 @@
     "strict": true,
     "skipLibCheck": true
   },
-  "include": [
-    "main.ts"
-  ],
   "exclude": [
     "node_modules/**",
+    "eng/**",
     "dist/**"
   ]
 }

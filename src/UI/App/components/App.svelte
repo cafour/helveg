@@ -1,18 +1,30 @@
 <script lang="ts">
-  // import { AppShell } from "@skeletonlabs/skeleton";
-  // import { TabGroup, Tab } from "@skeletonlabs/skeleton";
-  import Diagram from "./Diagram.svelte";
-  
-  enum TabKind {
-    None,
-    Properties,
-    DocumentInfo
-  };
-
-  let currentTab = TabKind.None;
+    // import { AppShell } from "@skeletonlabs/skeleton";
+    // import { TabGroup, Tab } from "@skeletonlabs/skeleton";
+    // import Diagram from "./Diagram.svelte";
+    import Dock from "./Dock.svelte";
+    import Tab from "./Tab.svelte";
 </script>
 
-<Diagram />
+<Dock>
+    <Tab name="Data" value=data-panel>
+        <strong>TODO: Data Panel Contents</strong>
+    </Tab>
+    <Tab name="Layout" value=layout-panel>
+        <strong>TODO: Layout Panel Contents</strong>
+    </Tab>
+    <Tab name="Glyphs" value=glyphs-panel>
+        <strong>TODO: Glyphs Panel Contents</strong>
+    </Tab>
+    <Tab name="Properties" value=properties-panel>
+        <strong>TODO: Properties Panel Contents</strong>
+    </Tab>
+    <Tab name="Document" value=document-panel>
+        <strong>TODO: Document Panel Contents</strong>
+    </Tab>
+</Dock>
+
+<!-- <Diagram /> -->
 
 <!-- <AppShell>
   <svelte:fragment slot=pageHeader>
