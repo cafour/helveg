@@ -1,22 +1,22 @@
-@layer helveg {
+@use "./variables.scss";
 
-    html {
-        font-size: 62.5%;
-    }
-    
-    html,
-    body,
-    .sigma-container,
-    #app {
-        width: 100%;
-        height: 100%;
-        margin: 0;
-        padding: 0;
-        overflow: hidden;
-    }
-    
-    .wm-v {
-        text-orientation: mixed;
-        writing-mode: vertical-lr;
-    }
+html,
+body,
+.sigma-container,
+#app {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+html {
+    font-family: 'Segoe UI', sans-serif;
+    color: var(--font-color-base);
+}
+
+.wm-v {
+    text-orientation: mixed;
+    writing-mode: vertical-lr;
 }

@@ -44,8 +44,9 @@
     <div class="tab-list flex flex-col">
         {#each $tabDescriptors as tabDescriptor}
             <div
-                class="tab-item cursor-pointer"
-                on:click={() => $currentTab = tabDescriptor.value}
+                class="tab-item cursor-pointer select-none"
+                class:active={$currentTab === tabDescriptor.value}
+                on:click={() => $currentTab = $currentTab === tabDescriptor.value ? null : tabDescriptor.value}
                 on:keypress
             >
                 {#if tabDescriptor.icon}

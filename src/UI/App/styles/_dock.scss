@@ -1,12 +1,41 @@
-@layer helveg {
-    .dock {
-        height: 100%;
+@use "./variables.scss";
 
-        .tab {
-            width: 20rem;
-            height: 100%;
-            background-color: rgb(var(--color-surface-900));
-            color: rgb(var(--color-surface-50))
+.dock {
+    height: 100%;
+
+    .tab {
+        width: 20rem;
+        height: 100%;
+        padding: 1rem;
+
+        background-color: var(--color-surface-100);
+        border: 1px solid var(--color-surface-400);
+    }
+    
+    .tab-list {
+        background-color: var(--color-surface-100);
+    }
+
+    .tab-item {
+        padding: 0.5rem;
+        width: 4rem;
+
+        font-size: 0.6rem;
+
+        background-color: var(--color-surface-100);
+        border: 1px solid var(--color-surface-400);
+
+        &:hover {
+            background-color: var(--color-surface-200);
+            border: 1px solid var(--color-surface-400);
+        }
+        
+        &.active {
+            border-right: 0.3rem solid var(--color-primary-500);
+        }
+        
+        .icon {
+            width: 2.5rem;
         }
     }
 }

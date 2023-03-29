@@ -21,7 +21,9 @@
         let iconName = segments[1];
         let iconSet = iconSets[namespace];
         if (!iconSet) {
-            throw new Error(`Icon set for namespace '${namespace}' could not be found.`);
+            throw new Error(
+                `Icon set for namespace '${namespace}' could not be found.`
+            );
         }
 
         icon = iconSet.icons[iconName];
@@ -31,8 +33,10 @@
     });
 </script>
 
-{#if icon?.format === IconFormat.Svg}
-    {@html icon.data}
-{:else if icon?.format == IconFormat.Png}
-    <img src="data:image/png;base64,{icon.data}" alt="The '{name}' icon" />
-{/if}
+<div class="icon">
+    {#if icon?.format === IconFormat.Svg}
+        {@html icon.data}
+    {:else if icon?.format == IconFormat.Png}
+        <img src="data:image/png;base64,{icon.data}" alt="The '{name}' icon" />
+    {/if}
+</div>
