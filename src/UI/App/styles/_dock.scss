@@ -10,10 +10,12 @@
 
         background-color: var(--color-surface-50);
         border: 1px solid var(--color-surface-100);
+        border-right: 0px;
     }
     
     .tab-list {
         background-color: var(--color-surface-50);
+        border: 1px solid var(--color-surface-100);
     }
 
     .tab-item {
@@ -23,11 +25,10 @@
         font-size: 0.6rem;
 
         background-color: var(--color-surface-50);
-        border: 1px solid var(--color-surface-100);
+        border-bottom: 1px solid var(--color-surface-100);
 
         &:hover {
             background-color: var(--color-surface-100);
-            border: 1px solid var(--color-surface-200);
         }
         
         &.active {
