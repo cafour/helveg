@@ -8,7 +8,7 @@
     import Tab from "./Tab.svelte";
 </script>
 
-<Dock>
+<Dock name=panels>
     <Tab name="Data" value=data-panel icon=base:Database>
         <strong>TODO: Data Panel Contents</strong>
     </Tab>
