@@ -15,14 +15,14 @@ public record Edge
 
     public string? Label { get; init; }
 
-    public ImmutableArray<MetadataProperty> Properties { get; init; }
-        = ImmutableArray<MetadataProperty>.Empty;
+    public ImmutableArray<Property> Properties { get; init; }
+        = ImmutableArray<Property>.Empty;
 
     public Edge(
         string src,
         string dst,
         string? label = null,
-        ImmutableArray<MetadataProperty> properties = default)
+        ImmutableArray<Property> properties = default)
     {
         Src = src;
         Dst = dst;

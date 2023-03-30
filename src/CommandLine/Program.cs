@@ -81,6 +81,7 @@ public class Program
 
         var sfb = await SingleFileBuilder.CreateDefault();
         sfb.SetMultigraph(multigraph);
+        sfb.SetDocumentInfo(new DocumentInfo(multigraph.Label ?? multigraph.Id, DateTimeOffset.UtcNow, null));
 
         using var fileStream = new FileStream("output.html", FileMode.Create, FileAccess.ReadWrite);
         using var writer = new StreamWriter(fileStream);

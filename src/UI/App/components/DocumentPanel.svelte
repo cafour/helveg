@@ -1,2 +1,32 @@
 <script lang="ts">
+    import type { DocumentInfo } from "model/document";
+    import App from "./App.svelte";
+
+    const documentInfoId = "helveg-document-info";
+
+    let documentScript = document.getElementById(documentInfoId);
+    if (!documentScript) {
+        throw new Error(`The '${documentInfoId}' element could not be found.`);
+    }
+    let documentInfo = <DocumentInfo>JSON.parse(documentScript.innerText);
+    documentInfo.createdOn = (new Date(documentInfo.createdOn)).toLocaleString();
 </script>
+
+<div class="panel flex flex-col overflow-hidden">
+    <dl>
+        <div class="flex flex-row flex-wrap space-nowrap gap-1 justify-content-between">
+            <dt class="bold border-r-1">Name</dt>
+            <dd class="flex-grow-1 text-right">{documentInfo.name}</dd>
+        </div>
+        <div class="flex flex-row flex-wrap space-nowrap gap-1 justify-content-between">
+            <dt class="bold border-r-1">Created on</dt>
+            <dd class="flex-grow-1 text-right">{documentInfo.createdOn}</dd>
+        </div>
+        {#if documentInfo.revision}
+        <div class="flex flex-row flex-wrap space-nowrap gap-1 justify-content-between">
+            <dt class="bold border-r-1">Revision</dt>
+            <dd class="flex-grow-1 text-right">{documentInfo.revision}</dd>
+        </div>
+        {/if}
+    </dl>
+</div>

@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace Helveg.Visualization;
 
-public record MetadataProperty(
-    string Key,
-    string Value
+public record DocumentInfo(
+    string Name,
+    DateTimeOffset CreatedOn,
+    string? Revision
 );

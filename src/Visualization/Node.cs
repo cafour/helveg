@@ -8,13 +8,13 @@ public record Node
 
     public string? Label { get; init; }
 
-    public ImmutableArray<MetadataProperty> Properties { get; init; }
-        = ImmutableArray<MetadataProperty>.Empty;
+    public ImmutableArray<Property> Properties { get; init; }
+        = ImmutableArray<Property>.Empty;
 
     public Node(
         string id,
         string? label = null,
-        ImmutableArray<MetadataProperty> properties = default)
+        ImmutableArray<Property> properties = default)
     {
         Id = id;
         Label = label;

@@ -3,6 +3,7 @@
     // import { TabGroup, Tab } from "@skeletonlabs/skeleton";
     // import Diagram from "./Diagram.svelte";
     import Dock from "./Dock.svelte";
+    import DocumentPanel from "./DocumentPanel.svelte";
     import Icon from "./Icon.svelte";
     import Tab from "./Tab.svelte";
 </script>
@@ -21,7 +22,7 @@
         <strong>TODO: Properties Panel Contents</strong>
     </Tab>
     <Tab name="Document" value=document-panel icon=base:Document>
-        <strong>TODO: Document Panel Contents</strong>
+        <DocumentPanel />
     </Tab>
 </Dock>
 

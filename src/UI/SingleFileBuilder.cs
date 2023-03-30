@@ -18,7 +18,7 @@ public class SingleFileBuilder
     private readonly List<string> scripts = new();
     private readonly List<IconSet> iconSets = new();
     private Multigraph? multigraph;
-    private string? title;
+    private DocumentInfo? documentInfo;
 
     public static async Task<SingleFileBuilder> CreateDefault()
     {
@@ -52,9 +52,9 @@ public class SingleFileBuilder
         return this;
     }
 
-    public SingleFileBuilder SetTitle(string title)
+    public SingleFileBuilder SetDocumentInfo(DocumentInfo documentInfo)
     {
-        this.title = title;
+        this.documentInfo = documentInfo;
         return this;
     }
 
@@ -70,7 +70,7 @@ public class SingleFileBuilder
 @$"<!DOCTYPE html>
 <html lang=""en"">
     <head>
-        <title>{title ?? multigraph?.Label ?? multigraph?.Id ?? "Unknown"} | Helveg</title>
+        <title>{documentInfo?.Name ?? multigraph?.Label ?? multigraph?.Id ?? "Unknown"} | Helveg</title>
         <meta charset=""utf-8"" />
         <meta content=""width=device-width, initial-scale=1.0"" name=""viewport"" />
         ");
@@ -90,16 +90,26 @@ public class SingleFileBuilder
 
     <body>
         <div id=""app""></div>
-        <script type=""application/json"" id=""helveg-data"" class=""helveg-icons"">
+        <script type=""application/json"" id=""helveg-multigraph"">
             {JsonSerializer.Serialize(multigraph, HelvegDefaults.JsonOptions)}
         </script>
 ");
+
+        if (documentInfo is not null)
+        {
+            await writer.WriteAsync(
+@$"
+        <script type=""application/json"" id=""helveg-document-info"">
+            {JsonSerializer.Serialize(documentInfo, HelvegDefaults.JsonOptions)}
+        </script>
+");
+        }
 
         foreach (var iconSet in iconSets)
         {
             await writer.WriteAsync(
 @$"
-        <script type=""application/json"" id=""helveg-icons-{iconSet.Namespace}"">
+        <script type=""application/json"" id=""helveg-icons-{iconSet.Namespace}"" class=""helveg-icons"">
             {JsonSerializer.Serialize(iconSet, HelvegDefaults.JsonOptions)}
         </script>
 ");

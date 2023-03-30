@@ -1,21 +1,30 @@
 @use "uniform" as * with (
   $config: (
     excludes: (
-        all
+      all
     ),
     includes: (
-        reset,
-        margin,
-        padding,
-        visibility,
-        display,
-        flex,
-        flex-direction,
-        font-weight,
-        font-size,
-        line-height,
-        cursor,
-        user-select
+      root,
+      reset,
+      margin,
+      padding,
+      visibility,
+      display,
+      flex,
+      flex-direction,
+      flex-wrap,
+      flex-grow,
+      font-weight,
+      font-size,
+      line-height,
+      cursor,
+      user-select,
+      overflow,
+      white-space,
+      gap,
+      justify-content,
+      border-width,
+      text-align
     )
   )
 );

@@ -1,6 +1,6 @@
 export interface DocumentInfo
 {
-    workspaceName: string;
+    name: string;
     createdOn: string,
     revision: string | null;
 }

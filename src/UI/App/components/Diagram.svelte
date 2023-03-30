@@ -6,7 +6,7 @@
   import circular from "graphology-layout/circular";
   import forceAtlas2 from "graphology-layout-forceatlas2";
 
-  export let dataId = "helveg-data";
+  export let dataId = "helveg-multigraph";
 
   let element: HTMLElement;
   const dataScript = document.getElementById(dataId);
