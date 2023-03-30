@@ -1,14 +1,7 @@
 <script lang="ts">
     import type { DocumentInfo } from "model/document";
-    import App from "./App.svelte";
 
-    const documentInfoId = "helveg-document-info";
-
-    let documentScript = document.getElementById(documentInfoId);
-    if (!documentScript) {
-        throw new Error(`The '${documentInfoId}' element could not be found.`);
-    }
-    let documentInfo = <DocumentInfo>JSON.parse(documentScript.innerText);
+    export let documentInfo: DocumentInfo;
     documentInfo.createdOn = (new Date(documentInfo.createdOn)).toLocaleString();
 </script>
 
