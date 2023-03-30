@@ -5,6 +5,7 @@
     import Graph from "graphology";
     import circular from "graphology-layout/circular";
     import forceAtlas2 from "graphology-layout-forceatlas2";
+    import FA2Layout from "graphology-layout-forceatlas2/worker";
 
     export let dataId = "helveg-multigraph";
 
@@ -30,7 +31,10 @@
 
     circular.assign(graph);
     const settings = forceAtlas2.inferSettings(graph);
-    forceAtlas2.assign(graph, { settings, iterations: 600 });
+    const worker = new FA2Layout(graph, {
+        settings: settings
+    });
+    worker.start();
 
     onMount(() => {
         new Sigma(graph, element, {
