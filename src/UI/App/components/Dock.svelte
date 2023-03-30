@@ -51,7 +51,7 @@
     }
 </script>
 
-<div class="dock flex flex-row-reverse">
+<div class="dock flex flex-row-reverse relative z-1">
     <div class="tab-list flex flex-col">
         {#each $tabDescriptors as tabDescriptor}
             <div
