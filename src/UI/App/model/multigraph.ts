@@ -8,7 +8,7 @@ export interface Multigraph {
 export interface MultigraphNode {
     id: string,
     label: string | null,
-    properties: MetadataProperty[]
+    properties: Record<string, string>
 }
 
 export interface Relation {
@@ -21,10 +21,6 @@ export interface MultigraphEdge {
     src: string,
     dst: string,
     label: string | null,
-    properties: MetadataProperty[]
+    properties: Record<string, string>
 }
 
-export interface MetadataProperty {
-    key: string,
-    value: string
-}

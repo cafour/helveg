@@ -6,9 +6,10 @@ using System.Threading.Tasks;
 
 namespace Helveg.Visualization;
 
-public record DocumentInfo(
-    string Name,
-    DateTimeOffset CreatedOn,
-    string HelvegVersion,
-    string? Revision
-);
+public enum ComparisonKind
+{
+    Invalid,
+    Equals,
+    Contains,
+    Regex
+}

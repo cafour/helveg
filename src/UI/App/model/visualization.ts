@@ -1,7 +1,8 @@
-import type { MultigraphEdge, MultigraphNode } from "./data";
+import type { Multigraph } from "./multigraph";
+import type { DocumentInfo } from "./document";
 
-export class VisualizationModel
+export interface VisualizationModel
 {
-    nodes: MultigraphNode[] = [];
-    edges: MultigraphEdge[] = [];
+    documentInfo: DocumentInfo;
+    multigraph: Multigraph;
 }

@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import type { Multigraph } from "../model/data";
+    import type { Multigraph } from "../model/multigraph";
     import { Sigma } from "sigma";
     import Graph from "graphology";
     import circular from "graphology-layout/circular";
@@ -38,7 +38,6 @@
 
     onMount(() => {
         new Sigma(graph, element, {
-            
         });
     });
 </script>

@@ -32,7 +32,31 @@ public class VisualizationEntityVisitor : EntityVisitor
 
     protected override void DefaultVisit(IEntityDefinition entity)
     {
-        nodes.Add(new Node(entity.Token, entity.Name));
+        var node = new Node(entity.Token, entity.Name, ImmutableDictionary.CreateRange(
+            new KeyValuePair<string, string>[]
+            {
+                new("EntityKind", entity.Token.Kind.ToString())
+            }));
+        if (entity is IMemberDefinition member)
+        {
+            node = node with
+            {
+                Properties = node.Properties.AddRange(new KeyValuePair<string, string>[]
+                {
+                    new(nameof(member.Accessibility), member.Accessibility.ToString()),
+                    new(nameof(member.IsSealed), member.IsSealed.ToString()),
+                    new(nameof(member.IsStatic), member.IsStatic.ToString()),
+                    new(nameof(member.IsAbstract), member.IsAbstract.ToString()),
+                    new(nameof(member.IsExtern), member.IsExtern.ToString()),
+                    new(nameof(member.IsOverride), member.IsOverride.ToString()),
+                    new(nameof(member.IsVirtual), member.IsVirtual.ToString()),
+                    new(nameof(member.IsImplicitlyDeclared), member.IsImplicitlyDeclared.ToString()),
+                    new(nameof(member.CanBeReferencedByName), member.CanBeReferencedByName.ToString()),
+                })
+            };
+        }
+
+        nodes.Add(node);
     }
 
     protected override void VisitWorkspace(EntityWorkspace workspace)

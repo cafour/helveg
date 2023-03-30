@@ -79,9 +79,17 @@ public class Program
             return 1;
         }
 
+        var vmb = VisualizationModelBuilder.CreateDefault();
+        vmb.SetDocumentInfo(new DocumentInfo(
+            Name: multigraph.Label ?? multigraph.Id,
+            CreatedOn: DateTimeOffset.UtcNow,
+            HelvegVersion: GitVersionInformation.FullSemVer,
+            Revision: null));
+        vmb.SetMultigraph(multigraph);
+        vmb.UseCSharp();
+
         var sfb = await SingleFileBuilder.CreateDefault();
-        sfb.SetMultigraph(multigraph);
-        sfb.SetDocumentInfo(new DocumentInfo(multigraph.Label ?? multigraph.Id, DateTimeOffset.UtcNow, null));
+        sfb.SetVisualizationModel(vmb.Build());
 
         using var fileStream = new FileStream("output.html", FileMode.Create, FileAccess.ReadWrite);
         using var writer = new StreamWriter(fileStream);

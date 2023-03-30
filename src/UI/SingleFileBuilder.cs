@@ -17,8 +17,7 @@ public class SingleFileBuilder
     private readonly List<string> styles = new();
     private readonly List<string> scripts = new();
     private readonly List<IconSet> iconSets = new();
-    private Multigraph? multigraph;
-    private DocumentInfo? documentInfo;
+    private VisualizationModel? visualizationModel;
 
     public static async Task<SingleFileBuilder> CreateDefault()
     {
@@ -46,15 +45,9 @@ public class SingleFileBuilder
         return this;
     }
 
-    public SingleFileBuilder SetMultigraph(Multigraph multigraph)
+    public SingleFileBuilder SetVisualizationModel(VisualizationModel visualizationModel)
     {
-        this.multigraph = multigraph;
-        return this;
-    }
-
-    public SingleFileBuilder SetDocumentInfo(DocumentInfo documentInfo)
-    {
-        this.documentInfo = documentInfo;
+        this.visualizationModel = visualizationModel;
         return this;
     }
 
@@ -66,11 +59,16 @@ public class SingleFileBuilder
 
     public async Task Build(TextWriter writer)
     {
+        if(visualizationModel is null)
+        {
+            throw new InvalidOperationException("A visualization model must be set first.");
+        }
+
         writer.Write(
 @$"<!DOCTYPE html>
 <html lang=""en"">
     <head>
-        <title>{documentInfo?.Name ?? multigraph?.Label ?? multigraph?.Id ?? "Unknown"} | Helveg</title>
+        <title>{visualizationModel.DocumentInfo.Name ?? "Unknown"} | Helveg</title>
         <meta charset=""utf-8"" />
         <meta content=""width=device-width, initial-scale=1.0"" name=""viewport"" />
         ");
@@ -90,20 +88,10 @@ public class SingleFileBuilder
 
     <body>
         <div id=""app""></div>
-        <script type=""application/json"" id=""helveg-multigraph"">
-            {JsonSerializer.Serialize(multigraph, HelvegDefaults.JsonOptions)}
+        <script type=""application/json"" id=""helveg-data"">
+            {JsonSerializer.Serialize(visualizationModel, HelvegDefaults.JsonOptions)}
         </script>
 ");
-
-        if (documentInfo is not null)
-        {
-            await writer.WriteAsync(
-@$"
-        <script type=""application/json"" id=""helveg-document-info"">
-            {JsonSerializer.Serialize(documentInfo, HelvegDefaults.JsonOptions)}
-        </script>
-");
-        }
 
         foreach (var iconSet in iconSets)
         {

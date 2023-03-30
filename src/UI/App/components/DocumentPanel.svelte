@@ -28,5 +28,9 @@
             <dd class="flex-grow-1 text-right">{documentInfo.revision}</dd>
         </div>
         {/if}
+        <div class="flex flex-row flex-wrap space-nowrap gap-1 justify-content-between">
+            <dt class="bold border-r-1">Helveg version</dt>
+            <dd class="flex-grow-1 text-right">{documentInfo.helvegVersion}</dd>
+        </div>
     </dl>
 </div>
