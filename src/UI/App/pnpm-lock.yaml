@@ -58,8 +58,8 @@ devDependencies:
     specifier: ^1.59.3
     version: 1.59.3
   sigma:
-    specifier: ^2.4.0
-    version: 2.4.0(graphology-types@0.24.7)
+    specifier: ^3.0.0-alpha3
+    version: 3.0.0-alpha3(graphology-types@0.24.7)
   svelte:
     specifier: ^3.56.0
     version: 3.57.0
@@ -3696,8 +3696,8 @@ packages:
       object-inspect: 1.12.3
     dev: true
 
-  /sigma@2.4.0(graphology-types@0.24.7):
-    resolution: {integrity: sha512-spi4C+c3cjlhCklT+RvAxJJcarMmjRpF6RPNvBIBYDduALq8iSNm7FwSpijQNGtI+ryeZ2EfvyBNLp36OFaZiw==}
+  /sigma@3.0.0-alpha3(graphology-types@0.24.7):
+    resolution: {integrity: sha512-WpUqM7cleO67/n/kaDL3ZP9yC2+6CgxL3J3GkQNqdt50PwFD30DVmLNldxhv+fFiXo8AX0Er4qVflL8ll/fCcg==}
     dependencies:
       '@yomguithereal/helpers': 1.1.1
       events: 3.3.0

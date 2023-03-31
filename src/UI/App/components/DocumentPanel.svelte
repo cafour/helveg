@@ -1,5 +1,6 @@
 <script lang="ts">
     import type { DocumentInfo } from "model/document";
+    import { getIconDataUrl } from "model/icons";
 
     export let documentInfo: DocumentInfo;
     documentInfo.createdOn = (new Date(documentInfo.createdOn)).toLocaleString();

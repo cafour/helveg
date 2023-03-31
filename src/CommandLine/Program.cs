@@ -89,6 +89,7 @@ public class Program
         vmb.UseCSharp();
 
         var sfb = await SingleFileBuilder.CreateDefault();
+        await sfb.UseCSharp();
         sfb.SetVisualizationModel(vmb.Build());
 
         using var fileStream = new FileStream("output.html", FileMode.Create, FileAccess.ReadWrite);

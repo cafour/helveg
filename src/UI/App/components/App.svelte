@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { getIconDataUrl } from "model/icons";
     import type { VisualizationModel } from "model/visualization";
     import Diagram from "./Diagram.svelte";
     import Dock from "./Dock.svelte";

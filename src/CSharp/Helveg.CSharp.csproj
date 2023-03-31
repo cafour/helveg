@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../Visualization/Helveg.Visualization.csproj" />
+    <ProjectReference Include="../UI/Helveg.UI.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -26,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Icons/**/*.svg" LogicalName="%{directory}Icons.%(filename)%(extension)" />
+    <EmbeddedResource Include="Icons/**/*.svg" LogicalName="Icons.%(filename)%(extension)" />
   </ItemGroup>
 
 </Project>
