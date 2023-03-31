@@ -123,7 +123,8 @@
         new Sigma(graph, element, {
             nodeProgramClasses: {
                 pictogram: pictogramProgram
-            }
+            },
+            labelFont: "'Cascadia Mono', 'Consolas', monospace"
         });
     });
 </script>
