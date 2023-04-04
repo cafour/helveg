@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Helveg.CSharp.Symbols;
 
-public interface ISymbolDefinition
+public interface ISymbolDefinition : IEntity
 {
     string Name { get; }
 
@@ -18,7 +19,7 @@ public interface ISymbolDefinition
 }
 
 /// <summary>
-/// A class for sharing properties among all symbol definitions.
+/// A base class for all symbol definitions.
 /// </summary>
 public abstract record SymbolDefinition : ISymbolDefinition
 {
@@ -27,6 +28,17 @@ public abstract record SymbolDefinition : ISymbolDefinition
     public SymbolToken Token { get; init; } = SymbolToken.Invalid;
 
     public bool IsInvalid => Token.IsError || Name == CSharpConstants.InvalidName;
+
+    string IEntity.Id => Token.ToString();
+
+    public ImmutableArray<Diagnostic> Diagnostics { get; init; }
+
+    public ImmutableArray<IEntityExtension> Extensions { get; init; }
+
+    public virtual void Accept(IEntityVisitor visitor)
+    {
+        visitor.DefaultVisit(this);
+    }
 
     public abstract IEntityReference GetReference();
 }

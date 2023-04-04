@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Helveg.CSharp;
 
-public class VisualizationEntityVisitor : EntityVisitor
+public class VisualizationEntityVisitor : CSharpEntityVisitor
 {
     private string name = CSharpConstants.InvalidName;
     private readonly ImmutableArray<Node>.Builder nodes = ImmutableArray.CreateBuilder<Node>();

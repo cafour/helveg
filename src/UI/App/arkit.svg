@@ -1,0 +1,64 @@
+e<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="182px" preserveAspectRatio="none" style="width:674px;height:182px;" version="1.1" viewBox="0 0 674 182" width="674px" zoomAndPan="magnify"><defs/><g><ellipse cx="351.2487" cy="43.8774" fill="#F8F8F8" rx="27.7487" ry="12.8774" style="stroke: #383838; stroke-width: 0.5;"/><text fill="#000000" font-family="Tahoma, sans-serif" font-size="12" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="35" x="333.7487" y="47.3618">build</text><!--MD5=[67a41d6a6eaa230a35b26b4fee57235e]
+entity _document--><rect fill="#F8F8F8" height="33.9688" rx="3" ry="3" style="stroke: #000000; stroke-width: 0.5;" width="81" x="229.5" y="27"/><text fill="#000000" font-family="Tahoma, sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="61" x="239.5" y="48.1387">document</text><!--MD5=[7ea62b2d3067c5020abd88e04feac6a1]
+entity _filter--><rect fill="#F8F8F8" height="33.9688" rx="3" ry="3" style="stroke: #000000; stroke-width: 0.5;" width="58" x="392" y="27"/><text fill="#000000" font-family="Tahoma, sans-serif" font-size="12" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="38" x="402" y="48.1387">filter</text><ellipse cx="499.9411" cy="43.8774" fill="#F8F8F8" rx="36.9411" ry="12.8774" style="stroke: #383838; stroke-width: 0.5;"/><text fill="#000000" font-family="Tahoma, sans-serif" font-size="12" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="48" x="475.9411" y="47.3618">helveg</text><!--MD5=[d326769b8cca4e1d10a61a848fa73432]
+entity _icons--><rect fill="#F8F8F8" height="33.9688" rx="3" ry="3" style="stroke: #000000; stroke-width: 0.5;" width="58" x="322" y="86"/><text fill="#000000" font-family="Tahoma, sans-serif" font-size="12" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="38" x="332" y="107.1387">icons</text><ellipse cx="451.8944" cy="103.0789" fill="#F8F8F8" rx="58.3944" ry="14.0789" style="stroke: #383838; stroke-width: 0.5;"/><text fill="#000000" font-family="Tahoma, sans-serif" font-size="12" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="86" x="408.8944" y="106.5633">main.server</text><!--MD5=[1aa7fca56c3f3bfcbafe0257b6c5e672]
+entity _multigraph--><rect fill="#F8F8F8" height="33.9688" rx="3" ry="3" style="stroke: #000000; stroke-width: 0.5;" width="85" x="131.5" y="27"/><text fill="#000000" font-family="Tahoma, sans-serif" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="65" x="141.5" y="48.1387">multigraph</text><ellipse cx="593.8471" cy="102.8694" fill="#F8F8F8" rx="69.8471" ry="16.3694" style="stroke: #383838; stroke-width: 0.5;"/><text fill="#000000" font-family="Tahoma, sans-serif" font-size="12" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="114" x="536.8471" y="106.3538">node.pictogram</text><ellipse cx="351.2424" cy="158.2485" fill="#F8F8F8" rx="54.2424" ry="13.2485" style="stroke: #383838; stroke-width: 0.5;"/><text fill="#000000" font-family="Tahoma, sans-serif" font-size="12" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="75" x="313.7424" y="161.7329">prerender</text><!--MD5=[b807bc3289234624f17d255f1b553a28]
+entity _visualization--><rect fill="#F8F8F8" height="33.9688" rx="3" ry="3" style="stroke: #000000; stroke-width: 0.5;" width="112" x="6" y="27"/><text fill="#000000" font-family="Tahoma, sans-serif" font-size="12" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="92" x="16" y="48.1387">visualization</text><!--MD5=[dcb335c98cd5ba89731fc1bf67598668]
+link _visualization to _document--><path d="M94.7082,26.93 C106.045,21.884 119.041,17.035 131.5,14.5 C168.519,6.969 179.915,5.082 216.5,14.5 C224.751,16.624 233.092,20.32 240.653,24.391 " fill="none" id="_visualization-&gt;_document" style="stroke: #000000; stroke-width: 1.0;"/><polygon fill="#000000" points="245.253,26.965,239.3513,19.0802,240.8894,24.5239,235.4456,26.062,245.253,26.965" style="stroke: #000000; stroke-width: 1.0;"/><!--MD5=[d42e6732af74effa05c4db055247462f]
+link _visualization to _multigraph--><path d="M118.438,44 C121.015,44 123.592,44 126.17,44 " fill="none" id="_visualization-&gt;_multigraph" style="stroke: #000000; stroke-width: 1.0;"/><polygon fill="#000000" points="131.46,44,122.46,40,126.46,44,122.46,48,131.46,44" style="stroke: #000000; stroke-width: 1.0;"/><!--MD5=[68738580d6f24c9ff635375c3ed68ae8]
+link <b>build</b> to _filter--><!--MD5=[95f2723c8cc0db036dd2582487520dd8]
+link _filter to <b>helveg</b>--><!--MD5=[fe637e805e2fc29d7c598ae5e6b71733]
+link <b>build</b> to _icons--><!--MD5=[dd99fe6839f3027eb574c1eb9fc1c0a5]
+link _icons to <b>main.server</b>--><!--MD5=[7c21b042f49a99a357f499acada24c48]
+link <b>main.server</b> to <b>node.pictogram</b>--><!--MD5=[3894e6b98c6778c3822def6cb26bedd8]
+link _icons to <b>prerender</b>--><script type="text/plantuml"><![CDATA[MD5=[422cbbb31337c415434cc5ce78231ea0]
+@startuml
+
+scale max 1920 width
+top to bottom direction
+
+skinparam nodesep 13
+skinparam ranksep 25
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName Tahoma
+skinparam defaultFontSize 12
+skinparam roundCorner 6
+skinparam dpi 150
+skinparam arrowColor black
+skinparam arrowThickness 0.5
+skinparam packageTitleAlignment left
+
+skinparam usecase {
+  borderThickness 0.5
+}
+
+skinparam rectangle {
+  borderThickness 0.5
+}
+
+skinparam component {
+  borderThickness 1
+}
+
+
+(<b>build</b>)
+rectangle "document" as _document
+rectangle "<b>filter</b>" as _filter
+(<b>helveg</b>)
+rectangle "<b>icons</b>" as _icons
+(<b>main.server</b>)
+rectangle "multigraph" as _multigraph
+(<b>node.pictogram</b>)
+(<b>prerender</b>)
+rectangle "<b>visualization</b>" as _visualization
+
+
+_visualization -[thickness=1]> _document
+_visualization -[thickness=1]> _multigraph
+
+@enduml
+
+
+' View and edit on https://arkit.pro
+]]></script></g></svg>

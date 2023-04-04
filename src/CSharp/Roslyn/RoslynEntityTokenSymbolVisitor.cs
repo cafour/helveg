@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using Helveg.CSharp.Symbols;
+using Microsoft.CodeAnalysis;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;

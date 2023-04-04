@@ -12,6 +12,8 @@ public record Workspace
 
     public ImmutableDictionary<string, IEntity> Roots => roots;
 
+    public Target Target { get; init; } = Target.Invalid;
+
     public void AddRoot(IEntity root)
     {
         if (!ImmutableInterlocked.TryAdd(ref roots, root.Id, root))

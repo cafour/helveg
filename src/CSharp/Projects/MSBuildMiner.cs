@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Helveg.CSharp.Projects;
@@ -12,7 +13,7 @@ public class MSBuildMiner : IMiner
         this.options = options;
     }
 
-    public Task Mine(Workspace workspace)
+    public Task Mine(Workspace workspace, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();
     }

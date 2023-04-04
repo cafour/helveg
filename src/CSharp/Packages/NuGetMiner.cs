@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Helveg.CSharp.Packages;
@@ -11,8 +12,8 @@ public class NuGetMiner : IMiner
     {
         this.options = options;
     }
-    
-    public Task Mine(Workspace workspace)
+
+    public Task Mine(Workspace workspace, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();
     }

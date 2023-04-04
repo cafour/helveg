@@ -5,38 +5,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Helveg.CSharp;
+namespace Helveg.CSharp.Symbols;
 
 /// <summary>
-/// A visitor of the <see cref="EntityDefinition"/> tree that can make changes to the entities.
+/// A visitor of the <see cref="SymbolDefinition"/> tree that can make changes to the symbols.
 /// </summary>
-public abstract class EntityRewriter
+public abstract class SymbolRewriter
 {
-    public virtual SolutionDefinition RewriteSolution(SolutionDefinition solution)
-    {
-        return solution with
-        {
-            Packages = solution.Packages.Select(RewritePackage).ToImmutableArray(),
-            Projects = solution.Projects.Select(RewriteProject).ToImmutableArray()
-        };
-    }
-
-    public virtual PackageDefinition RewritePackage(PackageDefinition package)
-    {
-        return package with
-        {
-            Assemblies = package.Assemblies.Select(RewriteAssembly).ToImmutableArray()
-        };
-    }
-
-    public virtual ProjectDefinition RewriteProject(ProjectDefinition project)
-    {
-        return project with
-        {
-            Assembly = RewriteAssembly(project.Assembly)
-        };
-    }
-
     public virtual AssemblyDefinition RewriteAssembly(AssemblyDefinition assembly)
     {
         return assembly with
