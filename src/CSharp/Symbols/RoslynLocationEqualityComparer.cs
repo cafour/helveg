@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Helveg.CSharp.Roslyn;
+namespace Helveg.CSharp.Symbols;
 
 internal class RoslynLocationEqualityComparer : IEqualityComparer<Location?>
 {

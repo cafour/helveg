@@ -1,49 +1,27 @@
-﻿using Helveg.CSharp.Symbols;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Helveg.CSharp.Roslyn;
+namespace Helveg.CSharp.Symbols;
 
 /// <summary>
-/// A Roslyn <see cref="SymbolVisitor"/> that assigns <see cref="EntityToken"/>s to all symbol definitions
-/// it visits.
+/// A Roslyn <see cref="Microsoft.CodeAnalysis.SymbolVisitor"/> that assigns <see cref="SymbolToken"/>s to all symbol
+/// definitions it visits.
 /// </summary>
-internal class RoslynEntityTokenSymbolVisitor : SymbolVisitor
+internal class SymbolTrackingVisitor : Microsoft.CodeAnalysis.SymbolVisitor
 {
-    private readonly RoslynEntityTokenSymbolCache tokens;
+    private readonly SymbolTokenMap map;
 
-    public HashSet<AssemblyIdentity> VisitedAssemblies { get; }
-        = new();
-
-    private readonly object visitedAssembliesLock = new();
-
-    public RoslynEntityTokenSymbolVisitor(
-        RoslynEntityTokenSymbolCache tokens)
+    public SymbolTrackingVisitor(SymbolTokenMap map)
     {
-        this.tokens = tokens;
+        this.map = map;
     }
 
     public override void VisitAssembly(IAssemblySymbol symbol)
     {
-        // NB: `VisitAssembly` can and will be called from multiple threads. This prevents multiple visits to the same
-        //     assembly.
-        lock (visitedAssembliesLock)
-        {
-            if (VisitedAssemblies.Contains(symbol.Identity))
-            {
-                return;
-            }
-
-            VisitedAssemblies.Add(symbol.Identity);
-        }
-
-        tokens.Add(symbol);
-
+        map.Add(symbol);
         foreach (var module in symbol.Modules)
         {
             VisitModule(module);
@@ -52,14 +30,13 @@ internal class RoslynEntityTokenSymbolVisitor : SymbolVisitor
 
     public override void VisitModule(IModuleSymbol symbol)
     {
-        tokens.Add(symbol);
-
+        map.Add(symbol);
         VisitNamespace(symbol.GlobalNamespace);
     }
 
     public override void VisitNamespace(INamespaceSymbol symbol)
     {
-        tokens.Add(symbol);
+        map.Add(symbol);
 
         foreach (var ns in symbol.GetNamespaceMembers())
         {
@@ -74,7 +51,7 @@ internal class RoslynEntityTokenSymbolVisitor : SymbolVisitor
 
     public override void VisitNamedType(INamedTypeSymbol symbol)
     {
-        tokens.Add(symbol);
+        map.Add(symbol);
 
         foreach (var typeParameter in symbol.TypeParameters)
         {
@@ -94,17 +71,17 @@ internal class RoslynEntityTokenSymbolVisitor : SymbolVisitor
 
     public override void VisitField(IFieldSymbol symbol)
     {
-        tokens.Add(symbol);
+        map.Add(symbol);
     }
 
     public override void VisitEvent(IEventSymbol symbol)
     {
-        tokens.Add(symbol);
+        map.Add(symbol);
     }
 
     public override void VisitProperty(IPropertySymbol symbol)
     {
-        tokens.Add(symbol);
+        map.Add(symbol);
 
         foreach (var parameter in symbol.Parameters)
         {
@@ -114,7 +91,7 @@ internal class RoslynEntityTokenSymbolVisitor : SymbolVisitor
 
     public override void VisitMethod(IMethodSymbol symbol)
     {
-        tokens.Add(symbol);
+        map.Add(symbol);
 
         foreach (var typeParameter in symbol.TypeParameters)
         {
@@ -129,11 +106,11 @@ internal class RoslynEntityTokenSymbolVisitor : SymbolVisitor
 
     public override void VisitParameter(IParameterSymbol symbol)
     {
-        tokens.Add(symbol);
+        map.Add(symbol);
     }
 
     public override void VisitTypeParameter(ITypeParameterSymbol symbol)
     {
-        tokens.Add(symbol);
+        map.Add(symbol);
     }
 }

@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 
 namespace Helveg;
 
-internal class EntityTrackingVisitor : IEntityVisitor
+internal class EntityTrackingVisitor : EntityVisitor
 {
     private readonly ConcurrentDictionary<string, IEntity> entities;
 
@@ -12,7 +12,7 @@ internal class EntityTrackingVisitor : IEntityVisitor
         this.entities = entities;
     }
     
-    public void DefaultVisit(IEntity entity)
+    public override void DefaultVisit(IEntity entity)
     {
         if (!entities.TryAdd(entity.Id, entity))
         {

@@ -6,11 +6,13 @@ namespace Helveg.CSharp.Packages;
 
 public class NuGetMiner : IMiner
 {
-    private readonly NuGetMinerOptions options;
+    public NuGetMinerOptions Options { get; }
+
+    MinerOptions IMiner.Options => Options;
 
     public NuGetMiner(NuGetMinerOptions options)
     {
-        this.options = options;
+        Options = options;
     }
 
     public Task Mine(Workspace workspace, CancellationToken cancellationToken = default)

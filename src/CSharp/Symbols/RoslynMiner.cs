@@ -1,12 +1,11 @@
 using Helveg.CSharp.Projects;
-using Helveg.CSharp.Roslyn;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -14,42 +13,35 @@ namespace Helveg.CSharp.Symbols;
 
 public class RoslynMiner : IMiner
 {
-    private readonly RoslynMinerOptions options;
-    private readonly SymbolTokenGenerator tokenGenerator = new();
     private readonly ILogger<RoslynMiner> logger;
 
-    private readonly RoslynEntityTokenSymbolCache tokenCache;
-    private readonly RoslynEntityTokenSymbolVisitor symbolVisitor;
-    private readonly RoslynEntityTokenDocumentVisitor documentVisitor;
+    private readonly SymbolTokenMap tokenMap;
+    private readonly SymbolTrackingVisitor symbolVisitor;
+
+    public RoslynMinerOptions Options { get; }
+
+    MinerOptions IMiner.Options => Options;
 
     public RoslynMiner(RoslynMinerOptions options, ILogger<RoslynMiner>? logger = null)
     {
-        this.options = options;
+        Options = options;
         this.logger = logger ?? NullLoggerFactory.Instance.CreateLogger<RoslynMiner>();
+
+        tokenMap = new();
+        symbolVisitor = new(tokenMap);
     }
-    
+
     public async Task Mine(Workspace workspace, CancellationToken cancellationToken = default)
     {
-        var msbuildWorkspace = MSBuildWorkspace.Create(options.MSBuildProperties);
-        var file = new FileInfo(workspace.Target.Path);
+        var solution = workspace.Roots.OfType<Solution>().Single();
+        var msbuildWorkspace = Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Create(Options.MSBuildProperties);
         try
         {
-            switch (file.Extension)
-            {
-                case ".sln":
-                    await msbuildWorkspace.OpenSolutionAsync(file.FullName, cancellationToken: cancellationToken);
-                    break;
-                case ".csproj":
-                    await msbuildWorkspace.OpenProjectAsync(file.FullName, cancellationToken: cancellationToken);
-                    break;
-                default:
-                    logger.LogCritical($"File extension '{file.Extension}' is not supported.");
-                    return;
-            }
+            await msbuildWorkspace.OpenSolutionAsync(solution.FullName!, cancellationToken: cancellationToken);
         }
         catch (Exception e)
         {
-            logger.LogCritical($"MSBuild failed to load the '{file}' project or solution. "
+            logger.LogCritical($"MSBuild failed to load the '{solution.FullName}' project or solution. "
                 + "Run with '--verbose' for more information.");
             logger.LogDebug(e, "MSBuildWorkspace threw an exception.");
             return;
@@ -59,148 +51,68 @@ public class RoslynMiner : IMiner
         //{
         //    return EntityWorkspace.Invalid;
         //}
-
-        documentVisitor.VisitSolution(msbuildWorkspace.CurrentSolution);
-
-        workspace.AddRoot(await GetSolution(msbuildWorkspace.CurrentSolution, options, cancellationToken));
-    }
-
-    private async Task<SolutionDefinition> GetSolution(
-        Solution solution,
-        CancellationToken cancellationToken = default)
-    {
-        var helSolution = new SolutionDefinition
+        var assemblies = await Task.WhenAll(msbuildWorkspace.CurrentSolution.Projects
+            .Select(p => GetAssembly(p, cancellationToken)));
+        var projectAssemblies = assemblies
+            .Where(a => a.ContainingProject is not null)
+            .GroupBy(a => a.ContainingProject)
+            .ToDictionary(g => g.Key!, g => g.ToArray());
+        workspace.SetRoot(solution with
         {
-            Token = tokenGenerator.GetToken(EntityKind.Solution),
-            Name = solution.FilePath ?? CSharpConstants.InvalidName,
-            FullName = solution.FilePath
-        };
+            Projects = solution.Projects
+                .Select(p =>
+                {
+                    if (projectAssemblies.TryGetValue(p.Id, out var relatedAssemblies))
+                    {
+                        var extensions = relatedAssemblies
+                            .Select(a => new AssemblyExtension
+                            {
+                                Assembly = a
+                            });
+                        return p with
+                        {
+                            Extensions = p.Extensions.AddRange(extensions)
+                        };
+                    }
 
-        var externalDependencies = new ConcurrentDictionary<EntityToken, ExternalDependencyDefinition>();
-
-        var projects = (await Task.WhenAll(solution.Projects
-            .Select(p => GetProject(p, options, externalDependencies, cancellationToken))))
-            .Select(p => p with { ContainingSolution = helSolution.Reference })
-            .ToImmutableArray();
-
-        helSolution = helSolution with
-        {
-            Projects = projects
-        };
-
-        if (options.IncludeExternalDepedencies)
-        {
-            helSolution = helSolution with
-            {
-                ExternalDependencies = externalDependencies.Values
-                .Select(e => e with { ContainingSolution = helSolution.Reference })
+                    return p;
+                })
                 .ToImmutableArray()
-            };
-        }
-
-        return helSolution;
+        });
     }
 
-    private async Task<ProjectDefinition> GetProject(
-        Project project,
-        EntityWorkspaceAnalysisOptions options,
-        ConcurrentDictionary<EntityToken, ExternalDependencyDefinition> externalDependencies,
+    private async Task<AssemblyDefinition> GetAssembly(
+        Microsoft.CodeAnalysis.Project project,
         CancellationToken cancellationToken = default)
     {
         var compilation = await project.GetCompilationAsync(cancellationToken);
         if (compilation is null)
         {
-            return ProjectDefinition.Invalid;
+            return AssemblyDefinition.Invalid;
         }
 
         // TODO: Classify references into BCL, Packages, and Other.
-        tokenCache.TrackCompilation(compilation, true);
+        tokenMap.TrackCompilation(compilation);
 
+        // Phase 1: Discover all symbols within the assembly.
         symbolVisitor.VisitAssembly(compilation.Assembly);
 
-        if (true)
+        foreach (var reference in compilation.References)
         {
-            foreach (var reference in compilation.References)
+            var referenceSymbol = compilation.GetAssemblyOrModuleSymbol(reference);
+            if (referenceSymbol is not Microsoft.CodeAnalysis.IAssemblySymbol referencedAssembly)
             {
-                var referenceSymbol = compilation.GetAssemblyOrModuleSymbol(reference);
-                if (referenceSymbol is not IAssemblySymbol referencedAssembly)
-                {
-                    throw new ArgumentException($"Could not obtain an assembly symbol for '{reference.Display}'.");
-                }
-
-                symbolVisitor.VisitAssembly(referencedAssembly);
+                throw new ArgumentException($"Could not obtain an assembly symbol for '{reference.Display}'.");
             }
+
+            symbolVisitor.VisitAssembly(referencedAssembly);
         }
 
-        var transcriber = new RoslynSymbolTranscriber(compilation, tokenCache);
-        var helProject = new ProjectDefinition
-        {
-            Token = documentVisitor.RequireProjectToken(project.Id),
-            Name = project.Name,
-            FullName = project.FilePath,
-            Assembly = transcriber.Transcribe(),
-            ProjectDependencies = project.ProjectReferences
-                .Select(r =>
-                {
-                    var token = documentVisitor.GetProjectToken(r.ProjectId);
-                    if (token.IsError)
-                    {
-                        return ProjectReference.Invalid;
-                    }
-                    else
-                    {
-                        return new ProjectReference { Token = token };
-                    }
-                })
-                .ToImmutableArray()
-        };
-        if (options.IncludeExternalDepedencies)
-        {
-            helProject = helProject with
-            {
-                ExternalDependencies = project.MetadataReferences
-                .Select(r =>
-                {
-                    var token = documentVisitor.GetMetadataReferenceToken(r);
-                    if (token.IsError)
-                    {
-                        return ExternalDependencyReference.Invalid with { Hint = r.Display };
-                    }
-                    else
-                    {
-                        return new ExternalDependencyReference { Token = token, Hint = r.Display };
-                    }
-                })
-                .ToImmutableArray()
-            };
-
-            foreach (var reference in project.MetadataReferences)
-            {
-                var token = documentVisitor.RequireMetadataReferenceToken(reference);
-                externalDependencies.AddOrUpdate(token, _ =>
-                {
-                    var assembly = transcriber.TranscribeReference(reference);
-                    if (assembly is null)
-                    {
-                        return ExternalDependencyDefinition.Invalid with
-                        {
-                            Name = reference.Display ?? CSharpConstants.InvalidName
-                        };
-                    }
-                    return new ExternalDependencyDefinition
-                    {
-                        Name = reference.Display ?? CSharpConstants.InvalidName,
-                        Token = token,
-                        Assembly = assembly
-                    };
-                }, (_, e) => e);
-            }
-        }
-
-        return helProject;
+        var transcriber = new RoslynSymbolTranscriber(compilation, tokenMap);
+        return transcriber.Transcribe();
     }
 
-    private void LogMSBuildDiagnostics(MSBuildWorkspace workspace)
+    private void LogMSBuildDiagnostics(Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace workspace)
     {
         if (workspace.Diagnostics.IsEmpty)
         {
@@ -216,33 +128,10 @@ public class RoslynMiner : IMiner
             }
         }
 
-        if (workspace.Diagnostics.Any(d => d.Kind == WorkspaceDiagnosticKind.Failure))
+        if (workspace.Diagnostics.Any(d => d.Kind == Microsoft.CodeAnalysis.WorkspaceDiagnosticKind.Failure))
         {
             logger.LogCritical($"Failed to load the project or solution. "
                 + "Make sure it can be built with 'dotnet build'.");
-        }
-    }
-
-    private class SymbolErrorReferenceRewriter : SymbolRewriter
-    {
-        private EntityLocator locator = null!;
-        private readonly ConcurrentDictionary<EntityToken, ISymbol> underlyingSymbols;
-        private readonly ConcurrentDictionary<EntityToken, ISymbol> errorReferences;
-
-        public SymbolErrorReferenceRewriter(
-            ConcurrentDictionary<EntityToken, ISymbol> underlyingSymbols,
-            ConcurrentDictionary<EntityToken, ISymbol> errorReferences)
-        {
-            this.underlyingSymbols = underlyingSymbols;
-            this.errorReferences = errorReferences;
-        }
-
-        public override SolutionDefinition RewriteSolution(SolutionDefinition solution)
-        {
-            locator = new EntityLocator(solution);
-            var newSolution = base.RewriteSolution(solution);
-            locator = null!;
-            return newSolution;
         }
     }
 }

@@ -14,8 +14,15 @@ internal class SymbolTokenGenerator
 {
     private int counter = 0;
 
+    public SymbolTokenGenerator(string prefix)
+    {
+        Prefix = prefix;
+    }
+
+    public string Prefix { get; }
+
     public SymbolToken GetToken(SymbolKind kind)
     {
-        return new SymbolToken(kind, Interlocked.Increment(ref counter));
+        return new SymbolToken(Prefix, kind, Interlocked.Increment(ref counter));
     }
 }

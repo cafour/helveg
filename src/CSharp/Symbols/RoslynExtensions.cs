@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Helveg.CSharp.Roslyn;
+namespace Helveg.CSharp.Symbols;
 
 internal static class RoslynExtensions
 {
@@ -111,21 +111,21 @@ internal static class RoslynExtensions
         };
     }
 
-    public static EntityKind GetEntityKind(this ISymbol symbol)
+    public static SymbolKind GetHelvegSymbolKind(this ISymbol symbol)
     {
         return symbol switch
         {
-            IAssemblySymbol => EntityKind.Assembly,
-            IModuleSymbol => EntityKind.Module,
-            INamespaceSymbol => EntityKind.Namespace,
-            ITypeParameterSymbol => EntityKind.TypeParameter,
-            IFieldSymbol => EntityKind.Field,
-            IEventSymbol => EntityKind.Event,
-            IPropertySymbol => EntityKind.Property,
-            IMethodSymbol => EntityKind.Method,
-            INamedTypeSymbol => EntityKind.Type,
-            IParameterSymbol => EntityKind.Parameter,
-            _ => throw new ArgumentException($"Could not assign {nameof(EntityKind)} to a Roslyn symbol of type " +
+            IAssemblySymbol => SymbolKind.Assembly,
+            IModuleSymbol => SymbolKind.Module,
+            INamespaceSymbol => SymbolKind.Namespace,
+            ITypeParameterSymbol => SymbolKind.TypeParameter,
+            IFieldSymbol => SymbolKind.Field,
+            IEventSymbol => SymbolKind.Event,
+            IPropertySymbol => SymbolKind.Property,
+            IMethodSymbol => SymbolKind.Method,
+            INamedTypeSymbol => SymbolKind.Type,
+            IParameterSymbol => SymbolKind.Parameter,
+            _ => throw new ArgumentException($"Could not assign {nameof(SymbolKind)} to a Roslyn symbol of type " +
                 $"'{symbol.GetType()}'.")
         };
     }

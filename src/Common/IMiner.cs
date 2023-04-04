@@ -5,5 +5,7 @@ namespace Helveg;
 
 public interface IMiner
 {
+    MinerOptions Options { get; }
+
     Task Mine(Workspace workspace, CancellationToken cancellationToken = default);
 }

@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace Helveg.CSharp.Symbols;
 
-public abstract class SymbolVisitor : ISymbolVisitor
+public abstract class SymbolVisitor : EntityVisitor
 {
     public abstract void DefaultVisit(ISymbolDefinition symbol);
 
-    public void DefaultVisit(IEntity entity)
+    public override void DefaultVisit(IEntity entity)
     {
         if (entity is not ISymbolDefinition symbol)
         {

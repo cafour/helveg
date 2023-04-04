@@ -20,19 +20,22 @@ public record struct SymbolToken
 
     public const int ErrorId = -1;
 
-    public static SymbolToken Invalid { get; } = new(SymbolKind.Unknown, ErrorId);
+    public static SymbolToken Invalid { get; } = new(Const.Invalid, SymbolKind.Unknown, ErrorId);
 
     public SymbolKind Kind { get; init; }
 
     public int Id { get; init; }
+
+    public string Prefix { get; set; }
 
     [JsonIgnore]
     public bool IsError => Id == ErrorId;
 
     private readonly Lazy<string> encodedValue;
 
-    public SymbolToken(SymbolKind kind, int id)
+    public SymbolToken(string prefix, SymbolKind kind, int id)
     {
+        Prefix = prefix;
         Kind = kind;
         Id = id;
         encodedValue = new(Encode);
@@ -40,7 +43,7 @@ public record struct SymbolToken
 
     public static SymbolToken CreateError(SymbolKind kind)
     {
-        return new SymbolToken(kind, ErrorId);
+        return new SymbolToken(Const.Invalid, kind, ErrorId);
     }
 
     public static implicit operator string(SymbolToken token)
@@ -55,15 +58,17 @@ public record struct SymbolToken
 
     public static bool TryParse(string value, out SymbolToken token)
     {
-        var parts = value.Split(new[] { '-' }, 2);
-        if (parts.Length != 2 || !Enum.TryParse<SymbolKind>(parts[0], out var kind))
+        var parts = value.Split(new[] { '-' }, 3);
+        if (parts.Length != 3 || !Enum.TryParse<SymbolKind>(parts[1], out var kind))
         {
             token = Invalid;
             return false;
         }
 
+        var prefix = parts[0];
+
         uint id = 0;
-        for (int i = 0; i < parts[1].Length; ++i)
+        for (int i = 0; i < parts[2].Length; ++i)
         {
             id *= 64;
             var index = Alphabet.IndexOf(parts[1][i]);
@@ -76,14 +81,16 @@ public record struct SymbolToken
             id += (uint)index;
         }
 
-        token = new(kind, (int)id);
+        token = new(prefix, kind, (int)id);
         return true;
     }
 
     private string Encode()
     {
         uint id = (uint)Id;
-        var sb = new StringBuilder(Kind.ToString());
+        var sb = new StringBuilder(Prefix);
+        sb.Append('-');
+        sb.Append(Kind.ToString());
         sb.Append('-');
         var index = sb.Length;
         do

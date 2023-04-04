@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Helveg.CSharp.Roslyn;
+namespace Helveg.CSharp.Symbols;
 
 /// <summary>
 /// Transcribes metadata from Roslyn's <see cref="ISymbol"/>s of a given <see cref="Compilation"/> to
@@ -16,11 +16,11 @@ namespace Helveg.CSharp.Roslyn;
 internal class RoslynSymbolTranscriber
 {
     private readonly Compilation compilation;
-    private readonly RoslynEntityTokenSymbolCache tokens;
+    private readonly SymbolTokenMap tokens;
 
     public RoslynSymbolTranscriber(
         Compilation compilation,
-        RoslynEntityTokenSymbolCache tokens)
+        SymbolTokenMap tokens)
     {
         this.compilation = compilation;
         this.tokens = tokens;
@@ -168,22 +168,22 @@ internal class RoslynSymbolTranscriber
                 .ToImmutableArray(),
             // TODO: Does GetMembers() contain nested types as well?
             Fields = type.GetMembers()
-                .Where(m => m.Kind == SymbolKind.Field)
+                .Where(m => m.Kind == Microsoft.CodeAnalysis.SymbolKind.Field)
                 .Cast<IFieldSymbol>()
                 .Select(f => GetField(f, reference, containingNamespace))
                 .ToImmutableArray(),
             Events = type.GetMembers()
-                .Where(m => m.Kind == SymbolKind.Event)
+                .Where(m => m.Kind == Microsoft.CodeAnalysis.SymbolKind.Event)
                 .Cast<IEventSymbol>()
                 .Select(e => GetEvent(e, reference, containingNamespace))
                 .ToImmutableArray(),
             Properties = type.GetMembers()
-                .Where(m => m.Kind == SymbolKind.Property)
+                .Where(m => m.Kind == Microsoft.CodeAnalysis.SymbolKind.Property)
                 .Cast<IPropertySymbol>()
                 .Select(p => GetProperty(p, reference, containingNamespace))
                 .ToImmutableArray(),
             Methods = type.GetMembers()
-                .Where(m => m.Kind == SymbolKind.Method)
+                .Where(m => m.Kind == Microsoft.CodeAnalysis.SymbolKind.Method)
                 .Cast<IMethodSymbol>()
                 .Select(m => GetMethod(m, reference, containingNamespace))
                 .ToImmutableArray(),

@@ -1,11 +1,17 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
 namespace Helveg;
 
-public interface IEntityVisitor
+public abstract class EntityVisitor : IEntityVisitor
 {
-    void Visit(IEntity? entity)
+    public abstract void DefaultVisit(IEntity entity);
+
+    public void Visit(IEntity? entity)
     {
         entity?.Accept(this);
     }
-
-    void DefaultVisit(IEntity entity);
 }

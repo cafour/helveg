@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Helveg.CSharp.Roslyn;
+namespace Helveg.CSharp.Symbols;
 
 #pragma warning disable RS1024 // Symbols should be compared for equality
 internal class RoslynCrossCompilationSymbolEqualityComparer : IEqualityComparer<ISymbol?>

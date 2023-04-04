@@ -1,3 +1,6 @@
 namespace Helveg.CSharp.Packages;
 
-public record NuGetMinerOptions();
+public record NuGetMinerOptions : MinerOptions
+{
+
+}
