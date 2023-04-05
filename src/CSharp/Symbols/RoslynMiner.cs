@@ -33,7 +33,7 @@ public class RoslynMiner : IMiner
 
     public async Task Mine(Workspace workspace, CancellationToken cancellationToken = default)
     {
-        var solution = workspace.Roots.OfType<Solution>().Single();
+        var solution = workspace.Roots.Values.OfType<Solution>().Single();
         var msbuildWorkspace = Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Create(Options.MSBuildProperties);
         try
         {
@@ -92,24 +92,25 @@ public class RoslynMiner : IMiner
         }
 
         // TODO: Classify references into BCL, Packages, and Other.
-        tokenMap.TrackCompilation(compilation);
+        tokenMap.Track(project);
 
         // Phase 1: Discover all symbols within the assembly.
-        symbolVisitor.VisitAssembly(compilation.Assembly);
+        //symbolVisitor.VisitAssembly(compilation.Assembly);
 
-        foreach (var reference in compilation.References)
-        {
-            var referenceSymbol = compilation.GetAssemblyOrModuleSymbol(reference);
-            if (referenceSymbol is not Microsoft.CodeAnalysis.IAssemblySymbol referencedAssembly)
-            {
-                throw new ArgumentException($"Could not obtain an assembly symbol for '{reference.Display}'.");
-            }
+        //foreach (var reference in compilation.References)
+        //{
+        //    var referenceSymbol = compilation.GetAssemblyOrModuleSymbol(reference);
+        //    if (referenceSymbol is not Microsoft.CodeAnalysis.IAssemblySymbol referencedAssembly)
+        //    {
+        //        throw new ArgumentException($"Could not obtain an assembly symbol for '{reference.Display}'.");
+        //    }
 
-            symbolVisitor.VisitAssembly(referencedAssembly);
-        }
+        //    symbolVisitor.VisitAssembly(referencedAssembly);
+        //}
 
-        var transcriber = new RoslynSymbolTranscriber(compilation, tokenMap);
-        return transcriber.Transcribe();
+        //var transcriber = new RoslynSymbolTranscriber(compilation, tokenMap);
+        //return transcriber.Transcribe();
+        return AssemblyDefinition.Invalid;
     }
 
     private void LogMSBuildDiagnostics(Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace workspace)

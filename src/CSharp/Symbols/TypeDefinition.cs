@@ -20,7 +20,7 @@ public record TypeDefinition : MemberDefinition
     public static TypeDefinition Invalid { get; }
         = new() { Token = SymbolToken.CreateError(SymbolKind.Type) };
 
-    public string MetadataName { get; init; } = CSharpConstants.InvalidName;
+    public string MetadataName { get; init; } = Const.Invalid;
 
     public ImmutableArray<PropertyDefinition> Properties { get; init; } = ImmutableArray<PropertyDefinition>.Empty;
 

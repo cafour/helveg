@@ -12,8 +12,10 @@ public record EntityBase : IEntity
     public virtual string Id { get; init; } = Const.Invalid;
 
     public ImmutableArray<Diagnostic> Diagnostics { get; init; }
+        = ImmutableArray<Diagnostic>.Empty;
 
     public ImmutableArray<IEntityExtension> Extensions { get; init; }
+        = ImmutableArray<IEntityExtension>.Empty;
 
     public virtual void Accept(IEntityVisitor visitor)
     {

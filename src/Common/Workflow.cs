@@ -20,8 +20,20 @@ public class Workflow
         return this;
     }
 
-    public Task<Workspace> Run(Target target, CancellationToken cancellationToken = default)
+    public async Task<Workspace> Run(Target target, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        // TODO: topological sort
+
+        var workspace = new Workspace
+        {
+            Target = target
+        };
+
+        foreach (var miner in miners)
+        {
+            await miner.Mine(workspace, cancellationToken);
+        }
+
+        return workspace;
     }
 }

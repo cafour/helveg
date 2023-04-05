@@ -61,4 +61,12 @@ public record Workspace
     {
         return (T?)scratchSpace.GetValueOrDefault(key);
     }
+
+    public void Accept(IEntityVisitor visitor)
+    {
+        foreach (var root in roots.Values)
+        {
+            visitor.Visit(root);
+        }
+    }
 }

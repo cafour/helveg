@@ -12,60 +12,54 @@ namespace Helveg.CSharp.Symbols;
 
 internal class SymbolTokenMap
 {
-    private readonly ConcurrentDictionary<string, Compilation> compilations
-        = new();
-    private readonly ConcurrentDictionary<string, SymbolTokenGenerator> generators
+    private int assemblyCounter = 0;
+
+    private readonly ConcurrentDictionary<AssemblyId, (Compilation, SymbolTokenGenerator)> assemblyMap
         = new();
 
     public ConcurrentDictionary<ISymbol, SymbolToken> Tokens { get; }
         = new(SymbolEqualityComparer.Default);
 
-    public void TrackCompilation(Compilation compilation)
+    public void Track(Compilation compilation)
     {
-        throw new NotImplementedException();
-        //Compilations.AddOrUpdate(compilation., compilation, (_, c) => c);
+        assemblyMap.GetOrAdd(
+            compilation.Assembly.GetHelvegAssemblyId(),
+            _ => (compilation, new SymbolTokenGenerator(Interlocked.Increment(ref assemblyCounter).ToString())));
 
-        //if (includeReferences)
-        //{
-        //    foreach(var reference in compilation.References)
-        //    {
-        //        var assemblyReference = compilation.GetAssemblyOrModuleSymbol(reference);
-        //        if (assemblyReference is not IAssemblySymbol assemblyReferenceSymbol)
-        //        {
-        //            throw new ArgumentException($"Could not resolve reference '{reference.Display}'.");
-        //        }
-
-        //        Compilations.AddOrUpdate(assemblyReferenceSymbol.Identity, compilation, (_, c) => c);
-        //    }
-        //}
+        foreach (var reference in compilation.References)
+        {
+            var referencedSymbol = compilation.GetAssemblyOrModuleSymbol(reference);
+            if (referencedSymbol is not null && referencedSymbol is IAssemblySymbol referencedAssembly)
+            {
+                assemblyMap.GetOrAdd(
+                    referencedAssembly.GetHelvegAssemblyId(),
+                    _ => (compilation, new SymbolTokenGenerator(Interlocked.Increment(ref assemblyCounter).ToString())));
+            }
+        }
     }
 
     public void Add(ISymbol symbol)
-    {
-        throw new NotImplementedException();
-        //var token = gen.GetToken(symbol.GetEntityKind());
-        //Add(symbol, token, cancellationToken);
-    }
-
-    public void Add(ISymbol symbol, SymbolToken token, CancellationToken cancellationToken = default)
     {
         if (Tokens.ContainsKey(symbol))
         {
             return;
         }
 
-        var definition = GetDefinition(symbol, cancellationToken);
-        if (definition is null)
-        {
-            throw new ArgumentException($"A definition for the '{symbol}' symbol could not be found.");
-        }
+        var definition = GetDefinition(symbol)
+            ?? throw new ArgumentException($"A definition for the '{symbol}' symbol could not be found.");
+
+        var containingAssembly = symbol is IAssemblySymbol assembly ? assembly : symbol.ContainingAssembly;
+
+        var (_, gen) = assemblyMap.GetValueOrDefault(containingAssembly.GetHelvegAssemblyId());
+
+        var token = gen.GetToken(symbol.GetHelvegSymbolKind());
 
         Tokens.AddOrUpdate(definition, token, (_, _) => token);
     }
 
-    public SymbolToken Get(ISymbol symbol, CancellationToken cancellationToken = default)
+    public SymbolToken Get(ISymbol symbol)
     {
-        var definition = GetDefinition(symbol, cancellationToken);
+        var definition = GetDefinition(symbol);
         if (definition is null || !Tokens.TryGetValue(definition, out var token))
         {
             return SymbolToken.CreateError(symbol.GetHelvegSymbolKind());
@@ -74,40 +68,24 @@ internal class SymbolTokenMap
         return token;
     }
 
-    public SymbolToken Require(ISymbol symbol, CancellationToken cancellationToken = default)
+    private ISymbol? GetDefinition(ISymbol symbol)
     {
-        var token = Get(symbol, cancellationToken);
-        if (token.IsError)
+        var containingAssembly = symbol is IAssemblySymbol assembly ? assembly : symbol.ContainingAssembly;
+
+        var (parentCompilation, _) = assemblyMap.GetValueOrDefault(containingAssembly.GetHelvegAssemblyId());
+        if (parentCompilation is null)
         {
-            throw new InvalidOperationException($"Symbol '{symbol}' does not have a token even though it is " +
-                $"required. This could be a bug.");
+            return null;
         }
 
-        return token;
-    }
+        var candidates = SymbolFinder.FindSimilarSymbols(symbol.OriginalDefinition, parentCompilation)
+            .ToArray();
+        if (candidates.Length == 0)
+        {
+            return null;
+        }
 
-    private ISymbol? GetDefinition(ISymbol symbol, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-        //var assemblyIdentity = (symbol is IAssemblySymbol assembly
-        //    ? assembly.Identity
-        //    : symbol.ContainingAssembly?.Identity)
-        //        ?? throw new ArgumentException("Symbol shared across assemblies cannot have entity tokens.");
-
-        //var parentCompilation = compilations.GetValueOrDefault(assemblyIdentity);
-        //if (parentCompilation is null)
-        //{
-        //    return null;
-        //}
-
-        //var candidates = SymbolFinder.FindSimilarSymbols(symbol.OriginalDefinition, parentCompilation, cancellationToken)
-        //    .ToArray();
-        //if (candidates.Length == 0 || candidates.Length > 1)
-        //{
-        //    throw new ArgumentException($"Symbol '{symbol}' has either no or too many similar symbols in the " +
-        //        $"tracked compilation.");
-        //}
-
-        //return candidates[0];
+        // TODO: Pick the best one or at the very least issue a warning.
+        return candidates.First();
     }
 }

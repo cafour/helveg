@@ -45,7 +45,7 @@ public static class Program
             options.Converters.Add(new JsonStringEnumConverter());
             await JsonSerializer.SerializeAsync(analysisStream, workspace, options);
 
-            var visualizationVisitor = new VisualizationEntityVisitor();
+            var visualizationVisitor = new VisualizationSymbolVisitor();
             visualizationVisitor.Visit(workspace);
             var multigraph = visualizationVisitor.Build();
 

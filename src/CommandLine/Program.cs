@@ -19,6 +19,7 @@ using System.Collections.Immutable;
 using System.Text.Json;
 using System.Threading;
 using Helveg.UI;
+using Helveg.CSharp.Symbols;
 
 namespace Helveg.CommandLine;
 
@@ -55,19 +56,24 @@ public class Program
         var vsInstance = MSBuildLocator.RegisterDefaults();
         logger.LogDebug($"Using MSBuild at '{vsInstance.MSBuildPath}'.");
 
-        var options = new EntityWorkspaceAnalysisOptions
-        {
-            MSBuildProperties = properties.ToImmutableDictionary()
-        };
-        var workspaceProvider = new DefaultEntityWorkspaceProvider(
-            logging.CreateLogger<DefaultEntityWorkspaceProvider>());
-        var workspace = await workspaceProvider.GetWorkspace(file.FullName, options);
+        var workflow = new Workflow()
+            .AddMSBuild()
+            .AddRoslyn();
+
+        var workspace = await workflow.Run(new Target(file.FullName, DateTimeOffset.UtcNow));
+
         using var analysisStream = new FileStream("analysis.json", FileMode.Create, FileAccess.ReadWrite);
         await JsonSerializer.SerializeAsync(analysisStream, workspace, HelvegDefaults.JsonOptions);
 
-        var visualizationVisitor = new VisualizationEntityVisitor();
-        visualizationVisitor.Visit(workspace);
-        return visualizationVisitor.Build();
+        var multigraphBuilder = new MultigraphBuilder();
+        
+        var symbolVisitor = new VisualizationSymbolVisitor(multigraphBuilder);
+        workspace.Accept(symbolVisitor);
+
+        var projectVisitor = new VisualizationSymbolVisitor(multigraphBuilder);
+        workspace.Accept(projectVisitor);
+
+        return multigraphBuilder.Build();
     }
 
     public async Task<int> RunPipeline(FileSystemInfo source, Dictionary<string, string> properties)

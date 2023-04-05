@@ -23,11 +23,11 @@ public interface ISymbolDefinition : IEntity
 /// </summary>
 public abstract record SymbolDefinition : ISymbolDefinition
 {
-    public string Name { get; init; } = CSharpConstants.InvalidName;
+    public string Name { get; init; } = Const.Invalid;
 
     public SymbolToken Token { get; init; } = SymbolToken.Invalid;
 
-    public bool IsInvalid => Token.IsError || Name == CSharpConstants.InvalidName;
+    public bool IsInvalid => Token.IsError || Name == Const.Invalid;
 
     string IEntity.Id => Token.ToString();
 

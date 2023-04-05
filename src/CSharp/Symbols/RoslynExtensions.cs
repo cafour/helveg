@@ -14,14 +14,23 @@ internal static class RoslynExtensions
         return SymbolEqualityComparer.Default.Equals(symbol, symbol.OriginalDefinition);
     }
 
-    public static AssemblyId ToHelvegAssemblyId(this AssemblyIdentity identity)
+    public static AssemblyId GetHelvegAssemblyId(this IAssemblySymbol assembly)
     {
+        var attributes = assembly.GetAttributes();
+        var fileVersion = attributes
+            .FirstOrDefault(a => a.AttributeClass?.Name == "AssemblyFileVersionAttribute")
+            ?.ConstructorArguments.FirstOrDefault().Value as string;
+        var informationalVersion = attributes
+            .FirstOrDefault(a => a.AttributeClass?.Name == "AssemblyInformationalVersionAttribute")
+            ?.ConstructorArguments.FirstOrDefault().Value as string;
         return new AssemblyId
         {
-            Name = identity.Name,
-            Version = identity.Version,
-            CultureName = identity.CultureName,
-            PublicKeyToken = string.Concat(identity.PublicKeyToken.Select(b => b.ToString("x")))
+            Name = assembly.Identity.Name,
+            Version = assembly.Identity.Version,
+            FileVersion = fileVersion,
+            InformationalVersion = informationalVersion,
+            CultureName = assembly.Identity.CultureName,
+            PublicKey = string.Concat(assembly.Identity.PublicKey.Select(b => b.ToString("x")))
         };
     }
 

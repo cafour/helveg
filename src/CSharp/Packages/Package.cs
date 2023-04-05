@@ -7,8 +7,4 @@ public record Package : EntityBase
 {
     public string? Version { get; init; }
     public string Name { get; init; } = Const.Invalid;
-
-    public void Accept(IEntityVisitor visitor)
-    {
-    }
 }
