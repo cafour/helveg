@@ -54,7 +54,7 @@ internal class SymbolTokenMap
 
         var token = gen.GetToken(symbol.GetHelvegSymbolKind());
 
-        Tokens.AddOrUpdate(definition, token, (_, _) => token);
+        return Tokens.AddOrUpdate(definition, (_, _) => token);
     }
 
     public SymbolToken Get(ISymbol symbol)
