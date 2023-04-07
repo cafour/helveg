@@ -19,4 +19,10 @@ public static class CSConst
 
     public const string ComposedOfId = "composedOf";
     public const string ComposedOfLabel = "Composed of";
+
+    public const string TypeOfId = "typeOf";
+    public const string TypeOfLabel = "Type of";
+
+    public const string ReturnsId = "returns";
+    public const string ReturnsLabel = "Returns";
 }

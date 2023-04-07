@@ -78,10 +78,33 @@ public class VisualizationSymbolVisitor : SymbolVisitor
         }
     }
 
+    public override void VisitField(FieldDefinition field)
+    {
+        base.VisitField(field);
+
+        builder.AddEdge(CSConst.TypeOfId, new Edge(field.Token, field.FieldType.Token));
+    }
+
+    public override void VisitParameter(ParameterDefinition parameter)
+    {
+        base.VisitParameter(parameter);
+
+        builder.AddEdge(CSConst.TypeOfId, new Edge(parameter.Token, parameter.ParameterType.Token));
+    }
+
+    public override void VisitEvent(EventDefinition @event)
+    {
+        base.VisitEvent(@event);
+        builder.AddEdge(CSConst.TypeOfId, new Edge(@event.Token, @event.EventType.Token));
+    }
+
     public override void VisitProperty(PropertyDefinition property)
     {
         base.VisitProperty(property);
+
         builder.AddEdges(CSConst.DeclaresId, property.Parameters.Select(p => new Edge(property.Token, p.Token)));
+
+        builder.AddEdge(CSConst.TypeOfId, new Edge(property.Token, property.PropertyType.Token));
     }
 
     public override void VisitMethod(MethodDefinition method)
@@ -89,5 +112,10 @@ public class VisualizationSymbolVisitor : SymbolVisitor
         base.VisitMethod(method);
         builder.AddEdges(CSConst.DeclaresId, method.Parameters.Select(p => new Edge(method.Token, p.Token)));
         builder.AddEdges(CSConst.DeclaresId, method.TypeParameters.Select(t => new Edge(method.Token, t.Token)));
+
+        if (!method.ReturnsVoid && method.ReturnType is not null)
+        {
+            builder.AddEdge(CSConst.ReturnsId, new Edge(method.Token, method.ReturnType.Token));
+        }
     }
 }
