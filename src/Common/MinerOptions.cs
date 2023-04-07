@@ -9,6 +9,5 @@ namespace Helveg;
 
 public record MinerOptions
 {
-    public ImmutableArray<Type> Dependencies { get; init; }
-        = ImmutableArray<Type>.Empty;
+    // TODO: Dependencies
 }
