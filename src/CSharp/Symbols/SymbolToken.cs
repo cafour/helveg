@@ -59,13 +59,13 @@ public record struct SymbolToken
     public static bool TryParse(string value, out SymbolToken token)
     {
         var parts = value.Split(new[] { '-' }, 3);
-        if (parts.Length != 3 || !Enum.TryParse<SymbolKind>(parts[1], out var kind))
+        if (parts.Length != 3 || !Enum.TryParse<SymbolKind>(parts[0], out var kind))
         {
             token = Invalid;
             return false;
         }
 
-        var prefix = parts[0];
+        var prefix = parts[1];
 
         uint id = 0;
         for (int i = 0; i < parts[2].Length; ++i)
@@ -88,9 +88,9 @@ public record struct SymbolToken
     private string Encode()
     {
         uint id = (uint)Id;
-        var sb = new StringBuilder(Prefix);
+        var sb = new StringBuilder(Kind.ToString());
         sb.Append('-');
-        sb.Append(Kind.ToString());
+        sb.Append(Prefix);
         sb.Append('-');
         var index = sb.Length;
         do

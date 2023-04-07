@@ -35,43 +35,9 @@ public class MultigraphBuilder
         };
     }
 
-    public NodeBuilder AddNode(NodeBuilder node)
+    public NodeBuilder GetNode(string id, string? label = null)
     {
-        if (!Nodes.TryAdd(node.Id, node))
-        {
-            throw new ArgumentException($"The multigraph already contains a '{node.Id}' node.");
-        }
-        return node;
-    }
-
-    public NodeBuilder AddNode(string id, string? label)
-    {
-        return AddNode(new NodeBuilder
-        {
-            Id = id,
-            Label = label
-        });
-    }
-
-    public NodeBuilder GetNode(string id)
-    {
-        return Nodes.GetOrAdd(id, _ => new NodeBuilder { Id = id });
-    }
-
-    public RelationBuilder AddRelation(string id, string? label)
-    {
-        var relationBuilder = new RelationBuilder
-        {
-            Id = id,
-            Label = label
-        };
-
-        if (!Relations.TryAdd(id, relationBuilder))
-        {
-            throw new ArgumentException($"The multigraph already contains a '{id}' relation.");
-        }
-
-        return relationBuilder;
+        return Nodes.GetOrAdd(id, _ => new NodeBuilder { Id = id, Label = label });
     }
 
     public RelationBuilder GetRelation(string id)

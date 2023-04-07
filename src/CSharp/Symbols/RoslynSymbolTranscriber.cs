@@ -41,33 +41,9 @@ internal class RoslynSymbolTranscriber
             return null;
         }
 
-        //VisitAssembly(assemblySymbol);
-
         return GetAssembly(assemblySymbol);
     }
 
-    //private void VisitAssembly(IAssemblySymbol symbol)
-    //{
-    //    // NB: This is to prevent stack overflows on circular assembly dependencies.
-    //    //     Yes, there can be circular assembly references. It worries me as well.
-    //    //     Example: System -> System.Configuration -> System.Xml -> System.
-    //    if (visitor.VisitedAssemblies.Contains(symbol.Identity))
-    //    {
-    //        return;
-    //    }
-
-    //    // NB: Visit the assembly itself first, so that its name gets into VisitedAssemblies, and the stack doesn't
-    //    //     overflow.
-    //    visitor.VisitAssembly(symbol);
-
-    //    foreach (var module in symbol.Modules)
-    //    {
-    //        foreach (var depedency in module.ReferencedAssemblySymbols)
-    //        {
-    //            VisitAssembly(depedency);
-    //        }
-    //    }
-    //}
 
     private AssemblyDefinition GetAssembly(IAssemblySymbol assembly)
     {

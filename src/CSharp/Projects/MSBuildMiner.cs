@@ -14,6 +14,7 @@ namespace Helveg.CSharp.Projects;
 public class MSBuildMiner : IMiner
 {
     private readonly ILogger<MSBuildMiner> logger;
+    private int counter = 0;
 
     public MSBuildMinerOptions Options { get; }
 
@@ -25,32 +26,94 @@ public class MSBuildMiner : IMiner
         this.logger = logger ?? NullLoggerFactory.Instance.CreateLogger<MSBuildMiner>();
     }
 
-    public async Task Mine(Workspace workspace, CancellationToken cancellationToken = default)
+    public Task Mine(Workspace workspace, CancellationToken cancellationToken = default)
     {
-        var solution = await GetSolution(workspace.Target.Path, cancellationToken);
-        workspace.AddRoot(solution);
+        var solution = GetSolution(workspace.Source.Path, cancellationToken);
+        if (solution is null)
+        {
+            return Task.CompletedTask;
+        }
+
+        if (!workspace.TryAddRoot(solution))
+        {
+            logger.LogError("Failed to add the '{}' root to the mining workspace.", solution.Id);
+        }
+
+        return Task.CompletedTask;
     }
 
-    private async Task<Solution> GetSolution(string path, CancellationToken cancellationToken = default)
+    private Solution? GetSolution(string path, CancellationToken cancellationToken = default)
     {
+        if (Directory.Exists(path))
+        {
+            var solutionFiles = Directory.GetFiles(path, "*.sln");
+            if (solutionFiles.Length > 1)
+            {
+                logger.LogCritical(
+                    "The '{}' directory contains multiple solution files. Provide a path to one them.",
+                    path);
+                return null;
+            }
+            else if (solutionFiles.Length == 1)
+            {
+                path = solutionFiles[0];
+            }
+            else
+            {
+                var csprojFiles = Directory.GetFiles(path, "*.csproj");
+                if (csprojFiles.Length > 1)
+                {
+                    logger.LogCritical(
+                        "The '{}' directory contains multiple C# project files. Provide a path to one them.",
+                        path);
+                    return null;
+                }
+                else if (csprojFiles.Length == 1)
+                {
+                    path = csprojFiles[0];
+                }
+                else
+                {
+                    logger.LogCritical(
+                        "The '{}' directory contains no solution nor C# project files.",
+                        path);
+                    return null;
+                }
+            }
+        }
+
+        if (!File.Exists(path))
+        {
+            logger.LogCritical("The source file '{}' does not exist.", path);
+            return null;
+        }
+
+        var fileExtension = Path.GetExtension(path);
+        if (fileExtension != ".sln" && fileExtension != ".csproj")
+        {
+            logger.LogCritical("The source file '{}' is not a solution nor a C# project file.", path);
+            return null;
+        }
+
         var absolutePath = new FileInfo(path).FullName;
         var solution = new Solution
         {
-            Id = Path.GetFileName(path),
-            Path = absolutePath,
+            Id = $"Solution-{Interlocked.Increment(ref counter)}",
+            Path = fileExtension == ".sln" ? path : null,
             Name = Path.GetFileNameWithoutExtension(path)
         };
 
-        if (!File.Exists(absolutePath))
+        var projectCollection = new MSB.Evaluation.ProjectCollection(Options.MSBuildProperties);
+        if (fileExtension == ".csproj")
         {
-            solution = solution with
+            var project = GetProject(path, projectCollection);
+            return solution with
             {
-                Diagnostics = solution.Diagnostics.Add(Diagnostic.Error(
-                    "SolutionDoesNotExist",
-                    "The solution file does not exist."))
+                Projects = ImmutableArray.Create(project with
+                {
+                    ContainingSolution = solution.Id
+                })
             };
-            logger.LogError("The solution file at '{}' does not exist.", absolutePath);
-            return solution;
         }
 
         var msbuildSolution = MSB.Construction.SolutionFile.Parse(path);
@@ -59,9 +122,8 @@ public class MSBuildMiner : IMiner
             .Where(p => p.ProjectType != MSB.Construction.SolutionProjectType.SolutionFolder)
             .Select(p => p.AbsolutePath);
 
-        var projectCollection = new MSB.Evaluation.ProjectCollection(Options.MSBuildProperties);
-        var projects = await Task.WhenAll(projectPaths
-            .Select(p => GetProject(p, projectCollection, cancellationToken)));
+        var projects = projectPaths
+            .Select(p => GetProject(p, projectCollection));
         return solution with
         {
             Projects = projects
@@ -73,10 +135,9 @@ public class MSBuildMiner : IMiner
         };
     }
 
-    private Task<Project> GetProject(
+    private Project GetProject(
         string path,
-        MSB.Evaluation.ProjectCollection collection,
-        CancellationToken cancellationToken = default)
+        MSB.Evaluation.ProjectCollection collection)
     {
         var msbuildProject = MSB.Evaluation.Project.FromFile(path, new MSB.Definition.ProjectOptions
         {
@@ -92,6 +153,6 @@ public class MSBuildMiner : IMiner
 
         logger.LogInformation("Found the '{}' project.", project.Name);
 
-        return Task.FromResult(project);
+        return project;
     }
 }

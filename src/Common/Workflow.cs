@@ -20,13 +20,13 @@ public class Workflow
         return this;
     }
 
-    public async Task<Workspace> Run(Target target, CancellationToken cancellationToken = default)
+    public async Task<Workspace> Run(DataSource source, CancellationToken cancellationToken = default)
     {
         // TODO: topological sort
 
         var workspace = new Workspace
         {
-            Target = target
+            Source = source
         };
 
         foreach (var miner in miners)

@@ -18,7 +18,7 @@ public class VisualizationSymbolVisitor : SymbolVisitor
 
     public override void DefaultVisit(ISymbolDefinition symbol)
     {
-        var node = builder.AddNode(symbol.Token, symbol.Name)
+        var node = builder.GetNode(symbol.Token, symbol.Name)
             .SetProperty("Kind", $"csharp:{symbol.Token.Kind}");
 
         if (symbol is IMemberDefinition member)
@@ -54,7 +54,7 @@ public class VisualizationSymbolVisitor : SymbolVisitor
 
         if (@namespace.IsGlobalNamespace)
         {
-            builder.GetNode(@namespace.Id).Label = "global";
+            builder.GetNode(@namespace.Token).Label = "global";
         }
 
         builder.AddEdges(CSConst.DeclaresId, @namespace.Namespaces.Select(n => new Edge(@namespace.Token, n.Token)));

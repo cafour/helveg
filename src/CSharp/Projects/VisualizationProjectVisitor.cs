@@ -24,7 +24,7 @@ public class VisualizationProjectVisitor : ProjectVisitor
     {
         base.VisitSolution(solution);
 
-        builder.AddNode(solution.Id, solution.Name)
+        builder.GetNode(solution.Id, solution.Name)
             .SetProperty(nameof(Solution.Path), solution.Path)
             .SetProperty("Kind", "csharp:Solution");
         builder.AddEdges(CSConst.DeclaresId, solution.Projects.Select(p => new Edge(solution.Id, p.Id)));
@@ -34,7 +34,7 @@ public class VisualizationProjectVisitor : ProjectVisitor
     {
         base.VisitProject(project);
 
-        builder.AddNode(project.Id, project.Name)
+        builder.GetNode(project.Id, project.Name)
             .SetProperty(nameof(Solution.Path), project.Path)
             .SetProperty("Kind", "csharp:Project");
 

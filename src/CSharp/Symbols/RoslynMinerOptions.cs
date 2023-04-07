@@ -12,6 +12,5 @@ public record RoslynMinerOptions : MinerOptions
 
     public RoslynMinerOptions()
     {
-        Dependencies = ImmutableArray.Create(typeof(MSBuildMiner));
     }
 }

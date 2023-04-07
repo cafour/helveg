@@ -37,39 +37,37 @@ public class Program
         FileSystemInfo source,
         IDictionary<string, string> properties)
     {
-        var logger = logging.CreateLogger("Analysis");
-        FileInfo? file = source switch
-        {
-            FileInfo f => f.Extension == ".sln" || f.Extension == ".csproj" ? f : null,
-            DirectoryInfo d => d.EnumerateFiles("*.sln").FirstOrDefault()
-                ?? d.EnumerateFiles("*.csproj").FirstOrDefault(),
-            _ => throw new NotImplementedException() // this should never happen
-        };
+        var logger = logging.CreateLogger<Program>();
 
-        if (file is null)
+        if (!source.Exists)
         {
-            logger.LogCritical($"No solution or project could be located in the '{source}' directory.");
+            logger.LogCritical("Source '{}' does not exist.", source.FullName);
             return null;
         }
 
-        logger.LogDebug($"Found '{file.FullName}'.");
+        var msbuildInstance = MSBuildLocator.RegisterDefaults();
+        logger.LogDebug("Using MSBuild at '{}'.", msbuildInstance.MSBuildPath);
 
-        // var cache = IsForced ? null : await Serialize.GetCache<SerializableSolution>(AnalysisCacheFilename, logger);
-        var vsInstance = MSBuildLocator.RegisterDefaults();
-        logger.LogDebug($"Using MSBuild at '{vsInstance.MSBuildPath}'.");
-
+        var msbuildProperties = properties.ToImmutableDictionary();
         var workflow = new Workflow()
-            .AddMSBuild(logger: logging.CreateLogger<MSBuildMiner>())
-            .AddRoslyn(logger: logging.CreateLogger<RoslynMiner>());
+            .AddMSBuild(
+                options: new MSBuildMinerOptions
+                {
+                    MSBuildProperties = msbuildProperties
+                },
+                logger: logging.CreateLogger<MSBuildMiner>())
+            .AddRoslyn(
+                options: new RoslynMinerOptions
+                {
+                    MSBuildProperties = msbuildProperties
+                },
+                logger: logging.CreateLogger<RoslynMiner>());
 
-        var workspace = await workflow.Run(new Target(file.FullName, DateTimeOffset.UtcNow));
-
-        using var analysisStream = new FileStream("analysis.json", FileMode.Create, FileAccess.ReadWrite);
-        await JsonSerializer.SerializeAsync(analysisStream, workspace, HelvegDefaults.JsonOptions);
+        var workspace = await workflow.Run(new DataSource(source.FullName, DateTimeOffset.UtcNow));
 
         var multigraphBuilder = new MultigraphBuilder
         {
-            Label = Path.GetFileNameWithoutExtension(workspace.Target.Path)
+            Label = Path.GetFileNameWithoutExtension(workspace.Source.Path)
         };
 
         var symbolVisitor = new VisualizationSymbolVisitor(multigraphBuilder);
@@ -112,7 +110,7 @@ public class Program
     public static async Task<int> Main(string[] args)
     {
         var program = new Program();
-        var rootCmd = new RootCommand("A software visualization tool")
+        var rootCmd = new RootCommand("An extensible software visualization tool")
         {
             Handler = CommandHandler.Create(typeof(Program).GetMethod(nameof(RunPipeline))!, program)
         };

@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
@@ -8,30 +10,35 @@ public record Workspace
 {
     private readonly ConcurrentDictionary<string, IEntity> entities = new();
     private readonly ConcurrentDictionary<string, object> scratchSpace = new();
+    private readonly ILogger<Workspace> logger;
     private ImmutableDictionary<string, IEntity> roots = ImmutableDictionary<string, IEntity>.Empty;
 
     public ImmutableDictionary<string, IEntity> Roots => roots;
 
-    public Target Target { get; init; } = Target.Invalid;
+    public DataSource Source { get; init; } = DataSource.Invalid;
 
-    public void AddRoot(IEntity root)
+    public Workspace(ILogger<Workspace>? logger = null)
+    {
+        this.logger = logger ?? NullLoggerFactory.Instance.CreateLogger<Workspace>();
+    }
+
+    public bool TryAddRoot(IEntity root)
     {
         if (!ImmutableInterlocked.TryAdd(ref roots, root.Id, root))
         {
-            throw new ArgumentException($"The environment already contains a root with the '{root.Id}' id.");
+            return false;
         }
 
         root.Accept(new EntityTrackingVisitor(entities));
+        return true;
     }
 
     public void RemoveRoot(IEntity root)
     {
-        if (!ImmutableInterlocked.TryRemove(ref roots, root.Id, out _))
+        if (ImmutableInterlocked.TryRemove(ref roots, root.Id, out _))
         {
-            throw new ArgumentException($"A root with the '{root.Id}' id could not be removed.");
+            root.Accept(new EntityUntrackingVisitor(entities));
         }
-
-        root.Accept(new EntityUntrackingVisitor(entities));
     }
 
     public void SetRoot(IEntity root)

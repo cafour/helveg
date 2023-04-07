@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace Helveg;
 
-public record Target(
+public record DataSource(
     string Path,
     DateTimeOffset CreatedAt
 )
 {
-    public static readonly Target Invalid = new("Invalid", default);
+    public static readonly DataSource Invalid = new("Invalid", default);
 }
