@@ -53,6 +53,11 @@ public class MultigraphBuilder
         });
     }
 
+    public NodeBuilder GetNode(string id)
+    {
+        return Nodes.GetOrAdd(id, _ => new NodeBuilder { Id = id });
+    }
+
     public RelationBuilder AddRelation(string id, string? label)
     {
         var relationBuilder = new RelationBuilder
@@ -76,16 +81,6 @@ public class MultigraphBuilder
 
     public MultigraphBuilder AddEdge(string relationId, Edge edge)
     {
-        if (!Nodes.ContainsKey(edge.Src))
-        {
-            throw new ArgumentException($"The multigraph doesn't contain a '{edge.Src}' node.");
-        }
-
-        if (!Nodes.ContainsKey(edge.Dst))
-        {
-            throw new ArgumentException($"The multigraph doesn't contain a '{edge.Dst}' node.");
-        }
-
         GetRelation(relationId).AddEdge(edge);
         return this;
     }

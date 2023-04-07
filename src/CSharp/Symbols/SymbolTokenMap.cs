@@ -38,11 +38,11 @@ internal class SymbolTokenMap
         }
     }
 
-    public void Add(ISymbol symbol)
+    public SymbolToken? Add(ISymbol symbol)
     {
         if (Tokens.ContainsKey(symbol))
         {
-            return;
+            return SymbolToken.Invalid;
         }
 
         var definition = GetDefinition(symbol)
@@ -54,7 +54,7 @@ internal class SymbolTokenMap
 
         var token = gen.GetToken(symbol.GetHelvegSymbolKind());
 
-        return Tokens.AddOrUpdate(definition, (_, _) => token);
+        return Tokens.AddOrUpdate(definition, _ => token, (_, _) => token);
     }
 
     public SymbolToken Get(ISymbol symbol)

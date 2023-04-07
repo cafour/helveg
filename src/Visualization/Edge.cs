@@ -10,10 +10,8 @@ namespace Helveg.Visualization;
 
 public record Edge
 {
-    [JsonIgnore]
     public string Src { get; init; } = Const.Invalid;
 
-    [JsonIgnore]
     public string Dst { get; init; } = Const.Invalid;
 
     public string? Label { get; init; }

@@ -11,8 +11,8 @@ namespace Helveg.CSharp;
 /// </summary>
 public static class CSConst
 {
-    public const string DeclaredInId = "declaredIn";
-    public const string DeclaredInLabel = "Declared in";
+    public const string DeclaresId = "declares";
+    public const string DeclaresLabel = "Declares";
 
     public const string InheritsFromId = "inheritsFrom";
     public const string InheritsFromLabel = "Inherits from";

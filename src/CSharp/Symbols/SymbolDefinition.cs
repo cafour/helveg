@@ -21,7 +21,7 @@ public interface ISymbolDefinition : IEntity
 /// <summary>
 /// A base class for all symbol definitions.
 /// </summary>
-public abstract record SymbolDefinition : ISymbolDefinition
+public abstract record SymbolDefinition : EntityBase, ISymbolDefinition
 {
     public string Name { get; init; } = Const.Invalid;
 
@@ -30,15 +30,6 @@ public abstract record SymbolDefinition : ISymbolDefinition
     public bool IsInvalid => Token.IsError || Name == Const.Invalid;
 
     string IEntity.Id => Token.ToString();
-
-    public ImmutableArray<Diagnostic> Diagnostics { get; init; }
-
-    public ImmutableArray<IEntityExtension> Extensions { get; init; }
-
-    public virtual void Accept(IEntityVisitor visitor)
-    {
-        visitor.DefaultVisit(this);
-    }
 
     public abstract IEntityReference GetReference();
 }

@@ -24,19 +24,24 @@ public class VisualizationProjectVisitor : ProjectVisitor
     {
         base.VisitSolution(solution);
 
-        builder.AddNode(solution.Id, Path.GetFileNameWithoutExtension(solution.FullName))
-            .SetProperty(nameof(Solution.FullName), solution.FullName);
-        builder.AddEdges(CSConst.DeclaredInId, solution.Projects.Select(p => new Edge(p.Id, solution.Id)));
+        builder.AddNode(solution.Id, solution.Name)
+            .SetProperty(nameof(Solution.Path), solution.Path)
+            .SetProperty("Kind", "csharp:Solution");
+        builder.AddEdges(CSConst.DeclaresId, solution.Projects.Select(p => new Edge(solution.Id, p.Id)));
     }
 
     public override void VisitProject(Project project)
     {
         base.VisitProject(project);
 
+        builder.AddNode(project.Id, project.Name)
+            .SetProperty(nameof(Solution.Path), project.Path)
+            .SetProperty("Kind", "csharp:Project");
+
         var assemblies = project.Extensions.OfType<AssemblyExtension>().ToArray();
         if (assemblies.Length > 0)
         {
-            builder.AddEdges(CSConst.DeclaredInId, assemblies.Select(a => new Edge(a.Assembly.Token, project.Id)));
+            builder.AddEdges(CSConst.DeclaresId, assemblies.Select(a => new Edge(project.Id, a.Assembly.Token)));
         }
     }
 }

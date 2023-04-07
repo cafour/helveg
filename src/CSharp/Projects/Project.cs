@@ -6,10 +6,9 @@ public record Project : EntityBase
 {
     public static Project Invalid { get; } = new();
 
-    /// <summary>
-    /// The FullName of the project file.
-    /// </summary>
-    public string? FullName { get; init; }
+    public string? Path { get; init; }
+
+    public string Name { get; init; } = Const.Invalid;
 
     public string ContainingSolution { get; init; } = Const.Invalid;
 

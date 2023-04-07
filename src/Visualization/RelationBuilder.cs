@@ -14,24 +14,19 @@ public class RelationBuilder
 
     public string? Label { get; set; }
 
-    public ConcurrentDictionary<EdgeSpec, Edge> Edges { get; } = new();
+    public List<Edge> Edges { get; } = new();
 
     public Relation Build()
     {
         return new(
             id: Id,
             label: Label,
-            edges: Edges.ToImmutableDictionary());
+            edges: Edges.ToImmutableArray());
     }
 
     public RelationBuilder AddEdge(Edge edge)
     {
-        var spec = new EdgeSpec(edge.Src, edge.Dst);
-        if (!Edges.TryAdd(spec, edge))
-        {
-            throw new ArgumentException($"The relation already contains an '{edge.Src}' -> '{edge.Dst}'.");
-        }
-
+        Edges.Add(edge);
         return this;
     }
 

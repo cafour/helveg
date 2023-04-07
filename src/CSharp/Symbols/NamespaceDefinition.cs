@@ -36,4 +36,28 @@ public record NamespaceDefinition : SymbolDefinition
             .Concat(Types.SelectMany(t => t.NestedTypes))
             .Concat(Namespaces.SelectMany(n => n.GetAllTypes()));
     }
+
+    public override void Accept(IEntityVisitor visitor)
+    {
+        if (visitor is ISymbolVisitor symbolVisitor)
+        {
+            symbolVisitor.VisitNamespace(this);
+        }
+        else
+        {
+            visitor.DefaultVisit(this);
+        }
+
+        foreach (var subnamespace in Namespaces)
+        {
+            subnamespace.Accept(visitor);
+        }
+
+        foreach (var type in Types)
+        {
+            type.Accept(visitor);
+        }
+
+        base.Accept(visitor);
+    }
 }

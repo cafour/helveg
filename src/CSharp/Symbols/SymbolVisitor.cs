@@ -6,19 +6,16 @@ using System.Threading.Tasks;
 
 namespace Helveg.CSharp.Symbols;
 
-public abstract class SymbolVisitor : EntityVisitor
+public abstract class SymbolVisitor : EntityVisitor, ISymbolVisitor
 {
     public abstract void DefaultVisit(ISymbolDefinition symbol);
 
     public override void DefaultVisit(IEntity entity)
     {
-        if (entity is not ISymbolDefinition symbol)
+        if (entity is ISymbolDefinition symbol)
         {
-            throw new NotSupportedException("An ISymbolVisitor cannot be used on entities that don't implement " +
-                "ISymbolDefinition.");
+            DefaultVisit(symbol);
         }
-
-        DefaultVisit(symbol);
     }
 
     public virtual void VisitAssembly(AssemblyDefinition assembly)

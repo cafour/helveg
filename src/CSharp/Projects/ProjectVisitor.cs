@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Helveg.CSharp.Projects;
 
-public abstract class ProjectVisitor : EntityVisitor
+public abstract class ProjectVisitor : EntityVisitor, IProjectVisitor
 {
     public virtual void VisitProject(Project project)
     {

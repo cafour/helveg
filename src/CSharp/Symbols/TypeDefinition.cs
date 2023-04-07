@@ -22,15 +22,20 @@ public record TypeDefinition : MemberDefinition
 
     public string MetadataName { get; init; } = Const.Invalid;
 
-    public ImmutableArray<PropertyDefinition> Properties { get; init; } = ImmutableArray<PropertyDefinition>.Empty;
+    public ImmutableArray<PropertyDefinition> Properties { get; init; }
+        = ImmutableArray<PropertyDefinition>.Empty;
 
-    public ImmutableArray<FieldDefinition> Fields { get; init; } = ImmutableArray<FieldDefinition>.Empty;
+    public ImmutableArray<FieldDefinition> Fields { get; init; }
+        = ImmutableArray<FieldDefinition>.Empty;
 
-    public ImmutableArray<EventDefinition> Events { get; init; } = ImmutableArray<EventDefinition>.Empty;
+    public ImmutableArray<EventDefinition> Events { get; init; }
+        = ImmutableArray<EventDefinition>.Empty;
 
-    public ImmutableArray<MethodDefinition> Methods { get; init; } = ImmutableArray<MethodDefinition>.Empty;
+    public ImmutableArray<MethodDefinition> Methods { get; init; }
+        = ImmutableArray<MethodDefinition>.Empty;
 
-    public ImmutableArray<TypeDefinition> NestedTypes { get; init; } = ImmutableArray<TypeDefinition>.Empty;
+    public ImmutableArray<TypeDefinition> NestedTypes { get; init; }
+        = ImmutableArray<TypeDefinition>.Empty;
 
     public bool IsNested => ContainingType is not null;
 
@@ -58,7 +63,8 @@ public record TypeDefinition : MemberDefinition
 
     public bool IsRecord { get; init; }
 
-    public ImmutableArray<TypeParameterDefinition> TypeParameters { get; init; } = ImmutableArray<TypeParameterDefinition>.Empty;
+    public ImmutableArray<TypeParameterDefinition> TypeParameters { get; init; }
+        = ImmutableArray<TypeParameterDefinition>.Empty;
 
     public int Arity => TypeParameters.Length;
 
@@ -69,4 +75,48 @@ public record TypeDefinition : MemberDefinition
     public TypeReference Reference => new() { Token = Token, TypeKind = TypeKind, Hint = Name };
 
     public override IEntityReference GetReference() => Reference;
+
+    public override void Accept(IEntityVisitor visitor)
+    {
+        if (visitor is ISymbolVisitor symbolVisitor)
+        {
+            symbolVisitor.VisitType(this);
+        }
+        else
+        {
+            visitor.DefaultVisit(this);
+        }
+
+        foreach (var typeParameter in TypeParameters)
+        {
+            typeParameter.Accept(visitor);
+        }
+
+        foreach (var nestedType in NestedTypes)
+        {
+            nestedType.Accept(visitor);
+        }
+
+        foreach (var field in Fields)
+        {
+            field.Accept(visitor);
+        }
+
+        foreach (var @event in Events)
+        {
+            @event.Accept(visitor);
+        }
+
+        foreach (var property in Properties)
+        {
+            property.Accept(visitor);
+        }
+
+        foreach (var method in Methods)
+        {
+            method.Accept(visitor);
+        }
+
+        base.Accept(visitor);
+    }
 }

@@ -29,4 +29,20 @@ public record ModuleDefinition : SymbolDefinition
     {
         return GlobalNamespace.GetAllTypes();
     }
+
+    public override void Accept(IEntityVisitor visitor)
+    {
+        if (visitor is ISymbolVisitor symbolVisitor)
+        {
+            symbolVisitor.VisitModule(this);
+        }
+        else
+        {
+            visitor.DefaultVisit(this);
+        }
+
+        GlobalNamespace.Accept(visitor);
+
+        base.Accept(visitor);
+    }
 }

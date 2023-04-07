@@ -37,37 +37,46 @@ public class RoslynMiner : IMiner
         var msbuildWorkspace = Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Create(Options.MSBuildProperties);
         try
         {
-            await msbuildWorkspace.OpenSolutionAsync(solution.FullName!, cancellationToken: cancellationToken);
+            await msbuildWorkspace.OpenSolutionAsync(solution.Path!, cancellationToken: cancellationToken);
         }
         catch (Exception e)
         {
-            logger.LogCritical($"MSBuild failed to load the '{solution.FullName}' project or solution. "
+            logger.LogCritical($"MSBuild failed to load the '{solution.Path}' project or solution. "
                 + "Run with '--verbose' for more information.");
             logger.LogDebug(e, "MSBuildWorkspace threw an exception.");
             return;
         }
         LogMSBuildDiagnostics(msbuildWorkspace);
-        //if (workspace.Diagnostics.Any(d => d.Kind == WorkspaceDiagnosticKind.Failure))
-        //{
-        //    return EntityWorkspace.Invalid;
-        //}
+
         var assemblies = await Task.WhenAll(msbuildWorkspace.CurrentSolution.Projects
-            .Select(p => GetAssembly(p, cancellationToken)));
+            .Select(async p => (name: p.Name, assembly: await GetAssembly(p, cancellationToken))));
         var projectAssemblies = assemblies
-            .Where(a => a.ContainingProject is not null)
-            .GroupBy(a => a.ContainingProject)
-            .ToDictionary(g => g.Key!, g => g.ToArray());
+            .ToDictionary(p => p.name, p => p.assembly);
         workspace.SetRoot(solution with
         {
+            Diagnostics = solution.Diagnostics.AddRange(
+                msbuildWorkspace.Diagnostics.Select(d => new Diagnostic(
+                    Id: "MSBuildWorkspaceDiagnostic",
+                    Message: d.Message,
+                    Severity: d.Kind switch
+                    {
+                        Microsoft.CodeAnalysis.WorkspaceDiagnosticKind.Failure => DiagnosticSeverity.Error,
+                        Microsoft.CodeAnalysis.WorkspaceDiagnosticKind.Warning => DiagnosticSeverity.Warning,
+                        _ => DiagnosticSeverity.Info
+                    }))
+            ),
             Projects = solution.Projects
                 .Select(p =>
                 {
-                    if (projectAssemblies.TryGetValue(p.Id, out var relatedAssemblies))
+                    if (projectAssemblies.TryGetValue(p.Name, out var assembly))
                     {
-                        var extensions = relatedAssemblies
-                            .Select(a => new AssemblyExtension
+                        var extensions = p.Extensions.Add(
+                            new AssemblyExtension
                             {
-                                Assembly = a
+                                Assembly = assembly with
+                                {
+                                    ContainingProject = p.Id
+                                }
                             });
                         return p with
                         {
@@ -88,29 +97,34 @@ public class RoslynMiner : IMiner
         var compilation = await project.GetCompilationAsync(cancellationToken);
         if (compilation is null)
         {
+            logger.LogError("Failed to compile the '{}' project.", project.Name);
             return AssemblyDefinition.Invalid;
         }
 
+        logger.LogInformation("Found the '{}' assembly.", compilation.Assembly.Name);
+
         // TODO: Classify references into BCL, Packages, and Other.
-        tokenMap.Track(project);
+        tokenMap.Track(compilation);
 
         // Phase 1: Discover all symbols within the assembly.
-        //symbolVisitor.VisitAssembly(compilation.Assembly);
+        logger.LogDebug("Visiting the '{}' assembly.", compilation.Assembly.Name);
+        symbolVisitor.VisitAssembly(compilation.Assembly);
 
-        //foreach (var reference in compilation.References)
-        //{
-        //    var referenceSymbol = compilation.GetAssemblyOrModuleSymbol(reference);
-        //    if (referenceSymbol is not Microsoft.CodeAnalysis.IAssemblySymbol referencedAssembly)
-        //    {
-        //        throw new ArgumentException($"Could not obtain an assembly symbol for '{reference.Display}'.");
-        //    }
+        foreach (var reference in compilation.References)
+        {
+            var referenceSymbol = compilation.GetAssemblyOrModuleSymbol(reference);
+            if (referenceSymbol is not Microsoft.CodeAnalysis.IAssemblySymbol referencedAssembly)
+            {
+                throw new ArgumentException($"Could not obtain an assembly symbol for '{reference.Display}'.");
+            }
 
-        //    symbolVisitor.VisitAssembly(referencedAssembly);
-        //}
+            logger.LogDebug("Visiting a '{}' reference.", referencedAssembly.Name);
+            symbolVisitor.VisitAssembly(referencedAssembly);
+        }
 
-        //var transcriber = new RoslynSymbolTranscriber(compilation, tokenMap);
-        //return transcriber.Transcribe();
-        return AssemblyDefinition.Invalid;
+        logger.LogDebug("Transcribing the '{}' assembly.", compilation.Assembly.Name);
+        var transcriber = new RoslynSymbolTranscriber(compilation, tokenMap);
+        return transcriber.Transcribe();
     }
 
     private void LogMSBuildDiagnostics(Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace workspace)

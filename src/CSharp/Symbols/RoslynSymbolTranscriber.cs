@@ -73,9 +73,9 @@ internal class RoslynSymbolTranscriber
     {
         var helAssembly = new AssemblyDefinition
         {
-            Token = tokens.Require(assembly),
+            Token = tokens.Get(assembly),
             Name = assembly.Name,
-            Identity = assembly.Identity.ToHelvegAssemblyId()
+            Identity = assembly.GetHelvegAssemblyId()
         };
 
         return helAssembly with
@@ -90,7 +90,8 @@ internal class RoslynSymbolTranscriber
     {
         var helModule = new ModuleDefinition
         {
-            Token = tokens.Require(module),
+            Token = tokens.Get(module),
+            Name = module.Name,
             ReferencedAssemblies = module.ReferencedAssemblySymbols
                 .Select(GetAssemblyReference)
                 .ToImmutableArray(),
@@ -107,7 +108,7 @@ internal class RoslynSymbolTranscriber
     {
         var helNamespace = new NamespaceDefinition
         {
-            Token = tokens.Require(@namespace),
+            Token = tokens.Get(@namespace),
             Name = @namespace.Name,
             ContainingModule = containingModule
         };
@@ -135,7 +136,7 @@ internal class RoslynSymbolTranscriber
 
         var helType = new TypeDefinition
         {
-            Token = tokens.Require(type),
+            Token = tokens.Get(type),
             MetadataName = type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
             ContainingNamespace = containingNamespace,
             ContainingType = containingType,
@@ -206,13 +207,11 @@ internal class RoslynSymbolTranscriber
 
         var helTypeParameter = new TypeParameterDefinition
         {
-            Token = tokens.Require(symbol),
+            Token = tokens.Get(symbol),
             Name = symbol.Name,
             DeclaringType = declaringType,
             DeclaringMethod = declaringMethod,
-            ContainingNamespace = containingNamespace,
-            // TODO: what does Roslyn return here? we should be consistent with them
-            ContainingType = containingType,
+            ContainingNamespace = containingNamespace
         };
 
         return helTypeParameter;
@@ -225,7 +224,7 @@ internal class RoslynSymbolTranscriber
     {
         var helEvent = new EventDefinition
         {
-            Token = tokens.Require(symbol),
+            Token = tokens.Get(symbol),
             EventType = GetTypeReference(symbol.Type),
             ContainingType = containingType,
             ContainingNamespace = containingNamespace,
@@ -244,7 +243,7 @@ internal class RoslynSymbolTranscriber
     {
         var helField = new FieldDefinition
         {
-            Token = tokens.Require(symbol),
+            Token = tokens.Get(symbol),
             FieldType = GetTypeReference(symbol.Type),
             ContainingType = containingType,
             ContainingNamespace = containingNamespace,
@@ -271,7 +270,7 @@ internal class RoslynSymbolTranscriber
     {
         var helProperty = new PropertyDefinition
         {
-            Token = tokens.Require(symbol),
+            Token = tokens.Get(symbol),
             PropertyType = GetTypeReference(symbol.Type),
             ContainingType = containingType,
             ContainingNamespace = containingNamespace,
@@ -308,7 +307,7 @@ internal class RoslynSymbolTranscriber
 
         var helMethod = new MethodDefinition
         {
-            Token = tokens.Require(symbol),
+            Token = tokens.Get(symbol),
             AssociatedEvent = symbol.AssociatedSymbol is not null && symbol.AssociatedSymbol is IEventSymbol e
                 ? GetEventReference(e)
                 : null,
@@ -351,7 +350,7 @@ internal class RoslynSymbolTranscriber
     {
         var helParameter = new ParameterDefinition
         {
-            Token = tokens.Require(symbol),
+            Token = tokens.Get(symbol),
             Name = symbol.Name,
             Ordinal = symbol.Ordinal,
             DeclaringMethod = declaringMethod,
@@ -429,7 +428,7 @@ internal class RoslynSymbolTranscriber
         switch (symbol)
         {
             case IArrayTypeSymbol arrayType:
-                var arrayToken = tokens.Require(compilation.GetSpecialType(SpecialType.System_Array));
+                var arrayToken = tokens.Get(compilation.GetSpecialType(SpecialType.System_Array));
                 reference = new ArrayTypeReference
                 {
                     Token = arrayToken,
@@ -455,7 +454,7 @@ internal class RoslynSymbolTranscriber
                 }
                 break;
             case IFunctionPointerTypeSymbol fpType:
-                var fnPtrToken = tokens.Require(compilation.GetSpecialType(SpecialType.System_IntPtr));
+                var fnPtrToken = tokens.Get(compilation.GetSpecialType(SpecialType.System_IntPtr));
                 reference = new FunctionPointerTypeReference
                 {
                     Token = fnPtrToken,
@@ -463,7 +462,7 @@ internal class RoslynSymbolTranscriber
                 };
                 break;
             case IPointerTypeSymbol pointerType:
-                var intPtrToken = tokens.Require(compilation.GetSpecialType(SpecialType.System_IntPtr));
+                var intPtrToken = tokens.Get(compilation.GetSpecialType(SpecialType.System_IntPtr));
                 reference = new PointerTypeReference
                 {
                     Token = intPtrToken,

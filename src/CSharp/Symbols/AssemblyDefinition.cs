@@ -32,4 +32,23 @@ public record AssemblyDefinition : SymbolDefinition
     {
         return Modules.SelectMany(m => m.GetAllTypes());
     }
+
+    public override void Accept(IEntityVisitor visitor)
+    {
+        if (visitor is ISymbolVisitor symbolVisitor)
+        {
+            symbolVisitor.VisitAssembly(this);
+        }
+        else
+        {
+            visitor.DefaultVisit(this);
+        }
+
+        foreach (var module in Modules)
+        {
+            module.Accept(visitor);
+        }
+
+        base.Accept(visitor);
+    }
 }

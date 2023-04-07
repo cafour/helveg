@@ -32,7 +32,7 @@ public record MethodDefinition : MemberDefinition
     public bool IsExtensionMethod { get; init; }
 
     public int Arity => TypeParameters.Length;
-    
+
     public bool IsGenericMethod => TypeParameters.Length > 0;
 
     public bool IsAsync { get; init; }
@@ -62,4 +62,28 @@ public record MethodDefinition : MemberDefinition
     public MethodReference Reference => new() { Token = Token, Hint = Name };
 
     public override IEntityReference GetReference() => Reference;
+
+    public override void Accept(IEntityVisitor visitor)
+    {
+        if (visitor is ISymbolVisitor symbolVisitor)
+        {
+            symbolVisitor.VisitMethod(this);
+        }
+        else
+        {
+            visitor.DefaultVisit(this);
+        }
+
+        foreach (var typeParameter in TypeParameters)
+        {
+            typeParameter.Accept(visitor);
+        }
+
+        foreach (var parameter in Parameters)
+        {
+            parameter.Accept(visitor);
+        }
+
+        base.Accept(visitor);
+    }
 }

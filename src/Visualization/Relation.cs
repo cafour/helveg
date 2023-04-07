@@ -15,14 +15,14 @@ public record Relation
 
     public string? Label { get; init; }
 
-    public ImmutableDictionary<EdgeSpec, Edge> Edges { get; init; }
-        = ImmutableDictionary<EdgeSpec, Edge>.Empty;
+    public ImmutableArray<Edge> Edges { get; init; }
+        = ImmutableArray<Edge>.Empty;
 
-    public Relation(string id, string? label = null, ImmutableDictionary<EdgeSpec, Edge>? edges = null)
+    public Relation(string id, string? label = null, ImmutableArray<Edge> edges = default)
     {
         Id = id;
         Label = label;
-        Edges = edges ?? ImmutableDictionary<EdgeSpec, Edge>.Empty;
+        Edges = edges.IsDefault ? ImmutableArray<Edge>.Empty : edges;
     }
 
     public Relation()

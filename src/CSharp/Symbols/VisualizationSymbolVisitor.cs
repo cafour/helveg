@@ -19,7 +19,7 @@ public class VisualizationSymbolVisitor : SymbolVisitor
     public override void DefaultVisit(ISymbolDefinition symbol)
     {
         var node = builder.AddNode(symbol.Token, symbol.Name)
-            .SetProperty(nameof(SymbolKind), symbol.Token.Kind.ToString());
+            .SetProperty("Kind", $"csharp:{symbol.Token.Kind}");
 
         if (symbol is IMemberDefinition member)
         {
@@ -39,51 +39,55 @@ public class VisualizationSymbolVisitor : SymbolVisitor
     public override void VisitAssembly(AssemblyDefinition assembly)
     {
         base.VisitAssembly(assembly);
-        builder.AddEdges(CSConst.DeclaredInId, assembly.Modules.Select(m => new Edge(assembly.Token, m.Token)));
+        builder.AddEdges(CSConst.DeclaresId, assembly.Modules.Select(m => new Edge(assembly.Token, m.Token)));
     }
 
     public override void VisitModule(ModuleDefinition module)
     {
         base.VisitModule(module);
-        builder.AddEdge(CSConst.DeclaredInId, new Edge(module.Token, module.GlobalNamespace.Token));
+        builder.AddEdge(CSConst.DeclaresId, new Edge(module.Token, module.GlobalNamespace.Token));
     }
 
     public override void VisitNamespace(NamespaceDefinition @namespace)
     {
         base.VisitNamespace(@namespace);
-        builder.AddEdges(CSConst.DeclaredInId, @namespace.Namespaces.Select(n => new Edge(@namespace.Token, n.Token)));
-        builder.AddEdges(CSConst.DeclaredInId, @namespace.Types.Select(t => new Edge(@namespace.Token, t.Token)));
+
+        if (@namespace.IsGlobalNamespace)
+        {
+            builder.GetNode(@namespace.Id).Label = "global";
+        }
+
+        builder.AddEdges(CSConst.DeclaresId, @namespace.Namespaces.Select(n => new Edge(@namespace.Token, n.Token)));
+        builder.AddEdges(CSConst.DeclaresId, @namespace.Types.Select(t => new Edge(@namespace.Token, t.Token)));
     }
 
     public override void VisitType(TypeDefinition type)
     {
         base.VisitType(type);
-        builder.AddEdges(CSConst.DeclaredInId, type.Fields.Select(f => new Edge(type.Token, f.Token)));
-        builder.AddEdges(CSConst.DeclaredInId, type.Events.Select(e => new Edge(type.Token, e.Token)));
-        builder.AddEdges(CSConst.DeclaredInId, type.Properties.Select(p => new Edge(type.Token, p.Token)));
-        builder.AddEdges(CSConst.DeclaredInId, type.Methods.Select(m => new Edge(type.Token, m.Token)));
-        builder.AddEdges(CSConst.DeclaredInId, type.TypeParameters.Select(t => new Edge(type.Token, t.Token)));
-        builder.AddEdges(CSConst.DeclaredInId, type.NestedTypes.Select(t => new Edge(type.Token, t.Token)));
+        builder.AddEdges(CSConst.DeclaresId, type.Fields.Select(f => new Edge(type.Token, f.Token)));
+        builder.AddEdges(CSConst.DeclaresId, type.Events.Select(e => new Edge(type.Token, e.Token)));
+        builder.AddEdges(CSConst.DeclaresId, type.Properties.Select(p => new Edge(type.Token, p.Token)));
+        builder.AddEdges(CSConst.DeclaresId, type.Methods.Select(m => new Edge(type.Token, m.Token)));
+        builder.AddEdges(CSConst.DeclaresId, type.TypeParameters.Select(t => new Edge(type.Token, t.Token)));
+        builder.AddEdges(CSConst.DeclaresId, type.NestedTypes.Select(t => new Edge(type.Token, t.Token)));
 
         builder.AddEdges(CSConst.InheritsFromId, type.Interfaces.Select(i => new Edge(type.Token, i.Token)));
         if (type.BaseType is not null)
         {
             builder.AddEdge(CSConst.InheritsFromId, new Edge(type.Token, type.BaseType.Token));
         }
-
-        builder.AddEdges(CSConst.ComposedOfId, type.Fields.Select(f => new Edge(type.Token, f.Token)));
     }
 
     public override void VisitProperty(PropertyDefinition property)
     {
         base.VisitProperty(property);
-        builder.AddEdges(CSConst.DeclaredInId, property.Parameters.Select(p => new Edge(property.Token, p.Token)));
+        builder.AddEdges(CSConst.DeclaresId, property.Parameters.Select(p => new Edge(property.Token, p.Token)));
     }
 
     public override void VisitMethod(MethodDefinition method)
     {
         base.VisitMethod(method);
-        builder.AddEdges(CSConst.DeclaredInId, method.Parameters.Select(p => new Edge(method.Token, p.Token)));
-        builder.AddEdges(CSConst.DeclaredInId, method.TypeParameters.Select(t => new Edge(method.Token, t.Token)));
+        builder.AddEdges(CSConst.DeclaresId, method.Parameters.Select(p => new Edge(method.Token, p.Token)));
+        builder.AddEdges(CSConst.DeclaresId, method.TypeParameters.Select(t => new Edge(method.Token, t.Token)));
     }
 }

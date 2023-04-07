@@ -6,10 +6,9 @@ public record Solution : EntityBase
 {
     public static Solution Invalid { get; } = new();
 
-    /// <summary>
-    /// The FullName of the solution file. Can be null if this is an automatically-generated solution.
-    /// </summary>
-    public string? FullName { get; init; }
+    public string? Path { get; init; }
+
+    public string Name { get; init; } = Const.Invalid;
 
     public ImmutableArray<Project> Projects { get; init; } = ImmutableArray<Project>.Empty;
 

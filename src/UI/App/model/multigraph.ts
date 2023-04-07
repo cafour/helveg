@@ -1,18 +1,16 @@
 export interface Multigraph {
     id: string,
     label: string | null,
-    nodes: MultigraphNode[],
-    relations: Relation[]
+    nodes: Record<string, MultigraphNode>
+    relations: Record<string, Relation>
 }
 
 export interface MultigraphNode {
-    id: string,
     label: string | null,
     properties: Record<string, string>
 }
 
 export interface Relation {
-    id: string,
     label: string | null,
     edges: MultigraphEdge[]
 }

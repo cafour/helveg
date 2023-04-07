@@ -43,4 +43,18 @@ public record PropertyDefinition : MemberDefinition
     public PropertyReference Reference => new() { Token = Token, Hint = Name };
 
     public override IEntityReference GetReference() => Reference;
+
+    public override void Accept(IEntityVisitor visitor)
+    {
+        if (visitor is ISymbolVisitor symbolVisitor)
+        {
+            symbolVisitor.VisitProperty(this);
+        }
+        else
+        {
+            visitor.DefaultVisit(this);
+        }
+
+        base.Accept(visitor);
+    }
 }

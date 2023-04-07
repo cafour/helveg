@@ -11,12 +11,12 @@ internal class EntityTrackingVisitor : EntityVisitor
     {
         this.entities = entities;
     }
-    
+
     public override void DefaultVisit(IEntity entity)
     {
         if (!entities.TryAdd(entity.Id, entity))
         {
-            throw new ArgumentException($"The environtment already tracks an entity with the '{entity.Id}' id. " +
+            throw new ArgumentException($"The environment already tracks an entity with the '{entity.Id}' id. " +
                 "The id of an entity must be unique.");
         }
     }

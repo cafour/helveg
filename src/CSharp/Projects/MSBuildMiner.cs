@@ -31,13 +31,14 @@ public class MSBuildMiner : IMiner
         workspace.AddRoot(solution);
     }
 
-    public async Task<Solution> GetSolution(string path, CancellationToken cancellationToken = default)
+    private async Task<Solution> GetSolution(string path, CancellationToken cancellationToken = default)
     {
         var absolutePath = new FileInfo(path).FullName;
         var solution = new Solution
         {
             Id = Path.GetFileName(path),
-            FullName = absolutePath
+            Path = absolutePath,
+            Name = Path.GetFileNameWithoutExtension(path)
         };
 
         if (!File.Exists(absolutePath))
@@ -52,8 +53,9 @@ public class MSBuildMiner : IMiner
             return solution;
         }
 
-        var sln = MSB.Construction.SolutionFile.Parse(path);
-        var projectPaths = sln.ProjectsInOrder
+        var msbuildSolution = MSB.Construction.SolutionFile.Parse(path);
+        logger.LogInformation("Found the '{}' solution.", solution.Name);
+        var projectPaths = msbuildSolution.ProjectsInOrder
             .Where(p => p.ProjectType != MSB.Construction.SolutionProjectType.SolutionFolder)
             .Select(p => p.AbsolutePath);
 
@@ -71,20 +73,25 @@ public class MSBuildMiner : IMiner
         };
     }
 
-    public async Task<Project> GetProject(
+    private Task<Project> GetProject(
         string path,
         MSB.Evaluation.ProjectCollection collection,
         CancellationToken cancellationToken = default)
     {
-        var project = MSB.Evaluation.Project.FromFile(path, new MSB.Definition.ProjectOptions
+        var msbuildProject = MSB.Evaluation.Project.FromFile(path, new MSB.Definition.ProjectOptions
         {
             ProjectCollection = collection
         });
 
-        return new Project
+        var project = new Project
         {
             Id = path,
-            FullName = path
+            Path = path,
+            Name = msbuildProject.GetPropertyValue("MSBuildProjectName")
         };
+
+        logger.LogInformation("Found the '{}' project.", project.Name);
+
+        return Task.FromResult(project);
     }
 }

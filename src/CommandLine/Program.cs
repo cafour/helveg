@@ -20,6 +20,8 @@ using System.Text.Json;
 using System.Threading;
 using Helveg.UI;
 using Helveg.CSharp.Symbols;
+using Helveg.CSharp.Projects;
+using Microsoft.Extensions.Logging.Console;
 
 namespace Helveg.CommandLine;
 
@@ -57,20 +59,23 @@ public class Program
         logger.LogDebug($"Using MSBuild at '{vsInstance.MSBuildPath}'.");
 
         var workflow = new Workflow()
-            .AddMSBuild()
-            .AddRoslyn();
+            .AddMSBuild(logger: logging.CreateLogger<MSBuildMiner>())
+            .AddRoslyn(logger: logging.CreateLogger<RoslynMiner>());
 
         var workspace = await workflow.Run(new Target(file.FullName, DateTimeOffset.UtcNow));
 
         using var analysisStream = new FileStream("analysis.json", FileMode.Create, FileAccess.ReadWrite);
         await JsonSerializer.SerializeAsync(analysisStream, workspace, HelvegDefaults.JsonOptions);
 
-        var multigraphBuilder = new MultigraphBuilder();
-        
+        var multigraphBuilder = new MultigraphBuilder
+        {
+            Label = Path.GetFileNameWithoutExtension(workspace.Target.Path)
+        };
+
         var symbolVisitor = new VisualizationSymbolVisitor(multigraphBuilder);
         workspace.Accept(symbolVisitor);
 
-        var projectVisitor = new VisualizationSymbolVisitor(multigraphBuilder);
+        var projectVisitor = new VisualizationProjectVisitor(multigraphBuilder);
         workspace.Accept(projectVisitor);
 
         return multigraphBuilder.Build();
@@ -148,7 +153,8 @@ public class Program
                     : LogLevel.Information;
                 program.logging = LoggerFactory.Create(b =>
                 {
-                    b.AddConsole();
+                    b.AddConsoleFormatter<BriefConsoleFormatter, ConsoleFormatterOptions>();
+                    b.AddConsole(d => d.FormatterName = "brief");
                     b.SetMinimumLevel(minimumLevel);
                 });
             })
