@@ -8,6 +8,8 @@ using MSB = Microsoft.Build;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System.Xml;
+using NuGet.ProjectModel;
+using System.Collections.Generic;
 
 namespace Helveg.CSharp.Projects;
 
@@ -143,6 +145,19 @@ public class MSBuildMiner : IMiner
         {
             ProjectCollection = collection
         });
+
+        var buildParams = new MSB.Execution.BuildParameters();
+        MSB.Execution.BuildManager.DefaultBuildManager.BeginBuild(buildParams);
+
+        var instance = msbuildProject.CreateProjectInstance();
+        instance.SetProperty("TargetFramework", "net7.0");
+
+        var buildRequest = new MSB.Execution.BuildRequestData(
+            instance,
+            new[] { "ResolveReferences" });
+        var buildResult = MSB.Execution.BuildManager.DefaultBuildManager.BuildRequest(buildRequest);
+
+        //var lockFile = new LockFileFormat().Read(Path.Combine(Path.GetDirectoryName(path), $"obj/{LockFileFormat.AssetsFileName}"));
 
         var project = new Project
         {
