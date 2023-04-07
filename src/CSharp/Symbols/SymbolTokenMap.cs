@@ -45,8 +45,11 @@ internal class SymbolTokenMap
             return SymbolToken.Invalid;
         }
 
-        var definition = GetDefinition(symbol)
-            ?? throw new ArgumentException($"A definition for the '{symbol}' symbol could not be found.");
+        var definition = GetDefinition(symbol);
+        if (definition is null)
+        {
+            return SymbolToken.Invalid;
+        }
 
         var containingAssembly = symbol is IAssemblySymbol assembly ? assembly : symbol.ContainingAssembly;
 

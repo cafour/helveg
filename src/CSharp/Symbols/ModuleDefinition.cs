@@ -23,7 +23,7 @@ public record ModuleDefinition : SymbolDefinition
 
     public ModuleReference Reference => new() { Token = Token, Hint = Name };
 
-    public override IEntityReference GetReference() => Reference;
+    public override ISymbolReference GetReference() => Reference;
 
     public IEnumerable<TypeDefinition> GetAllTypes()
     {

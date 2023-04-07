@@ -9,6 +9,9 @@ namespace Helveg.CSharp.Symbols;
 
 internal static class RoslynExtensions
 {
+    public const string AssemblyFileVersionAttributeName = "AssemblyFileVersionAttribute";
+    public const string AssemblyInformationalVersionAttributeName = "AssemblyInformationalVersionAttribute";
+
     public static bool IsOriginalDefinition(this ISymbol symbol)
     {
         return SymbolEqualityComparer.Default.Equals(symbol, symbol.OriginalDefinition);
@@ -18,10 +21,10 @@ internal static class RoslynExtensions
     {
         var attributes = assembly.GetAttributes();
         var fileVersion = attributes
-            .FirstOrDefault(a => a.AttributeClass?.Name == "AssemblyFileVersionAttribute")
+            .FirstOrDefault(a => a.AttributeClass?.Name == AssemblyFileVersionAttributeName)
             ?.ConstructorArguments.FirstOrDefault().Value as string;
         var informationalVersion = attributes
-            .FirstOrDefault(a => a.AttributeClass?.Name == "AssemblyInformationalVersionAttribute")
+            .FirstOrDefault(a => a.AttributeClass?.Name == AssemblyInformationalVersionAttributeName)
             ?.ConstructorArguments.FirstOrDefault().Value as string;
         return new AssemblyId
         {
@@ -134,8 +137,7 @@ internal static class RoslynExtensions
             IMethodSymbol => SymbolKind.Method,
             INamedTypeSymbol => SymbolKind.Type,
             IParameterSymbol => SymbolKind.Parameter,
-            _ => throw new ArgumentException($"Could not assign {nameof(SymbolKind)} to a Roslyn symbol of type " +
-                $"'{symbol.GetType()}'.")
+            _ => SymbolKind.Unknown
         };
     }
 }

@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -110,18 +111,27 @@ public class RoslynMiner : IMiner
         logger.LogDebug("Visiting the '{}' assembly.", compilation.Assembly.Name);
         symbolVisitor.VisitAssembly(compilation.Assembly);
 
+        var errors = new List<Diagnostic>();
+
         foreach (var reference in compilation.References)
         {
             var referenceSymbol = compilation.GetAssemblyOrModuleSymbol(reference);
             if (referenceSymbol is not Microsoft.CodeAnalysis.IAssemblySymbol referencedAssembly)
             {
-                throw new ArgumentException($"Could not obtain an assembly symbol for '{reference.Display}'.");
+                var diagnostic = Diagnostic.Error(
+                    "MissingAssemblySymbol",
+                    $"Could not obtain an assembly symbol for a metadata reference of '{project.Name}'. " +
+                    $"The reference is: '{reference}'.");
+                errors.Add(diagnostic);
+                logger.LogWarning(diagnostic.Message);
+                continue;
             }
 
             logger.LogDebug("Visiting a '{}' reference.", referencedAssembly.Name);
             symbolVisitor.VisitAssembly(referencedAssembly);
         }
 
+        // Phase 2: Transcribe the assembly into Helveg's structures.
         logger.LogDebug("Transcribing the '{}' assembly.", compilation.Assembly.Name);
         var transcriber = new RoslynSymbolTranscriber(compilation, tokenMap);
         return transcriber.Transcribe();

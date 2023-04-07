@@ -130,8 +130,7 @@ internal class RoslynSymbolTranscriber
     {
         if (!type.IsOriginalDefinition())
         {
-            throw new ArgumentException("Only the original definition of a type symbol " +
-                $"can be turned into a {nameof(TypeDefinition)}.");
+            type = type.OriginalDefinition;
         }
 
         var helType = new TypeDefinition
@@ -162,7 +161,7 @@ internal class RoslynSymbolTranscriber
         return helType with
         {
             TypeParameters = type.TypeParameters
-                .Select(p => GetTypeParameter(p, reference, null, reference, containingNamespace))
+                .Select(p => GetTypeParameter(p, reference, null, containingNamespace))
                 .ToImmutableArray(),
             NestedTypes = type.GetTypeMembers()
                 .Select(t => GetType(t, containingNamespace, reference))
@@ -196,7 +195,6 @@ internal class RoslynSymbolTranscriber
         ITypeParameterSymbol symbol,
         TypeReference? declaringType,
         MethodReference? declaringMethod,
-        TypeReference containingType,
         NamespaceReference containingNamespace)
     {
         if (declaringType is null && declaringMethod is null)
@@ -301,8 +299,7 @@ internal class RoslynSymbolTranscriber
     {
         if (!symbol.IsOriginalDefinition())
         {
-            throw new ArgumentException("Only the original definition of a method " +
-                $"can be turned into a {nameof(MethodDefinition)}.");
+            symbol = symbol.OriginalDefinition;
         }
 
         var helMethod = new MethodDefinition
@@ -335,7 +332,7 @@ internal class RoslynSymbolTranscriber
                 .Select(GetMethodReference)
                 .ToImmutableArray(),
             TypeParameters = symbol.TypeParameters
-                .Select(p => GetTypeParameter(p, null, helMethod.Reference, containingType, containingNamespace))
+                .Select(p => GetTypeParameter(p, null, helMethod.Reference, containingNamespace))
                 .ToImmutableArray(),
             Parameters = symbol.Parameters
                 .Select(p => GetParameter(p, helMethod.Reference, null))
@@ -407,16 +404,23 @@ internal class RoslynSymbolTranscriber
 
     private NamespaceReference GetNamespaceReference(INamespaceSymbol symbol)
     {
-        if (symbol.NamespaceKind != NamespaceKind.Module)
-        {
-            throw new ArgumentException($"Only 'module' namespaces can be turned into a {nameof(NamespaceReference)}.");
-        }
 
         var reference = new NamespaceReference
         {
             Token = tokens.Get(symbol),
             Hint = symbol.ToDisplayString()
         };
+
+        if (symbol.NamespaceKind != NamespaceKind.Module)
+        {
+            reference = reference with
+            {
+                Diagnostics = ImmutableArray.Create(Diagnostic.Warning(
+                    "NonModuleNamespace",
+                    $"Only 'module' namespaces should be turned into a {nameof(NamespaceReference)}."))
+            };
+        }
+
         return reference;
     }
 

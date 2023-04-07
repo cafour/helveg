@@ -22,7 +22,7 @@ public record EventDefinition : MemberDefinition
 
     public EventReference Reference => new() { Token = Token, Hint = Name };
 
-    public override IEntityReference GetReference() => Reference;
+    public override ISymbolReference GetReference() => Reference;
 
     public override void Accept(IEntityVisitor visitor)
     {

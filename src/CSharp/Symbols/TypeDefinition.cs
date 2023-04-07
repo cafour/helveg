@@ -74,7 +74,7 @@ public record TypeDefinition : MemberDefinition
 
     public TypeReference Reference => new() { Token = Token, TypeKind = TypeKind, Hint = Name };
 
-    public override IEntityReference GetReference() => Reference;
+    public override ISymbolReference GetReference() => Reference;
 
     public override void Accept(IEntityVisitor visitor)
     {

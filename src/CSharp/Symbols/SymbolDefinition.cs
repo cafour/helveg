@@ -15,7 +15,7 @@ public interface ISymbolDefinition : IEntity
 
     SymbolToken Token { get; }
 
-    IEntityReference GetReference();
+    ISymbolReference GetReference();
 }
 
 /// <summary>
@@ -31,5 +31,5 @@ public abstract record SymbolDefinition : EntityBase, ISymbolDefinition
 
     string IEntity.Id => Token.ToString();
 
-    public abstract IEntityReference GetReference();
+    public abstract ISymbolReference GetReference();
 }
