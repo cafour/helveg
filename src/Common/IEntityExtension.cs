@@ -4,9 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Helveg.CSharp.Roslyn;
+namespace Helveg;
 
-internal class RoslynDocumentTranscriber
+public interface IEntityExtension
 {
-
 }

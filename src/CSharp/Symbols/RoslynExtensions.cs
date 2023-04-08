@@ -5,23 +5,35 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Helveg.CSharp.Roslyn;
+namespace Helveg.CSharp.Symbols;
 
 internal static class RoslynExtensions
 {
+    public const string AssemblyFileVersionAttributeName = "AssemblyFileVersionAttribute";
+    public const string AssemblyInformationalVersionAttributeName = "AssemblyInformationalVersionAttribute";
+
     public static bool IsOriginalDefinition(this ISymbol symbol)
     {
         return SymbolEqualityComparer.Default.Equals(symbol, symbol.OriginalDefinition);
     }
 
-    public static AssemblyId ToHelvegAssemblyId(this AssemblyIdentity identity)
+    public static AssemblyId GetHelvegAssemblyId(this IAssemblySymbol assembly)
     {
+        var attributes = assembly.GetAttributes();
+        var fileVersion = attributes
+            .FirstOrDefault(a => a.AttributeClass?.Name == AssemblyFileVersionAttributeName)
+            ?.ConstructorArguments.FirstOrDefault().Value as string;
+        var informationalVersion = attributes
+            .FirstOrDefault(a => a.AttributeClass?.Name == AssemblyInformationalVersionAttributeName)
+            ?.ConstructorArguments.FirstOrDefault().Value as string;
         return new AssemblyId
         {
-            Name = identity.Name,
-            Version = identity.Version,
-            CultureName = identity.CultureName,
-            PublicKeyToken = string.Concat(identity.PublicKeyToken.Select(b => b.ToString("x")))
+            Name = assembly.Identity.Name,
+            Version = assembly.Identity.Version,
+            FileVersion = fileVersion,
+            InformationalVersion = informationalVersion,
+            CultureName = assembly.Identity.CultureName,
+            PublicKey = string.Concat(assembly.Identity.PublicKey.Select(b => b.ToString("x")))
         };
     }
 
@@ -111,22 +123,21 @@ internal static class RoslynExtensions
         };
     }
 
-    public static EntityKind GetEntityKind(this ISymbol symbol)
+    public static SymbolKind GetHelvegSymbolKind(this ISymbol symbol)
     {
         return symbol switch
         {
-            IAssemblySymbol => EntityKind.Assembly,
-            IModuleSymbol => EntityKind.Module,
-            INamespaceSymbol => EntityKind.Namespace,
-            ITypeParameterSymbol => EntityKind.TypeParameter,
-            IFieldSymbol => EntityKind.Field,
-            IEventSymbol => EntityKind.Event,
-            IPropertySymbol => EntityKind.Property,
-            IMethodSymbol => EntityKind.Method,
-            INamedTypeSymbol => EntityKind.Type,
-            IParameterSymbol => EntityKind.Parameter,
-            _ => throw new ArgumentException($"Could not assign {nameof(EntityKind)} to a Roslyn symbol of type " +
-                $"'{symbol.GetType()}'.")
+            IAssemblySymbol => SymbolKind.Assembly,
+            IModuleSymbol => SymbolKind.Module,
+            INamespaceSymbol => SymbolKind.Namespace,
+            ITypeParameterSymbol => SymbolKind.TypeParameter,
+            IFieldSymbol => SymbolKind.Field,
+            IEventSymbol => SymbolKind.Event,
+            IPropertySymbol => SymbolKind.Property,
+            IMethodSymbol => SymbolKind.Method,
+            INamedTypeSymbol => SymbolKind.Type,
+            IParameterSymbol => SymbolKind.Parameter,
+            _ => SymbolKind.Unknown
         };
     }
 }

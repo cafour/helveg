@@ -2,7 +2,7 @@ using System.Collections.Concurrent;
 
 namespace Helveg;
 
-internal class EntityUntrackingVisitor : IEntityVisitor
+internal class EntityUntrackingVisitor : EntityVisitor
 {
     private readonly ConcurrentDictionary<string, IEntity> entities;
 
@@ -11,7 +11,7 @@ internal class EntityUntrackingVisitor : IEntityVisitor
         this.entities = entities;
     }
     
-    public void DefaultVisit(IEntity entity)
+    public override void DefaultVisit(IEntity entity)
     {
         entities.TryRemove(entity.Id, out _);
     }

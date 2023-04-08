@@ -1,20 +1,22 @@
 ﻿using System.Collections.Immutable;
+using System.Text.Json.Serialization;
 
 namespace Helveg.Visualization;
 
 public record Node
 {
-    public string Id { get; init; }
+    [JsonIgnore]
+    public string Id { get; init; } = Const.Invalid;
 
     public string? Label { get; init; }
 
-    public ImmutableDictionary<string, string> Properties { get; init; }
-        = ImmutableDictionary<string, string>.Empty;
+    public ImmutableDictionary<string, string?> Properties { get; init; }
+        = ImmutableDictionary<string, string?>.Empty;
 
     public Node(
         string id,
         string? label = null,
-        ImmutableDictionary<string, string>? properties = null)
+        ImmutableDictionary<string, string?>? properties = null)
     {
         Id = id;
         Label = label;
@@ -23,5 +25,9 @@ public record Node
         {
             Properties = properties;
         }
+    }
+
+    public Node()
+    {
     }
 }

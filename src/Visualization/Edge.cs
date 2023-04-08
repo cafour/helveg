@@ -3,15 +3,16 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace Helveg.Visualization;
 
 public record Edge
 {
-    public string Src { get; init; }
+    public string Src { get; init; } = Const.Invalid;
 
-    public string Dst { get; init; }
+    public string Dst { get; init; } = Const.Invalid;
 
     public string? Label { get; init; }
 
@@ -33,4 +34,9 @@ public record Edge
             Properties = properties;
         }
     }
+
+    public Edge()
+    {
+    }
+
 }

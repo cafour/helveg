@@ -8,6 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <JSBuildInput Include="$(JSWorkingDirectory)/**/*.svelte" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="../Visualization/Helveg.Visualization.csproj" />
   </ItemGroup>
 

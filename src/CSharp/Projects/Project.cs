@@ -2,36 +2,27 @@ using System.Collections.Immutable;
 
 namespace Helveg.CSharp.Projects;
 
-public record ProjectReference : EntityReference
+public record Project : EntityBase
 {
-    public static ProjectReference Invalid { get; }
-        = new() { Token = EntityToken.CreateError(EntityKind.Project) };
-}
+    public static Project Invalid { get; } = new();
 
-public record ProjectDefinition : EntityDefinition
-{
-    public static ProjectDefinition Invalid { get; }
-        = new() { Token = EntityToken.CreateError(EntityKind.Project) };
+    public string? Path { get; init; }
 
-    /// <summary>
-    /// The FullName of the project file.
-    /// </summary>
-    public string? FullName { get; init; }
+    public string Name { get; init; } = Const.Invalid;
 
-    public ImmutableArray<ProjectReference> ProjectDependencies { get; init; }
-        = ImmutableArray<ProjectReference>.Empty;
+    public string ContainingSolution { get; init; } = Const.Invalid;
 
-    public ImmutableArray<ProjectReference> PackageDependencies { get; init; }
-        = ImmutableArray<ProjectReference>.Empty;
+    public override void Accept(IEntityVisitor visitor)
+    {
+        if (visitor is IProjectVisitor projectVisitor)
+        {
+            projectVisitor.VisitProject(this);
+        }
+        else
+        {
+            visitor.DefaultVisit(this);
+        }
 
-    public ImmutableArray<ExternalDependencyReference> ExternalDependencies { get; init; }
-        = ImmutableArray<ExternalDependencyReference>.Empty;
-
-    public AssemblyDefinition Assembly { get; init; } = AssemblyDefinition.Invalid;
-
-    public SolutionReference ContainingSolution { get; init; } = SolutionReference.Invalid;
-
-    public ProjectReference Reference => new() { Token = Token, Hint = Name };
-
-    public override IEntityReference GetReference() => Reference;
+        base.Accept(visitor);
+    }
 }

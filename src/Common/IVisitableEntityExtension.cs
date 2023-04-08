@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Helveg.CSharp;
+namespace Helveg;
 
-public static class CSharpConstants
+public interface IVisitableEntityExtension : IEntityExtension
 {
-    public const string InvalidName = "Invalid";
+    void Accept(IEntityVisitor visitor);
 }
