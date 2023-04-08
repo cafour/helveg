@@ -1,10 +1,5 @@
 lockfileVersion: '6.0'
 
-dependencies:
-  uniformcss:
-    specifier: ^1.5.4
-    version: 1.5.4
-
 devDependencies:
   '@tsconfig/node16':
     specifier: ^1.0.3
@@ -78,6 +73,9 @@ devDependencies:
   typescript:
     specifier: ^4.9.5
     version: 4.9.5
+  uniformcss:
+    specifier: ^1.5.4
+    version: 1.5.4
   yargs:
     specifier: ^17.7.1
     version: 17.7.1
@@ -4912,7 +4910,7 @@ packages:
 
   /uniformcss@1.5.4:
     resolution: {integrity: sha512-U1i7gZlO4GwhXHMkt5JnW0GhCQJvMrFoPSZs5ZoIW+6lXC5te0T/rUL1/Pj7C923/BLcbbcy4TtwO5w0u1b/Sg==}
-    dev: false
+    dev: true
 
   /union-value@1.0.1:
     resolution: {integrity: sha512-tJfXmxMeWYnczCVs7XAEvIV7ieppALdyepWMkHkwciRpZraG/xwT+s2JN8+pr1+8jCRf80FFzvr+MpQeeoF4Xg==}

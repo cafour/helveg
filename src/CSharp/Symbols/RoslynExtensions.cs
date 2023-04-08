@@ -11,6 +11,7 @@ internal static class RoslynExtensions
 {
     public const string AssemblyFileVersionAttributeName = "AssemblyFileVersionAttribute";
     public const string AssemblyInformationalVersionAttributeName = "AssemblyInformationalVersionAttribute";
+    public const string TargetFrameworkAttributeName = "TargetFrameworkAttribute";
 
     public static bool IsOriginalDefinition(this ISymbol symbol)
     {
@@ -26,14 +27,18 @@ internal static class RoslynExtensions
         var informationalVersion = attributes
             .FirstOrDefault(a => a.AttributeClass?.Name == AssemblyInformationalVersionAttributeName)
             ?.ConstructorArguments.FirstOrDefault().Value as string;
+        var targetFramework = attributes
+            .FirstOrDefault(a => a.AttributeClass?.Name == TargetFrameworkAttributeName)
+            ?.ConstructorArguments.FirstOrDefault().Value as string;
         return new AssemblyId
         {
             Name = assembly.Identity.Name,
             Version = assembly.Identity.Version,
             FileVersion = fileVersion,
             InformationalVersion = informationalVersion,
+            TargetFramework = targetFramework,
             CultureName = assembly.Identity.CultureName,
-            PublicKey = string.Concat(assembly.Identity.PublicKey.Select(b => b.ToString("x")))
+            PublicKeyToken = string.Concat(assembly.Identity.PublicKeyToken.Select(b => b.ToString("x")))
         };
     }
 

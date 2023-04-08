@@ -8,13 +8,18 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.CommandLine.Rendering;
+using Microsoft.Extensions.Options;
+using System.Diagnostics;
 
 namespace Helveg;
 
 public class BriefConsoleFormatter : ConsoleFormatter
 {
-    public BriefConsoleFormatter() : base("brief")
+    private readonly IOptionsMonitor<ConsoleFormatterOptions> options;
+
+    public BriefConsoleFormatter(IOptionsMonitor<ConsoleFormatterOptions> options) : base("brief")
     {
+        this.options = options;
     }
 
     public override void Write<TState>(
@@ -29,7 +34,7 @@ public class BriefConsoleFormatter : ConsoleFormatter
             LogLevel.Error => Ansi.Color.Foreground.Red,
             LogLevel.Information => Ansi.Color.Foreground.Green,
             LogLevel.Trace => Ansi.Color.Foreground.DarkGray,
-            _ => string.Empty
+            _ => Ansi.Color.Foreground.Default
         };
 
         var logLevelName = logEntry.LogLevel switch
@@ -43,10 +48,19 @@ public class BriefConsoleFormatter : ConsoleFormatter
             _ => ""
         };
 
-        var time = DateTimeOffset.Now.ToString("HH:mm:ss.fff");
+        string? time = null;
+        if (options.CurrentValue.TimestampFormat is not null)
+        {
+            time = $"[{(options.CurrentValue.UseUtcTimestamp ? DateTimeOffset.UtcNow : DateTimeOffset.Now)
+                .ToString(options.CurrentValue.TimestampFormat)}] ";
+        }
         var message = logEntry.Formatter?.Invoke(logEntry.State, logEntry.Exception);
         textWriter.WriteLine(
-            $"[{time}] {levelColor}{logLevelName}{Ansi.Color.Background.Default}{Ansi.Color.Foreground.Default}: " +
+            $"{time}{levelColor}{logLevelName}{Ansi.Color.Background.Default}{Ansi.Color.Foreground.Default}: " +
             $"{Ansi.Color.Foreground.DarkGray}{category}{Ansi.Color.Foreground.Default}: {message}");
+        if (logEntry.Exception is not null)
+        {
+            textWriter.Write($"{Ansi.Color.Foreground.DarkGray}{logEntry.Exception.Demystify()}{Ansi.Color.Foreground.Default}");
+        }
     }
 }

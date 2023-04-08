@@ -76,17 +76,21 @@ internal class RoslynSymbolTranscriber
 
         return helModule with
         {
-            GlobalNamespace = GetNamespace(module.GlobalNamespace, helModule.Reference)
+            GlobalNamespace = GetNamespace(module.GlobalNamespace, helModule.Reference, null)
         };
     }
 
-    private NamespaceDefinition GetNamespace(INamespaceSymbol @namespace, ModuleReference containingModule)
+    private NamespaceDefinition GetNamespace(
+        INamespaceSymbol @namespace,
+        ModuleReference containingModule,
+        NamespaceReference? containingNamespace)
     {
         var helNamespace = new NamespaceDefinition
         {
             Token = tokens.Get(@namespace),
             Name = @namespace.Name,
-            ContainingModule = containingModule
+            ContainingModule = containingModule,
+            ContainingNamespace = containingNamespace
         };
 
         return helNamespace with
@@ -95,7 +99,7 @@ internal class RoslynSymbolTranscriber
                 .Select(t => GetType(t, helNamespace.Reference))
                 .ToImmutableArray(),
             Namespaces = @namespace.GetNamespaceMembers()
-                .Select(n => GetNamespace(n, containingModule))
+                .Select(n => GetNamespace(n, containingModule, helNamespace.Reference))
                 .ToImmutableArray()
         };
     }

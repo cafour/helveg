@@ -2,7 +2,8 @@
   "profiles": {
     "Helveg": {
       "commandName": "Project",
-      "workingDirectory": "C:\\dev\\fi\\kafe"
+      "workingDirectory": "C:\\dev\\helveg\\samples\\Multitargeting",
+      "commandLineArgs": "--verbose"
     }
   }
 }

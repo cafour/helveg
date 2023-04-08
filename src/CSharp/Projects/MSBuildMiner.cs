@@ -124,8 +124,14 @@ public class MSBuildMiner : IMiner
             .Where(p => p.ProjectType != MSB.Construction.SolutionProjectType.SolutionFolder)
             .Select(p => p.AbsolutePath);
 
+        var buildParams = new MSB.Execution.BuildParameters(projectCollection);
+        MSB.Execution.BuildManager.DefaultBuildManager.BeginBuild(buildParams);
+
         var projects = projectPaths
-            .Select(p => GetProject(p, projectCollection));
+            .Select(p => GetProject(p, projectCollection))
+            .ToArray();
+
+        MSB.Execution.BuildManager.DefaultBuildManager.EndBuild();
         return solution with
         {
             Projects = projects
@@ -146,24 +152,22 @@ public class MSBuildMiner : IMiner
             ProjectCollection = collection
         });
 
-        var buildParams = new MSB.Execution.BuildParameters();
-        MSB.Execution.BuildManager.DefaultBuildManager.BeginBuild(buildParams);
+        var projectName = msbuildProject.GetPropertyValue("MSBuildProjectName");
 
-        var instance = msbuildProject.CreateProjectInstance();
-        instance.SetProperty("TargetFramework", "net7.0");
+        //msbuildProject.SetProperty("TargetFramework", "net7.0");
 
-        var buildRequest = new MSB.Execution.BuildRequestData(
-            instance,
-            new[] { "ResolveReferences" });
-        var buildResult = MSB.Execution.BuildManager.DefaultBuildManager.BuildRequest(buildRequest);
+        //var instance = msbuildProject.CreateProjectInstance();
 
-        //var lockFile = new LockFileFormat().Read(Path.Combine(Path.GetDirectoryName(path), $"obj/{LockFileFormat.AssetsFileName}"));
+        //var buildRequest = new MSB.Execution.BuildRequestData(
+        //    instance,
+        //    new[] { "ResolveReferences" });
+        //var buildResult = MSB.Execution.BuildManager.DefaultBuildManager.BuildRequest(buildRequest);
 
         var project = new Project
         {
             Id = path,
             Path = path,
-            Name = msbuildProject.GetPropertyValue("MSBuildProjectName")
+            Name = projectName
         };
 
         logger.LogInformation("Found the '{}' project.", project.Name);

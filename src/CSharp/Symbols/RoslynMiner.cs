@@ -38,21 +38,35 @@ public class RoslynMiner : IMiner
         var msbuildWorkspace = Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Create(Options.MSBuildProperties);
         try
         {
-            await msbuildWorkspace.OpenSolutionAsync(solution.Path!, cancellationToken: cancellationToken);
+            if (!string.IsNullOrEmpty(solution.Path))
+            {
+                await msbuildWorkspace.OpenSolutionAsync(solution.Path!, cancellationToken: cancellationToken);
+            }
+            else
+            {
+                var projectPath = solution.Projects.SingleOrDefault()?.Path;
+                if (string.IsNullOrEmpty(projectPath))
+                {
+                    logger.LogCritical("No projects can be loaded because no solution or project paths are available.");
+                    return;
+                }
+
+                await msbuildWorkspace.OpenProjectAsync(projectPath!, cancellationToken: cancellationToken);
+            }
         }
         catch (Exception e)
         {
-            logger.LogCritical($"MSBuild failed to load the '{solution.Path}' project or solution. "
-                + "Run with '--verbose' for more information.");
+            logger.LogCritical("Failed to load a solution or a project.");
             logger.LogDebug(e, "MSBuildWorkspace threw an exception.");
             return;
         }
         LogMSBuildDiagnostics(msbuildWorkspace);
 
         var assemblies = await Task.WhenAll(msbuildWorkspace.CurrentSolution.Projects
-            .Select(async p => (name: p.Name, assembly: await GetAssembly(p, cancellationToken))));
+            .Select(async p => (key: p.FilePath ?? p.Name, assembly: await GetAssembly(p, cancellationToken))));
         var projectAssemblies = assemblies
-            .ToDictionary(p => p.name, p => p.assembly);
+            .GroupBy(p => p.key)
+            .ToDictionary(g => g.Key, g => g.Select(p => p.assembly).ToArray());
         workspace.SetRoot(solution with
         {
             Diagnostics = solution.Diagnostics.AddRange(
@@ -69,23 +83,24 @@ public class RoslynMiner : IMiner
             Projects = solution.Projects
                 .Select(p =>
                 {
-                    if (projectAssemblies.TryGetValue(p.Name, out var assembly))
+                    if (!projectAssemblies.TryGetValue(p.Path ?? p.Name, out var assemblies))
                     {
-                        var extensions = p.Extensions.Add(
-                            new AssemblyExtension
-                            {
-                                Assembly = assembly with
-                                {
-                                    ContainingProject = p.Id
-                                }
-                            });
-                        return p with
-                        {
-                            Extensions = p.Extensions.AddRange(extensions)
-                        };
+                        logger.LogError("Could not map project '{}' onto a Roslyn project.", p.Name);
+                        return p;
                     }
 
-                    return p;
+                    var extensions = p.Extensions.AddRange(assemblies.Select(a =>
+                        new AssemblyExtension
+                        {
+                            Assembly = a with
+                            {
+                                ContainingProject = p.Id
+                            }
+                        }));
+                    return p with
+                    {
+                        Extensions = p.Extensions.AddRange(extensions)
+                    };
                 })
                 .ToImmutableArray()
         });
@@ -102,13 +117,13 @@ public class RoslynMiner : IMiner
             return AssemblyDefinition.Invalid;
         }
 
-        logger.LogInformation("Found the '{}' assembly.", compilation.Assembly.Name);
+        logger.LogInformation("Found the '{}' assembly.", compilation.Assembly.GetHelvegAssemblyId().ToDisplayString());
 
         // TODO: Classify references into BCL, Packages, and Other.
         tokenMap.Track(compilation);
 
         // Phase 1: Discover all symbols within the assembly.
-        logger.LogDebug("Visiting the '{}' assembly.", compilation.Assembly.Name);
+        logger.LogDebug("Visiting the '{}' assembly.", compilation.Assembly.GetHelvegAssemblyId().ToDisplayString());
         symbolVisitor.VisitAssembly(compilation.Assembly);
 
         var errors = new List<Diagnostic>();
@@ -127,12 +142,12 @@ public class RoslynMiner : IMiner
                 continue;
             }
 
-            logger.LogDebug("Visiting a '{}' reference.", referencedAssembly.Name);
+            logger.LogDebug("Visiting a '{}' reference.", referencedAssembly.GetHelvegAssemblyId().ToDisplayString());
             symbolVisitor.VisitAssembly(referencedAssembly);
         }
 
         // Phase 2: Transcribe the assembly into Helveg's structures.
-        logger.LogDebug("Transcribing the '{}' assembly.", compilation.Assembly.Name);
+        logger.LogDebug("Transcribing the '{}' assembly.", compilation.Assembly.GetHelvegAssemblyId().ToDisplayString());
         var transcriber = new RoslynSymbolTranscriber(compilation, tokenMap);
         return transcriber.Transcribe();
     }

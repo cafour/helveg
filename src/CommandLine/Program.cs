@@ -151,7 +151,7 @@ public class Program
                     : LogLevel.Information;
                 program.logging = LoggerFactory.Create(b =>
                 {
-                    b.AddConsoleFormatter<BriefConsoleFormatter, ConsoleFormatterOptions>();
+                    b.AddConsoleFormatter<BriefConsoleFormatter, ConsoleFormatterOptions>(d => d.TimestampFormat = "HH:mm:ss.fff");
                     b.AddConsole(d => d.FormatterName = "brief");
                     b.SetMinimumLevel(minimumLevel);
                 });
