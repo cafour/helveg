@@ -13,6 +13,11 @@ public record Icon(string Name, IconFormat Format, string Data)
     public static async Task<Icon> LoadEmbeddedSvg(string name, Assembly assembly, string resourceName)
     {
         using var stream = assembly.GetManifestResourceStream(resourceName);
+        if (stream is null)
+        {
+            throw new ArgumentException($"Embedded resource '{resourceName}' could not be found.");
+        }
+
         return await LoadSvg(name, stream);
     }
 
@@ -25,6 +30,10 @@ public record Icon(string Name, IconFormat Format, string Data)
     public static async Task<Icon> LoadEmbeddedPng(string name, Assembly assembly, string resourceName)
     {
         using var stream = assembly.GetManifestResourceStream(resourceName);
+        if (stream is null)
+        {
+            throw new ArgumentException($"Embedded resource '{resourceName}' could not be found.");
+        }
         return await LoadPng(name, stream);
     }
 
