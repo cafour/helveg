@@ -10,6 +10,9 @@ using Microsoft.Extensions.Logging.Abstractions;
 using System.Xml;
 using NuGet.ProjectModel;
 using System.Collections.Generic;
+using NuGet.Frameworks;
+using System.Collections.Concurrent;
+using Helveg.CSharp.Packages;
 
 namespace Helveg.CSharp.Projects;
 
@@ -17,6 +20,8 @@ public class MSBuildMiner : IMiner
 {
     private readonly ILogger<MSBuildMiner> logger;
     private int counter = 0;
+    private readonly ConcurrentDictionary<string, Framework> frameworks
+        = new();
 
     public MSBuildMinerOptions Options { get; }
 
@@ -28,12 +33,12 @@ public class MSBuildMiner : IMiner
         this.logger = logger ?? NullLoggerFactory.Instance.CreateLogger<MSBuildMiner>();
     }
 
-    public Task Mine(Workspace workspace, CancellationToken cancellationToken = default)
+    public async Task Mine(Workspace workspace, CancellationToken cancellationToken = default)
     {
-        var solution = GetSolution(workspace.Source.Path, cancellationToken);
+        var solution = await GetSolution(workspace.Source.Path, cancellationToken);
         if (solution is null)
         {
-            return Task.CompletedTask;
+            return;
         }
 
         if (!workspace.TryAddRoot(solution))
@@ -41,14 +46,14 @@ public class MSBuildMiner : IMiner
             logger.LogError("Failed to add the '{}' root to the mining workspace.", solution.Id);
         }
 
-        return Task.CompletedTask;
+        return;
     }
 
-    private Solution? GetSolution(string path, CancellationToken cancellationToken = default)
+    private async Task<Solution?> GetSolution(string path, CancellationToken cancellationToken = default)
     {
         if (Directory.Exists(path))
         {
-            var solutionFiles = Directory.GetFiles(path, "*.sln");
+            var solutionFiles = Directory.GetFiles(path, $"*{CSConst.SolutionFileExtension}");
             if (solutionFiles.Length > 1)
             {
                 logger.LogCritical(
@@ -62,7 +67,7 @@ public class MSBuildMiner : IMiner
             }
             else
             {
-                var csprojFiles = Directory.GetFiles(path, "*.csproj");
+                var csprojFiles = Directory.GetFiles(path, $"*{CSConst.ProjectFileExtension}");
                 if (csprojFiles.Length > 1)
                 {
                     logger.LogCritical(
@@ -91,7 +96,7 @@ public class MSBuildMiner : IMiner
         }
 
         var fileExtension = Path.GetExtension(path);
-        if (fileExtension != ".sln" && fileExtension != ".csproj")
+        if (fileExtension != CSConst.SolutionFileExtension && fileExtension != CSConst.ProjectFileExtension)
         {
             logger.LogCritical("The source file '{}' is not a solution nor a C# project file.", path);
             return null;
@@ -101,49 +106,62 @@ public class MSBuildMiner : IMiner
         var solution = new Solution
         {
             Id = $"Solution-{Interlocked.Increment(ref counter)}",
-            Path = fileExtension == ".sln" ? path : null,
+            Path = fileExtension == CSConst.SolutionFileExtension ? path : null,
             Name = Path.GetFileNameWithoutExtension(path)
         };
 
-        var projectCollection = new MSB.Evaluation.ProjectCollection(Options.MSBuildProperties);
-        if (fileExtension == ".csproj")
+        try
         {
-            var project = GetProject(path, projectCollection);
+            var projectCollection = new MSB.Evaluation.ProjectCollection(Options.MSBuildProperties);
+            var buildParams = new MSB.Execution.BuildParameters(projectCollection)
+            {
+                Loggers = new[]
+                {
+                    new MSBuildDiagnosticLogger(logger)
+                    {
+                        Verbosity = MSB.Framework.LoggerVerbosity.Normal
+                    }
+                }
+            };
+            MSB.Execution.BuildManager.DefaultBuildManager.BeginBuild(buildParams);
+            if (fileExtension == CSConst.ProjectFileExtension)
+            {
+                var project = await GetProject(path, projectCollection);
+                return solution with
+                {
+                    Projects = ImmutableArray.Create(project with
+                    {
+                        ContainingSolution = solution.Id
+                    })
+                };
+            }
+
+            var msbuildSolution = MSB.Construction.SolutionFile.Parse(path);
+            logger.LogInformation("Found the '{}' solution.", solution.Name);
+            var projectPaths = msbuildSolution.ProjectsInOrder
+                .Where(p => p.ProjectType != MSB.Construction.SolutionProjectType.SolutionFolder)
+                .Select(p => p.AbsolutePath);
+
+
+            var projects = await Task.WhenAll(projectPaths
+                .Select(async p => await GetProject(p, projectCollection)));
             return solution with
             {
-                Projects = ImmutableArray.Create(project with
-                {
-                    ContainingSolution = solution.Id
-                })
+                Projects = projects
+                    .Select(p => p with
+                    {
+                        ContainingSolution = solution.Id
+                    })
+                    .ToImmutableArray()
             };
         }
-
-        var msbuildSolution = MSB.Construction.SolutionFile.Parse(path);
-        logger.LogInformation("Found the '{}' solution.", solution.Name);
-        var projectPaths = msbuildSolution.ProjectsInOrder
-            .Where(p => p.ProjectType != MSB.Construction.SolutionProjectType.SolutionFolder)
-            .Select(p => p.AbsolutePath);
-
-        var buildParams = new MSB.Execution.BuildParameters(projectCollection);
-        MSB.Execution.BuildManager.DefaultBuildManager.BeginBuild(buildParams);
-
-        var projects = projectPaths
-            .Select(p => GetProject(p, projectCollection))
-            .ToArray();
-
-        MSB.Execution.BuildManager.DefaultBuildManager.EndBuild();
-        return solution with
+        finally
         {
-            Projects = projects
-                .Select(p => p with
-                {
-                    ContainingSolution = solution.Id
-                })
-                .ToImmutableArray()
-        };
+            MSB.Execution.BuildManager.DefaultBuildManager.EndBuild();
+        }
     }
 
-    private Project GetProject(
+    private async Task<Project> GetProject(
         string path,
         MSB.Evaluation.ProjectCollection collection)
     {
@@ -154,15 +172,6 @@ public class MSBuildMiner : IMiner
 
         var projectName = msbuildProject.GetPropertyValue("MSBuildProjectName");
 
-        //msbuildProject.SetProperty("TargetFramework", "net7.0");
-
-        //var instance = msbuildProject.CreateProjectInstance();
-
-        //var buildRequest = new MSB.Execution.BuildRequestData(
-        //    instance,
-        //    new[] { "ResolveReferences" });
-        //var buildResult = MSB.Execution.BuildManager.DefaultBuildManager.BuildRequest(buildRequest);
-
         var project = new Project
         {
             Id = path,
@@ -172,6 +181,111 @@ public class MSBuildMiner : IMiner
 
         logger.LogInformation("Found the '{}' project.", project.Name);
 
-        return project;
+        string[]? targetFrameworks = null;
+
+        var targetFrameworkProp = msbuildProject.GetPropertyValue(CSConst.TargetFrameworkProperty);
+        if (!string.IsNullOrEmpty(targetFrameworkProp))
+        {
+            targetFrameworks = new string[] { targetFrameworkProp };
+        }
+        else
+        {
+            var targetFrameworksProp = msbuildProject.GetPropertyValue(CSConst.TargetFrameworksProperty);
+            if (string.IsNullOrEmpty(targetFrameworksProp))
+            {
+                logger.LogError("The '{}' project has no target frameworks.", projectName);
+                return project with
+                {
+                    Diagnostics = project.Diagnostics.Add(
+                        Diagnostic.Error("NoTargetFrameworks", "No target frameworks could be resolved."))
+                };
+            }
+
+            targetFrameworks = targetFrameworksProp.Split(';');
+        }
+
+        var dependenciesBuilder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<Dependency>>();
+        foreach (var targetFramework in targetFrameworks)
+        {
+            var dependencies = await ResolveDependencies(msbuildProject, targetFramework);
+            dependenciesBuilder.Add(targetFramework, dependencies);
+        }
+
+        return project with
+        {
+            Dependencies = dependenciesBuilder.ToImmutable()
+        };
+    }
+
+    private async Task<ImmutableArray<Dependency>> ResolveDependencies(
+        MSB.Evaluation.Project msbuildProject,
+        string targetFramework)
+    {
+        var projectName = msbuildProject.GetPropertyValue(CSConst.MSBuildProjectNameProperty);
+
+        msbuildProject.SetProperty(CSConst.TargetFrameworkProperty, targetFramework);
+        var instance = MSB.Execution.BuildManager.DefaultBuildManager.GetProjectInstanceForBuild(msbuildProject);
+
+        var buildRequest = new MSB.Execution.BuildRequestData(
+            instance,
+            new[] { CSConst.RestoreTarget, CSConst.ResolveReferencesTarget });
+        logger.LogDebug("Resolving references of '{}' for the '{}' target framework.", projectName, targetFramework);
+        var buildResult = await BuildAsync(MSB.Execution.BuildManager.DefaultBuildManager, buildRequest);
+        if (buildResult.OverallResult == MSB.Execution.BuildResultCode.Failure)
+        {
+            return ImmutableArray<Dependency>.Empty;
+        }
+
+        if (!buildResult.ResultsByTarget.TryGetValue(CSConst.ResolveReferencesTarget, out var targetResult))
+        {
+            return ImmutableArray<Dependency>.Empty;
+        }
+
+        var builder = ImmutableArray.CreateBuilder<Dependency>();
+        foreach(var item in targetResult.Items)
+        {
+            //logger.LogDebug("================================");
+            //foreach (var metadataName in item.MetadataNames)
+            //{
+            //    logger.LogDebug("{}={}", metadataName, item.GetMetadata(metadataName.ToString()));
+            //}
+            builder.Add(new Dependency
+            {
+                Name = item.GetMetadata("Identity")
+            });
+        }
+        return builder.ToImmutable();
+    }
+
+    // NB: Based on Roslyn's ProjectBuildManager.
+    private static Task<MSB.Execution.BuildResult> BuildAsync(
+        MSB.Execution.BuildManager buildManager,
+        MSB.Execution.BuildRequestData requestData)
+    {
+        var taskSource = new TaskCompletionSource<MSB.Execution.BuildResult>();
+
+        // execute build async
+        try
+        {
+            buildManager.PendBuildRequest(requestData).ExecuteAsync(sub =>
+            {
+                // when finished
+                try
+                {
+                    var result = sub.BuildResult;
+                    taskSource.TrySetResult(result);
+                }
+                catch (Exception e)
+                {
+                    taskSource.TrySetException(e);
+                }
+            }, null);
+        }
+        catch (Exception e)
+        {
+            taskSource.SetException(e);
+        }
+
+        return taskSource.Task;
     }
 }

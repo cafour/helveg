@@ -12,6 +12,9 @@ public record Project : EntityBase
 
     public string ContainingSolution { get; init; } = Const.Invalid;
 
+    public ImmutableDictionary<string, ImmutableArray<Dependency>> Dependencies { get; init; }
+        = ImmutableDictionary<string, ImmutableArray<Dependency>>.Empty;
+
     public override void Accept(IEntityVisitor visitor)
     {
         if (visitor is IProjectVisitor projectVisitor)

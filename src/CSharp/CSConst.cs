@@ -25,4 +25,13 @@ public static class CSConst
 
     public const string ReturnsId = "returns";
     public const string ReturnsLabel = "Returns";
+
+    public const string SolutionFileExtension = ".sln";
+    public const string ProjectFileExtension = ".csproj";
+
+    public const string MSBuildProjectNameProperty = "MSBuildProjectName";
+    public const string TargetFrameworkProperty = "TargetFramework";
+    public const string TargetFrameworksProperty = "TargetFrameworks";
+    public const string RestoreTarget = "Restore";
+    public const string ResolveReferencesTarget = "ResolveReferences";
 }
