@@ -11,6 +11,8 @@ namespace Helveg.CSharp;
 /// </summary>
 public static class CSConst
 {
+    public const string CSharpPrefix = "csharp";
+
     public const string DeclaresId = "declares";
     public const string DeclaresLabel = "Declares";
 

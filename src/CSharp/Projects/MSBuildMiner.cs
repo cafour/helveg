@@ -105,7 +105,7 @@ public class MSBuildMiner : IMiner
         var absolutePath = new FileInfo(path).FullName;
         var solution = new Solution
         {
-            Id = $"Solution-{Interlocked.Increment(ref counter)}",
+            Id = $"{CSConst.CSharpPrefix}Solution-{Interlocked.Increment(ref counter)}",
             Path = fileExtension == CSConst.SolutionFileExtension ? path : null,
             Name = Path.GetFileNameWithoutExtension(path)
         };
@@ -181,7 +181,7 @@ public class MSBuildMiner : IMiner
 
         logger.LogInformation("Found the '{}' project.", project.Name);
 
-        string[]? targetFrameworks = null;
+        string[]? targetFrameworks;
 
         var targetFrameworkProp = msbuildProject.GetPropertyValue(CSConst.TargetFrameworkProperty);
         if (!string.IsNullOrEmpty(targetFrameworkProp))
@@ -244,6 +244,18 @@ public class MSBuildMiner : IMiner
         var builder = ImmutableArray.CreateBuilder<Dependency>();
         foreach(var item in targetResult.Items)
         {
+            //FileVersion
+            //PackageVersion->PackageReference
+            //PublicKeyToken
+            //Version
+            //FrameworkReferenceVersion->FrameworkReference
+            //NuGetPackageId->PackageName
+            //FrameworkReferenceName->FrameworkReference
+            //ImageRuntime
+            //AssemblyVersion
+            //FullPath / Identity->Path
+            //Filename->Name
+
             //logger.LogDebug("================================");
             //foreach (var metadataName in item.MetadataNames)
             //{

@@ -5,8 +5,12 @@ namespace Helveg.CSharp.Packages;
 
 public record Package : EntityBase
 {
-    public string? Version { get; init; }
     public string Name { get; init; } = Const.Invalid;
+
+    public ImmutableArray<string> Versions { get; init; }
+        = ImmutableArray<string>.Empty;
+
+    public string? Url { get; init; }
 
     public override void Accept(IEntityVisitor visitor)
     {
@@ -21,4 +25,11 @@ public record Package : EntityBase
 
         base.Accept(visitor);
     }
+}
+
+public record PackageReference
+{
+    public string Id { get; init; } = Const.Invalid;
+
+    public string? Version { get; init; }
 }
