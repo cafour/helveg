@@ -21,7 +21,7 @@ internal class SymbolTrackingVisitor : Microsoft.CodeAnalysis.SymbolVisitor
 
     public override void VisitAssembly(IAssemblySymbol symbol)
     {
-        map.Add(symbol);
+        map.GetOrAdd(symbol);
         foreach (var module in symbol.Modules)
         {
             VisitModule(module);
@@ -30,13 +30,13 @@ internal class SymbolTrackingVisitor : Microsoft.CodeAnalysis.SymbolVisitor
 
     public override void VisitModule(IModuleSymbol symbol)
     {
-        map.Add(symbol);
+        map.GetOrAdd(symbol);
         VisitNamespace(symbol.GlobalNamespace);
     }
 
     public override void VisitNamespace(INamespaceSymbol symbol)
     {
-        map.Add(symbol);
+        map.GetOrAdd(symbol);
 
         foreach (var ns in symbol.GetNamespaceMembers())
         {
@@ -51,7 +51,7 @@ internal class SymbolTrackingVisitor : Microsoft.CodeAnalysis.SymbolVisitor
 
     public override void VisitNamedType(INamedTypeSymbol symbol)
     {
-        map.Add(symbol);
+        map.GetOrAdd(symbol);
 
         foreach (var typeParameter in symbol.TypeParameters)
         {
@@ -71,17 +71,17 @@ internal class SymbolTrackingVisitor : Microsoft.CodeAnalysis.SymbolVisitor
 
     public override void VisitField(IFieldSymbol symbol)
     {
-        map.Add(symbol);
+        map.GetOrAdd(symbol);
     }
 
     public override void VisitEvent(IEventSymbol symbol)
     {
-        map.Add(symbol);
+        map.GetOrAdd(symbol);
     }
 
     public override void VisitProperty(IPropertySymbol symbol)
     {
-        map.Add(symbol);
+        map.GetOrAdd(symbol);
 
         foreach (var parameter in symbol.Parameters)
         {
@@ -91,7 +91,7 @@ internal class SymbolTrackingVisitor : Microsoft.CodeAnalysis.SymbolVisitor
 
     public override void VisitMethod(IMethodSymbol symbol)
     {
-        map.Add(symbol);
+        map.GetOrAdd(symbol);
 
         foreach (var typeParameter in symbol.TypeParameters)
         {
@@ -106,11 +106,11 @@ internal class SymbolTrackingVisitor : Microsoft.CodeAnalysis.SymbolVisitor
 
     public override void VisitParameter(IParameterSymbol symbol)
     {
-        map.Add(symbol);
+        map.GetOrAdd(symbol);
     }
 
     public override void VisitTypeParameter(ITypeParameterSymbol symbol)
     {
-        map.Add(symbol);
+        map.GetOrAdd(symbol);
     }
 }

@@ -3,16 +3,14 @@ namespace Helveg.CSharp.Symbols;
 
 public record TypeParameterReference : TypeReference
 {
-    public new static TypeParameterReference Invalid { get; }
-        = new() { Token = SymbolToken.CreateError(SymbolKind.TypeParameter) };
+    public new static TypeParameterReference Invalid { get; } = new();
 
     public override TypeKind TypeKind => TypeKind.TypeParameter;
 }
 
 public record TypeParameterDefinition : SymbolDefinition
 {
-    public static TypeParameterDefinition Invalid { get; }
-        = new() { Token = SymbolToken.CreateError(SymbolKind.TypeParameter) };
+    public static TypeParameterDefinition Invalid { get; } = new();
 
     // TODO: Constraints
 

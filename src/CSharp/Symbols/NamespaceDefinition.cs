@@ -7,14 +7,12 @@ namespace Helveg.CSharp.Symbols;
 
 public record NamespaceReference : SymbolReference
 {
-    public static NamespaceReference Invalid { get; }
-        = new() { Token = SymbolToken.CreateError(SymbolKind.Namespace) };
+    public static NamespaceReference Invalid { get; } = new();
 }
 
 public record NamespaceDefinition : SymbolDefinition
 {
-    public static NamespaceDefinition Invalid { get; }
-        = new() { Token = SymbolToken.CreateError(SymbolKind.Namespace) };
+    public static NamespaceDefinition Invalid { get; } = new();
 
     public ImmutableArray<TypeDefinition> Types { get; init; } = ImmutableArray<TypeDefinition>.Empty;
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace Helveg.CSharp.Symbols;
@@ -11,9 +12,11 @@ public interface ISymbolDefinition : IEntity
 {
     string Name { get; }
 
+    [JsonIgnore]
     bool IsInvalid { get; }
 
-    SymbolToken Token { get; }
+    [JsonIgnore]
+    NumericToken Token { get; }
 
     ISymbolReference GetReference();
 }
@@ -23,13 +26,26 @@ public interface ISymbolDefinition : IEntity
 /// </summary>
 public abstract record SymbolDefinition : EntityBase, ISymbolDefinition
 {
+    [JsonIgnore]
+    public bool IsInvalid => Token.IsInvalid || Name == Const.Invalid;
+
     public string Name { get; init; } = Const.Invalid;
 
-    public SymbolToken Token { get; init; } = SymbolToken.Invalid;
+    [JsonIgnore]
+    public NumericToken Token { get; init; }
 
-    public bool IsInvalid => Token.IsError || Name == Const.Invalid;
-
-    string IEntity.Id => Token.ToString();
+    public override string Id
+    {
+        get => Token;
+        init
+        {
+            if (!NumericToken.TryParse(value, out NumericToken token))
+            {
+                throw new ArgumentException("Value is not a valid numeric token.");
+            }
+            Token = token;
+        }
+    }
 
     public abstract ISymbolReference GetReference();
 }

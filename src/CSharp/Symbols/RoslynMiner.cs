@@ -18,6 +18,7 @@ public class RoslynMiner : IMiner
 
     private readonly SymbolTokenMap tokenMap;
     private readonly SymbolTrackingVisitor symbolVisitor;
+    private readonly WeakReference<Workspace?> workspace = new(null);
 
     public RoslynMinerOptions Options { get; }
 
@@ -34,6 +35,8 @@ public class RoslynMiner : IMiner
 
     public async Task Mine(Workspace workspace, CancellationToken cancellationToken = default)
     {
+        this.workspace.SetTarget(workspace);
+
         var solution = workspace.Roots.Values.OfType<Solution>().Single();
         var msbuildWorkspace = Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Create(Options.MSBuildProperties);
         try
@@ -62,11 +65,15 @@ public class RoslynMiner : IMiner
         }
         LogMSBuildDiagnostics(msbuildWorkspace);
 
-        var assemblies = await Task.WhenAll(msbuildWorkspace.CurrentSolution.Projects
-            .Select(async p => (key: p.FilePath ?? p.Name, assembly: await GetAssembly(p, cancellationToken))));
-        var projectAssemblies = assemblies
-            .GroupBy(p => p.key)
-            .ToDictionary(g => g.Key, g => g.Select(p => p.assembly).ToArray());
+        var matchedProjects = solution.Projects.Join(msbuildWorkspace.CurrentSolution.Projects,
+            p => p.Path ?? p.Name,
+            p => p.FilePath ?? p.Name,
+            (project, msbuildProject) => (project, msbuildProject));
+
+        var projectAssemblies = (await Task.WhenAll(matchedProjects.Select(
+            async p => (id: p.project.Id, assembly: await GetAssembly(p.project, p.msbuildProject, cancellationToken)))))
+            .GroupBy(p => p.id)
+            .ToDictionary(g => g.Key, g => g.Select(p => p.assembly));
         workspace.SetRoot(solution with
         {
             Diagnostics = solution.Diagnostics.AddRange(
@@ -83,7 +90,7 @@ public class RoslynMiner : IMiner
             Projects = solution.Projects
                 .Select(p =>
                 {
-                    if (!projectAssemblies.TryGetValue(p.Path ?? p.Name, out var assemblies))
+                    if (!projectAssemblies.TryGetValue(p.Id, out var assemblies))
                     {
                         logger.LogError("Could not map project '{}' onto a Roslyn project.", p.Name);
                         return p;
@@ -107,20 +114,21 @@ public class RoslynMiner : IMiner
     }
 
     private async Task<AssemblyDefinition> GetAssembly(
-        Microsoft.CodeAnalysis.Project project,
+        Project project,
+        Microsoft.CodeAnalysis.Project roslynProject,
         CancellationToken cancellationToken = default)
     {
-        var compilation = await project.GetCompilationAsync(cancellationToken);
+        var compilation = await roslynProject.GetCompilationAsync(cancellationToken);
         if (compilation is null)
         {
-            logger.LogError("Failed to compile the '{}' project.", project.Name);
+            logger.LogError("Failed to compile the '{}' project.", roslynProject.Name);
             return AssemblyDefinition.Invalid;
         }
 
         logger.LogInformation("Found the '{}' assembly.", compilation.Assembly.GetHelvegAssemblyId().ToDisplayString());
 
         // TODO: Classify references into BCL, Packages, and Other.
-        tokenMap.Track(compilation);
+        tokenMap.Track(compilation.Assembly.GetHelvegAssemblyId(), project.Token, compilation);
 
         // Phase 1: Discover all symbols within the assembly.
         logger.LogDebug("Visiting the '{}' assembly.", compilation.Assembly.GetHelvegAssemblyId().ToDisplayString());
@@ -135,7 +143,7 @@ public class RoslynMiner : IMiner
             {
                 var diagnostic = Diagnostic.Error(
                     "MissingAssemblySymbol",
-                    $"Could not obtain an assembly symbol for a metadata reference of '{project.Name}'. " +
+                    $"Could not obtain an assembly symbol for a metadata reference of '{roslynProject.Name}'. " +
                     $"The reference is: '{reference}'.");
                 errors.Add(diagnostic);
                 logger.LogWarning(diagnostic.Message);

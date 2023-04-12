@@ -19,7 +19,7 @@ public class VisualizationSymbolVisitor : SymbolVisitor
     public override void DefaultVisit(ISymbolDefinition symbol)
     {
         var node = builder.GetNode(symbol.Token, symbol.Name)
-            .SetProperty("Kind", $"csharp:{symbol.Token.Kind}");
+            .SetProperty(Const.KindProperty, CSConst.KindOf(symbol.GetType()));
 
         if (symbol is IMemberDefinition member)
         {

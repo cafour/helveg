@@ -9,8 +9,7 @@ namespace Helveg.CSharp.Symbols;
 
 public record ArrayTypeReference : TypeReference
 {
-    public new static ArrayTypeReference Invalid { get; }
-        = new() { Token = SymbolToken.CreateError(SymbolKind.Type) };
+    public new static ArrayTypeReference Invalid { get; } = new();
 
     public override TypeKind TypeKind => TypeKind.Array;
 

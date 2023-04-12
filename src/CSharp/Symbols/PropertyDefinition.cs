@@ -4,14 +4,12 @@ namespace Helveg.CSharp.Symbols;
 
 public record PropertyReference : SymbolReference
 {
-    public static PropertyReference Invalid { get; }
-        = new() { Token = SymbolToken.CreateError(SymbolKind.Property) };
+    public static PropertyReference Invalid { get; } = new();
 }
 
 public record PropertyDefinition : MemberDefinition
 {
-    public static PropertyDefinition Invalid { get; }
-        = new() { Token = SymbolToken.CreateError(SymbolKind.Property) };
+    public static PropertyDefinition Invalid { get; } = new();
 
     public TypeReference PropertyType { get; init; } = TypeReference.Invalid;
 

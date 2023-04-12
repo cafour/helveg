@@ -3,14 +3,12 @@ namespace Helveg.CSharp.Symbols;
 
 public record EventReference : SymbolReference
 {
-    public static EventReference Invalid { get; }
-        = new() { Token = SymbolToken.CreateError(SymbolKind.Event) };
+    public static EventReference Invalid { get; } = new();
 }
 
 public record EventDefinition : MemberDefinition
 {
-    public static EventDefinition Invalid { get; }
-        = new() { Token = SymbolToken.CreateError(SymbolKind.Event) };
+    public static EventDefinition Invalid { get; } = new();
 
     public TypeReference EventType { get; init; } = TypeReference.Invalid;
 

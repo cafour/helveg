@@ -6,8 +6,7 @@ namespace Helveg.CSharp.Symbols;
 
 public record MethodReference : SymbolReference
 {
-    public static MethodReference Invalid { get; }
-        = new() { Token = SymbolToken.CreateError(SymbolKind.Method) };
+    public static MethodReference Invalid { get; } = new();
 
     public ImmutableArray<TypeReference> TypeArguments { get; init; }
         = ImmutableArray<TypeReference>.Empty;
@@ -18,8 +17,7 @@ public record MethodDefinition : MemberDefinition
     public const string ConstructorName = ".ctor";
     public const string StaticConstructorName = ".cctor";
 
-    public static MethodDefinition Invalid { get; }
-        = new() { Token = SymbolToken.CreateError(SymbolKind.Method) };
+    public static MethodDefinition Invalid { get; } = new();
 
     public MethodKind MethodKind { get; init; }
 

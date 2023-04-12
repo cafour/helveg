@@ -7,14 +7,12 @@ namespace Helveg.CSharp.Symbols;
 
 public record AssemblyReference : SymbolReference
 {
-    public static AssemblyReference Invalid { get; }
-        = new() { Token = SymbolToken.CreateError(SymbolKind.Assembly) };
+    public static AssemblyReference Invalid { get; } = new();
 }
 
 public record AssemblyDefinition : SymbolDefinition
 {
-    public static AssemblyDefinition Invalid { get; }
-        = new() { Token = SymbolToken.CreateError(SymbolKind.Assembly) };
+    public static AssemblyDefinition Invalid { get; } = new();
 
     public AssemblyId Identity { get; init; } = AssemblyId.Invalid;
 

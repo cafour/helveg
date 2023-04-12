@@ -38,52 +38,52 @@
                 color = "#002440";
                 pictogram = "csharp:Package";
                 break;
-            case "csharp:Assembly":
+            case "csharp:AssemblyDefinition":
                 size = 6;
                 color = "#57a64a";
                 pictogram = "csharp:Assembly";
                 break;
-            case "csharp:Module":
+            case "csharp:ModuleDefinition":
                 size = 6;
                 color = "#57a64a";
                 pictogram = "csharp:Module";
                 break;
-            case "csharp:Namespace":
+            case "csharp:NamespaceDefinition":
                 size = 5;
                 color = "#dcdcdc";
                 pictogram = "csharp:Namespace";
                 break;
-            case "csharp:Type":
+            case "csharp:TypeDefinition":
                 size = 4;
                 color = "#4ec9b0";
                 pictogram = "csharp:Class";
                 break;
-            case "csharp:TypeParameter":
+            case "csharp:TypeParameterDefinition":
                 size = 2;
                 color = "#4ec9b0";
                 pictogram = "csharp:Type";
                 break;
-            case "csharp:Field":
+            case "csharp:FieldDefinition":
                 size = 3;
                 color = "#dcdcaa";
                 pictogram = "csharp:Field";
                 break;
-            case "csharp:Method":
+            case "csharp:MethodDefinition":
                 size = 3;
                 color = "#dcdcaa";
                 pictogram = "csharp:Method";
                 break;
-            case "csharp:Property":
+            case "csharp:PropertyDefinition":
                 size = 3;
                 color = "#dcdcaa";
                 pictogram = "csharp:Property";
                 break;
-            case "csharp:Event":
+            case "csharp:EventDefinition":
                 size = 3;
                 color = "#dcdcaa";
                 pictogram = "csharp:Event";
                 break;
-            case "csharp:Parameter":
+            case "csharp:ParameterDefinition":
                 size = 1;
                 color = "#9cdcfe";
                 pictogram = "csharp:LocalVariable";

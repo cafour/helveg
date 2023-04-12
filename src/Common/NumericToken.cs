@@ -34,6 +34,8 @@ public record struct NumericToken
         ? Create(Namespace, Values.RemoveAt(Values.Length - 1))
         : GlobalInvalid;
 
+    public NumericToken Derive(int index) => Create(Namespace, Values.Add(index));
+
     public static readonly NumericToken GlobalInvalid = CreateInvalid(Const.GlobalNamespace);
 
     public static readonly NumericToken GlobalNone = CreateNone(Const.GlobalNamespace);

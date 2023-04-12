@@ -8,8 +8,7 @@ namespace Helveg.CSharp.Symbols;
 
 public record PointerTypeReference : TypeReference
 {
-    public static new PointerTypeReference Invalid { get; }
-        = new() { Token = SymbolToken.CreateError(SymbolKind.Type) };
+    public static new PointerTypeReference Invalid { get; } = new();
 
     public override TypeKind TypeKind => TypeKind.Pointer;
 

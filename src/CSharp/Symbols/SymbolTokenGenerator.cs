@@ -14,15 +14,21 @@ internal class SymbolTokenGenerator
 {
     private int counter = 0;
 
-    public SymbolTokenGenerator(string prefix)
+    public SymbolTokenGenerator(NumericToken containingAssembly)
     {
-        Prefix = prefix;
+        ContainingAssembly = containingAssembly;
+        Invalid = NumericToken.CreateInvalid(ContainingAssembly.Namespace, ContainingAssembly.Values);
+        None = NumericToken.CreateNone(ContainingAssembly.Namespace, ContainingAssembly.Values);
     }
 
-    public string Prefix { get; }
+    public NumericToken ContainingAssembly { get; }
 
-    public SymbolToken GetToken(SymbolKind kind)
+    public NumericToken Invalid { get; }
+
+    public NumericToken None { get; }
+
+    public NumericToken GetToken()
     {
-        return new SymbolToken(Prefix, kind, Interlocked.Increment(ref counter));
+        return ContainingAssembly.Derive(Interlocked.Increment(ref counter));
     }
 }

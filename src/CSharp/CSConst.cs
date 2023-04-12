@@ -38,9 +38,17 @@ public static class CSConst
     public const string RestoreTarget = "Restore";
     public const string ResolveReferencesTarget = "ResolveReferences";
 
+    public static readonly NumericToken InvalidToken = NumericToken.CreateInvalid(CSharpNamespace);
+    public static readonly NumericToken NoneToken = NumericToken.CreateNone(CSharpNamespace);
+
     internal static string KindOf<T>()
         where T : IEntity
     {
-        return $"{CSharpNamespace}:{typeof(T).Name}";
+        return KindOf(typeof(T));
+    }
+
+    internal static string KindOf(Type type)
+    {
+        return $"{CSharpNamespace}:{type.Name}";
     }
 }

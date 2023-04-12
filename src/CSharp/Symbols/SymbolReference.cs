@@ -10,7 +10,7 @@ namespace Helveg.CSharp.Symbols;
 public interface ISymbolReference
 {
     string? Hint { get; }
-    SymbolToken Token { get; }
+    NumericToken Token { get; }
     ImmutableArray<Diagnostic> Diagnostics { get; }
 }
 
@@ -20,7 +20,7 @@ public interface ISymbolReference
 public abstract record SymbolReference : ISymbolReference
 {
     public string? Hint { get; init; }
-    public SymbolToken Token { get; init; } = SymbolToken.Invalid;
+    public NumericToken Token { get; init; } = CSConst.InvalidToken;
     public ImmutableArray<Diagnostic> Diagnostics { get; init; }
         = ImmutableArray<Diagnostic>.Empty;
 }

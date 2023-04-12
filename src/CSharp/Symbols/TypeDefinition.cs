@@ -4,8 +4,7 @@ namespace Helveg.CSharp.Symbols;
 
 public record TypeReference : SymbolReference
 {
-    public static TypeReference Invalid { get; }
-        = new() { Token = SymbolToken.CreateError(SymbolKind.Type) };
+    public static TypeReference Invalid { get; } = new();
 
     public virtual TypeKind TypeKind { get; init; }
 
@@ -17,8 +16,7 @@ public record TypeReference : SymbolReference
 
 public record TypeDefinition : MemberDefinition
 {
-    public static TypeDefinition Invalid { get; }
-        = new() { Token = SymbolToken.CreateError(SymbolKind.Type) };
+    public static TypeDefinition Invalid { get; } = new();
 
     public string MetadataName { get; init; } = Const.Invalid;
 

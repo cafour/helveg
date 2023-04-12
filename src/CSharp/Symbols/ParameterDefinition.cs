@@ -3,14 +3,12 @@ namespace Helveg.CSharp.Symbols;
 
 public record ParameterReference : SymbolReference
 {
-    public static ParameterReference Invalid { get; }
-        = new() { Token = SymbolToken.CreateError(SymbolKind.Parameter) };
+    public static ParameterReference Invalid { get; } = new();
 }
 
 public record ParameterDefinition : SymbolDefinition
 {
-    public static ParameterDefinition Invalid { get; }
-        = new() { Token = SymbolToken.CreateError(SymbolKind.Parameter) };
+    public static ParameterDefinition Invalid { get; } = new();
 
     public TypeReference ParameterType { get; set; } = TypeReference.Invalid;
 
