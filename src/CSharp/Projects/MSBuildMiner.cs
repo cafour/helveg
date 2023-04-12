@@ -247,23 +247,6 @@ public class MSBuildMiner : IMiner
         var builder = ImmutableArray.CreateBuilder<Dependency>();
         foreach(var item in targetResult.Items)
         {
-            //FileVersion
-            //PackageVersion->PackageReference
-            //PublicKeyToken
-            //Version
-            //FrameworkReferenceVersion->FrameworkReference
-            //NuGetPackageId->PackageName
-            //FrameworkReferenceName->FrameworkReference
-            //ImageRuntime
-            //AssemblyVersion
-            //FullPath / Identity->Path
-            //Filename->Name
-
-            //logger.LogDebug("================================");
-            //foreach (var metadataName in item.MetadataNames)
-            //{
-            //    logger.LogDebug("{}={}", metadataName, item.GetMetadata(metadataName.ToString()));
-            //}
             var dependency = new Dependency
             {
                 Name = NullIfEmpty(item.GetMetadata("Filename")) ?? Const.Invalid,
