@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace Helveg;
@@ -10,10 +11,10 @@ public record Workspace
 {
     private readonly ConcurrentDictionary<string, IEntity> entities = new();
     private readonly ConcurrentDictionary<string, object> scratchSpace = new();
+    private readonly ConcurrentDictionary<string, IEntity> roots = new();
     private readonly ILogger<Workspace> logger;
-    private ImmutableDictionary<string, IEntity> roots = ImmutableDictionary<string, IEntity>.Empty;
 
-    public ImmutableDictionary<string, IEntity> Roots => roots;
+    public IReadOnlyDictionary<string, IEntity> Roots => roots;
 
     public DataSource Source { get; init; } = DataSource.Invalid;
 
@@ -24,7 +25,7 @@ public record Workspace
 
     public bool TryAddRoot(IEntity root)
     {
-        if (!ImmutableInterlocked.TryAdd(ref roots, root.Id, root))
+        if (!roots.TryAdd(root.Id, root))
         {
             return false;
         }
@@ -35,7 +36,7 @@ public record Workspace
 
     public void RemoveRoot(IEntity root)
     {
-        if (ImmutableInterlocked.TryRemove(ref roots, root.Id, out _))
+        if (roots.TryRemove(root.Id, out _))
         {
             root.Accept(new EntityUntrackingVisitor(entities));
         }
@@ -43,8 +44,7 @@ public record Workspace
 
     public void SetRoot(IEntity root)
     {
-        ImmutableInterlocked.AddOrUpdate(
-            location: ref roots,
+        roots.AddOrUpdate(
             key: root.Id,
             addValueFactory: _ => root,
             updateValueFactory: (_, _) => root

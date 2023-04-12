@@ -17,4 +17,9 @@ public abstract class ProjectVisitor : EntityVisitor, IProjectVisitor
     {
         DefaultVisit(solution);
     }
+
+    public virtual void VisitFramework(Framework framework)
+    {
+        DefaultVisit(framework);
+    }
 }

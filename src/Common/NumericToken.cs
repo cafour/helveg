@@ -30,6 +30,10 @@ public record struct NumericToken
 
     public bool IsNone => !Values.IsDefaultOrEmpty && Values.Last() == NoneValue;
 
+    public NumericToken Parent => Values.Length > 1
+        ? Create(Namespace, Values.RemoveAt(Values.Length - 1))
+        : GlobalInvalid;
+
     public static readonly NumericToken GlobalInvalid = CreateInvalid(Const.GlobalNamespace);
 
     public static readonly NumericToken GlobalNone = CreateNone(Const.GlobalNamespace);
@@ -39,11 +43,23 @@ public record struct NumericToken
         Namespace = Const.Invalid;
     }
 
+    public static implicit operator string(NumericToken token)
+    {
+        return token.ToString();
+    }
+
     public static NumericToken Create(string @namespace, ImmutableArray<int> values)
     {
         if (values.IsDefaultOrEmpty)
         {
             throw new ArgumentException($"A {nameof(NumericToken)} must have at least one value.", nameof(values));
+        }
+
+        if (@namespace.Contains(Separator))
+        {
+            throw new ArgumentException(
+                $"A {nameof(NumericToken)} namespace must not contain '{Separator}'.",
+                nameof(@namespace));
         }
 
         return new NumericToken
@@ -60,7 +76,7 @@ public record struct NumericToken
 
     public static NumericToken Create(string @namespace, params int[] values)
     {
-        return Create(@namespace, values);
+        return Create(@namespace, values.ToImmutableArray());
     }
 
     public static NumericToken CreateInvalid(string @namespace, ImmutableArray<int> prefixValues)
@@ -79,7 +95,7 @@ public record struct NumericToken
 
     public static NumericToken CreateInvalid(string @namespace, params int[] prefixValues)
     {
-        return CreateInvalid(@namespace, prefixValues);
+        return CreateInvalid(@namespace, prefixValues.ToImmutableArray());
     }
 
     public static NumericToken CreateNone(string @namespace, ImmutableArray<int> prefixValues)
@@ -93,12 +109,12 @@ public record struct NumericToken
 
     public static NumericToken CreateNone(string @namespace, IEnumerable<int> prefixValues)
     {
-        return CreateNone(@namespace, prefixValues);
+        return CreateNone(@namespace, prefixValues.ToImmutableArray());
     }
 
     public static NumericToken CreateNone(string @namespace, params int[] prefixValues)
     {
-        return CreateNone(@namespace, prefixValues);
+        return CreateNone(@namespace, prefixValues.ToImmutableArray());
     }
 
     public static bool TryParse(string value, out NumericToken token)

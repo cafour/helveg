@@ -10,4 +10,5 @@ public interface IProjectVisitor : IEntityVisitor
 {
     void VisitSolution(Solution solution);
     void VisitProject(Project project);
+    void VisitFramework(Framework framework);
 }

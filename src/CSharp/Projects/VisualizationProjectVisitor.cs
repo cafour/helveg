@@ -26,7 +26,7 @@ public class VisualizationProjectVisitor : ProjectVisitor
 
         builder.GetNode(solution.Id, solution.Name)
             .SetProperty(nameof(Solution.Path), solution.Path)
-            .SetProperty("Kind", "csharp:Solution");
+            .SetProperty(Const.KindProperty, CSConst.KindOf<Solution>());
         builder.AddEdges(CSConst.DeclaresId, solution.Projects.Select(p => new Edge(solution.Id, p.Id)));
     }
 
@@ -36,12 +36,21 @@ public class VisualizationProjectVisitor : ProjectVisitor
 
         builder.GetNode(project.Id, project.Name)
             .SetProperty(nameof(Solution.Path), project.Path)
-            .SetProperty("Kind", "csharp:Project");
+            .SetProperty(Const.KindProperty, CSConst.KindOf<Project>());
 
         var assemblies = project.Extensions.OfType<AssemblyExtension>().ToArray();
         if (assemblies.Length > 0)
         {
             builder.AddEdges(CSConst.DeclaresId, assemblies.Select(a => new Edge(project.Id, a.Assembly.Token)));
         }
+    }
+
+    public override void VisitFramework(Framework framework)
+    {
+        base.VisitFramework(framework);
+
+        builder.GetNode(framework.Id, framework.Name)
+            .SetProperty(nameof(Framework.Version), framework.Version)
+            .SetProperty(Const.KindProperty, CSConst.KindOf<Framework>());
     }
 }

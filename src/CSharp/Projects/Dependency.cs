@@ -10,15 +10,18 @@ public record Dependency
 {
     public string Name { get; init; } = Const.Invalid;
 
-    public string? FullPath { get; init; }
+    public string? Path { get; init; }
 
     public string? FileVersion { get; init; }
 
     public string? PublicKeyToken { get; init; }
 
-    public Version Version { get; init; } = new();
+    public string? Version { get; init; }
 
     public string? PackageId { get; init; }
 
-    public string? FrameworkId { get; init; }
+    public string? PackageVersion { get; init; }
+
+    public NumericToken Framework { get; init; }
+        = NumericToken.CreateNone(CSConst.CSharpNamespace, (int)RootKind.Framework);
 }

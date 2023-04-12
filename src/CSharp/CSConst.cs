@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Helveg.CSharp.Symbols;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,7 +12,7 @@ namespace Helveg.CSharp;
 /// </summary>
 public static class CSConst
 {
-    public const string CSharpPrefix = "csharp";
+    public const string CSharpNamespace = "csharp";
 
     public const string DeclaresId = "declares";
     public const string DeclaresLabel = "Declares";
@@ -36,4 +37,10 @@ public static class CSConst
     public const string TargetFrameworksProperty = "TargetFrameworks";
     public const string RestoreTarget = "Restore";
     public const string ResolveReferencesTarget = "ResolveReferences";
+
+    internal static string KindOf<T>()
+        where T : IEntity
+    {
+        return $"{CSharpNamespace}:{typeof(T).Name}";
+    }
 }

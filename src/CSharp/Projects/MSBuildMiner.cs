@@ -22,6 +22,7 @@ public class MSBuildMiner : IMiner
     private int counter = 0;
     private readonly ConcurrentDictionary<string, Framework> frameworks
         = new();
+    private WeakReference<Workspace?> workspaceRef = new(null);
 
     public MSBuildMinerOptions Options { get; }
 
@@ -35,6 +36,8 @@ public class MSBuildMiner : IMiner
 
     public async Task Mine(Workspace workspace, CancellationToken cancellationToken = default)
     {
+        this.workspaceRef = new(workspace);
+
         var solution = await GetSolution(workspace.Source.Path, cancellationToken);
         if (solution is null)
         {
@@ -105,7 +108,7 @@ public class MSBuildMiner : IMiner
         var absolutePath = new FileInfo(path).FullName;
         var solution = new Solution
         {
-            Id = $"{CSConst.CSharpPrefix}:Solution-{Interlocked.Increment(ref counter)}",
+            Index = Interlocked.Increment(ref counter),
             Path = fileExtension == CSConst.SolutionFileExtension ? path : null,
             Name = Path.GetFileNameWithoutExtension(path)
         };
@@ -131,7 +134,7 @@ public class MSBuildMiner : IMiner
                 {
                     Projects = ImmutableArray.Create(project with
                     {
-                        ContainingSolution = solution.Id
+                        ContainingSolution = solution.Token
                     })
                 };
             }
@@ -150,7 +153,7 @@ public class MSBuildMiner : IMiner
                 Projects = projects
                     .Select(p => p with
                     {
-                        ContainingSolution = solution.Id
+                        ContainingSolution = solution.Token
                     })
                     .ToImmutableArray()
             };
@@ -174,7 +177,7 @@ public class MSBuildMiner : IMiner
 
         var project = new Project
         {
-            Id = path,
+            Index = Interlocked.Increment(ref counter),
             Path = path,
             Name = projectName
         };
@@ -261,10 +264,28 @@ public class MSBuildMiner : IMiner
             //{
             //    logger.LogDebug("{}={}", metadataName, item.GetMetadata(metadataName.ToString()));
             //}
-            builder.Add(new Dependency
+            var dependency = new Dependency
             {
-                Name = item.GetMetadata("Identity")
-            });
+                Name = NullIfEmpty(item.GetMetadata("Filename")) ?? Const.Invalid,
+                Path = NullIfEmpty(item.GetMetadata("FullPath")),
+                Version = NullIfEmpty(item.GetMetadata("Version")),
+                FileVersion = NullIfEmpty(item.GetMetadata("FileVersion")),
+                PublicKeyToken = NullIfEmpty(item.GetMetadata("PublicKeyToken")),
+                PackageId = NullIfEmpty(item.GetMetadata("NuGetPackageId")),
+                PackageVersion = NullIfEmpty(item.GetMetadata("NuGetPackageVersion"))
+            };
+
+            var frameworkName = NullIfEmpty(item.GetMetadata("FrameworkReferenceName"));
+            var frameworkVersion = NullIfEmpty(item.GetMetadata("FrameworkReferenceVersion"));
+            if (frameworkName is not null)
+            {
+                dependency = dependency with
+                {
+                    Framework = GetFramework(frameworkName, frameworkVersion)
+                };
+            }
+
+            builder.Add(dependency);
         }
         return builder.ToImmutable();
     }
@@ -299,5 +320,42 @@ public class MSBuildMiner : IMiner
         }
 
         return taskSource.Task;
+    }
+
+    private NumericToken GetFramework(string name, string? version)
+    {
+        if (!workspaceRef.TryGetTarget(out var workspace) || workspace is null)
+        {
+            return NumericToken.CreateNone(CSConst.CSharpNamespace, (int)RootKind.Framework);
+        }
+
+        var existing = workspace.Roots.Values
+            .OfType<Framework>()
+            .Where(f => f.Name == name && f.Version == version)
+            .FirstOrDefault();
+        if (existing is not null)
+        {
+            return existing.Token;
+        }
+
+        var framework = new Framework
+        {
+            Index = Interlocked.Increment(ref counter),
+            Name = name,
+            Version = version
+        };
+
+        if (!workspace.TryAddRoot(framework))
+        {
+            // NB: This should never happen.
+            return NumericToken.CreateInvalid(CSConst.CSharpNamespace, (int)RootKind.Framework);
+        }
+
+        return framework.Token;
+    }
+
+    private static string? NullIfEmpty(string? value)
+    {
+        return string.IsNullOrEmpty(value) ? null : value;
     }
 }
