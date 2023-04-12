@@ -10,4 +10,5 @@ public static class Const
 {
     public const string Invalid = "Invalid";
     public const string Unknown = "Unknown";
+    public const string GlobalNamespace = "global";
 }

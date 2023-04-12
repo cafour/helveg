@@ -58,7 +58,7 @@ public record struct SymbolToken
 
     public static bool TryParse(string value, out SymbolToken token)
     {
-        if (!value.StartsWith(CSConst.CSharpPrefix))
+        if (!value.StartsWith($"{CSConst.CSharpPrefix}:"))
         {
             token = Invalid;
             return false;
@@ -95,6 +95,7 @@ public record struct SymbolToken
     {
         uint id = (uint)Id;
         var sb = new StringBuilder(CSConst.CSharpPrefix);
+        sb.Append(':');
         sb.Append(Kind.ToString());
         sb.Append('-');
         sb.Append(Prefix);

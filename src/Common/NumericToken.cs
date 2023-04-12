@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -10,69 +11,137 @@ using System.Threading.Tasks;
 namespace Helveg;
 
 /// <summary>
-/// A structure that uniquely identifies an <see cref="ISymbolDefinition"/> in a <see cref="EntityWorkspace"/>.
+/// A structure that can serve as a structured identifier underlying an <see cref="IEntity.Id"/>.
 /// </summary>
 [JsonConverter(typeof(NumericTokenJsonConverter))]
 [DebuggerDisplay("{ToString(),nq}")]
 public record struct NumericToken
 {
-    public const char NamespaceSeparator = ':';
-    public const char ValueSeparator = '-';
-
+    public const char Separator = ':';
     public const int InvalidValue = -1;
+    public const int NoneValue = 0;
 
     public string Namespace { get; init; }
 
-    public string? Kind { get; init; }
+    public ImmutableArray<int> Values { get; init; }
+        = ImmutableArray<int>.Empty;
 
-    public int Value { get; init; }
+    public bool IsInvalid => Values.IsDefaultOrEmpty || Values.Last() == InvalidValue;
 
-    public static NumericToken Create(string @namespace, string kind, int value)
+    public bool IsNone => !Values.IsDefaultOrEmpty && Values.Last() == NoneValue;
+
+    public static readonly NumericToken GlobalInvalid = CreateInvalid(Const.GlobalNamespace);
+
+    public static readonly NumericToken GlobalNone = CreateNone(Const.GlobalNamespace);
+
+    public NumericToken()
+    {
+        Namespace = Const.Invalid;
+    }
+
+    public static NumericToken Create(string @namespace, ImmutableArray<int> values)
+    {
+        if (values.IsDefaultOrEmpty)
+        {
+            throw new ArgumentException($"A {nameof(NumericToken)} must have at least one value.", nameof(values));
+        }
+
+        return new NumericToken
+        {
+            Namespace = @namespace,
+            Values = values
+        };
+    }
+
+    public static NumericToken Create(string @namespace, IEnumerable<int> values)
+    {
+        return Create(@namespace, values.ToImmutableArray());
+    }
+
+    public static NumericToken Create(string @namespace, params int[] values)
+    {
+        return Create(@namespace, values);
+    }
+
+    public static NumericToken CreateInvalid(string @namespace, ImmutableArray<int> prefixValues)
     {
         return new NumericToken
         {
             Namespace = @namespace,
-            Kind = kind,
-            Value = value
+            Values = prefixValues.Add(InvalidValue)
         };
     }
 
-    public static NumericToken Create(string @namespace, int value)
+    public static NumericToken CreateInvalid(string @namespace, IEnumerable<int> prefixValues)
+    {
+        return CreateInvalid(@namespace, prefixValues.ToImmutableArray());
+    }
+
+    public static NumericToken CreateInvalid(string @namespace, params int[] prefixValues)
+    {
+        return CreateInvalid(@namespace, prefixValues);
+    }
+
+    public static NumericToken CreateNone(string @namespace, ImmutableArray<int> prefixValues)
     {
         return new NumericToken
         {
             Namespace = @namespace,
-            Value = value
+            Values = prefixValues.Add(NoneValue)
         };
     }
 
-    public static NumericToken Create<T>(string @namespace, int value)
+    public static NumericToken CreateNone(string @namespace, IEnumerable<int> prefixValues)
     {
-        return new NumericToken
-        {
-            Namespace = @namespace,
-            Kind = typeof(T).Name,
-            Value = value
-        };
+        return CreateNone(@namespace, prefixValues);
     }
 
-    public static NumericToken CreateInvalid(string @namspace, string kind)
+    public static NumericToken CreateNone(string @namespace, params int[] prefixValues)
     {
-        return new NumericToken
-        {
-            Namespace = @namspace,
-            Kind = kind,
-
-        };
+        return CreateNone(@namespace, prefixValues);
     }
 
-    public static NumericToken CreateInvalid(string @namespace)
+    public static bool TryParse(string value, out NumericToken token)
     {
-        return new NumericToken
+        if (string.IsNullOrEmpty(value))
         {
-            Namespace = @namespace,
-            Value = -1
-        };
+            token = default;
+            return false;
+        }
+
+        var parts = value.Split(new[] { Separator });
+        if (parts.Length < 2)
+        {
+            token = default;
+            return false;
+        }
+
+        var @namespace = parts[0].Trim();
+
+        var builder = ImmutableArray.CreateBuilder<int>();
+        foreach(var part in parts.Skip(1))
+        {
+            if (!int.TryParse(part, out var number))
+            {
+                token = CreateInvalid(@namespace, builder);
+                return false;
+            }
+            builder.Add(number);
+        }
+
+        token = Create(@namespace, builder.ToImmutable());
+        return true;
+    }
+
+    public override string ToString()
+    {
+        var sb = new StringBuilder(Namespace);
+        foreach(var value in Values)
+        {
+            sb.Append(Separator);
+            sb.Append(value);
+        }
+        return sb.ToString();
     }
 }
 
@@ -80,11 +149,19 @@ public class NumericTokenJsonConverter : JsonConverter<NumericToken>
 {
     public override NumericToken Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        throw new NotImplementedException();
+        var value = reader.GetString()
+            ?? throw new JsonException($"Could not parse an {nameof(NumericToken)}. It cannot be null.");
+        
+        if (!NumericToken.TryParse(value, out var token))
+        {
+            throw new JsonException($"Could not parse an {nameof(NumericToken)}.");
+        }
+
+        return token;
     }
 
     public override void Write(Utf8JsonWriter writer, NumericToken value, JsonSerializerOptions options)
     {
-        throw new NotImplementedException();
+        writer.WriteStringValue(value.ToString());
     }
 }

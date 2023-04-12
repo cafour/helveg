@@ -105,7 +105,7 @@ public class MSBuildMiner : IMiner
         var absolutePath = new FileInfo(path).FullName;
         var solution = new Solution
         {
-            Id = $"{CSConst.CSharpPrefix}Solution-{Interlocked.Increment(ref counter)}",
+            Id = $"{CSConst.CSharpPrefix}:Solution-{Interlocked.Increment(ref counter)}",
             Path = fileExtension == CSConst.SolutionFileExtension ? path : null,
             Name = Path.GetFileNameWithoutExtension(path)
         };
