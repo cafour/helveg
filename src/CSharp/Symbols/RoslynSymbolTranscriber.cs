@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using Helveg.CSharp.Projects;
+using Microsoft.CodeAnalysis;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -15,41 +16,43 @@ namespace Helveg.CSharp.Symbols;
 /// </summary>
 internal class RoslynSymbolTranscriber
 {
-    private readonly Compilation compilation;
-    private readonly SymbolTokenMap tokens;
+    private readonly WeakReference<Compilation?> compilationRef = new(null);
+    private readonly SymbolTokenMap tokenMap;
 
-    public RoslynSymbolTranscriber(
-        Compilation compilation,
-        SymbolTokenMap tokens)
+    public RoslynSymbolTranscriber(SymbolTokenMap tokenMap)
     {
-        this.compilation = compilation;
-        this.tokens = tokens;
+        this.tokenMap = tokenMap;
     }
 
-    public AssemblyDefinition Transcribe()
+    public AssemblyDefinition Transcribe(AssemblyId assemblyId)
     {
-        //VisitAssembly(compilation.Assembly);
+        var compilation = tokenMap.GetCompilation(assemblyId);
+        if (compilation is null)
+        {
+            return AssemblyDefinition.Invalid;
+        }
 
+        compilationRef.SetTarget(compilation);
         return GetAssembly(compilation.Assembly);
     }
 
-    public AssemblyDefinition? TranscribeReference(MetadataReference reference)
+    public AssemblyDefinition Transcribe(Dependency dependency)
     {
-        var symbol = compilation.GetAssemblyOrModuleSymbol(reference);
-        if (symbol is null || symbol is not IAssemblySymbol assemblySymbol)
+        var assemblyId = tokenMap.TrackedAssemblies.FirstOrDefault(a => a.Name == dependency.Name
+            && a.FileVersion == dependency.FileVersion);
+        if (assemblyId is null)
         {
-            return null;
+            return AssemblyDefinition.Invalid;
         }
 
-        return GetAssembly(assemblySymbol);
+        return Transcribe(assemblyId);
     }
-
 
     private AssemblyDefinition GetAssembly(IAssemblySymbol assembly)
     {
         var helAssembly = new AssemblyDefinition
         {
-            Token = tokens.GetOrAdd(assembly),
+            Token = tokenMap.GetOrAdd(assembly),
             Name = assembly.Name,
             Identity = assembly.GetHelvegAssemblyId()
         };
@@ -66,7 +69,7 @@ internal class RoslynSymbolTranscriber
     {
         var helModule = new ModuleDefinition
         {
-            Token = tokens.GetOrAdd(module),
+            Token = tokenMap.GetOrAdd(module),
             Name = module.Name,
             ReferencedAssemblies = module.ReferencedAssemblySymbols
                 .Select(GetAssemblyReference)
@@ -87,7 +90,7 @@ internal class RoslynSymbolTranscriber
     {
         var helNamespace = new NamespaceDefinition
         {
-            Token = tokens.GetOrAdd(@namespace),
+            Token = tokenMap.GetOrAdd(@namespace),
             Name = @namespace.Name,
             ContainingModule = containingModule,
             ContainingNamespace = containingNamespace
@@ -115,7 +118,7 @@ internal class RoslynSymbolTranscriber
 
         var helType = new TypeDefinition
         {
-            Token = tokens.GetOrAdd(type),
+            Token = tokenMap.GetOrAdd(type),
             MetadataName = type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
             ContainingNamespace = containingNamespace,
             ContainingType = containingType,
@@ -185,7 +188,7 @@ internal class RoslynSymbolTranscriber
 
         var helTypeParameter = new TypeParameterDefinition
         {
-            Token = tokens.GetOrAdd(symbol),
+            Token = tokenMap.GetOrAdd(symbol),
             Name = symbol.Name,
             DeclaringType = declaringType,
             DeclaringMethod = declaringMethod,
@@ -202,7 +205,7 @@ internal class RoslynSymbolTranscriber
     {
         var helEvent = new EventDefinition
         {
-            Token = tokens.GetOrAdd(symbol),
+            Token = tokenMap.GetOrAdd(symbol),
             EventType = GetTypeReference(symbol.Type),
             ContainingType = containingType,
             ContainingNamespace = containingNamespace,
@@ -221,7 +224,7 @@ internal class RoslynSymbolTranscriber
     {
         var helField = new FieldDefinition
         {
-            Token = tokens.GetOrAdd(symbol),
+            Token = tokenMap.GetOrAdd(symbol),
             FieldType = GetTypeReference(symbol.Type),
             ContainingType = containingType,
             ContainingNamespace = containingNamespace,
@@ -248,7 +251,7 @@ internal class RoslynSymbolTranscriber
     {
         var helProperty = new PropertyDefinition
         {
-            Token = tokens.GetOrAdd(symbol),
+            Token = tokenMap.GetOrAdd(symbol),
             PropertyType = GetTypeReference(symbol.Type),
             ContainingType = containingType,
             ContainingNamespace = containingNamespace,
@@ -284,7 +287,7 @@ internal class RoslynSymbolTranscriber
 
         var helMethod = new MethodDefinition
         {
-            Token = tokens.GetOrAdd(symbol),
+            Token = tokenMap.GetOrAdd(symbol),
             AssociatedEvent = symbol.AssociatedSymbol is not null && symbol.AssociatedSymbol is IEventSymbol e
                 ? GetEventReference(e)
                 : null,
@@ -327,7 +330,7 @@ internal class RoslynSymbolTranscriber
     {
         var helParameter = new ParameterDefinition
         {
-            Token = tokens.GetOrAdd(symbol),
+            Token = tokenMap.GetOrAdd(symbol),
             Name = symbol.Name,
             Ordinal = symbol.Ordinal,
             DeclaringMethod = declaringMethod,
@@ -366,7 +369,7 @@ internal class RoslynSymbolTranscriber
     {
         var reference = new AssemblyReference
         {
-            Token = tokens.GetOrAdd(symbol),
+            Token = tokenMap.GetOrAdd(symbol),
             Hint = symbol.ToDisplayString()
         };
         return reference;
@@ -376,7 +379,7 @@ internal class RoslynSymbolTranscriber
     {
         var reference = new ModuleReference
         {
-            Token = tokens.GetOrAdd(symbol),
+            Token = tokenMap.GetOrAdd(symbol),
             Hint = symbol.ToDisplayString()
         };
         return reference;
@@ -387,7 +390,7 @@ internal class RoslynSymbolTranscriber
 
         var reference = new NamespaceReference
         {
-            Token = tokens.GetOrAdd(symbol),
+            Token = tokenMap.GetOrAdd(symbol),
             Hint = symbol.ToDisplayString()
         };
 
@@ -406,13 +409,18 @@ internal class RoslynSymbolTranscriber
 
     private TypeReference GetTypeReference(ITypeSymbol symbol)
     {
+        if (!compilationRef.TryGetTarget(out var compilation) || compilation is null)
+        {
+            return TypeReference.Invalid;
+        }
+
         TypeReference? reference;
         // TODO: IDynamicTypeSymbol
         // TODO: IErrorTypeSymbol
         switch (symbol)
         {
             case IArrayTypeSymbol arrayType:
-                var arrayToken = tokens.GetOrAdd(compilation.GetSpecialType(SpecialType.System_Array));
+                var arrayToken = tokenMap.GetOrAdd(compilation.GetSpecialType(SpecialType.System_Array));
                 reference = new ArrayTypeReference
                 {
                     Token = arrayToken,
@@ -425,7 +433,7 @@ internal class RoslynSymbolTranscriber
             case INamedTypeSymbol namedType:
                 reference = new TypeReference
                 {
-                    Token = tokens.GetOrAdd(symbol.OriginalDefinition),
+                    Token = tokenMap.GetOrAdd(symbol.OriginalDefinition),
                 };
                 if (!namedType.IsOriginalDefinition())
                 {
@@ -438,7 +446,7 @@ internal class RoslynSymbolTranscriber
                 }
                 break;
             case IFunctionPointerTypeSymbol fpType:
-                var fnPtrToken = tokens.GetOrAdd(compilation.GetSpecialType(SpecialType.System_IntPtr));
+                var fnPtrToken = tokenMap.GetOrAdd(compilation.GetSpecialType(SpecialType.System_IntPtr));
                 reference = new FunctionPointerTypeReference
                 {
                     Token = fnPtrToken,
@@ -446,7 +454,7 @@ internal class RoslynSymbolTranscriber
                 };
                 break;
             case IPointerTypeSymbol pointerType:
-                var intPtrToken = tokens.GetOrAdd(compilation.GetSpecialType(SpecialType.System_IntPtr));
+                var intPtrToken = tokenMap.GetOrAdd(compilation.GetSpecialType(SpecialType.System_IntPtr));
                 reference = new PointerTypeReference
                 {
                     Token = intPtrToken,
@@ -456,7 +464,7 @@ internal class RoslynSymbolTranscriber
             case ITypeParameterSymbol typeParameter:
                 reference = new TypeParameterReference
                 {
-                    Token = tokens.GetOrAdd(typeParameter)
+                    Token = tokenMap.GetOrAdd(typeParameter)
                 };
                 break;
 
@@ -479,7 +487,7 @@ internal class RoslynSymbolTranscriber
 
         var reference = new MethodReference
         {
-            Token = tokens.GetOrAdd(symbol),
+            Token = tokenMap.GetOrAdd(symbol),
             TypeArguments = isOriginal
                 ? ImmutableArray<TypeReference>.Empty
                 : symbol.TypeArguments
@@ -494,7 +502,7 @@ internal class RoslynSymbolTranscriber
     {
         var reference = new EventReference
         {
-            Token = tokens.GetOrAdd(symbol)
+            Token = tokenMap.GetOrAdd(symbol)
         };
         return reference;
     }
@@ -503,7 +511,7 @@ internal class RoslynSymbolTranscriber
     {
         var reference = new PropertyReference
         {
-            Token = tokens.GetOrAdd(symbol)
+            Token = tokenMap.GetOrAdd(symbol)
         };
         return reference;
     }
@@ -512,7 +520,7 @@ internal class RoslynSymbolTranscriber
     {
         var reference = new FieldReference
         {
-            Token = tokens.GetOrAdd(symbol)
+            Token = tokenMap.GetOrAdd(symbol)
         };
         return reference;
     }

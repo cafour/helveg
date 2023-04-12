@@ -71,7 +71,7 @@ public class RoslynMiner : IMiner
             (project, msbuildProject) => (project, msbuildProject));
 
         var projectAssemblies = (await Task.WhenAll(matchedProjects.Select(
-            async p => (id: p.project.Id, assembly: await GetAssembly(p.project, p.msbuildProject, cancellationToken)))))
+            async p => (id: p.project.Id, assembly: await GetProjectAssembly(p.project, p.msbuildProject, cancellationToken)))))
             .GroupBy(p => p.id)
             .ToDictionary(g => g.Key, g => g.Select(p => p.assembly));
         workspace.SetRoot(solution with
@@ -111,9 +111,29 @@ public class RoslynMiner : IMiner
                 })
                 .ToImmutableArray()
         });
+
+        var frameworkDeps = solution.Projects.SelectMany(p => p.Dependencies.SelectMany(d => d.Value))
+            .Distinct()
+            .GroupBy(d => d.Framework.ToString())
+            .ToDictionary(g => g.Key, g => g);
+
+        foreach (var framework in workspace.Roots.Values.OfType<Framework>())
+        {
+            if (frameworkDeps.TryGetValue(framework.Token, out var deps))
+            {
+                var transcribedDeps = TranscribeDependencies(deps);
+                workspace.SetRoot(framework with
+                {
+                    Extensions = framework.Extensions.AddRange(transcribedDeps.Select(d => new AssemblyExtension
+                    {
+                        Assembly = d
+                    }))
+                });
+            }
+        }
     }
 
-    private async Task<AssemblyDefinition> GetAssembly(
+    private async Task<AssemblyDefinition> GetProjectAssembly(
         Project project,
         Microsoft.CodeAnalysis.Project roslynProject,
         CancellationToken cancellationToken = default)
@@ -156,8 +176,18 @@ public class RoslynMiner : IMiner
 
         // Phase 2: Transcribe the assembly into Helveg's structures.
         logger.LogDebug("Transcribing the '{}' assembly.", compilation.Assembly.GetHelvegAssemblyId().ToDisplayString());
-        var transcriber = new RoslynSymbolTranscriber(compilation, tokenMap);
-        return transcriber.Transcribe();
+        var transcriber = new RoslynSymbolTranscriber(tokenMap);
+        return transcriber.Transcribe(compilation.Assembly.GetHelvegAssemblyId());
+    }
+
+    private ImmutableArray<AssemblyDefinition> TranscribeDependencies(IEnumerable<Dependency> dependencies)
+    {
+        var transcriber = new RoslynSymbolTranscriber(tokenMap);
+        return dependencies.Select(d =>
+        {
+            logger.LogDebug("Transcribing a '{}' dependency.", d.Name);
+            return transcriber.Transcribe(d);
+        }).ToImmutableArray();
     }
 
     private void LogMSBuildDiagnostics(Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace workspace)

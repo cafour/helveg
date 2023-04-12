@@ -17,6 +17,8 @@ internal class SymbolTokenMap
     private readonly ConcurrentDictionary<AssemblyId, (Compilation, SymbolTokenGenerator)> assemblyMap
         = new();
 
+    public IEnumerable<AssemblyId> TrackedAssemblies => assemblyMap.Keys;
+
     public ConcurrentDictionary<ISymbol, NumericToken> Tokens { get; }
         = new(SymbolEqualityComparer.Default);
 
@@ -40,10 +42,23 @@ internal class SymbolTokenMap
 
     public void Track(AssemblyId assemblyId, NumericToken parentToken, Compilation relatedCompilation)
     {
-        assemblyMap.GetOrAdd(assemblyId,_ => (
+        assemblyMap.GetOrAdd(assemblyId, _ => (
             relatedCompilation,
             new SymbolTokenGenerator(parentToken.Derive(Interlocked.Increment(ref assemblyCounter)))
         ));
+
+        foreach (var reference in relatedCompilation.References)
+        {
+            var referencedSymbol = relatedCompilation.GetAssemblyOrModuleSymbol(reference);
+            if (referencedSymbol is not null && referencedSymbol is IAssemblySymbol referencedAssembly)
+            {
+                assemblyMap.GetOrAdd(referencedAssembly.GetHelvegAssemblyId(), _ =>
+                (
+                    relatedCompilation,
+                    new SymbolTokenGenerator(parentToken.Derive(Interlocked.Increment(ref assemblyCounter)))
+                ));
+            }
+        }
     }
 
     public NumericToken GetOrAdd(ISymbol symbol)
@@ -84,5 +99,10 @@ internal class SymbolTokenMap
         }
 
         return Tokens.AddOrUpdate(candidates[0], _ => generator.GetToken(), (_, existing) => existing);
+    }
+
+    public Compilation? GetCompilation(AssemblyId assemblyId)
+    {
+        return assemblyMap.GetValueOrDefault(assemblyId).Item1;
     }
 }

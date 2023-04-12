@@ -52,5 +52,11 @@ public class VisualizationProjectVisitor : ProjectVisitor
         builder.GetNode(framework.Id, framework.Name)
             .SetProperty(nameof(Framework.Version), framework.Version)
             .SetProperty(Const.KindProperty, CSConst.KindOf<Framework>());
+
+        var assemblies = framework.Extensions.OfType<AssemblyExtension>().ToArray();
+        if (assemblies.Length > 0)
+        {
+            builder.AddEdges(CSConst.DeclaresId, assemblies.Select(a => new Edge(framework.Id, a.Assembly.Token)));
+        }
     }
 }

@@ -32,7 +32,7 @@ public abstract record SymbolDefinition : EntityBase, ISymbolDefinition
     public string Name { get; init; } = Const.Invalid;
 
     [JsonIgnore]
-    public NumericToken Token { get; init; }
+    public NumericToken Token { get; init; } = CSConst.InvalidToken;
 
     public override string Id
     {
