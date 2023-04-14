@@ -14,6 +14,21 @@ internal static class RoslynExtensions
         return SymbolEqualityComparer.Default.Equals(symbol, symbol.OriginalDefinition);
     }
 
+    public static bool IsInAnalysisScope(this ISymbol symbol, SymbolAnalysisScope scope)
+    {
+        return scope switch
+        {
+            SymbolAnalysisScope.All => true,
+            SymbolAnalysisScope.PublicApi =>
+                !symbol.IsImplicitlyDeclared
+                && symbol.CanBeReferencedByName
+                && (symbol.DeclaredAccessibility == Accessibility.Public
+                || symbol.DeclaredAccessibility == Accessibility.Protected)
+                && (symbol.ContainingType is null || symbol.ContainingType.IsInAnalysisScope(scope)),
+            _ => false
+        };
+    }
+
     public static MemberAccessibility ToHelvegAccessibility(this Accessibility value)
     {
         return value switch

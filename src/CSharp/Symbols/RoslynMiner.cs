@@ -101,10 +101,12 @@ public class RoslynMiner : IMiner
         // mine each of the project for each target framework separately and likely in parallel
         await Task.WhenAll(matchedProjects.Select(p => MineProject(p.project, p.roslynProject, cancellationToken)));
 
-
-        // transcribe assemblies in each framework and external source
-        await Task.WhenAll(workspace.Roots.Values.OfType<IDependencySource>()
-            .Select(async f => await MineDependencySource(f.Token, cancellationToken)));
+        if (Options.ExternalSymbolAnalysisScope >= SymbolAnalysisScope.PublicApi)
+        {
+            // transcribe assemblies in each framework and external source
+            await Task.WhenAll(workspace.Roots.Values.OfType<IDependencySource>()
+                .Select(async f => await MineDependencySource(f.Token, cancellationToken)));
+        }
     }
 
     private async Task MineProject(
@@ -129,19 +131,22 @@ public class RoslynMiner : IMiner
             return;
         }
 
-        solutionHandle.Entity = solutionHandle.Entity with
+        if (Options.ProjectSymbolAnalysisScope >= SymbolAnalysisScope.PublicApi)
         {
-            Projects = solutionHandle.Entity.Projects.Replace(oldProject, oldProject with
+            solutionHandle.Entity = solutionHandle.Entity with
             {
-                Extensions = oldProject.Extensions.Add(new AssemblyExtension
+                Projects = solutionHandle.Entity.Projects.Replace(oldProject, oldProject with
                 {
-                    Assembly = assembly with
+                    Extensions = oldProject.Extensions.Add(new AssemblyExtension
                     {
-                        ContainingEntity = oldProject.Token
-                    }
+                        Assembly = assembly with
+                        {
+                            ContainingEntity = oldProject.Token
+                        }
+                    })
                 })
-            })
-        };
+            };
+        }
     }
 
     private async Task MineDependencySource(NumericToken dsToken, CancellationToken cancellationToken)
@@ -153,17 +158,27 @@ public class RoslynMiner : IMiner
             return;
         }
 
-        var existingAssemblies = dsHandle.Entity.Extensions.OfType<AssemblyExtension>()
-            .Select(a => a.Assembly)
+        var transcriber = new RoslynSymbolTranscriber(tokenMap, Options.ExternalSymbolAnalysisScope);
+
+        var assemblies = dsHandle.Entity.Assemblies.Select(a =>
+            {
+                if (a.Extensions.OfType<AssemblyExtension>().Any())
+                {
+                    return a;
+                }
+
+                logger.LogDebug("Transcribing a '{}' dependency.", a.Identity.Name);
+                return a with
+                {
+                    Extensions = a.Extensions.Add(new AssemblyExtension
+                    {
+                        Assembly = transcriber.Transcribe(a)
+                    })
+                };
+            })
             .ToImmutableArray();
 
-        var nontranscribedDependencies = dsHandle.Entity.Assemblies
-            .Where(d => !existingAssemblies.Any(a => a.Identity == d.Identity))
-            .ToImmutableArray();
-
-        dsHandle.Entity = (IDependencySource)dsHandle.Entity
-            .AddExtensionRange(TranscribeDependencies(nontranscribedDependencies)
-            .Select(a => new AssemblyExtension { Assembly = a with { ContainingEntity = dsHandle.Entity.Token } }));
+        dsHandle.Entity = dsHandle.Entity.WithAssemblies(assemblies);
     }
 
     private async Task<AssemblyDefinition> GetProjectAssembly(
@@ -269,18 +284,8 @@ public class RoslynMiner : IMiner
 
         // Phase 2: Transcribe the assembly into Helveg's structures.
         logger.LogDebug("Transcribing the '{}' assembly.", compilation.Assembly.Name);
-        var transcriber = new RoslynSymbolTranscriber(tokenMap);
+        var transcriber = new RoslynSymbolTranscriber(tokenMap, Options.ProjectSymbolAnalysisScope);
         return transcriber.Transcribe(AssemblyId.Create(compilation.Assembly));
-    }
-
-    private ImmutableArray<AssemblyDefinition> TranscribeDependencies(IEnumerable<AssemblyDependency> dependencies)
-    {
-        var transcriber = new RoslynSymbolTranscriber(tokenMap);
-        return dependencies.Select(d =>
-        {
-            logger.LogDebug("Transcribing a '{}' dependency.", d.Identity.Name);
-            return transcriber.Transcribe(d);
-        }).ToImmutableArray();
     }
 
     private void LogMSBuildDiagnostics(MCA.MSBuild.MSBuildWorkspace workspace)

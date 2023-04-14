@@ -3,7 +3,7 @@
     "Helveg": {
       "commandName": "Project",
       "workingDirectory": "C:\\dev\\fi\\kafe",
-      "commandLineArgs": "--verbose"
+      "commandLineArgs": "--verbose -pa PublicApi -ea AssembliesOnly"
     }
   }
 }

@@ -35,7 +35,9 @@ public class Program
 
     public async Task<Multigraph?> RunAnalysis(
         FileSystemInfo source,
-        IDictionary<string, string> properties)
+        IDictionary<string, string> properties,
+        AnalysisScope projectAnalysis,
+        AnalysisScope externalAnalysis)
     {
         var logger = logging.CreateLogger<Program>();
 
@@ -53,13 +55,16 @@ public class Program
             .AddMSBuild(
                 options: new MSBuildMinerOptions
                 {
-                    MSBuildProperties = msbuildProperties
+                    MSBuildProperties = msbuildProperties,
+                    IncludeExternalDependencies = externalAnalysis >= AnalysisScope.AssembliesOnly
                 },
                 logger: logging.CreateLogger<MSBuildMiner>())
             .AddRoslyn(
                 options: new RoslynMinerOptions
                 {
-                    MSBuildProperties = msbuildProperties
+                    MSBuildProperties = msbuildProperties,
+                    ProjectSymbolAnalysisScope = ToSymbolAnalysisScope(projectAnalysis),
+                    ExternalSymbolAnalysisScope = ToSymbolAnalysisScope(externalAnalysis)
                 },
                 logger: logging.CreateLogger<RoslynMiner>());
 
@@ -79,10 +84,14 @@ public class Program
         return multigraphBuilder.Build();
     }
 
-    public async Task<int> RunPipeline(FileSystemInfo source, Dictionary<string, string> properties)
+    public async Task<int> RunPipeline(
+        FileSystemInfo source,
+        Dictionary<string, string> properties,
+        AnalysisScope projectAnalysis,
+        AnalysisScope externalAnalysis)
     {
         // code analysis
-        var multigraph = await RunAnalysis(source, properties);
+        var multigraph = await RunAnalysis(source, properties, projectAnalysis, externalAnalysis);
         if (multigraph is null)
         {
             return 1;
@@ -139,14 +148,16 @@ public class Program
             }
         });
         rootCmd.AddOption(propertyOption);
+        rootCmd.AddOption(new Option<AnalysisScope>(new[] { "-pa", "--project-analysis" }, () => AnalysisScope.All, "Scope of the project analysis"));
+        rootCmd.AddOption(new Option<AnalysisScope>(new[] { "-ea", "--external-analysis" }, () => AnalysisScope.PublicApi, "Scope of analysis of external dependencies"));
 
         var builder = new CommandLineBuilder(rootCmd)
             .UseHelp()
             .AddMiddleware(c =>
             {
-                program.isForced = c.ParseResult.GetValueForOption<bool>(forceOption);
+                program.isForced = c.ParseResult.GetValueForOption(forceOption);
 
-                LogLevel minimumLevel = c.ParseResult.GetValueForOption<bool>(verboseOption)
+                LogLevel minimumLevel = c.ParseResult.GetValueForOption(verboseOption)
                     ? LogLevel.Debug
                     : LogLevel.Information;
                 program.logging = LoggerFactory.Create(b =>
@@ -161,4 +172,16 @@ public class Program
         program.logging.Dispose();
         return errorCode;
     }
+
+    private static SymbolAnalysisScope ToSymbolAnalysisScope(AnalysisScope scope)
+    {
+        return scope switch
+        {
+            AnalysisScope.None => SymbolAnalysisScope.None,
+            AnalysisScope.PublicApi => SymbolAnalysisScope.PublicApi,
+            AnalysisScope.All => SymbolAnalysisScope.All,
+            _ => SymbolAnalysisScope.None
+        };
+    }
+    
 }

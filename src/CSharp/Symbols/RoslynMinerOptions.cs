@@ -5,7 +5,9 @@ namespace Helveg.CSharp.Symbols;
 
 public record RoslynMinerOptions : MinerOptions
 {
-    public bool IncludeExternalSymbols { get; init; }
+    public SymbolAnalysisScope ProjectSymbolAnalysisScope { get; init; }
+
+    public SymbolAnalysisScope ExternalSymbolAnalysisScope { get; init; }
 
     public ImmutableDictionary<string, string> MSBuildProperties { get; init; }
         = ImmutableDictionary<string, string>.Empty;

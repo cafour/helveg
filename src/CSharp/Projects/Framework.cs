@@ -53,4 +53,9 @@ public record Framework : EntityBase, IDependencySource
 
         base.Accept(visitor);
     }
+
+    public IDependencySource WithAssemblies(ImmutableArray<AssemblyDependency> assemblies)
+    {
+        return this with { Assemblies = assemblies };
+    }
 }

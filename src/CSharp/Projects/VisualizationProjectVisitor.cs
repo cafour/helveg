@@ -24,7 +24,7 @@ public class VisualizationProjectVisitor : ProjectVisitor
     {
         base.VisitSolution(solution);
 
-        builder.GetNode(solution.Id, solution.Name)
+        builder.GetNode(solution.Token, solution.Name)
             .SetProperty(nameof(Solution.Path), solution.Path)
             .SetProperty(Const.KindProperty, CSConst.KindOf<Solution>());
         builder.AddEdges(CSConst.DeclaresId, solution.Projects.Select(p => new Edge(solution.Id, p.Id)));
@@ -34,7 +34,7 @@ public class VisualizationProjectVisitor : ProjectVisitor
     {
         base.VisitProject(project);
 
-        builder.GetNode(project.Id, project.Name)
+        builder.GetNode(project.Token, project.Name)
             .SetProperty(nameof(Solution.Path), project.Path)
             .SetProperty(Const.KindProperty, CSConst.KindOf<Project>());
 
@@ -49,14 +49,13 @@ public class VisualizationProjectVisitor : ProjectVisitor
     {
         base.VisitFramework(framework);
 
-        builder.GetNode(framework.Id, framework.Name)
+        builder.GetNode(framework.Token, framework.Name)
             .SetProperty(nameof(Framework.Version), framework.Version)
             .SetProperty(Const.KindProperty, CSConst.KindOf<Framework>());
 
-        var assemblies = framework.Extensions.OfType<AssemblyExtension>().ToArray();
-        if (assemblies.Length > 0)
+        if (framework.Assemblies.Length > 0)
         {
-            builder.AddEdges(CSConst.DeclaresId, assemblies.Select(a => new Edge(framework.Id, a.Assembly.Token)));
+            builder.AddEdges(CSConst.DeclaresId, framework.Assemblies.Select(d => new Edge(framework.Token, d.Token)));
         }
     }
 
@@ -64,12 +63,25 @@ public class VisualizationProjectVisitor : ProjectVisitor
     {
         base.VisitExternalDependencySource(externalDependencySource);
 
-        builder.GetNode(externalDependencySource.Id, externalDependencySource.Name)
+        builder.GetNode(externalDependencySource.Token, externalDependencySource.Name)
             .SetProperty(Const.KindProperty, CSConst.KindOf<ExternalDependencySource>());
-        var assemblies = externalDependencySource.Extensions.OfType<AssemblyExtension>().ToArray();
+        if (externalDependencySource.Assemblies.Length > 0)
+        {
+            builder.AddEdges(CSConst.DeclaresId, externalDependencySource.Assemblies
+                .Select(d => new Edge(externalDependencySource.Token, d.Token)));
+        }
+    }
+
+    public override void VisitAssemblyDependency(AssemblyDependency assemblyDependency)
+    {
+        base.VisitAssemblyDependency(assemblyDependency);
+
+        builder.GetNode(assemblyDependency.Token, assemblyDependency.Identity.Name)
+            .SetProperty(Const.KindProperty, CSConst.KindOf<AssemblyDependency>());
+        var assemblies = assemblyDependency.Extensions.OfType<AssemblyExtension>().ToArray();
         if (assemblies.Length > 0)
         {
-            builder.AddEdges(CSConst.DeclaresId, assemblies.Select(a => new Edge(externalDependencySource.Id, a.Assembly.Token)));
+            builder.AddEdges(CSConst.DeclaresId, assemblies.Select(a => new Edge(assemblyDependency.Token, a.Assembly.Token)));
         }
     }
 }

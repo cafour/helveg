@@ -14,4 +14,6 @@ public interface IDependencySource : IEntity
     NumericToken Token { get; }
 
     ImmutableArray<AssemblyDependency> Assemblies { get; init; }
+
+    IDependencySource WithAssemblies(ImmutableArray<AssemblyDependency> assemblies);
 }
