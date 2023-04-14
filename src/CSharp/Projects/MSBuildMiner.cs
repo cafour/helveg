@@ -227,7 +227,7 @@ public class MSBuildMiner : IMiner
         var projectName = msbuildProject.GetPropertyValue(CSConst.MSBuildProjectNameProperty);
 
         msbuildProject.SetProperty(CSConst.TargetFrameworkProperty, targetFramework);
-        var instance = MSB.Execution.BuildManager.DefaultBuildManager.GetProjectInstanceForBuild(msbuildProject);
+        var instance = msbuildProject.CreateProjectInstance();
 
         var buildRequest = new MSB.Execution.BuildRequestData(
             instance,
