@@ -39,7 +39,19 @@ public class RoslynMiner : IMiner
     {
         workspaceRef.SetTarget(workspace);
 
-        var solution = workspace.Roots.Values.OfType<Solution>().Single();
+        var solutions = workspace.Roots.Values.OfType<Solution>().ToArray();
+        if (solutions.Length == 0)
+        {
+            logger.LogError("The workspace contains no Solution therefore no symbols can be mined.");
+            return;
+        }
+        else if (solutions.Length > 1)
+        {
+            logger.LogError("The workspace contains multiple solutions but RoslynMiner can only mine one.");
+            return;
+        }
+
+        var solution = solutions[0];
         var msbuildWorkspace = MCA.MSBuild.MSBuildWorkspace.Create(Options.MSBuildProperties);
 
         // open the solution or project
@@ -77,6 +89,7 @@ public class RoslynMiner : IMiner
                 logger.LogError("The solution has been removed from the workspace while the miner was running.");
                 return;
             }
+
             solutionHandle.Entity = solutionHandle.Entity with
             {
                 Diagnostics = solutionHandle.Entity.Diagnostics.AddRange(
