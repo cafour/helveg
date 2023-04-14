@@ -64,7 +64,7 @@ internal class SymbolTokenMap
             return CSConst.InvalidToken;
         }
 
-        var (parentCompilation, generator) = assemblyMap.GetValueOrDefault(containingAssembly.GetHelvegAssemblyId());
+        var (parentCompilation, generator) = assemblyMap.GetValueOrDefault(AssemblyId.Create(containingAssembly));
         if (parentCompilation is null)
         {
             // The symbol comes from an assembly that isn't tracked, which isn't an error.

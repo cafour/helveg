@@ -59,4 +59,17 @@ public class VisualizationProjectVisitor : ProjectVisitor
             builder.AddEdges(CSConst.DeclaresId, assemblies.Select(a => new Edge(framework.Id, a.Assembly.Token)));
         }
     }
+
+    public override void VisitExternalDependencySource(ExternalDependencySource externalDependencySource)
+    {
+        base.VisitExternalDependencySource(externalDependencySource);
+
+        builder.GetNode(externalDependencySource.Id, externalDependencySource.Name)
+            .SetProperty(Const.KindProperty, CSConst.KindOf<ExternalDependencySource>());
+        var assemblies = externalDependencySource.Extensions.OfType<AssemblyExtension>().ToArray();
+        if (assemblies.Length > 0)
+        {
+            builder.AddEdges(CSConst.DeclaresId, assemblies.Select(a => new Edge(externalDependencySource.Id, a.Assembly.Token)));
+        }
+    }
 }

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Helveg.CSharp.Projects;
 
-public record ExternalDependencySource : EntityBase
+public record ExternalDependencySource : EntityBase, IDependencySource
 {
     public string Name { get; init; } = Const.Invalid;
 

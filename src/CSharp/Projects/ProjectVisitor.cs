@@ -22,4 +22,14 @@ public abstract class ProjectVisitor : EntityVisitor, IProjectVisitor
     {
         DefaultVisit(framework);
     }
+
+    public virtual void VisitExternalDependencySource(ExternalDependencySource externalDependencySource)
+    {
+        DefaultVisit(externalDependencySource);
+    }
+
+    public virtual void VisitAssemblyDependency(AssemblyDependency assemblyDependency)
+    {
+        DefaultVisit(assemblyDependency);
+    }
 }

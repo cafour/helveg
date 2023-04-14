@@ -27,4 +27,20 @@ public record EntityBase : IEntity
             }
         }
     }
+
+    IEntity IEntity.AddExtension(IEntityExtension extension)
+    {
+        return this with
+        {
+            Extensions = Extensions.Add(extension)
+        };
+    }
+
+    IEntity IEntity.AddExtensionRange(IEnumerable<IEntityExtension> extensions)
+    {
+        return this with
+        {
+            Extensions = Extensions.AddRange(extensions)
+        };
+    }
 }

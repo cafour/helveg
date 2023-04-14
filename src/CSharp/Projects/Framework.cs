@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Helveg.CSharp.Projects;
 
-public record Framework : EntityBase
+public record Framework : EntityBase, IDependencySource
 {
     public static Framework Invalid { get; } = new Framework
     {

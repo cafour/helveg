@@ -9,37 +9,9 @@ namespace Helveg.CSharp.Symbols;
 
 internal static class RoslynExtensions
 {
-    public const string AssemblyFileVersionAttributeName = "AssemblyFileVersionAttribute";
-    public const string AssemblyInformationalVersionAttributeName = "AssemblyInformationalVersionAttribute";
-    public const string TargetFrameworkAttributeName = "TargetFrameworkAttribute";
-
     public static bool IsOriginalDefinition(this ISymbol symbol)
     {
         return SymbolEqualityComparer.Default.Equals(symbol, symbol.OriginalDefinition);
-    }
-
-    public static AssemblyId GetHelvegAssemblyId(this IAssemblySymbol assembly)
-    {
-        var attributes = assembly.GetAttributes();
-        var fileVersion = attributes
-            .FirstOrDefault(a => a.AttributeClass?.Name == AssemblyFileVersionAttributeName)
-            ?.ConstructorArguments.FirstOrDefault().Value as string;
-        var informationalVersion = attributes
-            .FirstOrDefault(a => a.AttributeClass?.Name == AssemblyInformationalVersionAttributeName)
-            ?.ConstructorArguments.FirstOrDefault().Value as string;
-        var targetFramework = attributes
-            .FirstOrDefault(a => a.AttributeClass?.Name == TargetFrameworkAttributeName)
-            ?.ConstructorArguments.FirstOrDefault().Value as string;
-        return new AssemblyId
-        {
-            Name = assembly.Identity.Name,
-            Version = assembly.Identity.Version,
-            FileVersion = fileVersion,
-            InformationalVersion = informationalVersion,
-            TargetFramework = targetFramework,
-            CultureName = assembly.Identity.CultureName,
-            PublicKeyToken = string.Concat(assembly.Identity.PublicKeyToken.Select(b => b.ToString("x")))
-        };
     }
 
     public static MemberAccessibility ToHelvegAccessibility(this Accessibility value)
@@ -149,7 +121,7 @@ internal static class RoslynExtensions
     public static IAssemblySymbol? GetReferencedAssembly(this Compilation compilation, AssemblyId id)
     {
         return (IAssemblySymbol?)compilation.References.Select(compilation.GetAssemblyOrModuleSymbol)
-            .Where(a => a is not null && a is IAssemblySymbol assembly && assembly.GetHelvegAssemblyId() == id)
+            .Where(a => a is not null && a is IAssemblySymbol assembly && AssemblyId.Create(assembly) == id)
             .FirstOrDefault();
     }
 }

@@ -13,7 +13,7 @@ public record Workspace
 {
     private readonly ConcurrentDictionary<string, IEntity> entities = new();
     private readonly ConcurrentDictionary<string, IEntity> roots = new();
-    private readonly ConcurrentDictionary<string, ExclusiveRootHandle> rootHandles = new();
+    private readonly ConcurrentDictionary<string, SemaphoreSlim> rootSemaphores = new();
     private readonly ILogger<Workspace> logger;
 
     public IReadOnlyDictionary<string, IEntity> Roots => roots;
@@ -37,24 +37,15 @@ public record Workspace
         return true;
     }
 
-    public async Task<ExclusiveRootHandle?> GetRootExclusively(string id, CancellationToken cancellationToken = default)
+    public async Task<ExclusiveEntityHandle<T>> GetRootExclusively<T>(string id, CancellationToken cancellationToken = default)
+        where T : IEntity
     {
-        while (!cancellationToken.IsCancellationRequested)
+        var semaphore = rootSemaphores.GetOrAdd(id, _ => new SemaphoreSlim(1, 1));
+        await semaphore.WaitAsync(cancellationToken);
+        return new ExclusiveEntityHandle<T>(id, semaphore, CommitHandleChanges)
         {
-            if (rootHandles.TryGetValue(id, out var existingHandle))
-            {
-                await existingHandle.Wait(cancellationToken);
-            }
-
-            var handle = new ExclusiveRootHandle(id, CommitHandleChanges);
-            if (rootHandles.TryAdd(id, handle))
-            {
-                handle.Root = Roots.GetValueOrDefault(id);
-                return handle;
-            }
-        }
-
-        return null;
+            Entity = (T?)roots.GetValueOrDefault(id)
+        };
     }
 
     public void Accept(IEntityVisitor visitor)
@@ -69,13 +60,19 @@ public record Workspace
     {
         if (entity is null)
         {
-            roots.TryRemove(id, out _);
+            if (roots.TryRemove(id, out entity))
+            {
+                entity.Accept(new EntityUntrackingVisitor(entities));
+            }
         }
         else
         {
-            roots.AddOrUpdate(id, entity, (_, _) => entity);
+            roots.AddOrUpdate(id, entity, (_, existing) =>
+            {
+                entity.Accept(new EntityUntrackingVisitor(entities));
+                return entity;
+            });
+            entity.Accept(new EntityTrackingVisitor(entities));
         }
-
-        rootHandles.TryRemove(id, out _);
     }
 }

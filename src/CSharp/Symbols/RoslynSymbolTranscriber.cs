@@ -33,7 +33,7 @@ internal class RoslynSymbolTranscriber
         }
 
         compilationRef.SetTarget(compilation);
-        if (compilation.Assembly.GetHelvegAssemblyId() == assemblyId)
+        if (AssemblyId.Create(compilation.Assembly) == assemblyId)
         {
             return GetAssembly(compilation.Assembly);
         }
@@ -49,14 +49,7 @@ internal class RoslynSymbolTranscriber
 
     public AssemblyDefinition Transcribe(AssemblyDependency dependency)
     {
-        var assemblyId = tokenMap.TrackedAssemblies.FirstOrDefault(a => a.Name == dependency.Name
-            && a.FileVersion == dependency.FileVersion);
-        if (assemblyId is null)
-        {
-            return AssemblyDefinition.Invalid;
-        }
-
-        return Transcribe(assemblyId);
+        return Transcribe(dependency.Identity);
     }
 
     private AssemblyDefinition GetAssembly(IAssemblySymbol assembly)
@@ -65,7 +58,7 @@ internal class RoslynSymbolTranscriber
         {
             Token = tokenMap.GetOrAdd(assembly),
             Name = assembly.Name,
-            Identity = assembly.GetHelvegAssemblyId()
+            Identity = AssemblyId.Create(assembly)
         };
 
         return helAssembly with

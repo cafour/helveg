@@ -20,8 +20,6 @@ public class MSBuildMiner : IMiner
 {
     private readonly ILogger<MSBuildMiner> logger;
     private int counter = 0;
-    private readonly ConcurrentDictionary<string, Framework> frameworks
-        = new();
     private WeakReference<Workspace?> workspaceRef = new(null);
     private NumericToken edsToken = NumericToken.CreateNone(CSConst.CSharpNamespace, (int)RootKind.ExternalDependencySource);
 
@@ -265,40 +263,64 @@ public class MSBuildMiner : IMiner
         {
             var dependency = new AssemblyDependency
             {
-                Name = NullIfEmpty(item.GetMetadata("Filename")) ?? Const.Invalid,
-                Path = NullIfEmpty(item.GetMetadata("FullPath")),
-                Version = NullIfEmpty(item.GetMetadata("Version")),
-                FileVersion = NullIfEmpty(item.GetMetadata("FileVersion")),
-                PublicKeyToken = NullIfEmpty(item.GetMetadata("PublicKeyToken")),
+                Identity = AssemblyId.Create(item),
                 PackageId = NullIfEmpty(item.GetMetadata("NuGetPackageId")),
                 PackageVersion = NullIfEmpty(item.GetMetadata("NuGetPackageVersion"))
             };
 
             var frameworkName = NullIfEmpty(item.GetMetadata("FrameworkReferenceName"));
             var frameworkVersion = NullIfEmpty(item.GetMetadata("FrameworkReferenceVersion"));
-            var framework = frameworkName is not null
-                ? GetFramework(frameworkName, frameworkVersion)
+            using var framework = frameworkName is not null
+                ? await GetFramework(frameworkName, frameworkVersion)
                 : null;
-            if (framework is not null)
+            if (framework is not null && framework.Entity is not null)
             {
+                var existing = framework.Entity.Assemblies
+                    .FirstOrDefault(a => a.Identity == dependency.Identity);
+                if (existing is not null)
+                {
+                    builder.Add(existing.Token);
+                    continue;
+                }
+
+                // framework doesn't know about the assembly yet, so add it there
                 dependency = dependency with
                 {
-                    Token = framework.Token.Derive(Interlocked.Increment(ref counter))
+                    Token = framework.Entity.Token.Derive(Interlocked.Increment(ref counter))
                 };
-                SetFramework(framework with
+                builder.Add(dependency.Token);
+                framework.Entity = framework.Entity with
                 {
-                    Assemblies = framework.Assemblies.Add(dependency)
-                });
+                    Assemblies = framework.Entity.Assemblies.Add(dependency)
+                };
             }
             else
             {
+                using var eds = await GetExternalDependencySource();
+                if (eds.Entity is null)
+                {
+                    logger.LogError("The global external dependency source doesn't exist. This is likely a bug.");
+                    continue;
+                }
+
+                var existing = eds.Entity.Assemblies
+                    .FirstOrDefault(a => a.Identity == dependency.Identity);
+                if (existing is not null)
+                {
+                    builder.Add(existing.Token);
+                    continue;
+                }
+
                 dependency = dependency with
                 {
-                    ExternalSource = edsToken
+                    Token = edsToken.Derive(Interlocked.Increment(ref counter))
+                };
+                builder.Add(dependency.Token);
+                eds.Entity = eds.Entity with
+                {
+                    Assemblies = eds.Entity.Assemblies.Add(dependency)
                 };
             }
-
-            builder.Add(dependency);
         }
         return builder.ToImmutable();
     }
@@ -335,12 +357,9 @@ public class MSBuildMiner : IMiner
         return taskSource.Task;
     }
 
-    private Framework? GetFramework(string name, string? version)
+    private Task<ExclusiveEntityHandle<Framework>> GetFramework(string name, string? version)
     {
-        if (!workspaceRef.TryGetTarget(out var workspace) || workspace is null)
-        {
-            return null;
-        }
+        var workspace = GetWorkspace();
 
         var existing = workspace.Roots.Values
             .OfType<Framework>()
@@ -348,7 +367,7 @@ public class MSBuildMiner : IMiner
             .FirstOrDefault();
         if (existing is not null)
         {
-            return null;
+            return workspace.GetRootExclusively<Framework>(existing.Id);
         }
 
         var framework = new Framework
@@ -361,27 +380,24 @@ public class MSBuildMiner : IMiner
         if (!workspace.TryAddRoot(framework))
         {
             // NB: This should never happen.
-            return null;
+            throw new InvalidOperationException("An id collection occured. This is likely a bug.");
         }
 
-        return framework;
+        return workspace.GetRootExclusively<Framework>(framework.Id);
     }
 
-    private void SetFramework(Framework framework)
+    private Task<ExclusiveEntityHandle<ExternalDependencySource>> GetExternalDependencySource()
+    {
+        return GetWorkspace().GetRootExclusively<ExternalDependencySource>(edsToken);
+    }
+
+    private Workspace GetWorkspace()
     {
         if (!workspaceRef.TryGetTarget(out var workspace) || workspace is null)
         {
-            return;
+            throw new InvalidOperationException("Cannot get a framework without a workspace. This is likely a bug.");
         }
-
-        workspace.SetRoot(framework);
-    }
-
-
-
-    private void SetExternalDependencySource(ExternalDependencySource externalDependencySource)
-    {
-
+        return workspace;
     }
 
     private static string? NullIfEmpty(string? value)

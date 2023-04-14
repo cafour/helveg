@@ -18,9 +18,7 @@ public record AssemblyDefinition : SymbolDefinition
 
     public ImmutableArray<ModuleDefinition> Modules { get; init; } = ImmutableArray<ModuleDefinition>.Empty;
 
-    public string? ContainingProject { get; init; }
-
-    public string? ContainingPackage { get; init; }
+    public NumericToken? ContainingEntity { get; init; }
 
     public AssemblyReference Reference => new() { Token = Token, Hint = Name };
 
