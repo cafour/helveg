@@ -144,6 +144,11 @@ public class MSBuildMiner : IMiner
             if (fileExtension == CSConst.ProjectFileExtension)
             {
                 var project = await GetProject(path, projectCollection);
+                if (project.IsInvalid)
+                {
+                    return solution;
+                }
+
                 return solution with
                 {
                     Projects = ImmutableArray.Create(project with
@@ -164,12 +169,14 @@ public class MSBuildMiner : IMiner
                 .Select(async p => await GetProject(p, projectCollection)));
             return solution with
             {
-                Projects = projects
+                Projects = solution.Projects.AddRange(
+                    projects
+                    .Where(p => !p.IsInvalid)
                     .Select(p => p with
                     {
                         ContainingSolution = solution.Token
                     })
-                    .ToImmutableArray()
+                    .ToImmutableArray())
             };
         }
         finally
@@ -182,10 +189,22 @@ public class MSBuildMiner : IMiner
         string path,
         MSB.Evaluation.ProjectCollection collection)
     {
-        var msbuildProject = MSB.Evaluation.Project.FromFile(path, new MSB.Definition.ProjectOptions
+        MSB.Evaluation.Project? msbuildProject;
+        try
         {
-            ProjectCollection = collection
-        });
+            msbuildProject = MSB.Evaluation.Project.FromFile(path, new MSB.Definition.ProjectOptions
+            {
+                ProjectCollection = collection
+            });
+        }
+        catch (MSB.Exceptions.InvalidProjectFileException e)
+        {
+            logger.LogError(
+                exception: e,
+                message: "Could not load project at '{}' because of an MSBuild error. Ignoring project.",
+                path);
+            return Project.Invalid;
+        }
 
         var projectName = msbuildProject.GetPropertyValue(CSConst.MSBuildProjectNameProperty);
 
@@ -240,7 +259,12 @@ public class MSBuildMiner : IMiner
     {
         var projectName = msbuildProject.GetPropertyValue(CSConst.MSBuildProjectNameProperty);
 
-        msbuildProject.SetProperty(CSConst.TargetFrameworkProperty, targetFramework);
+        if (string.IsNullOrEmpty(msbuildProject.GetPropertyValue(CSConst.TargetFrameworkProperty))
+            && !msbuildProject.GlobalProperties.ContainsKey(CSConst.TargetFrameworkProperty))
+        {
+            msbuildProject.SetProperty(CSConst.TargetFrameworkProperty, targetFramework);
+        }
+
         var instance = msbuildProject.CreateProjectInstance();
 
         var buildRequest = new MSB.Execution.BuildRequestData(

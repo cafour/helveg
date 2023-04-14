@@ -60,7 +60,7 @@ public class BriefConsoleFormatter : ConsoleFormatter
             $"{Ansi.Color.Foreground.DarkGray}{category}{Ansi.Color.Foreground.Default}: {message}");
         if (logEntry.Exception is not null)
         {
-            textWriter.Write($"{Ansi.Color.Foreground.DarkGray}{logEntry.Exception.Demystify()}{Ansi.Color.Foreground.Default}");
+            textWriter.WriteLine($"{Ansi.Color.Foreground.DarkGray}{logEntry.Exception.Demystify()}{Ansi.Color.Foreground.Default}");
         }
     }
 }

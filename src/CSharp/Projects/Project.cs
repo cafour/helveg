@@ -13,6 +13,9 @@ public record Project : EntityBase
     public string? Path { get; init; }
 
     [JsonIgnore]
+    public bool IsInvalid => Name == Const.Invalid;
+
+    [JsonIgnore]
     public NumericToken ContainingSolution { get; init; } = NumericToken.GlobalInvalid;
 
     [JsonIgnore]

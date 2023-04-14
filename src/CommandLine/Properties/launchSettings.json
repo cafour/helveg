@@ -2,8 +2,8 @@
   "profiles": {
     "Helveg": {
       "commandName": "Project",
-      "workingDirectory": "C:\\dev\\riganti\\dotvvm",
-      "commandLineArgs": "--verbose -pa PublicApi -ea AssembliesOnly"
+      "workingDirectory": "C:\\dev\\riganti\\dotvvm\\src\\Framework\\Framework",
+      "commandLineArgs": "--verbose -pa PublicApi -ea AssembliesOnly -p DOTVVM_ROOT='' -p TargetFramework=net6.0"
     }
   }
 }
