@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -68,10 +69,12 @@ public class RoslynMiner : IMiner
         var matchedProjects = solution.Projects.Join(msbuildWorkspace.CurrentSolution.Projects,
             p => p.Path ?? p.Name,
             p => p.FilePath ?? p.Name,
-            (project, msbuildProject) => (project, msbuildProject));
+            (project, roslynProject) => (project, roslynProject));
 
         var projectAssemblies = (await Task.WhenAll(matchedProjects.Select(
-            async p => (id: p.project.Id, assembly: await GetProjectAssembly(p.project, p.msbuildProject, cancellationToken)))))
+            async p => (
+                id: p.project.Id,
+                assembly: await GetProjectAssembly(p.project, p.roslynProject, cancellationToken)))))
             .GroupBy(p => p.id)
             .ToDictionary(g => g.Key, g => g.Select(p => p.assembly));
         workspace.SetRoot(solution with
@@ -150,11 +153,63 @@ public class RoslynMiner : IMiner
         // TODO: Classify references into BCL, Packages, and Other.
         tokenMap.Track(compilation.Assembly.GetHelvegAssemblyId(), project.Token, compilation);
 
+        var targetFramework = ParseTargetFramework(roslynProject.Name) ?? project.Dependencies.Keys.FirstOrDefault();
+
+        var diagnostics = new List<Diagnostic>();
+
+        if (project.Dependencies.TryGetValue(targetFramework, out var dependencies))
+        {
+            var referenceIds = compilation.References.Select(compilation.GetAssemblyOrModuleSymbol)
+                .OfType<Microsoft.CodeAnalysis.IAssemblySymbol>()
+                .Select(a => (assembly: a, id: a.GetHelvegAssemblyId()))
+                .ToImmutableArray();
+            var dependencyReferencePairs = dependencies.GroupJoin(
+                referenceIds,
+                d => (d.Name, d.FileVersion),
+                r => (r.id.Name, r.id.FileVersion),
+                (d, r) => (dependency: d, references: r.ToImmutableArray()))
+                .ToImmutableArray();
+
+            foreach (var (dependency, references) in dependencyReferencePairs)
+            {
+                if (references.Length == 0 || references.Length > 1)
+                {
+                    diagnostics.Add(Diagnostic.Error(
+                        "DependencyResolutionFailure",
+                        $"Dependency '{dependency.Name}' could not be resolved."));
+                    logger.LogError("Could not resolve dependency '{}' of project '{}' for target framework '{}'.",
+                        dependency.Name, project.Name, targetFramework);
+                    continue;
+                }
+
+                var reference = references[0];
+
+                if (dependency.Framework.HasValue)
+                {
+                    tokenMap.Track(reference.id, dependency.Framework, compilation);
+                }
+                else
+                {
+                    logger.LogDebug("Ignoring '{}' for now.", dependency);
+                }
+            }
+        }
+        else
+        {
+            diagnostics.Add(Diagnostic.Error(
+                "TargetFrameworkResolutionFailure",
+                $"Failed to resolve dependencies for target framework '{targetFramework}'."));
+            logger.LogError(
+                "Dependencies of '{}' for target framework '{}' could not be resolved.",
+                project.Name,
+                targetFramework);
+        }
+
+
         // Phase 1: Discover all symbols within the assembly.
         logger.LogDebug("Visiting the '{}' assembly.", compilation.Assembly.GetHelvegAssemblyId().ToDisplayString());
         symbolVisitor.VisitAssembly(compilation.Assembly);
 
-        var errors = new List<Diagnostic>();
 
         foreach (var reference in compilation.References)
         {
@@ -165,7 +220,7 @@ public class RoslynMiner : IMiner
                     "MissingAssemblySymbol",
                     $"Could not obtain an assembly symbol for a metadata reference of '{roslynProject.Name}'. " +
                     $"The reference is: '{reference}'.");
-                errors.Add(diagnostic);
+                diagnostics.Add(diagnostic);
                 logger.LogWarning(diagnostic.Message);
                 continue;
             }
@@ -211,5 +266,16 @@ public class RoslynMiner : IMiner
             logger.LogCritical($"Failed to load the project or solution. "
                 + "Make sure it can be built with 'dotnet build'.");
         }
+    }
+
+    private string? ParseTargetFramework(string projectName)
+    {
+        var match = Regex.Match(projectName, @"^.+\((.+)\)$");
+        if (!match.Success)
+        {
+            return null;
+        }
+
+        return match.Groups[1].Value;
     }
 }

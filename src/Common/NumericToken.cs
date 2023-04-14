@@ -30,6 +30,8 @@ public record struct NumericToken
 
     public bool IsNone => !Values.IsDefaultOrEmpty && Values.Last() == NoneValue;
 
+    public bool HasValue => !IsInvalid && !IsNone;
+
     public NumericToken Parent => Values.Length > 1
         ? Create(Namespace, Values.RemoveAt(Values.Length - 1))
         : GlobalInvalid;

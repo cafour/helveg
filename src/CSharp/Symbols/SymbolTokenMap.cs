@@ -46,19 +46,6 @@ internal class SymbolTokenMap
             relatedCompilation,
             new SymbolTokenGenerator(parentToken.Derive(Interlocked.Increment(ref assemblyCounter)))
         ));
-
-        foreach (var reference in relatedCompilation.References)
-        {
-            var referencedSymbol = relatedCompilation.GetAssemblyOrModuleSymbol(reference);
-            if (referencedSymbol is not null && referencedSymbol is IAssemblySymbol referencedAssembly)
-            {
-                assemblyMap.GetOrAdd(referencedAssembly.GetHelvegAssemblyId(), _ =>
-                (
-                    relatedCompilation,
-                    new SymbolTokenGenerator(parentToken.Derive(Interlocked.Increment(ref assemblyCounter)))
-                ));
-            }
-        }
     }
 
     public NumericToken GetOrAdd(ISymbol symbol)
