@@ -2,11 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace Helveg.CSharp.Projects;
 
-public record Dependency
+/// <summary>
+/// Represents a dependency on an assembly. Corresponds with the `Reference` item in MSBuild, but is named this way to
+/// avoid conflicts with the <see cref="Symbols.AssemblyReference"/> type.
+/// </summary>
+public record AssemblyDependency : EntityBase
 {
     public string Name { get; init; } = Const.Invalid;
 
@@ -22,6 +27,8 @@ public record Dependency
 
     public string? PackageVersion { get; init; }
 
-    public NumericToken Framework { get; init; }
-        = NumericToken.CreateNone(CSConst.CSharpNamespace, (int)RootKind.Framework);
+    [JsonIgnore]
+    public NumericToken Token { get; init; } = CSConst.InvalidToken;
+
+    public override string Id { get => Token; init => Token = NumericToken.Parse(value); }
 }

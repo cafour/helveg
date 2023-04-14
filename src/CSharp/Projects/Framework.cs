@@ -11,6 +11,11 @@ namespace Helveg.CSharp.Projects;
 
 public record Framework : EntityBase
 {
+    public static Framework Invalid { get; } = new Framework
+    {
+        Index = NumericToken.InvalidValue
+    };
+
     public string Name { get; init; } = Const.Invalid;
 
     public string? Version { get; init; }
@@ -24,19 +29,11 @@ public record Framework : EntityBase
     public override string Id
     {
         get => Token;
-        init
-        {
-            if (!NumericToken.TryParse(value, out NumericToken token)
-                || token.Values.Length != 2
-                || token.Values[0] != (int)RootKind.Framework)
-            {
-                throw new ArgumentException(
-                    $"Value is not a valid {nameof(Token)} for a {nameof(Framework)}.",
-                    nameof(value));
-            }
-            Index = token.Values[1];
-        }
+        init => Index = NumericToken.Parse(value, CSConst.CSharpNamespace, 3, (int)RootKind.Framework).Values[^1];
     }
+
+    public ImmutableArray<AssemblyDependency> Assemblies { get; init; }
+        = ImmutableArray<AssemblyDependency>.Empty;
 
     public override void Accept(IEntityVisitor visitor)
     {
@@ -47,6 +44,11 @@ public record Framework : EntityBase
         else
         {
             visitor.DefaultVisit(this);
+        }
+
+        foreach (var assembly in Assemblies)
+        {
+            assembly.Accept(visitor);
         }
 
         base.Accept(visitor);

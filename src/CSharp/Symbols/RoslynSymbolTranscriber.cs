@@ -47,7 +47,7 @@ internal class RoslynSymbolTranscriber
         return GetAssembly(reference);
     }
 
-    public AssemblyDefinition Transcribe(Dependency dependency)
+    public AssemblyDefinition Transcribe(AssemblyDependency dependency)
     {
         var assemblyId = tokenMap.TrackedAssemblies.FirstOrDefault(a => a.Name == dependency.Name
             && a.FileVersion == dependency.FileVersion);

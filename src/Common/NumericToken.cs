@@ -153,6 +153,94 @@ public record struct NumericToken
         return true;
     }
 
+    public static bool TryParse(
+        string value,
+        string? @namespace,
+        int length,
+        ImmutableArray<int> prefixValues,
+        out NumericToken token)
+    {
+        if (!TryParse(value, out token))
+        {
+            return false;
+        }
+
+        if (@namespace != null && (token.Namespace != @namespace || token.Values.Length < prefixValues.Length))
+        {
+            return false;
+        }
+
+        if (length > 0 && prefixValues.Length != length)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < prefixValues.Length; ++i)
+        {
+            if (token.Values[i] != prefixValues[i])
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public static bool TryParse(
+        string value,
+        string? @namespace,
+        int length,
+        IEnumerable<int> prefixValues,
+        out NumericToken token)
+    {
+        return TryParse(value, @namespace, length, prefixValues.ToImmutableArray(), out token);
+    }
+
+    public static NumericToken Parse(string value)
+    {
+        if (!TryParse(value, out NumericToken token))
+        {
+            throw new ArgumentException(
+                $"Value is not a valid {nameof(NumericToken)}.",
+                nameof(value));
+        }
+        return token;
+    }
+
+    public static NumericToken Parse(
+        string value,
+        string? @namespace,
+        int length,
+        ImmutableArray<int> prefixValues)
+    {
+        if (!TryParse(value, @namespace, length, prefixValues, out var token))
+        {
+            var prefix = string.Join(":", prefixValues);
+            throw new ArgumentException($"Value is not a numeric token in the '{@namespace}' namespace with " +
+                $"a '{prefix}' prefix with values of length '{length}'.");
+
+        }
+        return token;
+    }
+
+    public static NumericToken Parse(
+        string value,
+        string? @namespace,
+        int length,
+        IEnumerable<int> prefixValues)
+    {
+        return Parse(value, @namespace, length, prefixValues.ToImmutableArray());
+    }
+
+    public static NumericToken Parse(
+        string value,
+        string? @namespace,
+        int length,
+        params int[] prefixValues)
+    {
+        return Parse(value, @namespace, length, prefixValues.ToImmutableArray());
+    }
+
     public override string ToString()
     {
         var sb = new StringBuilder(Namespace);
@@ -162,6 +250,22 @@ public record struct NumericToken
             sb.Append(value);
         }
         return sb.ToString();
+    }
+
+    public override int GetHashCode()
+    {
+        var value = Namespace.GetHashCode() * 17;
+        for(var i = 0; i < Values.Length; i++)
+        {
+            value ^= Values[i].GetHashCode();
+        }
+        return value;
+    }
+
+    public bool Equals(NumericToken other)
+    {
+        return other.Namespace.Equals(other.Namespace)
+            && Values.SequenceEqual(other.Values);
     }
 }
 

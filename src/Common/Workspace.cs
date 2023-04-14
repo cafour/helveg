@@ -4,17 +4,20 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Helveg;
 
 public record Workspace
 {
     private readonly ConcurrentDictionary<string, IEntity> entities = new();
-    private readonly ConcurrentDictionary<string, object> scratchSpace = new();
     private readonly ConcurrentDictionary<string, IEntity> roots = new();
+    private readonly ConcurrentDictionary<string, ExclusiveRootHandle> rootHandles = new();
     private readonly ILogger<Workspace> logger;
 
     public IReadOnlyDictionary<string, IEntity> Roots => roots;
+    public IReadOnlyDictionary<string, IEntity> Entities => entities;
 
     public DataSource Source { get; init; } = DataSource.Invalid;
 
@@ -34,39 +37,24 @@ public record Workspace
         return true;
     }
 
-    public void RemoveRoot(IEntity root)
+    public async Task<ExclusiveRootHandle?> GetRootExclusively(string id, CancellationToken cancellationToken = default)
     {
-        if (roots.TryRemove(root.Id, out _))
+        while (!cancellationToken.IsCancellationRequested)
         {
-            root.Accept(new EntityUntrackingVisitor(entities));
+            if (rootHandles.TryGetValue(id, out var existingHandle))
+            {
+                await existingHandle.Wait(cancellationToken);
+            }
+
+            var handle = new ExclusiveRootHandle(id, CommitHandleChanges);
+            if (rootHandles.TryAdd(id, handle))
+            {
+                handle.Root = Roots.GetValueOrDefault(id);
+                return handle;
+            }
         }
-    }
 
-    public void SetRoot(IEntity root)
-    {
-        roots.AddOrUpdate(
-            key: root.Id,
-            addValueFactory: _ => root,
-            updateValueFactory: (_, _) => root
-        );
-        root.Accept(new EntityUntrackingVisitor(entities));
-        root.Accept(new EntityTrackingVisitor(entities));
-    }
-
-    public IEntity? GetEntity(string id)
-    {
-        return entities.TryGetValue(id, out var entity) ? entity : null;
-    }
-
-    public void AddOrUpdateScratch<T>(string key, Func<string, T> addFactory, Func<string, T, T> updateFactory)
-        where T : notnull
-    {
-        scratchSpace.AddOrUpdate(key, k => addFactory(k), (k, e) => updateFactory(k, (T)e));
-    }
-
-    public T? GetScratch<T>(string key)
-    {
-        return (T?)scratchSpace.GetValueOrDefault(key);
+        return null;
     }
 
     public void Accept(IEntityVisitor visitor)
@@ -75,5 +63,19 @@ public record Workspace
         {
             visitor.Visit(root);
         }
+    }
+
+    private void CommitHandleChanges(string id, IEntity? entity)
+    {
+        if (entity is null)
+        {
+            roots.TryRemove(id, out _);
+        }
+        else
+        {
+            roots.AddOrUpdate(id, entity, (_, _) => entity);
+        }
+
+        rootHandles.TryRemove(id, out _);
     }
 }

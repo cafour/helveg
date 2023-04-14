@@ -23,6 +23,7 @@ public class MSBuildMiner : IMiner
     private readonly ConcurrentDictionary<string, Framework> frameworks
         = new();
     private WeakReference<Workspace?> workspaceRef = new(null);
+    private NumericToken edsToken = NumericToken.CreateNone(CSConst.CSharpNamespace, (int)RootKind.ExternalDependencySource);
 
     public MSBuildMinerOptions Options { get; }
 
@@ -36,7 +37,21 @@ public class MSBuildMiner : IMiner
 
     public async Task Mine(Workspace workspace, CancellationToken cancellationToken = default)
     {
-        this.workspaceRef = new(workspace);
+        workspaceRef = new(workspace);
+
+        var eds = new ExternalDependencySource
+        {
+            Index = Interlocked.Increment(ref counter),
+            Name = "External Dependencies"
+        };
+        if (!workspace.TryAddRoot(eds))
+        {
+            logger.LogError("Failed to add an external dependency source root to the workspace.");
+        }
+        else
+        {
+            edsToken = eds.Token;
+        }
 
         var solution = await GetSolution(workspace.Source.Path, cancellationToken);
         if (solution is null)
@@ -48,6 +63,7 @@ public class MSBuildMiner : IMiner
         {
             logger.LogError("Failed to add the '{}' root to the mining workspace.", solution.Id);
         }
+
 
         return;
     }
@@ -173,7 +189,7 @@ public class MSBuildMiner : IMiner
             ProjectCollection = collection
         });
 
-        var projectName = msbuildProject.GetPropertyValue("MSBuildProjectName");
+        var projectName = msbuildProject.GetPropertyValue(CSConst.MSBuildProjectNameProperty);
 
         var project = new Project
         {
@@ -207,7 +223,7 @@ public class MSBuildMiner : IMiner
             targetFrameworks = targetFrameworksProp.Split(';');
         }
 
-        var dependenciesBuilder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<Dependency>>();
+        var dependenciesBuilder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<NumericToken>>();
         foreach (var targetFramework in targetFrameworks)
         {
             var dependencies = await ResolveDependencies(msbuildProject, targetFramework);
@@ -220,7 +236,7 @@ public class MSBuildMiner : IMiner
         };
     }
 
-    private async Task<ImmutableArray<Dependency>> ResolveDependencies(
+    private async Task<ImmutableArray<NumericToken>> ResolveDependencies(
         MSB.Evaluation.Project msbuildProject,
         string targetFramework)
     {
@@ -236,18 +252,18 @@ public class MSBuildMiner : IMiner
         var buildResult = await BuildAsync(MSB.Execution.BuildManager.DefaultBuildManager, buildRequest);
         if (buildResult.OverallResult == MSB.Execution.BuildResultCode.Failure)
         {
-            return ImmutableArray<Dependency>.Empty;
+            return ImmutableArray<NumericToken>.Empty;
         }
 
         if (!buildResult.ResultsByTarget.TryGetValue(CSConst.ResolveReferencesTarget, out var targetResult))
         {
-            return ImmutableArray<Dependency>.Empty;
+            return ImmutableArray<NumericToken>.Empty;
         }
 
-        var builder = ImmutableArray.CreateBuilder<Dependency>();
-        foreach(var item in targetResult.Items)
+        var builder = ImmutableArray.CreateBuilder<NumericToken>();
+        foreach (var item in targetResult.Items)
         {
-            var dependency = new Dependency
+            var dependency = new AssemblyDependency
             {
                 Name = NullIfEmpty(item.GetMetadata("Filename")) ?? Const.Invalid,
                 Path = NullIfEmpty(item.GetMetadata("FullPath")),
@@ -260,11 +276,25 @@ public class MSBuildMiner : IMiner
 
             var frameworkName = NullIfEmpty(item.GetMetadata("FrameworkReferenceName"));
             var frameworkVersion = NullIfEmpty(item.GetMetadata("FrameworkReferenceVersion"));
-            if (frameworkName is not null)
+            var framework = frameworkName is not null
+                ? GetFramework(frameworkName, frameworkVersion)
+                : null;
+            if (framework is not null)
             {
                 dependency = dependency with
                 {
-                    Framework = GetFramework(frameworkName, frameworkVersion)
+                    Token = framework.Token.Derive(Interlocked.Increment(ref counter))
+                };
+                SetFramework(framework with
+                {
+                    Assemblies = framework.Assemblies.Add(dependency)
+                });
+            }
+            else
+            {
+                dependency = dependency with
+                {
+                    ExternalSource = edsToken
                 };
             }
 
@@ -305,11 +335,11 @@ public class MSBuildMiner : IMiner
         return taskSource.Task;
     }
 
-    private NumericToken GetFramework(string name, string? version)
+    private Framework? GetFramework(string name, string? version)
     {
         if (!workspaceRef.TryGetTarget(out var workspace) || workspace is null)
         {
-            return NumericToken.CreateNone(CSConst.CSharpNamespace, (int)RootKind.Framework);
+            return null;
         }
 
         var existing = workspace.Roots.Values
@@ -318,7 +348,7 @@ public class MSBuildMiner : IMiner
             .FirstOrDefault();
         if (existing is not null)
         {
-            return existing.Token;
+            return null;
         }
 
         var framework = new Framework
@@ -331,10 +361,27 @@ public class MSBuildMiner : IMiner
         if (!workspace.TryAddRoot(framework))
         {
             // NB: This should never happen.
-            return NumericToken.CreateInvalid(CSConst.CSharpNamespace, (int)RootKind.Framework);
+            return null;
         }
 
-        return framework.Token;
+        return framework;
+    }
+
+    private void SetFramework(Framework framework)
+    {
+        if (!workspaceRef.TryGetTarget(out var workspace) || workspace is null)
+        {
+            return;
+        }
+
+        workspace.SetRoot(framework);
+    }
+
+
+
+    private void SetExternalDependencySource(ExternalDependencySource externalDependencySource)
+    {
+
     }
 
     private static string? NullIfEmpty(string? value)

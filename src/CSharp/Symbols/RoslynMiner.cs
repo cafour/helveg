@@ -219,7 +219,6 @@ public class RoslynMiner : IMiner
         logger.LogDebug("Visiting the '{}' assembly.", compilation.Assembly.GetHelvegAssemblyId().ToDisplayString());
         symbolVisitor.VisitAssembly(compilation.Assembly);
 
-
         foreach (var reference in compilation.References)
         {
             var referenceSymbol = compilation.GetAssemblyOrModuleSymbol(reference);
@@ -244,7 +243,7 @@ public class RoslynMiner : IMiner
         return transcriber.Transcribe(compilation.Assembly.GetHelvegAssemblyId());
     }
 
-    private ImmutableArray<AssemblyDefinition> TranscribeDependencies(IEnumerable<Dependency> dependencies)
+    private ImmutableArray<AssemblyDefinition> TranscribeDependencies(IEnumerable<AssemblyDependency> dependencies)
     {
         var transcriber = new RoslynSymbolTranscriber(tokenMap);
         return dependencies.Select(d =>
@@ -266,7 +265,7 @@ public class RoslynMiner : IMiner
         {
             for (int i = 0; i < workspace.Diagnostics.Count; ++i)
             {
-                logger.LogDebug(new EventId(0, "MSBuildWorkspace"), workspace.Diagnostics[i].Message);
+                logger.LogDebug(workspace.Diagnostics[i].Message);
             }
         }
 
