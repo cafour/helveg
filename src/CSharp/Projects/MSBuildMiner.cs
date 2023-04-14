@@ -144,7 +144,7 @@ public class MSBuildMiner : IMiner
             if (fileExtension == CSConst.ProjectFileExtension)
             {
                 var project = await GetProject(path, projectCollection);
-                if (project.IsInvalid)
+                if (!project.IsValid)
                 {
                     return solution;
                 }
@@ -171,7 +171,7 @@ public class MSBuildMiner : IMiner
             {
                 Projects = solution.Projects.AddRange(
                     projects
-                    .Where(p => !p.IsInvalid)
+                    .Where(p => p.IsValid)
                     .Select(p => p with
                     {
                         ContainingSolution = solution.Token

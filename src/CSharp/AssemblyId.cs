@@ -31,7 +31,7 @@ public sealed record AssemblyId
 
     public string? Path { get; init; }
 
-    public bool IsInvalid => Name == Const.Invalid;
+    public bool IsValid => Name != Const.Invalid;
 
     public static AssemblyId Create(
         MCA.IAssemblySymbol assembly,

@@ -26,7 +26,7 @@ public sealed class ExclusiveEntityHandle<T> : IDisposable
 
     public static readonly ExclusiveEntityHandle<T> Invalid = new(Const.Invalid, null!, (_, _) => { });
 
-    public bool IsInvalid => Id == Const.Invalid;
+    public bool IsValid => Id != Const.Invalid;
 
     public string Id { get; }
 

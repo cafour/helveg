@@ -26,11 +26,11 @@ public record struct NumericToken
     public ImmutableArray<int> Values { get; init; }
         = ImmutableArray<int>.Empty;
 
-    public bool IsInvalid => Values.IsDefaultOrEmpty || Values.Last() == InvalidValue;
+    public bool IsValid => !Values.IsDefaultOrEmpty && Values.Last() != InvalidValue;
 
     public bool IsNone => !Values.IsDefaultOrEmpty && Values.Last() == NoneValue;
 
-    public bool HasValue => !IsInvalid && !IsNone;
+    public bool HasValue => IsValid && !IsNone;
 
     public NumericToken Parent => Values.Length > 1
         ? Create(Namespace, Values.RemoveAt(Values.Length - 1))

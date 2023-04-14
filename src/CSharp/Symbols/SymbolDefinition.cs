@@ -13,7 +13,7 @@ public interface ISymbolDefinition : IEntity
     string Name { get; }
 
     [JsonIgnore]
-    bool IsInvalid { get; }
+    bool IsValid { get; }
 
     [JsonIgnore]
     NumericToken Token { get; }
@@ -27,7 +27,7 @@ public interface ISymbolDefinition : IEntity
 public abstract record SymbolDefinition : EntityBase, ISymbolDefinition
 {
     [JsonIgnore]
-    public bool IsInvalid => Token.IsInvalid || Name == Const.Invalid;
+    public bool IsValid => Token.IsValid || Name != Const.Invalid;
 
     public string Name { get; init; } = Const.Invalid;
 

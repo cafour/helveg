@@ -237,7 +237,7 @@ public class RoslynMiner : IMiner
                     }
                     return AssemblyId.Create(assembly, r as MCA.PortableExecutableReference);
                 })
-                .Where(a => !a.IsInvalid)
+                .Where(a => a.IsValid)
                 .ToImmutableArray();
             var dependencyReferenceGroups = dependencies.GroupJoin(
                 referenceIds,
