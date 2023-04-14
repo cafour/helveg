@@ -145,4 +145,11 @@ internal static class RoslynExtensions
             _ => SymbolKind.Unknown
         };
     }
+
+    public static IAssemblySymbol? GetReferencedAssembly(this Compilation compilation, AssemblyId id)
+    {
+        return (IAssemblySymbol?)compilation.References.Select(compilation.GetAssemblyOrModuleSymbol)
+            .Where(a => a is not null && a is IAssemblySymbol assembly && assembly.GetHelvegAssemblyId() == id)
+            .FirstOrDefault();
+    }
 }

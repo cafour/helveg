@@ -33,7 +33,18 @@ internal class RoslynSymbolTranscriber
         }
 
         compilationRef.SetTarget(compilation);
-        return GetAssembly(compilation.Assembly);
+        if (compilation.Assembly.GetHelvegAssemblyId() == assemblyId)
+        {
+            return GetAssembly(compilation.Assembly);
+        }
+
+        var reference = compilation.GetReferencedAssembly(assemblyId);
+        if (reference is null)
+        {
+            return AssemblyDefinition.Invalid;
+        }
+
+        return GetAssembly(reference);
     }
 
     public AssemblyDefinition Transcribe(Dependency dependency)

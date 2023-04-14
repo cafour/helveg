@@ -120,18 +120,27 @@ public class RoslynMiner : IMiner
             .GroupBy(d => d.Framework.ToString())
             .ToDictionary(g => g.Key, g => g);
 
-        foreach (var framework in workspace.Roots.Values.OfType<Framework>())
+        foreach (var f in workspace.Roots.Values.OfType<Framework>())
         {
+            var framework = f;
             if (frameworkDeps.TryGetValue(framework.Token, out var deps))
             {
                 var transcribedDeps = TranscribeDependencies(deps);
-                workspace.SetRoot(framework with
+                foreach (var dep in transcribedDeps)
                 {
-                    Extensions = framework.Extensions.AddRange(transcribedDeps.Select(d => new AssemblyExtension
+                    if (framework.Extensions.OfType<AssemblyExtension>().Any(a => a.Assembly.Identity == dep.Identity))
                     {
-                        Assembly = d
-                    }))
-                });
+                        continue;
+                    }
+                    framework = framework with
+                    {
+                        Extensions = framework.Extensions.Add(new AssemblyExtension
+                        {
+                            Assembly = dep
+                        })
+                    };
+                }
+                workspace.SetRoot(framework);
             }
         }
     }
