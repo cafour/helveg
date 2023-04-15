@@ -12,7 +12,7 @@ build:
     - corepack enable && corepack prepare pnpm@latest --activate
     - dotnet build -c Release Helveg.sln
     - dotnet pack --no-build src/CommandLine -o artifacts -c Release
-    - if [ "$CI_COMMIT_BRANCH" != "main" ]; then return 0; fi
+    - if [ "$CI_COMMIT_BRANCH" != "develop" ]; then return 0; fi
     - dotnet nuget update source ci 
       --source "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/nuget/index.json"
       --username gitlab-ci-token
