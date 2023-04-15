@@ -6,7 +6,6 @@
     <AssemblyName>helveg</AssemblyName>
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>helveg</ToolCommandName>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
