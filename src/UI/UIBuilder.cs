@@ -14,10 +14,10 @@ public class UIBuilder
     private const string JsResource = "helveg.js";
     private const string IconBaseNamespace = "base";
 
-    public List<string> Styles {get; } = new();
-    public List<string> Scripts {get;}= new();
-    private readonly List<IconSet> iconSets = new();
-    private VisualizationModel? visualizationModel;
+    public List<string> Styles { get; } = new();
+    public List<string> Scripts { get; } = new();
+    public List<IconSet> IconSets { get; } = new();
+    public VisualizationModel Model { get; set; } = VisualizationModel.Invalid;
 
     public static async Task<UIBuilder> CreateDefault()
     {
@@ -29,7 +29,7 @@ public class UIBuilder
 
     public UIBuilder AddStyle(string style)
     {
-        styles.Add(style);
+        Styles.Add(style);
         return this;
     }
 
@@ -41,25 +41,21 @@ public class UIBuilder
 
     public UIBuilder AddIconSet(IconSet iconSet)
     {
-        iconSets.Add(iconSet);
+        IconSets.Add(iconSet);
         return this;
     }
 
     public UIBuilder SetVisualizationModel(VisualizationModel visualizationModel)
     {
-        this.visualizationModel = visualizationModel;
+        this.Model = visualizationModel;
         return this;
-    }
-
-    public async Task Build()
-    {
-        using var writer = new StringWriter();
-        await Build(writer);
     }
 
     public async Task Build(Func<string, TextWriter> writerFactory)
     {
-        if(visualizationModel is null)
+        var writer = writerFactory("output.html");
+
+        if (Model is null)
         {
             throw new InvalidOperationException("A visualization model must be set first.");
         }
@@ -68,11 +64,11 @@ public class UIBuilder
 @$"<!DOCTYPE html>
 <html lang=""en"">
     <head>
-        <title>{visualizationModel.DocumentInfo.Name ?? "Unknown"} | Helveg</title>
+        <title>{Model.DocumentInfo.Name ?? "Unknown"} | Helveg</title>
         <meta charset=""utf-8"" />
         <meta content=""width=device-width, initial-scale=1.0"" name=""viewport"" />
         ");
-        foreach (var style in styles)
+        foreach (var style in Styles)
         {
             await writer.WriteAsync(
 @$"
@@ -89,11 +85,11 @@ public class UIBuilder
     <body>
         <div id=""app""></div>
         <script type=""application/json"" id=""helveg-data"">
-            {JsonSerializer.Serialize(visualizationModel, HelvegDefaults.JsonOptions)}
+            {JsonSerializer.Serialize(Model, HelvegDefaults.JsonOptions)}
         </script>
 ");
 
-        foreach (var iconSet in iconSets)
+        foreach (var iconSet in IconSets)
         {
             await writer.WriteAsync(
 @$"
@@ -131,7 +127,7 @@ public class UIBuilder
                 stream = File.OpenRead(namePath);
             }
         }
-        
+
         if (stream is null)
         {
             stream = typeof(UIBuilder).Assembly.GetManifestResourceStream(name);
