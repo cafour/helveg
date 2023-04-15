@@ -8,44 +8,44 @@ using Helveg.Visualization;
 
 namespace Helveg.UI;
 
-public class SingleFileBuilder
+public class UIBuilder
 {
     private const string CssResource = "helveg.css";
     private const string JsResource = "helveg.js";
     private const string IconBaseNamespace = "base";
 
-    private readonly List<string> styles = new();
-    private readonly List<string> scripts = new();
+    public List<string> Styles {get; } = new();
+    public List<string> Scripts {get;}= new();
     private readonly List<IconSet> iconSets = new();
     private VisualizationModel? visualizationModel;
 
-    public static async Task<SingleFileBuilder> CreateDefault()
+    public static async Task<UIBuilder> CreateDefault()
     {
-        return new SingleFileBuilder()
+        return new UIBuilder()
             .AddStyle(await GetBaseResource(CssResource))
             .AddScript(await GetBaseResource(JsResource))
             .AddIconSet(await IconSet.LoadFromAssembly(IconBaseNamespace, typeof(Icon).Assembly));
     }
 
-    public SingleFileBuilder AddStyle(string style)
+    public UIBuilder AddStyle(string style)
     {
         styles.Add(style);
         return this;
     }
 
-    public SingleFileBuilder AddScript(string script)
+    public UIBuilder AddScript(string script)
     {
-        scripts.Add(script);
+        Scripts.Add(script);
         return this;
     }
 
-    public SingleFileBuilder AddIconSet(IconSet iconSet)
+    public UIBuilder AddIconSet(IconSet iconSet)
     {
         iconSets.Add(iconSet);
         return this;
     }
 
-    public SingleFileBuilder SetVisualizationModel(VisualizationModel visualizationModel)
+    public UIBuilder SetVisualizationModel(VisualizationModel visualizationModel)
     {
         this.visualizationModel = visualizationModel;
         return this;
@@ -57,7 +57,7 @@ public class SingleFileBuilder
         await Build(writer);
     }
 
-    public async Task Build(TextWriter writer)
+    public async Task Build(Func<string, TextWriter> writerFactory)
     {
         if(visualizationModel is null)
         {
@@ -103,7 +103,7 @@ public class SingleFileBuilder
 ");
         }
 
-        foreach (var script in scripts)
+        foreach (var script in Scripts)
         {
             await writer.WriteAsync(
 @$"
@@ -134,7 +134,7 @@ public class SingleFileBuilder
         
         if (stream is null)
         {
-            stream = typeof(SingleFileBuilder).Assembly.GetManifestResourceStream(name);
+            stream = typeof(UIBuilder).Assembly.GetManifestResourceStream(name);
         }
 
         if (stream is null)

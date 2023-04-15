@@ -106,7 +106,7 @@ public class Program
         vmb.SetMultigraph(multigraph);
         vmb.UseCSharp();
 
-        var sfb = await SingleFileBuilder.CreateDefault();
+        var sfb = await UIBuilder.CreateDefault();
         await sfb.UseCSharp();
         sfb.SetVisualizationModel(vmb.Build());
 

@@ -15,9 +15,16 @@ export interface IconSet {
     icons: Record<string, Icon>;
 }
 
+export interface IconOptions {
+    width?: number;
+    height?: number;
+    viewBox?: string;
+    removeTitle?: boolean;
+}
+
 let iconSets: Record<string, IconSet>;
 
-export function getIcon(name: string): Icon {
+export function getIcon(name: string, options?: IconOptions): Icon {
     if (!iconSets) {
         iconSets = {};
         let iconScripts = document.getElementsByClassName("helveg-icons");
@@ -41,16 +48,36 @@ export function getIcon(name: string): Icon {
     if (!icon) {
         throw new Error(`Icon '${name}' could not be found.`);
     }
+
+    if (icon.format === IconFormat.Svg) {
+        icon.data = tweakIcon(icon.data, options ?? { removeTitle: true });
+    }
     return icon;
 }
 
-function setSvgSize(svgString: string, width: number, height: number, viewBox: string | null = null): string {
-    const svg = new DOMParser().parseFromString(svgString, "image/svg+xml");
-    svg.documentElement.setAttribute("width", width.toString());
-    svg.documentElement.setAttribute("height", height.toString());
-    if (viewBox) {
+function removeIconTitle(svg: Document) {
+    [...svg.getElementsByTagName("title")].forEach(e => e.remove());
+}
+
+function setIconSize(svg: Document, width: number | null, height: number | null, viewBox: string | null = null): string {
+    if (width && !svg.documentElement.hasAttribute("width")) {
+        svg.documentElement.setAttribute("width", width.toString());
+    }
+    if (height && !svg.documentElement.hasAttribute("height")) {
+        svg.documentElement.setAttribute("height", height.toString());
+    }
+    if (viewBox && !svg.documentElement.hasAttribute("viewBox")) {
         svg.documentElement.setAttribute("viewBox", viewBox);
     }
+    return new XMLSerializer().serializeToString(svg);
+}
+
+function tweakIcon(svgString: string, options: IconOptions): string {
+    const svg = new DOMParser().parseFromString(svgString, "image/svg+xml");
+    if (options.removeTitle) {
+        removeIconTitle(svg);
+    }
+    setIconSize(svg, options.width ?? null, options.height ?? null, options.viewBox);
     return new XMLSerializer().serializeToString(svg);
 }
 
@@ -94,11 +121,11 @@ function svgToDataURI(svg: string): string {
     return svg;
 }
 
-export function getIconDataUrl(name: string): string {
-    let icon = getIcon(name);
-    switch(icon.format) {
+export function getIconDataUrl(name: string, options?: IconOptions): string {
+    let icon = getIcon(name, options);
+    switch (icon.format) {
         case IconFormat.Svg:
-            return svgToDataURI(setSvgSize(icon.data, 256, 256));
+            return svgToDataURI(icon.data);
         case IconFormat.Png:
             return `data:image/png,${icon.data}`;
         default:

@@ -9,8 +9,10 @@
     import type { VisualizationModel } from "model/visualization";
     import createNodePictogramProgram from "rendering/node.pictogram";
     import { getIconDataUrl } from "model/icons";
+    import type { StructuralState } from "model/structural";
 
     export let model: VisualizationModel;
+    export let state: StructuralState;
 
     let element: HTMLElement;
 
@@ -32,11 +34,25 @@
                 color = "#57a64a";
                 pictogram = "csharp:CSProjectNode";
                 break;
+            case "csharp:ExternalDependencySource":
+                size = 8;
+                color = "#002440";
+                pictogram = "csharp:ReferenceGroup";
+                break;
+            case "csharp:Framework":
+                size = 8;
+                color = "#002440";
+                pictogram = "csharp:Framework";
+                break;
             case "csharp:Package":
-            case "csharp:ExternalDependency":
-                size = 7;
+                size = 7
                 color = "#002440";
                 pictogram = "csharp:Package";
+                break;
+            case "csharp:AssemblyDependency":
+                size = 7;
+                color = "#002440";
+                pictogram = "csharp:Reference";
                 break;
             case "csharp:AssemblyDefinition":
                 size = 6;
@@ -97,7 +113,10 @@
             color: color,
             pictogramColor: color,
             type: "pictogram",
-            pictogram: getIconDataUrl(pictogram)
+            pictogram: getIconDataUrl(pictogram, {
+                width: 256,
+                height: 256
+            })
         });
     }
 
@@ -126,12 +145,17 @@
         // keepWithinCircle: true
     });
 
+    let sigma: Sigma | null = null;
+    
     onMount(() => {
-        new Sigma(graph, element, {
+        sigma = new Sigma(graph, element, {
             nodeProgramClasses: {
                 pictogram: pictogramProgram
             },
-            labelFont: "'Cascadia Mono', 'Consolas', monospace"
+            labelFont: "'Cascadia Mono', 'Consolas', monospace",
+        });
+        sigma.on("clickNode", e => {
+            state.selectedNode = model.multigraph.nodes[e.node];
         });
     });
 </script>

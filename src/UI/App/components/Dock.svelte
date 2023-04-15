@@ -59,11 +59,11 @@
                 class:active={$currentTab === tabDescriptor.value}
                 on:click={() => changeTab(tabDescriptor.value)}
                 on:keypress
+                title={tabDescriptor.name}
             >
                 {#if tabDescriptor.icon}
                     <Icon name={tabDescriptor.icon} />
                 {/if}
-                {tabDescriptor.name}
             </div>
         {/each}
         </div>
