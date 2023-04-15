@@ -12,6 +12,7 @@ build:
     - corepack enable && corepack prepare pnpm@latest --activate
     - dotnet build -c Release Helveg.sln
     - dotnet pack src/CommandLine -o artifacts -c Release
+    - dotnet nuget source list
     - dotnet nuget add source "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/nuget/index.json"
       --name gitlab
       --username gitlab-ci-token
