@@ -1,6 +1,5 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import type { Multigraph } from "../model/multigraph";
     import { Sigma } from "sigma";
     import Graph, { NotFoundGraphError, UsageGraphError } from "graphology";
     import circular from "graphology-layout/circular";
@@ -17,7 +16,8 @@
     let element: HTMLElement;
 
     const graph = new Graph();
-    for (const nodeId in model.multigraph.nodes) {
+
+    function addNode(nodeId: string) {
         const node = model.multigraph.nodes[nodeId];
         const entityKind = node.properties["Kind"];
         let size = 5;
@@ -120,6 +120,10 @@
         });
     }
 
+    for (const nodeId in model.multigraph.nodes) {
+        addNode(nodeId);
+    }
+
     var declaresRelation = model.multigraph.relations["declares"];
     for (const edge of declaresRelation.edges) {
         try {
@@ -146,16 +150,55 @@
     });
 
     let sigma: Sigma | null = null;
+
+    function collapseNode(nodeId: string) {
+        graph.forEachOutNeighbor(nodeId, neighborId => {
+            collapseNode(neighborId);
+            graph.dropNode(neighborId);
+        });
+        graph.setNodeAttribute(nodeId, "collapsed", true);
+    }
     
+    function expandNode(nodeId: string, recursive: boolean = false) {
+        let x = graph.getNodeAttribute(nodeId, "x");
+        let y = graph.getNodeAttribute(nodeId, "y");
+        let neighbours = [...declaresRelation.edges
+            .filter(edge => edge.src === nodeId)];
+        neighbours.forEach((edge, i) => {
+                addNode(edge.dst);
+                graph.setNodeAttribute(edge.dst, "x", x + Math.cos(i / neighbours.length * 2 * Math.PI));
+                graph.setNodeAttribute(edge.dst, "y", y + Math.sin(i / neighbours.length * 2 * Math.PI));
+                graph.addDirectedEdge(edge.src, edge.dst);
+                if (recursive) {
+                    expandNode(edge.dst, true);
+                }
+            });
+
+        graph.setNodeAttribute(nodeId, "collapsed", false);
+    }
+
+    function toggleNode(nodeId: string) {
+        const collapsed = <boolean | undefined>(graph.getNodeAttribute(nodeId, "collapsed"));
+        if (collapsed) {
+            expandNode(nodeId);
+        }
+        else {
+            collapseNode(nodeId);
+        }
+    }
+
     onMount(() => {
         sigma = new Sigma(graph, element, {
             nodeProgramClasses: {
                 pictogram: pictogramProgram
             },
-            labelFont: "'Cascadia Mono', 'Consolas', monospace",
+            labelFont: "'Cascadia Mono', 'Consolas', monospace"
         });
         sigma.on("clickNode", e => {
             state.selectedNode = model.multigraph.nodes[e.node];
+        });
+        sigma.on("doubleClickNode", e => {
+            toggleNode(e.node);
         });
     });
 </script>
