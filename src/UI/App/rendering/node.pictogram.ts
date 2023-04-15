@@ -30,14 +30,14 @@ const DEFAULT_CREATE_NODE_PICTOGRAM_OPTIONS: CreateNodePictogramProgramOptions =
 const VERTEX_SHADER_SOURCE = /*glsl*/ `
 attribute vec2 a_position;
 attribute float a_size;
-attribute vec4 a_color;
+// attribute vec4 a_color;
 attribute vec4 a_texture;
 
 uniform float u_sizeRatio;
 uniform float u_pixelRatio;
 uniform mat3 u_matrix;
 
-varying vec4 v_color;
+// varying vec4 v_color;
 varying float v_border;
 varying vec4 v_texture;
 
@@ -58,8 +58,8 @@ void main() {
   v_border = (0.5 / a_size) * u_sizeRatio;
 
   // Extract the color:
-  v_color = a_color;
-  v_color.a *= bias;
+  // v_color = a_color;
+  // v_color.a *= bias;
 
   // Pass the texture coordinates:
   // NOTE: multiply a_texture by a constant and you get a pattern
@@ -70,7 +70,7 @@ void main() {
 const FRAGMENT_SHADER_SOURCE = /*glsl*/ `
 precision mediump float;
 
-varying vec4 v_color;
+// varying vec4 v_color;
 varying float v_border;
 varying vec4 v_texture;
 
@@ -81,7 +81,7 @@ const float radius = 0.5;
 
 void main(void) {
   vec4 texel = texture2D(u_atlas, v_texture.xy + gl_PointCoord * v_texture.zw, -1.0);
-  // vec4 color = mix(gl_FragColor, v_color, texel.a);
+  // vec4 color = mix(gl_FragColor, v_color, texel.a - 1.0);
   vec4 color = texel;
 
   vec2 m = gl_PointCoord - vec2(0.5, 0.5);
@@ -422,14 +422,14 @@ export default function createNodePictogramProgram(
     getDefinition() {
       return {
         VERTICES: 1,
-        ARRAY_ITEMS_PER_VERTEX: 8,
+        ARRAY_ITEMS_PER_VERTEX: 7,
         VERTEX_SHADER_SOURCE,
         FRAGMENT_SHADER_SOURCE,
         UNIFORMS,
         ATTRIBUTES: [
           { name: "a_position", size: 2, type: FLOAT },
           { name: "a_size", size: 1, type: FLOAT },
-          { name: "a_color", size: 4, type: UNSIGNED_BYTE, normalized: true },
+          // { name: "a_color", size: 4, type: UNSIGNED_BYTE, normalized: true },
           { name: "a_texture", size: 4, type: FLOAT },
         ],
       };
@@ -478,7 +478,7 @@ export default function createNodePictogramProgram(
       array[i++] = data.x;
       array[i++] = data.y;
       array[i++] = data.size;
-      array[i++] = floatColor(data.pictogramColor || "black");
+      // array[i++] = floatColor(data.pictogramColor || "black");
 
       // Reference texture:
       if (imageState && imageState.status === "ready") {
