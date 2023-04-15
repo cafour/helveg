@@ -3,12 +3,6 @@ build:
   image: mcr.microsoft.com/dotnet/sdk:7.0-alpine
   variables:
     NUGET_PACKAGES: $CI_PROJECT_DIR/.nuget
-  artifacts:
-    paths:
-      - artifacts/*.nupkg
-      - "**/*.binlog"
-    expire_in: 42s
-    when: always
   cache:
     paths:
       - .nuget/
@@ -16,5 +10,10 @@ build:
   script:
     - apk update && apk add nodejs-current npm
     - corepack enable && corepack prepare pnpm@latest --activate
-    - dotnet build -bl -c Release Helveg.sln
-    # - dotnet pack --no-build src/CommandLine -o artifacts -c Release
+    - dotnet build -c Release Helveg.sln
+    - dotnet pack src/CommandLine -o artifacts -c Release
+    - dotnet nuget add source "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/nuget/index.json"
+      -name gitlab
+      -username gitlab-ci-token
+      -password $CI_JOB_TOKEN
+    - dotnet nuget push "artifacts/helveg*.nupkg" --source gitlab
