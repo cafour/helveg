@@ -1,0 +1,8 @@
+@use "./variables.scss";
+
+.icon {
+    .light-lightblue,
+    .light-lightblue-10 {
+        fill: var(--color-primary-500);
+    }
+}

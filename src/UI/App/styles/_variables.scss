@@ -1,0 +1,70 @@
+:root {
+    --font-family-base: "Segoe UI", sans-serif;
+    --font-family-heading: "Segoe UI", sans-serif;
+    --font-family-monospace: "Cascadia Mono", "Consolas", monospace;
+
+    --font-color-base: #1E1E1E;
+    --font-color-dark: #F1F1F1;
+
+    --on-primary: #F1F1F1;
+    --on-success: #F1F1F1;
+    --on-warning: #F1F1F1;
+    --on-error: #F1F1F1;
+    --on-surface: #F1F1F1;
+
+    --color-surface-45: #F8F8F8; // L 97
+    --color-surface-50: #F2EEEE; // L 94
+    --color-surface-100: #DBCECC; // L 83
+    --color-surface-200: #C5B9B7; // L 75
+    --color-surface-300: #A5A4A2; // L 64
+    --color-surface-400: #888888; // L 53
+    --color-surface-500: #656565; // L 40
+    --color-surface-600: #525252; // L 32
+    --color-surface-700: #403E3E; // L 25
+    --color-surface-800: #262525; // L 15
+    --color-surface-900: #1C1B1B; // L 11
+
+    --color-primary-50: #f3dcdf;
+    --color-primary-100: #eed0d5;
+    --color-primary-200: #eac5ca;
+    --color-primary-300: #dea2ab;
+    --color-primary-400: #c55c6b;
+    --color-primary-500: #ac162c;
+    --color-primary-600: #9b1428;
+    --color-primary-700: #811121;
+    --color-primary-800: #670d1a;
+    --color-primary-900: #540b16;
+
+    --color-success-50: #ddecdd;
+    --color-success-100: #d2e6d2;
+    --color-success-200: #c7dfc7;
+    --color-success-300: #a5cca5;
+    --color-success-400: #62a662;
+    --color-success-500: #1f801f;
+    --color-success-600: #1c731c;
+    --color-success-700: #176017;
+    --color-success-800: #134d13;
+    --color-success-900: #0f3f0f;
+
+    --color-warning-50: #f0e9d9;
+    --color-warning-100: #ebe2cc;
+    --color-warning-200: #e6dbbf;
+    --color-warning-300: #d6c599;
+    --color-warning-400: #b89a4d;
+    --color-warning-500: #996f00;
+    --color-warning-600: #8a6400;
+    --color-warning-700: #735300;
+    --color-warning-800: #5c4300;
+    --color-warning-900: #4b3600;
+
+    --color-error-50: #f6dadc;
+    --color-error-100: #f3ced1;
+    --color-error-200: #f1c2c5;
+    --color-error-300: #e89da2;
+    --color-error-400: #d6545d;
+    --color-error-500: #c50b17;
+    --color-error-600: #b10a15;
+    --color-error-700: #940811;
+    --color-error-800: #76070e;
+    --color-error-900: #61050b;
+}

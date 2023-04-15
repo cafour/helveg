@@ -1,0 +1,9 @@
+@use "./base.scss";
+
+html,
+dt,
+dd {
+    font-family: 'Segoe UI', sans-serif;
+    line-height: 1.5;
+    color: var(--font-color-base);
+}

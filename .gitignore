@@ -34,20 +34,41 @@
 !*.rchit
 !*.rmiss
 !*.rgen
+!*.json
+!*.props
+!*.targets
+!*.ts
+!*.scss
+!*.razor
+!*.cshtml
+!*.svelte
+!*.config
+!.npmrc
+!*.yaml
+
+# static files
+!*.html
+!*.js
+!*.css
+!FONT-LICENSE
+!ICON-LICENSE
+!*.eot
+!*.otf
+!*.svg
+!*.ttf
+!*.woff
 
 # misc
 !.clang-format
 !.editorconfig
 !NuGet.config
+!*.rtf
 
 # images
 !*.png
 
 # cmake
 !*.cmake
-
-# IDE
-.vscode/
 
 # generated stuff
 obj/
@@ -58,3 +79,8 @@ external/
 embedded/
 artifacts/
 *.gv.png
+node_modules/
+.vs/
+output*.html
+dist/
+.pnpm-store/

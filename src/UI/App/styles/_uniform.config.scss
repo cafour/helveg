@@ -1,0 +1,34 @@
+@use "uniform" as * with (
+  $config: (
+    excludes: (
+      all
+    ),
+    includes: (
+      root,
+      reset,
+      margin,
+      padding,
+      width,
+      height,
+      visibility,
+      display,
+      flex,
+      flex-direction,
+      flex-wrap,
+      flex-grow,
+      font-weight,
+      font-size,
+      line-height,
+      cursor,
+      user-select,
+      overflow,
+      white-space,
+      gap,
+      justify-content,
+      border-width,
+      text-align,
+      position,
+      z-index
+    )
+  )
+);

@@ -1,73 +1,20 @@
-stages:
-  - prebuild
-  - build
-  # Tests? Where we're going, we don't need tests.
-  - deploy
-
-build-windows:
-  stage: prebuild
-  script:
-    - choco install -y cmake vswhere ninja python3
-    - $env:Path="$env:Path;C:\Program Files\CMake\bin\"
-    - '& ./build.ps1 -install'
-  cache:
-    paths:
-      - build/_deps
-  artifacts:
-    paths:
-      - artifacts/vku.dll
-  tags:
-    - shared-windows
-    - windows
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "master"'
-    - if: '$CI_COMMIT_TAG =~ /^v0\.\d+\.\d+$/'
-    - if: '$CI_PIPELINE_SOURCE == "web"'
-
-build-linux:
-  dependencies:
-    - build-windows
-  image: cafour/helveg-ci
+build:
   stage: build
-  script:
-    - ./build.sh --install --pack
+  image: mcr.microsoft.com/dotnet/sdk:7.0-alpine
+  variables:
+    NUGET_PACKAGES: $CI_PROJECT_DIR/.nuget
   cache:
     paths:
-      - build/_deps
-  artifacts:
-    paths:
-      - artifacts/*.nupkg
-      - artifacts/vku.dll
-      - artifacts/libvku.so
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "master"'
-    - if: '$CI_PIPELINE_SOURCE == "web"'
-
-build-linux-tag:
-  dependencies:
-    - build-windows
-  image: cafour/helveg-ci
-  stage: build
+      - .nuget/
+      - src/UI/App/.pnpm-store/
   script:
-    - ./build.sh --install --pack --tag-version
-  cache:
-    paths:
-      - build/_deps
-  artifacts:
-    paths:
-      - artifacts/*.nupkg
-      - artifacts/vku.dll
-      - artifacts/libvku.so
-  rules:
-    - if: '$CI_COMMIT_TAG =~ /^v0\.\d+\.\d+$/'
-
-deploy-nuget:
-  dependencies:
-    - build-windows
-    - build-linux-tag
-  image: mcr.microsoft.com/dotnet/sdk:6.0
-  stage: deploy
-  script:
-    - dotnet nuget push ./artifacts/helveg*.nupkg --source nuget.org --api-key $NUGET_API_KEY
-  rules:
-    - if: '$CI_COMMIT_TAG =~ /^v0\.\d+\.\d+$/'
+    - apk update && apk add nodejs-current npm
+    - corepack enable && corepack prepare pnpm@latest --activate
+    - dotnet build -c Release Helveg.sln
+    - dotnet pack --no-build src/CommandLine -o artifacts -c Release
+    - dotnet nuget update source ci 
+      --source "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/nuget/index.json"
+      --username gitlab-ci-token
+      --password $CI_JOB_TOKEN
+      --store-password-in-clear-text
+    - dotnet nuget push "artifacts/helveg*.nupkg" --source ci

@@ -1,0 +1,6 @@
+@use "./variables.scss";
+
+.diagram {
+    background-color: var(--color-surface-45);
+    font-family: var(--font-family-monospace);
+}

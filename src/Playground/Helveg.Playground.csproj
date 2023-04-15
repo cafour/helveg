@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>$(DefaultExeFrameworks)</TargetFrameworks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CSharp\Helveg.CSharp.csproj" />
+    <ProjectReference Include="..\UI\Helveg.UI.csproj" />
+  </ItemGroup>
+
+</Project>

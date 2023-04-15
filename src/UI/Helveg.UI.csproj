@@ -1,0 +1,26 @@
+﻿<Project>
+  <Sdk Name="Microsoft.NET.Sdk" />
+  <Sdk Name="Cafour.MSBuild.JS" Version="0.1.1" />
+
+  <PropertyGroup>
+    <TargetFrameworks>$(DefaultLibraryFrameworks)</TargetFrameworks>
+    <JSWorkingDirectory>$(MSBuildProjectDirectory)/App</JSWorkingDirectory>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <JSBuildInput Include="$(JSWorkingDirectory)/**/*.svelte" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Visualization/Helveg.Visualization.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="$(BaseIntermediateOutputPath)/esbuild/helveg.js" LogicalName="helveg.js" />
+    <EmbeddedResource Include="$(BaseIntermediateOutputPath)/esbuild/helveg.css" LogicalName="helveg.css" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Icons/**/*.svg" LogicalName="Icons.%(filename)%(extension)" />
+  </ItemGroup>
+</Project>
