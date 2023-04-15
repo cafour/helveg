@@ -13,7 +13,7 @@ build:
     - dotnet build -c Release Helveg.sln
     - dotnet pack src/CommandLine -o artifacts -c Release
     - dotnet nuget add source "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/nuget/index.json"
-      -name gitlab
-      -username gitlab-ci-token
-      -password $CI_JOB_TOKEN
+      --name gitlab
+      --username gitlab-ci-token
+      --password $CI_JOB_TOKEN
     - dotnet nuget push "artifacts/helveg*.nupkg" --source gitlab
