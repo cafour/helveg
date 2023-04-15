@@ -16,4 +16,4 @@ build:
       --name ci
       --username gitlab-ci-token
       --password $CI_JOB_TOKEN || true
-    - dotnet nuget push "artifacts/helveg*.nupkg" --source gitlab
+    - dotnet nuget push "artifacts/helveg*.nupkg" --source ci
