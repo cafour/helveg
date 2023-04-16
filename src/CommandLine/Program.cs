@@ -90,7 +90,10 @@ public class Program
         AnalysisScope projectAnalysis,
         AnalysisScope externalAnalysis,
         UIMode mode,
-        string outDir)
+        string outDir,
+        string styleDir,
+        string scriptDir,
+        string iconDir)
     {
         var outDirInfo = new DirectoryInfo(outDir);
         if (!outDirInfo.Exists)
@@ -108,6 +111,9 @@ public class Program
         var uib = await UIBuilder.CreateDefault(logging.CreateLogger<UIBuilder>());
         await uib.UseCSharp();
         uib.Mode = mode;
+        uib.StylesDirectory = styleDir;
+        uib.ScriptsDirectory = scriptDir;
+        uib.IconsDirectory = iconDir;
         uib.SetVisualizationModel(new() {
             DocumentInfo = new() {
                 Name = multigraph.Label ?? multigraph.Id,
@@ -179,6 +185,18 @@ public class Program
             aliases: new[] { "--outdir" },
             getDefaultValue: () => Directory.GetCurrentDirectory(),
             description: "Output directory"));
+        rootCmd.AddOption(new Option<string>(
+            aliases: new[] { "--styledir" },
+            getDefaultValue: () => "styles",
+            description: "Output subdrectory for CSS stylesheets"));
+        rootCmd.AddOption(new Option<string>(
+            aliases: new[] { "--scriptdir" },
+            getDefaultValue: () => "scripts",
+            description: "Output subdirectory for JS scripts"));
+        rootCmd.AddOption(new Option<string>(
+            aliases: new[] { "--icondir" },
+            getDefaultValue: () => "icons",
+            description: "Output subdirectory for IconSet files"));
 
         var builder = new CommandLineBuilder(rootCmd)
             .UseHelp()
