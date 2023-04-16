@@ -1,6 +1,7 @@
 <script lang="ts">
     import type { GraphNode } from "model/multigraph";
     import KeyValueList from "./KeyValueList.svelte";
+    import Panel from "./Panel.svelte";
 
     export let node: GraphNode | null;
     $: nodeItems =
@@ -13,10 +14,10 @@
         })) ?? [];
 </script>
 
-<div class="panel">
+<Panel name="Properties">
     {#if node == null}
         <span>Click on a node to view its properties.</span>
     {:else}
         <KeyValueList bind:items={nodeItems} />
     {/if}
-</div>
+</Panel>

@@ -8,6 +8,8 @@
     import { StructuralState } from "model/structural";
     import PropertiesPanel from "./PropertiesPanel.svelte";
     import DataPanel from "./DataPanel.svelte";
+    import CSharpPlugin from "model/csharpPlugin";
+    import GlyphsPanel from "./GlyphsPanel.svelte";
 
     const dataId = "helveg-data";
 
@@ -19,10 +21,7 @@
     const data = <VisualizationModel>JSON.parse(dataScript.textContent!);
 
     let initialState = new StructuralState();
-    initialState.dataOptions.kinds = [
-        "csharp:Solution",
-        "csharp:Project",
-    ];
+    initialState.applyPlugin(new CSharpPlugin());
     let state = writable(initialState);
 </script>
 
@@ -37,7 +36,7 @@
             <strong>TODO: Layout Panel Contents</strong>
         </Tab>
         <Tab name="Glyphs" value="glyphs-panel" icon="base:PolarChart">
-            <strong>TODO: Glyphs Panel Contents</strong>
+            <GlyphsPanel bind:options={$state.glyphOptions} />
         </Tab>
         <Tab
             name="Properties"

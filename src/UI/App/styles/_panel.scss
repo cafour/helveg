@@ -1,2 +1,41 @@
 .panel {
+    .panel-header {
+        border-bottom: 1px solid var(--color-surface-100);
+        font-weight: lighter;
+        text-transform: uppercase;
+        padding: 0.5rem 1rem;
+    }
+
+    .indent {
+        padding: 0.5rem 1rem;
+    }
+}
+
+.subpanel {
+    .subpanel-header {
+        border-bottom: 1px solid var(--color-surface-100);
+        font-weight: bold;
+        padding: 0.5rem 1rem;
+    }
+
+    .indent {
+        padding: 0.5rem 1rem;
+    }
+}
+
+.panel-body,
+.subpanel-body {
+    input[type="checkbox"] {
+        appearance: checkbox;
+    }
+
+    button {
+        background-color: var(--color-primary-500);
+        color: var(--on-primary);
+        padding: 0.25rem 0.5rem;
+
+        &:hover {
+            background-color: var(--color-primary-600);
+        }
+    }
 }

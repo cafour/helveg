@@ -2,7 +2,9 @@
 
 html,
 dt,
-dd {
+dd,
+label,
+button {
     font-family: 'Segoe UI', sans-serif;
     line-height: 1.5;
     color: var(--font-color-base);
