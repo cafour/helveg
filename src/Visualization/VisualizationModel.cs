@@ -16,6 +16,8 @@ public record VisualizationModel
     
     public Multigraph Multigraph { get; init; } = Multigraph.Invalid;
 
+    public string Name { get; init; } = Const.Invalid;
+
     [JsonIgnore]
-    public bool IsValid => DocumentInfo.IsValid && Multigraph.IsValid;
+    public bool IsValid => Name != Const.Invalid;
 }

@@ -88,8 +88,16 @@ public class Program
         FileSystemInfo source,
         Dictionary<string, string> properties,
         AnalysisScope projectAnalysis,
-        AnalysisScope externalAnalysis)
+        AnalysisScope externalAnalysis,
+        UIMode mode,
+        string outDir)
     {
+        var outDirInfo = new DirectoryInfo(outDir);
+        if (!outDirInfo.Exists)
+        {
+            outDirInfo.Create();
+        }
+
         // code analysis
         var multigraph = await RunAnalysis(source, properties, projectAnalysis, externalAnalysis);
         if (multigraph is null)
@@ -97,19 +105,29 @@ public class Program
             return 1;
         }
 
-        var uib = await UIBuilder.CreateDefault();
+        var uib = await UIBuilder.CreateDefault(logging.CreateLogger<UIBuilder>());
         await uib.UseCSharp();
+        uib.Mode = mode;
         uib.SetVisualizationModel(new() {
             DocumentInfo = new() {
                 Name = multigraph.Label ?? multigraph.Id,
                 CreatedOn = DateTimeOffset.UtcNow
             },
-            Multigraph = multigraph
+            Multigraph = multigraph,
+            Name = multigraph.Label ?? multigraph.Id
         });
 
-        using var fileStream = new FileStream("output.html", FileMode.Create, FileAccess.ReadWrite);
-        using var writer = new StreamWriter(fileStream);
-        await uib.Build(_ => writer);
+        await uib.Build(path =>
+        {
+            var fullPath = Path.Combine(outDirInfo.FullName, path);
+            var dirName = Path.GetDirectoryName(fullPath);
+            if (dirName is not null && !Directory.Exists(dirName))
+            {
+                Directory.CreateDirectory(dirName);
+            }
+
+            return new FileStream(fullPath, FileMode.Create, FileAccess.ReadWrite);
+        });
         return 0;
     }
 
@@ -145,8 +163,22 @@ public class Program
             }
         });
         rootCmd.AddOption(propertyOption);
-        rootCmd.AddOption(new Option<AnalysisScope>(new[] { "-pa", "--project-analysis" }, () => AnalysisScope.All, "Scope of the project analysis"));
-        rootCmd.AddOption(new Option<AnalysisScope>(new[] { "-ea", "--external-analysis" }, () => AnalysisScope.PublicApi, "Scope of analysis of external dependencies"));
+        rootCmd.AddOption(new Option<AnalysisScope>(
+            aliases: new[] { "-pa", "--project-analysis" },
+            getDefaultValue: () => AnalysisScope.All,
+            description: "Scope of the project analysis"));
+        rootCmd.AddOption(new Option<AnalysisScope>(
+            aliases: new[] { "-ea", "--external-analysis" },
+            getDefaultValue: () => AnalysisScope.PublicApi,
+            description: "Scope of analysis of external dependencies"));
+        rootCmd.AddOption(new Option<UIMode>(
+            aliases: new[] { "-m", "--mode" },
+            getDefaultValue: () => UIMode.SingleFile,
+            description: "UI mode to use."));
+        rootCmd.AddOption(new Option<string>(
+            aliases: new[] { "--outdir" },
+            getDefaultValue: () => Directory.GetCurrentDirectory(),
+            description: "Output directory"));
 
         var builder = new CommandLineBuilder(rootCmd)
             .UseHelp()
