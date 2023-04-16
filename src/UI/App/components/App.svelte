@@ -10,6 +10,7 @@
     import DataPanel from "./DataPanel.svelte";
     import CSharpPlugin from "model/csharpPlugin";
     import GlyphsPanel from "./GlyphsPanel.svelte";
+    import LayoutPanel from "./LayoutPanel.svelte";
 
     const dataId = "helveg-data";
 
@@ -33,7 +34,7 @@
             <DataPanel bind:options={$state.dataOptions} />
         </Tab>
         <Tab name="Layout" value="layout-panel" icon="base:Diagram">
-            <strong>TODO: Layout Panel Contents</strong>
+            <LayoutPanel bind:options={$state.layoutOptions} />
         </Tab>
         <Tab name="Glyphs" value="glyphs-panel" icon="base:PolarChart">
             <GlyphsPanel bind:options={$state.glyphOptions} />

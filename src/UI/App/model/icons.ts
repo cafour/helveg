@@ -44,9 +44,10 @@ export function getIcon(name: string, options?: IconOptions): Icon {
         );
     }
 
-    let icon = iconSet.icons[iconName];
+    let icon = structuredClone(iconSet.icons[iconName]);
     if (!icon) {
-        throw new Error(`Icon '${name}' could not be found.`);
+        console.error(`Icon '${name}' could not be found. Using fallback icon.`);
+        return getIcon("base:PolarChart", options);
     }
 
     if (icon.format === IconFormat.Svg) {

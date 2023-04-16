@@ -58,6 +58,15 @@ export default class CSharpPlugin implements VisualizationPlugin {
         });
         context.dataOptions.defaultIcons["csharp:AssemblyDependency"] = "csharp:Reference";
         context.dataOptions.kinds.push("csharp:AssemblyDependency");
+        
+        context.glyphOptions.styles["csharp:AssemblyDefinition"] = new StaticGlyphStyle({
+            icon: "csharp:Assembly",
+            size: 6,
+            color: "#002440",
+            outlines: [new Outline(LineStyle.Solid, "#002440", 1)]
+        });
+        context.dataOptions.defaultIcons["csharp:AssemblyDefinition"] = "csharp:Assembly";
+        context.dataOptions.kinds.push("csharp:AssemblyDefinition");
 
         context.glyphOptions.styles["csharp:ModuleDefinition"] = new StaticGlyphStyle({
             icon: "csharp:Module",

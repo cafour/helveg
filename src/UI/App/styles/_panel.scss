@@ -28,6 +28,16 @@
     input[type="checkbox"] {
         appearance: checkbox;
     }
+    
+    label {
+        font-size: 1rem;
+        
+        .icon {
+            width: 1rem;
+            display: inline-block;
+            vertical-align: middle;
+        }
+    }
 
     button {
         background-color: var(--color-primary-500);

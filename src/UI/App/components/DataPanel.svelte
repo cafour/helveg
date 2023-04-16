@@ -1,4 +1,5 @@
 <script lang="ts">
+    import Icon from "./Icon.svelte";
     import Panel from "./Panel.svelte";
     import Subpanel from "./Subpanel.svelte";
     import type { DataOptions } from "model/options";
@@ -18,6 +19,7 @@
                     bind:group={options.selectedKinds}
                     value={kind}
                 />
+                <Icon name={options.defaultIcons[kind] ?? options.fallbackIcon} />
                 {kind}
             </label>
         {/each}
