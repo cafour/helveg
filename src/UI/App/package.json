@@ -3,12 +3,12 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "raw": "ts-node --project ./eng/tsconfig.node.json ./eng/build.ts",
+    "raw": "ts-node --project ./eng/tsconfig.json ./eng/build.ts",
     "build:Debug": "npm run raw -- --debug",
     "build:Release": "npm run raw -- --release",
     "build": "npm run build:Debug",
     "watch": "npm run raw -- --watch",
-    "serve": "concurrently \"npm run watch\" \"browser-sync start -w -s ../obj/esbuild --host 0.0.0.0\""
+    "serve": "concurrently \"npm run watch -- --useTemplate\" \"browser-sync start -w -s ../obj/esbuild --host 0.0.0.0\""
   },
   "devDependencies": {
     "@tsconfig/node16": "^1.0.3",
