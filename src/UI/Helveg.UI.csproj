@@ -9,6 +9,9 @@
 
   <ItemGroup>
     <JSBuildInput Include="$(JSWorkingDirectory)/**/*.svelte" />
+    <JSBuildInput Remove="$(JSWorkingDirectory)/template/**/*" />
+    <JSBuildInput Remove="$(JSWorkingDirectory)/.pnpm-store/**/*" />
+    <JSBuildInput Remove="$(JSWorkingDirectory)/node_modules/**/*" />
   </ItemGroup>
 
   <ItemGroup>
