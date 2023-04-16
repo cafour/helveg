@@ -7,6 +7,7 @@
     import { writable } from "svelte/store";
     import { StructuralState } from "model/structural";
     import PropertiesPanel from "./PropertiesPanel.svelte";
+    import DataPanel from "./DataPanel.svelte";
 
     const dataId = "helveg-data";
 
@@ -17,7 +18,12 @@
 
     const data = <VisualizationModel>JSON.parse(dataScript.textContent!);
 
-    let state = writable(new StructuralState());
+    let initialState = new StructuralState();
+    initialState.dataOptions.kinds = [
+        "csharp:Solution",
+        "csharp:Project",
+    ];
+    let state = writable(initialState);
 </script>
 
 <main class="flex flex-row-reverse h-100p relative">
@@ -25,7 +31,7 @@
 
     <Dock name="panels">
         <Tab name="Data" value="data-panel" icon="base:Database">
-            <strong>TODO: Data Panel Contents</strong>
+            <DataPanel bind:options={$state.dataOptions} />
         </Tab>
         <Tab name="Layout" value="layout-panel" icon="base:Diagram">
             <strong>TODO: Layout Panel Contents</strong>
