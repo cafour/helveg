@@ -1,3 +1,6 @@
+import { readable, type Readable } from "svelte/store";
+import { loadJsonScripts } from "./data";
+
 export enum IconFormat {
     Unknown = 0,
     Svg = 1,
@@ -20,34 +23,47 @@ export interface IconOptions {
     height?: number;
     viewBox?: string;
     removeTitle?: boolean;
+    viewBoxOnly?: boolean;
 }
 
-let iconSets: Record<string, IconSet>;
+// icon by Utkarsh Verma (https://github.com/n3r4zzurr0/svg-spinners)
+const fallbackIconSource =
+    `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="4" cy="12" r="3" fill="currentColor"><animate id="svgSpinners3DotsBounce0" attributeName="cy" begin="0;svgSpinners3DotsBounce1.end+0.25s" calcMode="spline" dur="0.6s" keySplines=".33,.66,.66,1;.33,0,.66,.33" values="12;6;12"/></circle><circle cx="12" cy="12" r="3" fill="currentColor"><animate attributeName="cy" begin="svgSpinners3DotsBounce0.begin+0.1s" calcMode="spline" dur="0.6s" keySplines=".33,.66,.66,1;.33,0,.66,.33" values="12;6;12"/></circle><circle cx="20" cy="12" r="3" fill="currentColor"><animate id="svgSpinners3DotsBounce1" attributeName="cy" begin="svgSpinners3DotsBounce0.begin+0.2s" calcMode="spline" dur="0.6s" keySplines=".33,.66,.66,1;.33,0,.66,.33" values="12;6;12"/></circle></svg>
+`
+
+export const fallbackIcon: Icon = {
+    name: "Fallback",
+    data: fallbackIconSource,
+    format: IconFormat.Svg
+};
+
+export async function loadIcons(): Promise<Record<string, IconSet>> {
+    let result: Record<string, IconSet> = {};
+    let iconSets = await loadJsonScripts<IconSet>("script.helveg-icons");
+    iconSets.forEach(s => result[s.namespace] = s);
+    return result;
+}
 
 export function getIcon(name: string, options?: IconOptions): Icon {
-    if (!iconSets) {
-        iconSets = {};
-        let iconScripts = document.getElementsByClassName("helveg-icons");
-        for (let iconScript of iconScripts) {
-            let iconSet = <IconSet>JSON.parse(iconScript.textContent!);
-            iconSets[iconSet.namespace] = iconSet;
-        }
+    if (!helveg.iconSets) {
+        throw new Error("Icons have not been initialized yet.");
     }
 
     let segments = name.split(":", 2);
     let namespace = segments[0];
     let iconName = segments[1];
-    let iconSet = iconSets[namespace];
+    let iconSet = helveg.iconSets[namespace];
+    let icon: Icon | null = null;
     if (!iconSet) {
-        throw new Error(
-            `Icon set for namespace '${namespace}' could not be found.`
-        );
+        console.warn(`Icon set for namespace '${namespace}' could not be found. Using fallback icon.`)
+        icon = fallbackIcon;
     }
-
-    let icon = structuredClone(iconSet.icons[iconName]);
-    if (!icon) {
-        console.error(`Icon '${name}' could not be found. Using fallback icon.`);
-        return getIcon("base:PolarChart", options);
+    else {
+        icon = structuredClone(iconSet.icons[iconName]);
+        if (!icon) {
+            console.warn(`Icon '${name}' could not be found. Using fallback icon.`);
+            icon = fallbackIcon;
+        }
     }
 
     if (icon.format === IconFormat.Svg) {
@@ -56,19 +72,31 @@ export function getIcon(name: string, options?: IconOptions): Icon {
     return icon;
 }
 
+export function getIconReadable(name: string, options?: IconOptions): Readable<Icon> {
+    return readable(getIcon(name, options), set => {
+        helveg.loadingPromise.then(() => set(getIcon(name, options)));
+        return () => { };
+    });
+}
+
 function removeIconTitle(svg: Document) {
     [...svg.getElementsByTagName("title")].forEach(e => e.remove());
 }
 
-function setIconSize(svg: Document, width: number | null, height: number | null, viewBox: string | null = null): string {
-    if (width && !svg.documentElement.hasAttribute("width")) {
-        svg.documentElement.setAttribute("width", width.toString());
+function setIconSize(svg: Document, options: IconOptions): string {
+    if(options.viewBoxOnly) {
+        svg.documentElement.removeAttribute("width");
+        svg.documentElement.removeAttribute("height");
     }
-    if (height && !svg.documentElement.hasAttribute("height")) {
-        svg.documentElement.setAttribute("height", height.toString());
+    
+    if (options.width && !svg.documentElement.hasAttribute("width")) {
+        svg.documentElement.setAttribute("width", options.width.toString());
     }
-    if (viewBox && !svg.documentElement.hasAttribute("viewBox")) {
-        svg.documentElement.setAttribute("viewBox", viewBox);
+    if (options.height && !svg.documentElement.hasAttribute("height")) {
+        svg.documentElement.setAttribute("height", options.height.toString());
+    }
+    if (options.viewBox && !svg.documentElement.hasAttribute("viewBox")) {
+        svg.documentElement.setAttribute("viewBox", options.viewBox);
     }
     return new XMLSerializer().serializeToString(svg);
 }
@@ -78,7 +106,7 @@ function tweakIcon(svgString: string, options: IconOptions): string {
     if (options.removeTitle) {
         removeIconTitle(svg);
     }
-    setIconSize(svg, options.width ?? null, options.height ?? null, options.viewBox);
+    setIconSize(svg, options);
     return new XMLSerializer().serializeToString(svg);
 }
 

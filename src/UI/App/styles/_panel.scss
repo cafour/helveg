@@ -39,13 +39,27 @@
         }
     }
 
-    button {
+    .button-stretch {
         background-color: var(--color-primary-500);
         color: var(--on-primary);
         padding: 0.25rem 0.5rem;
 
         &:hover {
             background-color: var(--color-primary-600);
+        }
+    }
+    
+    .button-icon {
+        width: 2rem;
+        height: 2rem;
+        
+        svg.icon {
+            width: 100%;
+            height: 100%;
+        }
+        
+        &:hover {
+            opacity: 0.8;
         }
     }
 }

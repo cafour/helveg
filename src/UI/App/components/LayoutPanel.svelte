@@ -14,23 +14,28 @@
 
 <Panel name="Layout" indent={false}>
     <Subpanel name="ForceAtlas2">
-        <button
-            on:click={() => dispatch("run", { background: false })}
-            disabled={status != StructuralStatus.Stopped}
-        >
-            <Icon name="base:Run" title="Run" />
-        </button>
-        <button
-            on:click={() => dispatch("run", { background: true })}
-            disabled={status != StructuralStatus.Stopped}
-        >
-            <Icon name="base:RunAll" title="Run in background" />
-        </button>
-        <button
-            on:click={() => dispatch("stop")}
-            disabled={status == StructuralStatus.Stopped}
-        >
-            <Icon name="base:Stop" title="Stop" />
-        </button>
+        <div class="flex flex-row justifty-content-center">
+            <button
+                on:click={() => dispatch("run", { background: false })}
+                disabled={status != StructuralStatus.Stopped}
+                class="button-icon"
+            >
+                <Icon name="base:Run" title="Run" />
+            </button>
+            <button
+                on:click={() => dispatch("run", { background: true })}
+                disabled={status != StructuralStatus.Stopped}
+                class="button-icon"
+            >
+                <Icon name="base:RunAll" title="Run in background" />
+            </button>
+            <button
+                on:click={() => dispatch("stop")}
+                disabled={status == StructuralStatus.Stopped}
+                class="button-icon"
+            >
+                <Icon name="base:Stop" title="Stop" />
+            </button>
+        </div>
     </Subpanel>
 </Panel>

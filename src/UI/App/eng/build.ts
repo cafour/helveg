@@ -31,10 +31,12 @@ if (useTemplate) {
     fs.copyFileSync("./template/index.html", path.join(outDir, "index.html"));
     fs.copyFileSync("./template/icons-base.json", path.join(outDir, "icons-base.json"));
     fs.copyFileSync("./template/icons-csharp.json", path.join(outDir, "icons-csharp.json"));
+    fs.copyFileSync("./template/helveg-data.json", path.join(outDir, "helveg-data.json"));
 }
 
 const context = await esbuild.context({
     entryPoints: ["helveg.ts"],
+    globalName: "helveg",
     format: "iife",
     outdir: outDir,
     mainFields: ["svelte", "browser", "module", "main"],
@@ -43,6 +45,7 @@ const context = await esbuild.context({
     write: true,
     logLevel: "info",
     bundle: true,
+    platform: "browser",
     minify: isRelease,
     plugins: [
         esbuildSvelte({

@@ -4,11 +4,10 @@
     import Panel from "./Panel.svelte";
 
     export let documentInfo: DocumentInfo;
-    documentInfo.createdOn = new Date(documentInfo.createdOn).toLocaleString();
 
-    let items = [
+    $: items = [
         { key: "Name", value: documentInfo.name },
-        { key: "CreatedOn", value: documentInfo.createdOn },
+        { key: "CreatedOn", value: new Date(documentInfo.createdOn).toLocaleString() },
         { key: "Revision", value: documentInfo.revision },
         { key: "HelvegVersion", value: documentInfo.helvegVersion },
     ];
