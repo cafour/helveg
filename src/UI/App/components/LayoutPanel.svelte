@@ -13,8 +13,8 @@
 </script>
 
 <Panel name="Layout" indent={false}>
-    <Subpanel name="ForceAtlas2">
-        <div class="flex flex-row justifty-content-center">
+    <Subpanel name="ForceAtlas2" indent={false}>
+        <div class="flex flex-row justify-content-center">
             <button
                 on:click={() => dispatch("run", { background: false })}
                 disabled={status != StructuralStatus.Stopped}
