@@ -1,21 +1,21 @@
 export interface Multigraph {
     id: string,
     label: string | null,
-    nodes: Record<string, MultigraphNode>
-    relations: Record<string, Relation>
+    nodes: Record<string, GraphNode>
+    relations: Record<string, GraphRelation>
 }
 
-export interface MultigraphNode {
+export interface GraphNode {
     label: string | null,
     properties: Record<string, string>
 }
 
-export interface Relation {
+export interface GraphRelation {
     label: string | null,
-    edges: MultigraphEdge[]
+    edges: GraphEdge[]
 }
 
-export interface MultigraphEdge {
+export interface GraphEdge {
     src: string,
     dst: string,
     label: string | null,

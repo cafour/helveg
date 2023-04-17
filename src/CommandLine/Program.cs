@@ -88,8 +88,19 @@ public class Program
         FileSystemInfo source,
         Dictionary<string, string> properties,
         AnalysisScope projectAnalysis,
-        AnalysisScope externalAnalysis)
+        AnalysisScope externalAnalysis,
+        UIMode mode,
+        string outDir,
+        string styleDir,
+        string scriptDir,
+        string iconDir)
     {
+        var outDirInfo = new DirectoryInfo(outDir);
+        if (!outDirInfo.Exists)
+        {
+            outDirInfo.Create();
+        }
+
         // code analysis
         var multigraph = await RunAnalysis(source, properties, projectAnalysis, externalAnalysis);
         if (multigraph is null)
@@ -97,22 +108,32 @@ public class Program
             return 1;
         }
 
-        var vmb = VisualizationModelBuilder.CreateDefault();
-        vmb.SetDocumentInfo(new DocumentInfo(
-            Name: multigraph.Label ?? multigraph.Id,
-            CreatedOn: DateTimeOffset.UtcNow,
-            HelvegVersion: GitVersionInformation.FullSemVer,
-            Revision: null));
-        vmb.SetMultigraph(multigraph);
-        vmb.UseCSharp();
+        var uib = await UIBuilder.CreateDefault(logging.CreateLogger<UIBuilder>());
+        await uib.UseCSharp();
+        uib.Mode = mode;
+        uib.StylesDirectory = styleDir;
+        uib.ScriptsDirectory = scriptDir;
+        uib.IconsDirectory = iconDir;
+        uib.SetVisualizationModel(new() {
+            DocumentInfo = new() {
+                Name = multigraph.Label ?? multigraph.Id,
+                CreatedOn = DateTimeOffset.UtcNow
+            },
+            Multigraph = multigraph,
+            Name = multigraph.Label ?? multigraph.Id
+        });
 
-        var sfb = await SingleFileBuilder.CreateDefault();
-        await sfb.UseCSharp();
-        sfb.SetVisualizationModel(vmb.Build());
+        await uib.Build(path =>
+        {
+            var fullPath = Path.Combine(outDirInfo.FullName, path);
+            var dirName = Path.GetDirectoryName(fullPath);
+            if (dirName is not null && !Directory.Exists(dirName))
+            {
+                Directory.CreateDirectory(dirName);
+            }
 
-        using var fileStream = new FileStream("output.html", FileMode.Create, FileAccess.ReadWrite);
-        using var writer = new StreamWriter(fileStream);
-        await sfb.Build(writer);
+            return new FileStream(fullPath, FileMode.Create, FileAccess.ReadWrite);
+        });
         return 0;
     }
 
@@ -148,8 +169,34 @@ public class Program
             }
         });
         rootCmd.AddOption(propertyOption);
-        rootCmd.AddOption(new Option<AnalysisScope>(new[] { "-pa", "--project-analysis" }, () => AnalysisScope.All, "Scope of the project analysis"));
-        rootCmd.AddOption(new Option<AnalysisScope>(new[] { "-ea", "--external-analysis" }, () => AnalysisScope.PublicApi, "Scope of analysis of external dependencies"));
+        rootCmd.AddOption(new Option<AnalysisScope>(
+            aliases: new[] { "-pa", "--project-analysis" },
+            getDefaultValue: () => AnalysisScope.All,
+            description: "Scope of the project analysis"));
+        rootCmd.AddOption(new Option<AnalysisScope>(
+            aliases: new[] { "-ea", "--external-analysis" },
+            getDefaultValue: () => AnalysisScope.PublicApi,
+            description: "Scope of analysis of external dependencies"));
+        rootCmd.AddOption(new Option<UIMode>(
+            aliases: new[] { "-m", "--mode" },
+            getDefaultValue: () => UIMode.SingleFile,
+            description: "UI mode to use."));
+        rootCmd.AddOption(new Option<string>(
+            aliases: new[] { "--outdir" },
+            getDefaultValue: () => Directory.GetCurrentDirectory(),
+            description: "Output directory"));
+        rootCmd.AddOption(new Option<string>(
+            aliases: new[] { "--styledir" },
+            getDefaultValue: () => "styles",
+            description: "Output subdrectory for CSS stylesheets"));
+        rootCmd.AddOption(new Option<string>(
+            aliases: new[] { "--scriptdir" },
+            getDefaultValue: () => "scripts",
+            description: "Output subdirectory for JS scripts"));
+        rootCmd.AddOption(new Option<string>(
+            aliases: new[] { "--icondir" },
+            getDefaultValue: () => "icons",
+            description: "Output subdirectory for IconSet files"));
 
         var builder = new CommandLineBuilder(rootCmd)
             .UseHelp()
