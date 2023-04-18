@@ -9,7 +9,8 @@
 
 <Panel name="Data" indent={false}>
     <div class="indent">
-        <button on:click={() => {}} class="stretched-button w-100p">Refresh Diagram</button>
+        <em class="mb-16 block">This panel is currently non-functional.</em>
+        <button on:click={() => {}} class="button-stretch">Refresh Diagram</button>
     </div>
     <Subpanel name="IncludedKinds">
         {#each options.kinds as kind}

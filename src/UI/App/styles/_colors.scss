@@ -21,17 +21,16 @@ $weights : ( //
 
 @each $color in $colors {
     @each $weight in $weights {
-        .bg-#{color}-#{weight} {
-            background-color: var(--color-#{color}-#{weight});
-            color: var(--on-#{color});
+        .bg-#{$color}-#{$weight} {
+            background-color: var(--color-#{$color}-#{$weight});
         }
 
-        .text-#{color}-#{weight} {
-            color: var(--color-#{color}-#{weight});
+        .text-#{$color}-#{$weight} {
+            color: var(--color-#{$color}-#{$weight});
         }
 
-        .border-#{color}-#{weight} {
-            border-color: var(--color-#{color}-#{weight});
+        .border-#{$color}-#{$weight} {
+            border-color: var(--color-#{$color}-#{$weight});
         }
     }
 }

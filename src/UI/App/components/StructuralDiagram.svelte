@@ -8,11 +8,13 @@
     import createNodePictogramProgram from "rendering/node.pictogram";
     import { getIconDataUrl } from "model/icons";
     import { StructuralStatus, type StructuralState } from "model/structural";
+    import Icon from "./Icon.svelte";
 
     export let model: VisualizationModel;
     export let state: StructuralState;
 
-    let element: HTMLElement;
+    let diagramElement: HTMLElement;
+    let loadingScreenElement: HTMLElement;
 
     let graph: Graph | null = null
     let sigma: Sigma | null = null;
@@ -107,7 +109,7 @@
     }
     
     function initializeSigma(graph: Graph) {
-        let sigma = new Sigma(graph, element, {
+        let sigma = new Sigma(graph, diagramElement, {
             nodeProgramClasses: {
                 pictogram: pictogramProgram
             },
@@ -133,7 +135,7 @@
         return supervisor;
     }
     
-    $: if (element) {
+    $: if (diagramElement) {
         graph = initializeGraph(model);
         sigma = initializeSigma(graph);
         supervisor = initializeSupervisor(supervisor, graph);
@@ -163,6 +165,16 @@
 </script>
 
 <div
-    bind:this={element}
+    bind:this={loadingScreenElement}
+    class="loading-screen w-100p overflow-hidden h-100p absolute z-1 flex flex-col align-items-center justify-content-center bg-surface-50 hidden"
+>
+    <div class="w-32 h-32">
+        <Icon name="Fallback" />
+    </div>
+    Loading
+</div>
+
+<div
+    bind:this={diagramElement}
     class="diagram w-100p h-100p overflow-hidden absolute z-0"
 />
