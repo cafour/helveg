@@ -16,14 +16,21 @@ export class InlineBundlePlugin
     setup(build: esbuild.PluginBuild) {
         build.onResolve({ filter: InlineBundleFilter }, async args => {
             let path = args.path.replace(InlineBundleFilter, "");
-            const resolved = await build.resolve(path, args);
+            const resolved = await build.resolve(path, {
+                pluginName: InlineBundlePluginName,
+                importer: args.importer,
+                kind: args.kind,
+                namespace: args.namespace,
+                pluginData: args.pluginData,
+                resolveDir: args.resolveDir
+            });
             return {
                 path: resolved.path,
                 namespace: InlineBundlePluginName
             };
         });
-        
-        build.onLoad({filter: InlineBundleFilter, namespace: InlineBundlePluginName}, async args => {
+
+        build.onLoad({filter: /.*/, namespace: InlineBundlePluginName}, async args => {
             const inlineBundleCode = await esbuild.build({
                 format: "iife",
                 platform: "browser",

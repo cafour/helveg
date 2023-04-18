@@ -24,12 +24,11 @@
               "ts-node/esm"
             ],
             "args": [
-              "${workspaceFolder}/src/UI/App/build.ts",
-              "--watch"
+              "${workspaceFolder}/src/UI/App/eng/build.ts"
             ],
             "cwd": "${workspaceFolder}/src/UI/App",
             "env": {
-              "TS_NODE_PROJECT": "${workspaceFolder}/src/UI/App/tsconfig.node.json"
+              "TS_NODE_PROJECT": "${workspaceFolder}/src/UI/App/eng/tsconfig.json"
             }
         }
     ]

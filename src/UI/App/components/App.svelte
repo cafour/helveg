@@ -39,7 +39,7 @@
             <LayoutPanel
                 bind:options={$state.layoutOptions}
                 status={$state.status}
-                on:run={diagram.run}
+                on:run={e => diagram.run(e.detail)}
                 on:stop={diagram.stop}
             />
         </Tab>
