@@ -59,7 +59,7 @@
             }
             catch (error)
             {
-                console.warn(`Failed to add an edge. edge=${edge}, error=${error}`);
+                // console.warn(`Failed to add an edge. edge=${edge}, error=${error}`);
             }
         }
 
@@ -122,10 +122,21 @@
         return sigma;
     }
 
+    function initializeSupervisor(existingSupervisor: ForceAtlas2Supervisor | null, graph: Graph) {
+        if (existingSupervisor != null) {
+            existingSupervisor.kill();
+        }
+
+        let settings = forceAtlas2.inferSettings(graph);
+        settings.adjustSizes = true;
+        supervisor = new ForceAtlas2Supervisor(graph, settings);
+        return supervisor;
+    }
+    
     $: if (element) {
         graph = initializeGraph(model);
         sigma = initializeSigma(graph);
-        run();
+        supervisor = initializeSupervisor(supervisor, graph);
     }
 
     export function run(inBackground: boolean = false) {
@@ -134,11 +145,9 @@
             return;
         }
         
-        let settings = forceAtlas2.inferSettings(graph);
-        settings.adjustSizes = true;
-
         if (supervisor == null) {
-            supervisor = new ForceAtlas2Supervisor(graph, settings);
+            console.warn("Cannot run since the supervisor is not initialized.");
+            return;
         }
 
         supervisor.start(inBackground);

@@ -16,15 +16,15 @@
     <Subpanel name="ForceAtlas2" indent={false}>
         <div class="flex flex-row justify-content-center">
             <button
-                on:click={() => dispatch("run", { background: false })}
-                disabled={status != StructuralStatus.Stopped}
+                on:click={() => dispatch("run", false)}
+                disabled={status == StructuralStatus.Running}
                 class="button-icon"
             >
                 <Icon name="base:Run" title="Run" />
             </button>
             <button
-                on:click={() => dispatch("run", { background: true })}
-                disabled={status != StructuralStatus.Stopped}
+                on:click={() => dispatch("run", true)}
+                disabled={status == StructuralStatus.RunningInBackground}
                 class="button-icon"
             >
                 <Icon name="base:RunAll" title="Run in background" />
