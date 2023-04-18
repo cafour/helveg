@@ -6,10 +6,21 @@ import type { ForceAtlas2Settings } from "graphology-layout-forceatlas2";
 import helpers from "graphology-layout-forceatlas2/helpers";
 import forceAtlas2WorkerCode from "inline-bundle:../layout/forceAtlas2Worker.ts";
 
+export interface ForceAtlas2Progress {
+    iterationCount: number;
+    
+    /**
+     * The number of iterations per second.
+     */
+    speed: number;
+}
+
 export class ForceAtlas2Supervisor {
+    public reportInterval: number = 100;
     private worker: Worker | null = null;
     private running: boolean = false;
     private inBackground: boolean = false;
+    private lastPerformanceTime: number = 0;
     private matrices = {
         nodes: new Float32Array(),
         edges: new Float32Array()
@@ -40,9 +51,12 @@ export class ForceAtlas2Supervisor {
         }
     }
 
-    progress: HelvegEvent<ProgressMessage> = new HelvegEvent<ProgressMessage>("helveg.ForceAtlas2Supervisor.progress");
-    started: HelvegEvent<boolean> = new HelvegEvent<boolean>("helveg.ForceAtlas2Supervisor.started");
-    stopped: HelvegEvent<void> = new HelvegEvent<void>("helveg.ForceAtlas2Supervisor.stopped");
+    progress: HelvegEvent<ForceAtlas2Progress>
+        = new HelvegEvent<ForceAtlas2Progress>("helveg.ForceAtlas2Supervisor.progress");
+    started: HelvegEvent<boolean>
+        = new HelvegEvent<boolean>("helveg.ForceAtlas2Supervisor.started");
+    stopped: HelvegEvent<void>
+        = new HelvegEvent<void>("helveg.ForceAtlas2Supervisor.stopped");
 
     get isRunning(): boolean {
         return this.running;
@@ -59,11 +73,13 @@ export class ForceAtlas2Supervisor {
 
         this.inBackground = inBackground;
         this.running = true;
+        this.lastPerformanceTime = performance.now();
         this.started.trigger(inBackground);
         this.worker.postMessage({
             kind: MessageKind.Start,
             isSingleIteration: !inBackground,
             settings: this.settings,
+            reportInterval: this.reportInterval,
             nodes: this.matrices.nodes.buffer,
         }, {
             transfer: [this.matrices.nodes.buffer]
@@ -101,11 +117,12 @@ export class ForceAtlas2Supervisor {
             return;
         }
 
-        this.worker.postMessage({
+        this.worker.postMessage(<StartMessage>{
             kind: MessageKind.Start,
             isSingleIteration: true,
             settings: this.settings,
             nodes: this.matrices.nodes.buffer,
+            reportInterval: this.reportInterval
         }, {
             transfer: [this.matrices.nodes.buffer]
         });
@@ -126,6 +143,15 @@ export class ForceAtlas2Supervisor {
         switch (message.kind) {
             case MessageKind.Update:
                 this.update(message as UpdateMessage);
+                return;
+            case MessageKind.Progress:
+                let iterationCount = (message as ProgressMessage).iterationCount;
+                let newTime = performance.now();
+                this.progress.trigger({
+                    iterationCount: iterationCount,
+                    speed: this.reportInterval / ((newTime - this.lastPerformanceTime) / 1000.0)
+                });
+                this.lastPerformanceTime = newTime;
                 return;
             default:
                 console.warn("Ignoring a message of unknown kind.");

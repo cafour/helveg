@@ -5,9 +5,17 @@
     import { createEventDispatcher } from "svelte";
     import Icon from "./Icon.svelte";
     import Subpanel from "./Subpanel.svelte";
+    import KeyValueList from "./KeyValueList.svelte";
 
     export let options: LayoutOptions;
     export let status: StructuralStatus;
+    export let iterations = 0;
+    export let speed = 0;
+
+    $: items = [
+        { key: "Iterations", value: iterations.toString() },
+        { key: "Speed", value: `${speed.toFixed(3)} iterations/s` },
+    ];
 
     let dispatch = createEventDispatcher();
 </script>
@@ -37,5 +45,6 @@
                 <Icon name="base:Stop" title="Stop" />
             </button>
         </div>
+        <KeyValueList {items} class="indent" />
     </Subpanel>
 </Panel>

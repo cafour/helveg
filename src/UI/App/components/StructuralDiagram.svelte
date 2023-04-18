@@ -3,15 +3,18 @@
     import Graph from "graphology";
     import circular from "graphology-layout/circular";
     import forceAtlas2 from "graphology-layout-forceatlas2";
-    import { ForceAtlas2Supervisor } from "layout/forceAltas2Supervisor";
+    import { ForceAtlas2Supervisor, type ForceAtlas2Progress } from "layout/forceAltas2Supervisor";
     import type { VisualizationModel } from "model/visualization";
     import createNodePictogramProgram from "rendering/node.pictogram";
     import { getIconDataUrl } from "model/icons";
     import { StructuralStatus, type StructuralState } from "model/structural";
     import Icon from "./Icon.svelte";
+    import type { ProgressMessage as ProgressMessage } from "layout/forceAtlas2Messages";
 
     export let model: VisualizationModel;
     export let state: StructuralState;
+    export let iterations: number = 0;
+    export let speed: number = 0;
 
     let diagramElement: HTMLElement;
     let loadingScreenElement: HTMLElement;
@@ -48,7 +51,7 @@
         for (const nodeId in model.multigraph.nodes) {
             addNode(graph, nodeId);
         }
-        
+
         var declaresRelation = model.multigraph.relations["declares"];
         if (!declaresRelation) {
             console.warn("The visualization model does not contain the required 'declares' relation.");
@@ -124,14 +127,21 @@
         return sigma;
     }
 
+    function onSupervisorProgress(message: ForceAtlas2Progress) {
+        iterations = message.iterationCount;
+        speed = message.speed;
+    }
+
     function initializeSupervisor(existingSupervisor: ForceAtlas2Supervisor | null, graph: Graph) {
         if (existingSupervisor != null) {
+            existingSupervisor.progress.unsubscribe(onSupervisorProgress);
             existingSupervisor.kill();
         }
 
         let settings = forceAtlas2.inferSettings(graph);
         settings.adjustSizes = true;
         supervisor = new ForceAtlas2Supervisor(graph, settings);
+        supervisor.progress.subscribe(onSupervisorProgress);
         return supervisor;
     }
     
@@ -152,15 +162,28 @@
             return;
         }
 
-        supervisor.start(inBackground);
+        if (supervisor.isRunning && supervisor.isInBackground === inBackground) {
+            return;
+        }
+
+        supervisor.stop();
+        supervisor?.start(inBackground);
+
         state.status = inBackground
             ? StructuralStatus.RunningInBackground
             : StructuralStatus.Running;
+
+        if (inBackground) {
+            loadingScreenElement.classList.remove("hidden");
+        } else {
+            loadingScreenElement.classList.add("hidden");
+        }
     }
 
     export function stop() {
         supervisor?.stop();
         state.status = StructuralStatus.Stopped;
+        loadingScreenElement.classList.add("hidden");
     }
 </script>
 
@@ -171,7 +194,7 @@
     <div class="w-32 h-32">
         <Icon name="Fallback" />
     </div>
-    Loading
+    Iterations: {iterations}
 </div>
 
 <div

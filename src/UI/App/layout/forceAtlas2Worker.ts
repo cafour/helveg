@@ -1,11 +1,14 @@
 import iterate from "graphology-layout-forceatlas2/iterate";
-import { MessageKind, type Message, type StartMessage, type StopMessage, type UpdateMessage, type InitMessage } from "./forceAtlas2Messages";
+import { MessageKind, type Message, type StartMessage, type StopMessage, type UpdateMessage, type InitMessage, type ProgressMessage } from "./forceAtlas2Messages";
 
+let iterationCount = 0;
+let nodes: Float32Array;
 let edges: Float32Array;
+let stopRequested: boolean = false;
 
 self.onmessage = e => {
     let message = e.data as Message;
-    switch(message.kind) {
+    switch (message.kind) {
         case MessageKind.Init:
             init(message as InitMessage);
             return;
@@ -26,24 +29,44 @@ function init(message: InitMessage) {
 }
 
 function start(message: StartMessage) {
+    nodes = new Float32Array(message.nodes);
     if (message.isSingleIteration) {
-        console.log("iteration");
-        let nodes = new Float32Array(message.nodes);
         iterate(message.settings, nodes, edges);
-        self.postMessage({
-            kind: MessageKind.Update,
-            nodes: nodes.buffer
-        }, {
-            transfer: [nodes.buffer]
-        });
+        update();
+        iterationCount++;
+        if ((iterationCount % message.reportInterval) === 0) {
+            report();
+        }
+    }
+    else {
+        stopRequested = false;
+        for (; stopRequested === false; iterationCount++) {
+            iterate(message.settings, nodes, edges);
+            if ((iterationCount % message.reportInterval) === 0) {
+                report();
+            }
+        }
+        update();
     }
 }
 
 function stop(message: StopMessage) {
-    
+    stopRequested = true;
+}
+
+function update() {
+    self.postMessage(<UpdateMessage>{
+        kind: MessageKind.Update,
+        nodes: nodes.buffer
+    }, {
+        transfer: [nodes.buffer]
+    });
 }
 
 function report() {
-    
+    self.postMessage(<ProgressMessage>{
+        kind: MessageKind.Progress,
+        iterationCount: iterationCount
+    });
 }
 

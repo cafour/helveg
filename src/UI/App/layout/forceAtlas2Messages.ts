@@ -14,7 +14,7 @@ export interface Message {
 
 export interface ProgressMessage extends Message {
     kind: MessageKind.Progress;
-    iterations: number;
+    iterationCount: number;
     speed: number;
 }
 

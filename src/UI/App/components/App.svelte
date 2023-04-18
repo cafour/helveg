@@ -26,10 +26,18 @@
     initialState.applyPlugin(new CSharpPlugin());
     let state = writable(initialState);
     let diagram: StructuralDiagram;
+    let iterations: number;
+    let speed: number;
 </script>
 
 <main class="flex flex-row-reverse h-100p relative">
-    <StructuralDiagram model={$model} bind:state={$state} bind:this={diagram} />
+    <StructuralDiagram
+        model={$model}
+        bind:state={$state}
+        bind:this={diagram}
+        bind:iterations
+        bind:speed
+    />
 
     <Dock name="panels">
         <Tab name="Data" value="data-panel" icon="base:Database">
@@ -39,8 +47,10 @@
             <LayoutPanel
                 bind:options={$state.layoutOptions}
                 status={$state.status}
-                on:run={e => diagram.run(e.detail)}
+                on:run={(e) => diagram.run(e.detail)}
                 on:stop={diagram.stop}
+                {iterations}
+                {speed}
             />
         </Tab>
         <Tab name="Glyphs" value="glyphs-panel" icon="base:PolarChart">
