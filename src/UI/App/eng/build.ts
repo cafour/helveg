@@ -3,6 +3,7 @@ import esbuildSvelte from "esbuild-svelte";
 import { sassPlugin } from "esbuild-sass-plugin"
 import sveltePreprocess from "svelte-preprocess";
 // import prerenderPlugin from "./prerender.js";
+import inlineBundlePlugin from "./inlineBundle.js";
 import yargs from "yargs";
 import fs from "fs";
 import path from "path";
@@ -48,6 +49,7 @@ const context = await esbuild.context({
     platform: "browser",
     minify: isRelease,
     plugins: [
+        inlineBundlePlugin(),
         esbuildSvelte({
             preprocess: sveltePreprocess()
         }),

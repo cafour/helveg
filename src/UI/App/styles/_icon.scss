@@ -5,4 +5,16 @@
     .light-lightblue-10 {
         fill: var(--color-primary-500);
     }
+
+    *:disabled & {
+        svg {
+            // .light-lightblue,
+            // .light-lightblue-10,
+            // .light-green,
+            // .light-green-10,
+            *:not(.canvas){
+                fill: var(--color-surface-400);
+            }
+        }
+    }
 }

@@ -1,8 +1,8 @@
 <script lang="ts" context="module">
     import { writable, type Readable, readable } from "svelte/store";
 
-    export let model = readable(helveg.model, set => {
-        helveg.loadingPromise.then(_ => {
+    export let model = readable(helveg.model, (set) => {
+        helveg.loadingPromise.then((_) => {
             set(helveg.model);
         });
         return () => {};
@@ -25,17 +25,23 @@
     let initialState = new StructuralState();
     initialState.applyPlugin(new CSharpPlugin());
     let state = writable(initialState);
+    let diagram: StructuralDiagram;
 </script>
 
 <main class="flex flex-row-reverse h-100p relative">
-    <StructuralDiagram model={$model} bind:state={$state} />
+    <StructuralDiagram model={$model} bind:state={$state} bind:this={diagram} />
 
     <Dock name="panels">
         <Tab name="Data" value="data-panel" icon="base:Database">
             <DataPanel bind:options={$state.dataOptions} />
         </Tab>
         <Tab name="Layout" value="layout-panel" icon="base:Diagram">
-            <LayoutPanel bind:options={$state.layoutOptions} status={$state.status} />
+            <LayoutPanel
+                bind:options={$state.layoutOptions}
+                status={$state.status}
+                on:run={diagram.run}
+                on:stop={diagram.stop}
+            />
         </Tab>
         <Tab name="Glyphs" value="glyphs-panel" icon="base:PolarChart">
             <GlyphsPanel bind:options={$state.glyphOptions} />

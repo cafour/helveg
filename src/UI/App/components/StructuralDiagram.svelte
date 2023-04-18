@@ -1,14 +1,13 @@
 <script lang="ts">
-    import { onMount } from "svelte";
     import { Sigma } from "sigma";
     import Graph from "graphology";
     import circular from "graphology-layout/circular";
     import forceAtlas2 from "graphology-layout-forceatlas2";
-    import FA2Layout from "graphology-layout-forceatlas2/worker";
+    import { ForceAtlas2Supervisor } from "layout/forceAltas2Supervisor";
     import type { VisualizationModel } from "model/visualization";
     import createNodePictogramProgram from "rendering/node.pictogram";
     import { getIconDataUrl } from "model/icons";
-    import type { StructuralState } from "model/structural";
+    import { StructuralStatus, type StructuralState } from "model/structural";
 
     export let model: VisualizationModel;
     export let state: StructuralState;
@@ -17,7 +16,7 @@
 
     let graph: Graph | null = null
     let sigma: Sigma | null = null;
-    let worker: FA2Layout | null = null;
+    let supervisor: ForceAtlas2Supervisor | null = null;
 
     function addNode(graph: Graph, nodeId: string) {
         const node = model.multigraph.nodes[nodeId];
@@ -39,6 +38,10 @@
     }
 
     function initializeGraph(model: VisualizationModel) {
+        if (supervisor != null) {
+            supervisor.kill();
+        }
+
         const graph = new Graph();
         for (const nodeId in model.multigraph.nodes) {
             addNode(graph, nodeId);
@@ -118,31 +121,35 @@
         });
         return sigma;
     }
-    
-    function initializeWorker(graph: Graph) {
-        let settings = forceAtlas2.inferSettings(graph);
-        settings.adjustSizes = true;
-        const worker = new FA2Layout(graph, {
-            settings: settings
-        });
-        worker.start();
-        return worker;
-    }
 
     $: if (element) {
         graph = initializeGraph(model);
-        worker = initializeWorker(graph);
         sigma = initializeSigma(graph);
+        run();
     }
-    
-    export function run() {
-        if (!worker?.isRunning()) {
-            worker?.start();
+
+    export function run(inBackground: boolean = false) {
+        if (graph == null) {
+            console.warn("Cannot run since the graph is not initialized.");
+            return;
         }
+        
+        let settings = forceAtlas2.inferSettings(graph);
+        settings.adjustSizes = true;
+
+        if (supervisor == null) {
+            supervisor = new ForceAtlas2Supervisor(graph, settings);
+        }
+
+        supervisor.start(inBackground);
+        state.status = inBackground
+            ? StructuralStatus.RunningInBackground
+            : StructuralStatus.Running;
     }
 
     export function stop() {
-        worker?.stop();
+        supervisor?.stop();
+        state.status = StructuralStatus.Stopped;
     }
 </script>
 

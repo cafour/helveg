@@ -16,7 +16,6 @@
     "@types/jsdom": "^21.1.1",
     "@types/node": "^18.15.11",
     "@types/yargs": "^17.0.24",
-    "arkit": "^1.6.4",
     "autoprefixer": "^10.4.14",
     "browser-sync": "^2.29.1",
     "concurrently": "^7.6.0",
