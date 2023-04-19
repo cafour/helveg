@@ -7,6 +7,9 @@ devDependencies:
   '@tsconfig/svelte':
     specifier: ^3.0.0
     version: 3.0.0
+  '@types/d3-hierarchy':
+    specifier: ^3.1.2
+    version: 3.1.2
   '@types/jsdom':
     specifier: ^21.1.1
     version: 21.1.1
@@ -25,6 +28,9 @@ devDependencies:
   concurrently:
     specifier: ^7.6.0
     version: 7.6.0
+  d3-hierarchy:
+    specifier: ^3.1.2
+    version: 3.1.2
   esbuild:
     specifier: ^0.17.17
     version: 0.17.17
@@ -377,6 +383,10 @@ packages:
     resolution: {integrity: sha512-RG8AStHlUiV5ysZQKq97copd2UmVYw3/pRMLefISZ3S1hK104Cwm7iLQ3fTKx+lsUH2CE8FlLaYeEA2LSeqYUA==}
     dependencies:
       '@types/node': 18.15.11
+    dev: true
+
+  /@types/d3-hierarchy@3.1.2:
+    resolution: {integrity: sha512-9hjRTVoZjRFR6xo8igAJyNXQyPX6Aq++Nhb5ebrUF414dv4jr2MitM2fWiOY475wa3Za7TOS2Gh9fmqEhLTt0A==}
     dev: true
 
   /@types/jsdom@21.1.1:
@@ -780,6 +790,11 @@ packages:
     engines: {node: '>=14'}
     dependencies:
       rrweb-cssom: 0.6.0
+    dev: true
+
+  /d3-hierarchy@3.1.2:
+    resolution: {integrity: sha512-FX/9frcub54beBdugHjDCdikxThEqjnR93Qt7PvQTOHxyiNCAlvMrHhclk3cD5VeAaq9fxmfRp+CnWw9rEMBuA==}
+    engines: {node: '>=12'}
     dev: true
 
   /data-urls@4.0.0:
