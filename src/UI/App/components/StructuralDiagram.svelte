@@ -144,11 +144,14 @@
         supervisor.progress.subscribe(onSupervisorProgress);
         return supervisor;
     }
-    
+
     $: if (diagramElement) {
         graph = initializeGraph(model);
         sigma = initializeSigma(graph);
         supervisor = initializeSupervisor(supervisor, graph);
+        if (!model.isEmpty) {
+            run();
+        }
     }
 
     export async function run(inBackground: boolean = false) {
