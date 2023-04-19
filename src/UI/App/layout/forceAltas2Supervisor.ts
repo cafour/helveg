@@ -57,6 +57,8 @@ export class ForceAtlas2Supervisor {
         = new HelvegEvent<boolean>("helveg.ForceAtlas2Supervisor.started");
     stopped: HelvegEvent<void>
         = new HelvegEvent<void>("helveg.ForceAtlas2Supervisor.stopped");
+    updated: HelvegEvent<void>  
+        = new HelvegEvent<void>("helveg.ForceAtlas2Supervisor.updated");
 
     get isRunning(): boolean {
         return this.running;
@@ -66,9 +68,17 @@ export class ForceAtlas2Supervisor {
         return this.inBackground;
     }
 
-    start(inBackground: boolean): void {
+    async start(inBackground: boolean): Promise<void> {
         if (!this.worker) {
             this.worker = this.spawnWorker();
+        }
+        
+        if (this.running && this.inBackground === inBackground) {
+            return;
+        }
+        
+        if (this.running) {
+            await this.stop();
         }
 
         this.inBackground = inBackground;
@@ -86,9 +96,23 @@ export class ForceAtlas2Supervisor {
         });
     }
 
-    stop(): void {
+    stop(): Promise<void> {
         if (!this.worker) {
-            return;
+            return Promise.resolve();
+        }
+
+        let promise: Promise<void>;
+        
+        if (this.inBackground) {
+            promise = new Promise<void>((resolve, reject) => {
+                this.updated.subscribeOnce(() => {
+                    resolve();
+                });
+                setTimeout(() => reject(new Error("Timeout while waiting for the worker to stop.")), 1000);
+            });
+        }
+        else {
+            promise = Promise.resolve();
         }
 
         this.worker.postMessage({
@@ -96,6 +120,8 @@ export class ForceAtlas2Supervisor {
         });
         this.running = false;
         this.stopped.trigger();
+
+        return promise;
     }
 
     kill(): void {
@@ -165,6 +191,7 @@ export class ForceAtlas2Supervisor {
         if (!this.inBackground && this.running) {
             this.askForSingleIteration();
         }
+        this.updated.trigger();
     }
 
     private spawnWorker(): Worker {

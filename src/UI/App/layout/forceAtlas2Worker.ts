@@ -1,5 +1,6 @@
 import iterate from "graphology-layout-forceatlas2/iterate";
 import { MessageKind, type Message, type StartMessage, type StopMessage, type UpdateMessage, type InitMessage, type ProgressMessage } from "./forceAtlas2Messages";
+import type { ForceAtlas2Settings } from "graphology-layout-forceatlas2";
 
 let iterationCount = 0;
 let nodes: Float32Array;
@@ -30,6 +31,7 @@ function init(message: InitMessage) {
 
 function start(message: StartMessage) {
     nodes = new Float32Array(message.nodes);
+    stopRequested = false;
     if (message.isSingleIteration) {
         iterate(message.settings, nodes, edges);
         update();
@@ -39,15 +41,26 @@ function start(message: StartMessage) {
         }
     }
     else {
-        stopRequested = false;
-        for (; stopRequested === false; iterationCount++) {
-            iterate(message.settings, nodes, edges);
-            if ((iterationCount % message.reportInterval) === 0) {
-                report();
-            }
-        }
-        update();
+        runContinously(message);
     }
+}
+
+function runContinously(message: StartMessage)
+{
+    var mc = new MessageChannel();
+    mc.port1.onmessage = () => {
+        if (stopRequested) {
+            update();
+            return;
+        }
+        iterate(message.settings, nodes, edges);
+        iterationCount++;
+        if ((iterationCount % message.reportInterval) === 0) {
+            report();
+        }
+        mc.port2.postMessage("");
+    };
+    mc.port2.postMessage("");
 }
 
 function stop(message: StopMessage) {

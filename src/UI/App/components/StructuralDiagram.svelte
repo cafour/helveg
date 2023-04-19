@@ -151,7 +151,7 @@
         supervisor = initializeSupervisor(supervisor, graph);
     }
 
-    export function run(inBackground: boolean = false) {
+    export async function run(inBackground: boolean = false) {
         if (graph == null) {
             console.warn("Cannot run since the graph is not initialized.");
             return;
@@ -162,12 +162,7 @@
             return;
         }
 
-        if (supervisor.isRunning && supervisor.isInBackground === inBackground) {
-            return;
-        }
-
-        supervisor.stop();
-        supervisor?.start(inBackground);
+        supervisor.start(inBackground);
 
         state.status = inBackground
             ? StructuralStatus.RunningInBackground
@@ -180,10 +175,12 @@
         }
     }
 
-    export function stop() {
-        supervisor?.stop();
-        state.status = StructuralStatus.Stopped;
-        loadingScreenElement.classList.add("hidden");
+    export async function stop() {
+        if (supervisor?.isRunning) {
+            await supervisor.stop();
+            state.status = StructuralStatus.Stopped;
+            loadingScreenElement.classList.add("hidden");
+        }
     }
 </script>
 
@@ -194,7 +191,9 @@
     <div class="w-32 h-32">
         <Icon name="Fallback" />
     </div>
-    Iterations: {iterations}
+    <div>
+        Running in the background...
+    </div>
 </div>
 
 <div
