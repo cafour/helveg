@@ -1,3 +1,4 @@
+import { HelvegEvent } from "common/event";
 import { loadJsonScripts } from "./data";
 import { loadIcons, type IconSet } from "./icons";
 import { empty as emptyModel, type VisualizationModel } from "./visualization";
@@ -5,8 +6,8 @@ import { empty as emptyModel, type VisualizationModel } from "./visualization";
 export interface HelvegGlobal {
     iconSets: Record<string, IconSet>;
     model: VisualizationModel;
-    isLoaded: boolean;
-    loadingPromise: Promise<void>;
+    modelLoaded: HelvegEvent<void>;
+    iconsLoaded: HelvegEvent<void>;
 };
 
 /**
@@ -38,16 +39,19 @@ async function initialize() {
 
     window.helveg = window.helveg ?? {};
     window.helveg.iconSets = iconSets;
+    window.helveg.iconsLoaded.trigger();
     window.helveg.model = model;
-    window.helveg.isLoaded = true;
+    window.helveg.modelLoaded.trigger();
 }
 
 window.helveg = {
     iconSets: {},
     model: emptyModel,
-    isLoaded: false,
-    loadingPromise: initialize()
+    modelLoaded: new HelvegEvent<void>("helveg.modelLoaded"),
+    iconsLoaded: new HelvegEvent<void>("helveg.iconsLoaded"),
 };
-window.helveg.loadingPromise.catch(e => console.error(e));
 
 export default window.helveg;
+
+initialize()
+    .catch(e => console.error(e))

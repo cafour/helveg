@@ -1,10 +1,8 @@
 <script lang="ts" context="module">
     import { writable, type Readable, readable } from "svelte/store";
 
-    export let model = readable(helveg.model, (set) => {
-        helveg.loadingPromise.then((_) => {
-            set(helveg.model);
-        });
+    export let model = readable(helveg.model, set => {
+        helveg.modelLoaded.subscribe(() => set(helveg.model));
         return () => {};
     });
 </script>

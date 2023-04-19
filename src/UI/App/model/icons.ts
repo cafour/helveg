@@ -74,7 +74,7 @@ export function getIcon(name: string, options?: IconOptions): Icon {
 
 export function getIconReadable(name: string, options?: IconOptions): Readable<Icon> {
     return readable(getIcon(name, options), set => {
-        helveg.loadingPromise.then(() => set(getIcon(name, options)));
+        helveg.iconsLoaded.subscribe(() => set(getIcon(name, options)));
         return () => { };
     });
 }

@@ -8,7 +8,7 @@ import forceAtlas2WorkerCode from "inline-bundle:../layout/forceAtlas2Worker.ts"
 
 export interface ForceAtlas2Progress {
     iterationCount: number;
-    
+
     /**
      * The number of iterations per second.
      */
@@ -57,7 +57,7 @@ export class ForceAtlas2Supervisor {
         = new HelvegEvent<boolean>("helveg.ForceAtlas2Supervisor.started");
     stopped: HelvegEvent<void>
         = new HelvegEvent<void>("helveg.ForceAtlas2Supervisor.stopped");
-    updated: HelvegEvent<void>  
+    updated: HelvegEvent<void>
         = new HelvegEvent<void>("helveg.ForceAtlas2Supervisor.updated");
 
     get isRunning(): boolean {
@@ -72,11 +72,11 @@ export class ForceAtlas2Supervisor {
         if (!this.worker) {
             this.worker = this.spawnWorker();
         }
-        
+
         if (this.running && this.inBackground === inBackground) {
             return;
         }
-        
+
         if (this.running) {
             await this.stop();
         }
@@ -97,23 +97,16 @@ export class ForceAtlas2Supervisor {
     }
 
     stop(): Promise<void> {
-        if (!this.worker) {
+        if (!this.worker || !this.running) {
             return Promise.resolve();
         }
 
-        let promise: Promise<void>;
-        
-        if (this.inBackground) {
-            promise = new Promise<void>((resolve, reject) => {
-                this.updated.subscribeOnce(() => {
-                    resolve();
-                });
-                setTimeout(() => reject(new Error("Timeout while waiting for the worker to stop.")), 1000);
+        let promise = new Promise<void>((resolve, reject) => {
+            this.updated.subscribeOnce(() => {
+                resolve();
             });
-        }
-        else {
-            promise = Promise.resolve();
-        }
+            setTimeout(() => reject(new Error("Timeout while waiting for the worker to stop.")), 1000);
+        });
 
         this.worker.postMessage({
             kind: MessageKind.Stop
