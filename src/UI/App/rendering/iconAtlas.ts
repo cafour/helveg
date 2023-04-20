@@ -80,11 +80,13 @@ export class IconAtlas {
         image.id = `IconAtlas-${this.id}-${name}`;
         image.addEventListener("load", () => {
             entry.status = IconAtlasEntryStatus.Loaded;
+            if (this.pendingImages.length === 0) {
+                requestAnimationFrame(() => this.redraw());
+            }
             this.pendingImages.push({
                 element: image,
                 entry: entry
             });
-            requestAnimationFrame(() => this.redraw());
         })
         image.addEventListener("error", () => {
             entry.status = IconAtlasEntryStatus.Failed;
@@ -114,7 +116,7 @@ export class IconAtlas {
         }
 
         this.pendingImages.forEach(image => {
-            if (this.writePositionX + this.options.iconSize >= MAX_CANVAS_WIDTH) {
+            if (this.writePositionX + this.options.iconSize > MAX_CANVAS_WIDTH) {
                 // the row is full
                 this.writePositionX = 0;
                 this.writePositionY += this.options.iconSize;
@@ -123,6 +125,8 @@ export class IconAtlas {
             this.height = Math.max(this.height, this.writePositionY + this.options.iconSize);
 
             if (this.width !== canvas.width || this.height !== canvas.height) {
+                this.texture = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
                 // resize the canvas
                 canvas.width = this.width;
                 canvas.height = this.height;
@@ -145,7 +149,7 @@ export class IconAtlas {
             image.entry.x = this.writePositionX;
             image.entry.y = this.writePositionY;
             image.entry.status = IconAtlasEntryStatus.Rendered;
-            
+
             this.writePositionX += this.options.iconSize;
         });
         this.pendingImages = [];

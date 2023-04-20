@@ -16,12 +16,9 @@ const { UNSIGNED_BYTE, FLOAT } = WebGLRenderingContext;
 
 const UNIFORMS = ["u_sizeRatio", "u_pixelRatio", "u_matrix", "u_atlas"];
 
-export default function createGlyphProgram(iconAtlas: IconAtlas): NodeProgramConstructor
-{
-    return class extends GlyphProgram
-    {
-        constructor(gl: WebGLRenderingContext, renderer: Sigma)
-        {
+export default function createGlyphProgram(iconAtlas: IconAtlas): NodeProgramConstructor {
+    return class extends GlyphProgram {
+        constructor(gl: WebGLRenderingContext, renderer: Sigma) {
             super(gl, renderer, iconAtlas);
         }
     };
@@ -38,6 +35,7 @@ export class GlyphProgram extends NodeProgram<typeof UNIFORMS[number]> {
             this.rebindTexture(a);
             this.renderer.scheduleRefresh();
         });
+        this.rebindTexture(iconAtlas);
     }
 
     getDefinition(): ProgramDefinition<typeof UNIFORMS[number]> {
@@ -59,12 +57,12 @@ export class GlyphProgram extends NodeProgram<typeof UNIFORMS[number]> {
     processVisibleItem(i: number, data: GlyphNodeDisplayData): void {
         const array = this.array;
         this.iconAtlas.tryAddIcon(data.icon);
-        
+
         array[i++] = data.x;
         array[i++] = data.y;
         array[i++] = data.size;
         array[i++] = floatColor(data.color || "#000000");
-        
+
         let atlasEntry = this.iconAtlas.entries[data.icon];
         if (atlasEntry && atlasEntry.status === IconAtlasEntryStatus.Rendered) {
             array[i++] = atlasEntry.x / this.iconAtlas.width;
@@ -82,9 +80,11 @@ export class GlyphProgram extends NodeProgram<typeof UNIFORMS[number]> {
 
     draw(params: RenderParams): void {
         const gl = this.gl;
-        
+
         const { u_sizeRatio, u_pixelRatio, u_matrix, u_atlas } = this.uniformLocations;
-        
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this.texture);
         gl.uniform1f(u_sizeRatio, params.sizeRatio);
         gl.uniform1f(u_pixelRatio, params.pixelRatio);
         gl.uniformMatrix3fv(u_matrix, false, params.matrix);
