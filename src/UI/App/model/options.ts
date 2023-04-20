@@ -1,4 +1,4 @@
-import { StaticGlyphStyle, type GlyphStyle, Outline, LineStyle } from "./glyph";
+import { StaticGlyphStyle, type GlyphStyle, type Outline, OutlineStyle } from "./glyph";
 
 export class DataOptions {
     kinds: string[] = [];
@@ -13,7 +13,7 @@ export class GlyphOptions {
         size: 5,
         color: "#202020",
         icon: "base:PolarChart",
-        outlines: [new Outline(LineStyle.Solid, "#202020", 1)]
+        outlines: [{style: OutlineStyle.Solid, width: 1}]
     });
     showIcons: boolean = true;
     showOutlines: boolean = true;

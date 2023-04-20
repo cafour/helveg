@@ -43,7 +43,8 @@
             size: nodeStyle.size,
             color: nodeStyle.color,
             type: "glyph",
-            icon: nodeStyle.icon
+            icon: nodeStyle.icon,
+            outlines: nodeStyle.outlines
         });
     }
 
@@ -81,7 +82,7 @@
             ([k, v]) => v.properties["Kind"] === "csharp:Framework"
         )?.[0];
         if (solutionRoot) {
-            tidyTree(graph, solutionRoot, 100);
+            tidyTree(graph, solutionRoot, 1000);
         }
         return graph;
     }
@@ -143,6 +144,7 @@
                 glyph: glyphProgram
             },
             labelFont: "'Cascadia Mono', 'Consolas', monospace",
+            itemSizesReference: "positions"
         });
         sigma.on("clickNode", (e) => {
             state.selectedNode = model.multigraph.nodes[e.node];

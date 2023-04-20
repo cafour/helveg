@@ -7,9 +7,11 @@ import vertexShaderSource from "./node.glyph.vert";
 import fragmentShaderSource from "./node.glyph.frag";
 import { getIconDataUrl } from "model/icons";
 import { floatColor } from "sigma/utils";
+import { floatOutlines, type Outlines } from "model/glyph";
 
 interface GlyphNodeDisplayData extends NodeDisplayData {
     icon: string;
+    outlines: Outlines;
 }
 
 const { UNSIGNED_BYTE, FLOAT } = WebGLRenderingContext;
@@ -41,7 +43,7 @@ export class GlyphProgram extends NodeProgram<typeof UNIFORMS[number]> {
     getDefinition(): ProgramDefinition<typeof UNIFORMS[number]> {
         return {
             VERTICES: 1,
-            ARRAY_ITEMS_PER_VERTEX: 8,
+            ARRAY_ITEMS_PER_VERTEX: 9,
             VERTEX_SHADER_SOURCE: vertexShaderSource,
             FRAGMENT_SHADER_SOURCE: fragmentShaderSource,
             UNIFORMS,
@@ -50,6 +52,7 @@ export class GlyphProgram extends NodeProgram<typeof UNIFORMS[number]> {
                 { name: "a_size", size: 1, type: FLOAT },
                 { name: "a_color", size: 4, type: UNSIGNED_BYTE, normalized: true },
                 { name: "a_texture", size: 4, type: FLOAT },
+                { name: "a_outlines", size: 4, type: UNSIGNED_BYTE, normalized: false }
             ],
         };
     }
@@ -76,6 +79,8 @@ export class GlyphProgram extends NodeProgram<typeof UNIFORMS[number]> {
             array[i++] = 0;
             array[i++] = 0;
         }
+
+        array[i++] = floatOutlines(data.outlines)
     }
 
     draw(params: RenderParams): void {

@@ -6,6 +6,7 @@ in vec2 a_position;
 in float a_size;
 in vec4 a_color;
 in vec4 a_texture;
+in vec4 a_outlines;
 
 uniform float u_sizeRatio;
 uniform float u_pixelRatio;
@@ -14,6 +15,8 @@ uniform mat3 u_matrix;
 out vec4 v_color;
 out float v_border;
 out vec4 v_texture;
+flat out vec4 v_outlines;
+out float v_size;
 
 const float bias = 255.0 / 254.0;
 
@@ -38,4 +41,8 @@ void main() {
   // Pass the texture coordinates:
   // NOTE: multiply a_texture by a constant and you get a pattern
   v_texture = a_texture;
+
+  v_outlines = a_outlines;
+
+  v_size = a_size;
 }
