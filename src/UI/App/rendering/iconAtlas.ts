@@ -14,7 +14,7 @@ export const DEFAULT_OPTIONS: IconAtlasOptions = {
 
 const MAX_CANVAS_WIDTH = 3072;
 
-export enum IconEntryStatus {
+export enum IconAtlasEntryStatus {
     Created,
     Loaded,
     Rendered,
@@ -22,7 +22,7 @@ export enum IconEntryStatus {
 }
 
 export interface IconAtlasEntry {
-    status: IconEntryStatus;
+    status: IconAtlasEntryStatus;
     iconName: string;
     x: number;
     y: number;
@@ -60,13 +60,17 @@ export class IconAtlas {
         this.texture = new ImageData(this.width, this.height);
     }
 
-    addIcon(name: string) {
+    /**
+     * Attempts to add an icon into the atlas so that it can be rendered once it is loaded (asynchronously).
+     * @returns true, if the icon has been added succesfully, false if it already exists in the atlas.
+     */
+    tryAddIcon(name: string): boolean {
         if (this.entries[name]) {
-            return;
+            return false;
         }
 
         let entry = this.entries[name] = <IconAtlasEntry>{
-            status: IconEntryStatus.Created,
+            status: IconAtlasEntryStatus.Created,
             iconName: name,
             x: 0,
             y: 0
@@ -75,7 +79,7 @@ export class IconAtlas {
         const image = new Image(this.options.iconSize, this.options.iconSize);
         image.id = `IconAtlas-${this.id}-${name}`;
         image.addEventListener("load", () => {
-            entry.status = IconEntryStatus.Loaded;
+            entry.status = IconAtlasEntryStatus.Loaded;
             this.pendingImages.push({
                 element: image,
                 entry: entry
@@ -83,11 +87,14 @@ export class IconAtlas {
             requestAnimationFrame(() => this.redraw());
         })
         image.addEventListener("error", () => {
-            entry.status = IconEntryStatus.Failed;
+            entry.status = IconAtlasEntryStatus.Failed;
             console.error(`Failed to load ${image.id}.`);
         });
         image.setAttribute("crossorigin", "");
-        image.src = getIconDataUrl(name, { width: this.options.iconSize });
+        image.src = getIconDataUrl(name, {
+            width: this.options.iconSize,
+            height: this.options.iconSize });
+        return true;
     }
 
     private redraw() {
@@ -107,14 +114,10 @@ export class IconAtlas {
         }
 
         this.pendingImages.forEach(image => {
-            let { element, entry } = image;
-            if (this.writePositionX + this.options.iconSize > MAX_CANVAS_WIDTH) {
+            if (this.writePositionX + this.options.iconSize >= MAX_CANVAS_WIDTH) {
                 // the row is full
                 this.writePositionX = 0;
                 this.writePositionY += this.options.iconSize;
-            }
-            else {
-                this.writePositionX += this.options.iconSize;
             }
             this.width = Math.max(this.width, this.writePositionX + this.options.iconSize);
             this.height = Math.max(this.height, this.writePositionY + this.options.iconSize);
@@ -129,19 +132,21 @@ export class IconAtlas {
             }
 
             ctx.drawImage(
-                element,
+                image.element,
                 0,
                 0,
-                element.width,
-                element.height,
+                image.element.width,
+                image.element.height,
                 this.writePositionX,
                 this.writePositionY,
                 this.options.iconSize,
                 this.options.iconSize
             );
-            entry.x = this.writePositionX;
-            entry.y = this.writePositionY;
-            entry.status = IconEntryStatus.Rendered;
+            image.entry.x = this.writePositionX;
+            image.entry.y = this.writePositionY;
+            image.entry.status = IconAtlasEntryStatus.Rendered;
+            
+            this.writePositionX += this.options.iconSize;
         });
         this.pendingImages = [];
         this.texture = ctx.getImageData(0, 0, canvas.width, canvas.height);

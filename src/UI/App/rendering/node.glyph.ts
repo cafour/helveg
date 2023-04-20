@@ -1,19 +1,36 @@
-import { NodeProgram } from "sigma/rendering/webgl/programs/common/node";
+import { AbstractNodeProgram, NodeProgram, type NodeProgramConstructor } from "sigma/rendering/webgl/programs/common/node";
 import type { ProgramDefinition } from "sigma/rendering/webgl/programs/common/program";
 import type { NodeDisplayData, RenderParams } from "sigma/types";
-import type { IconAtlas } from "./iconAtlas";
+import { IconAtlas, IconAtlasEntryStatus } from "./iconAtlas";
 import type Sigma from "sigma";
 import vertexShaderSource from "./node.glyph.vert";
 import fragmentShaderSource from "./node.glyph.frag";
+import { getIconDataUrl } from "model/icons";
+import { floatColor } from "sigma/utils";
+
+interface GlyphNodeDisplayData extends NodeDisplayData {
+    icon: string;
+}
 
 const { UNSIGNED_BYTE, FLOAT } = WebGLRenderingContext;
 
-declare const UNIFORMS: readonly ["u_sizeRatio", "u_pixelRatio", "u_matrix", "u_atlas"];
+const UNIFORMS = ["u_sizeRatio", "u_pixelRatio", "u_matrix", "u_atlas"];
+
+export default function createGlyphProgram(iconAtlas: IconAtlas): NodeProgramConstructor
+{
+    return class extends GlyphProgram
+    {
+        constructor(gl: WebGLRenderingContext, renderer: Sigma)
+        {
+            super(gl, renderer, iconAtlas);
+        }
+    };
+}
 
 export class GlyphProgram extends NodeProgram<typeof UNIFORMS[number]> {
     texture: WebGLTexture;
 
-    constructor(gl: WebGLRenderingContext, renderer: Sigma, iconAtlas: IconAtlas) {
+    constructor(gl: WebGLRenderingContext, renderer: Sigma, private iconAtlas: IconAtlas) {
         super(gl, renderer);
 
         this.texture = gl.createTexture() as WebGLTexture;
@@ -39,12 +56,41 @@ export class GlyphProgram extends NodeProgram<typeof UNIFORMS[number]> {
         };
     }
 
-    processVisibleItem(i: number, data: NodeDisplayData): void {
-        throw new Error("Method not implemented.");
+    processVisibleItem(i: number, data: GlyphNodeDisplayData): void {
+        const array = this.array;
+        this.iconAtlas.tryAddIcon(data.icon);
+        
+        array[i++] = data.x;
+        array[i++] = data.y;
+        array[i++] = data.size;
+        array[i++] = floatColor(data.color || "#000000");
+        
+        let atlasEntry = this.iconAtlas.entries[data.icon];
+        if (atlasEntry && atlasEntry.status === IconAtlasEntryStatus.Rendered) {
+            array[i++] = atlasEntry.x / this.iconAtlas.width;
+            array[i++] = atlasEntry.y / this.iconAtlas.height;
+            array[i++] = this.iconAtlas.iconSize / this.iconAtlas.width;
+            array[i++] = this.iconAtlas.iconSize / this.iconAtlas.height;
+        } else {
+            // the icon is not ready yet, so don't render it
+            array[i++] = 0;
+            array[i++] = 0;
+            array[i++] = 0;
+            array[i++] = 0;
+        }
     }
 
     draw(params: RenderParams): void {
-        throw new Error("Method not implemented.");
+        const gl = this.gl;
+        
+        const { u_sizeRatio, u_pixelRatio, u_matrix, u_atlas } = this.uniformLocations;
+        
+        gl.uniform1f(u_sizeRatio, params.sizeRatio);
+        gl.uniform1f(u_pixelRatio, params.pixelRatio);
+        gl.uniformMatrix3fv(u_matrix, false, params.matrix);
+        gl.uniform1i(u_atlas, 0);
+
+        gl.drawArrays(gl.POINTS, 0, this.verticesCount);
     }
 
 

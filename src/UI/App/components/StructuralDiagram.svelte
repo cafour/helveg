@@ -12,8 +12,9 @@
     import { getIconDataUrl } from "model/icons";
     import { StructuralStatus, type StructuralState } from "model/structural";
     import Icon from "./Icon.svelte";
-    import type { ProgressMessage as ProgressMessage } from "layout/forceAtlas2Messages";
     import tidyTree from "layout/tidyTree";
+    import { IconAtlas } from "rendering/iconAtlas";
+    import createGlyphProgram from "rendering/node.glyph";
 
     export let model: VisualizationModel;
     export let state: StructuralState;
@@ -27,6 +28,9 @@
     let sigma: Sigma | null = null;
     let supervisor: ForceAtlas2Supervisor | null = null;
 
+    let iconAtlas = new IconAtlas();
+    let glyphProgram = createGlyphProgram(iconAtlas);
+    
     function addNode(graph: Graph, nodeId: string) {
         const node = model.multigraph.nodes[nodeId];
         const entityKind = node.properties["Kind"];
@@ -38,12 +42,8 @@
             label: node.label || nodeId,
             size: nodeStyle.size,
             color: nodeStyle.color,
-            pictogramColor: nodeStyle.color,
-            type: "pictogram",
-            pictogram: getIconDataUrl(nodeStyle.icon, {
-                width: 256,
-                height: 256,
-            }),
+            type: "glyph",
+            icon: nodeStyle.icon
         });
     }
 
@@ -72,17 +72,19 @@
                 // console.warn(`Failed to add an edge. edge=${edge}, error=${error}`);
             }
         }
-        
+
         circular.assign(graph);
-        let solutionRoot = Object.entries(model.multigraph.nodes).find(([k ,v]) => v.properties["Kind"] === "csharp:Solution")?.[0];
-        let frameworkRoots = Object.entries(model.multigraph.nodes).find(([k ,v]) => v.properties["Kind"] === "csharp:Framework")?.[0];
+        let solutionRoot = Object.entries(model.multigraph.nodes).find(
+            ([k, v]) => v.properties["Kind"] === "csharp:Solution"
+        )?.[0];
+        let frameworkRoots = Object.entries(model.multigraph.nodes).find(
+            ([k, v]) => v.properties["Kind"] === "csharp:Framework"
+        )?.[0];
         if (solutionRoot) {
             tidyTree(graph, solutionRoot, 100);
         }
         return graph;
     }
-
-    const pictogramProgram = createNodePictogramProgram();
 
     function collapseNode(graph: Graph, nodeId: string) {
         graph.forEachOutNeighbor(nodeId, (neighborId) => {
@@ -138,7 +140,7 @@
     function initializeSigma(graph: Graph) {
         let sigma = new Sigma(graph, diagramElement, {
             nodeProgramClasses: {
-                pictogram: pictogramProgram,
+                glyph: glyphProgram
             },
             labelFont: "'Cascadia Mono', 'Consolas', monospace",
         });
