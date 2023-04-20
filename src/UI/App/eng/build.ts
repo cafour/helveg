@@ -60,7 +60,9 @@ const context = await esbuild.context({
     ],
     loader: {
         ".svg": "text",
-        ".html": "copy"
+        ".html": "copy",
+        ".vert": "text",
+        ".frag": "text"
     },
     metafile: true
 })
