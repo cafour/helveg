@@ -1,7 +1,7 @@
 <script lang="ts" context="module">
     import { writable, type Readable, readable } from "svelte/store";
 
-    export let model = readable(helveg.model, set => {
+    export let model = readable(helveg.model, (set) => {
         helveg.modelLoaded.subscribe(() => set(helveg.model));
         return () => {};
     });
@@ -62,7 +62,7 @@
             <PropertiesPanel node={$state.selectedNode} />
         </Tab>
         <Tab name="Document" value="document-panel" icon="base:Document">
-            <DocumentPanel documentInfo={$model.documentInfo} />
+            <DocumentPanel model={$model} />
         </Tab>
     </Dock>
 </main>

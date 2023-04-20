@@ -5,8 +5,8 @@ import type { Coordinates, Dimensions, NodeDisplayData, RenderParams } from "sig
 import { floatColor } from "sigma/utils";
 import { NodeProgram, type NodeProgramConstructor } from "sigma/rendering/webgl/programs/common/node";
 import type Sigma from "sigma";
-import vertexShaderSource from "./node.glyph.vert";
-import fragmentShaderSource from "./node.glyph.frag";
+import vertexShaderSource from "./node.pictogram.vert";
+import fragmentShaderSource from "./node.pictogram.frag";
 
 interface NodeDisplayDataWithPictogramInfo extends NodeDisplayData {
   pictogram: string;
@@ -358,14 +358,14 @@ export default function createNodePictogramProgram(
     getDefinition() {
       return {
         VERTICES: 1,
-        ARRAY_ITEMS_PER_VERTEX: 7,
+        ARRAY_ITEMS_PER_VERTEX: 8,
         VERTEX_SHADER_SOURCE: vertexShaderSource,
         FRAGMENT_SHADER_SOURCE: fragmentShaderSource,
         UNIFORMS,
         ATTRIBUTES: [
           { name: "a_position", size: 2, type: FLOAT },
           { name: "a_size", size: 1, type: FLOAT },
-          // { name: "a_color", size: 4, type: UNSIGNED_BYTE, normalized: true },
+          { name: "a_color", size: 4, type: UNSIGNED_BYTE, normalized: true },
           { name: "a_texture", size: 4, type: FLOAT },
         ],
       };
@@ -414,7 +414,7 @@ export default function createNodePictogramProgram(
       array[i++] = data.x;
       array[i++] = data.y;
       array[i++] = data.size;
-      // array[i++] = floatColor(data.pictogramColor || "black");
+      array[i++] = floatColor(data.pictogramColor || "black");
 
       // Reference texture:
       if (imageState && imageState.status === "ready") {

@@ -17,6 +17,7 @@ export class GlyphOptions {
     });
     showIcons: boolean = true;
     showOutlines: boolean = true;
+    showLabels: boolean = true;
 }
 
 export class LayoutOptions {

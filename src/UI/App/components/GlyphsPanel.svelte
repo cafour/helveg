@@ -14,4 +14,8 @@
         <input type="checkbox" bind:checked={options.showOutlines} />
         ShowOutlines
     </label>
+    <label>
+        <input type="checkbox" bind:checked={options.showLabels} />
+        ShowLabels
+    </label>
 </Panel>

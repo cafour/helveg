@@ -145,9 +145,9 @@
         sigma.on("clickNode", (e) => {
             state.selectedNode = model.multigraph.nodes[e.node];
         });
-        sigma.on("doubleClickNode", (e) => {
-            toggleNode(graph, e.node);
-        });
+        // sigma.on("doubleClickNode", (e) => {
+        //     toggleNode(graph, e.node);
+        // });
         return sigma;
     }
 
