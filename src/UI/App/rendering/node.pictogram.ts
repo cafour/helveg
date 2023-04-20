@@ -26,7 +26,7 @@ interface CreateNodePictogramProgramOptions {
 const DEFAULT_CREATE_NODE_PICTOGRAM_OPTIONS: CreateNodePictogramProgramOptions = {
   correctCentering: false,
   forcedSvgSize: undefined,
-  keepWithinCircle: true,
+  keepWithinCircle: false,
 };
 
 // maximum size of single texture in atlas
