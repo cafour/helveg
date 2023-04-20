@@ -8,15 +8,14 @@ $repoDir = Resolve-Path "$PSScriptRoot\..\..\.."
 Remove-Item -Recurse -Force "$appDir\template" -ErrorAction 'SilentlyContinue'
 dotnet build "$cliDir"
 echo "$cliDir $repoDir"
-dotnet run "$repoDir\Helveg.sln" `
-    --no-build `
-    --project "$cliDir" `
+dotnet run --no-build --project "$cliDir" `
     -- `
+    "$repoDir\Helveg.sln" `
     --outdir "$appDir/template" `
     -pa PublicApi `
     -ea AssembliesOnly `
     -m StaticApp `
     --verbose `
-    --icondir "" `
-    --styledir "" `
-    --scriptdir "" `
+    --icondir "." `
+    --styledir "." `
+    --scriptdir "."
