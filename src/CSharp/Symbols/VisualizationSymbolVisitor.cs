@@ -64,6 +64,17 @@ public class VisualizationSymbolVisitor : SymbolVisitor
     public override void VisitType(TypeDefinition type)
     {
         base.VisitType(type);
+        
+        builder.GetNode(type.Token)
+            .SetProperty(nameof(TypeDefinition.TypeKind), type.TypeKind.ToString())
+            .SetProperty(nameof(TypeDefinition.IsAnonymousType), type.IsAnonymousType.ToString())
+            .SetProperty(nameof(TypeDefinition.IsTupleType), type.IsTupleType.ToString())
+            .SetProperty(nameof(TypeDefinition.IsNativeIntegerType), type.IsNativeIntegerType.ToString())
+            .SetProperty(nameof(TypeDefinition.IsUnmanagedType), type.IsUnmanagedType.ToString())
+            .SetProperty(nameof(TypeDefinition.IsReadOnly), type.IsReadOnly.ToString())
+            .SetProperty(nameof(TypeDefinition.IsRefLikeType), type.IsRefLikeType.ToString())
+            .SetProperty(nameof(TypeDefinition.IsRecord), type.IsRecord.ToString());
+        
         builder.AddEdges(CSConst.DeclaresId, type.Fields.Select(f => new Edge(type.Token, f.Token)));
         builder.AddEdges(CSConst.DeclaresId, type.Events.Select(e => new Edge(type.Token, e.Token)));
         builder.AddEdges(CSConst.DeclaresId, type.Properties.Select(p => new Edge(type.Token, p.Token)));
@@ -110,6 +121,7 @@ public class VisualizationSymbolVisitor : SymbolVisitor
     public override void VisitMethod(MethodDefinition method)
     {
         base.VisitMethod(method);
+
         builder.AddEdges(CSConst.DeclaresId, method.Parameters.Select(p => new Edge(method.Token, p.Token)));
         builder.AddEdges(CSConst.DeclaresId, method.TypeParameters.Select(t => new Edge(method.Token, t.Token)));
 
@@ -117,5 +129,15 @@ public class VisualizationSymbolVisitor : SymbolVisitor
         {
             builder.AddEdge(CSConst.ReturnsId, new Edge(method.Token, method.ReturnType.Token));
         }
+    }
+
+    public override void VisitTypeParameter(TypeParameterDefinition typeParameter)
+    {
+        base.VisitTypeParameter(typeParameter);
+        
+        builder.GetNode(typeParameter.Token)
+            .SetProperty("DeclaringKind", typeParameter.DeclaringMethod is not null
+                ? CSConst.KindOf<MethodDefinition>()
+                : CSConst.KindOf<TypeDefinition>());
     }
 }

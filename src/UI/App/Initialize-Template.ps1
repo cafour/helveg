@@ -18,4 +18,5 @@ dotnet run --no-build --project "$cliDir" `
     --verbose `
     --icondir "." `
     --styledir "." `
-    --scriptdir "."
+    --scriptdir "." `
+    -p "TargetFramework=net6.0"
