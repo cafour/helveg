@@ -65,7 +65,7 @@ public class VisualizationSymbolVisitor : SymbolVisitor
     {
         base.VisitType(type);
 
-        builder.GetNode(type.Token)
+        var node = builder.GetNode(type.Token)
             .SetProperty(nameof(TypeDefinition.TypeKind), type.TypeKind)
             .SetProperty(nameof(TypeDefinition.IsAnonymousType), type.IsAnonymousType)
             .SetProperty(nameof(TypeDefinition.IsTupleType), type.IsTupleType)
@@ -74,6 +74,10 @@ public class VisualizationSymbolVisitor : SymbolVisitor
             .SetProperty(nameof(TypeDefinition.IsReadOnly), type.IsReadOnly)
             .SetProperty(nameof(TypeDefinition.IsRefLikeType), type.IsRefLikeType)
             .SetProperty(nameof(TypeDefinition.IsRecord), type.IsRecord);
+
+        var (instanceCount, staticCount) = CountMembers(type);
+        node.SetProperty("InstanceMemberCount", instanceCount)
+            .SetProperty("StaticMemberCount", staticCount);
 
         builder.AddEdges(CSConst.DeclaresId, type.Fields.Select(f => new Edge(type.Token, f.Token)));
         builder.AddEdges(CSConst.DeclaresId, type.Events.Select(e => new Edge(type.Token, e.Token)));
@@ -179,5 +183,15 @@ public class VisualizationSymbolVisitor : SymbolVisitor
             .SetProperty("DeclaringKind", typeParameter.DeclaringMethod is not null
                 ? CSConst.KindOf<MethodDefinition>()
                 : CSConst.KindOf<TypeDefinition>());
+    }
+
+    private static (int instanceCount, int staticCount) CountMembers(TypeDefinition type)
+    {
+        var members = Enumerable.Empty<MemberDefinition>()
+            .Concat(type.Fields)
+            .Concat(type.Events)
+            .Concat(type.Properties)
+            .Concat(type.Methods);
+        return (members.Count(m => !m.IsStatic), members.Count(m => m.IsStatic));
     }
 }

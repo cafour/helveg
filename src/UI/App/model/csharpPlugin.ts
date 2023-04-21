@@ -87,7 +87,9 @@ interface CSharpNodeProperties {
     MethodKind?: MethodKind,
     IsConst?: boolean,
     IsEnumItem?: boolean,
-    DeclaringKind?: EntityKind
+    DeclaringKind?: EntityKind,
+    InstanceMemberCount?: number,
+    StaticMemberCount?: number
 }
 
 const FALLBACK_STYLE: NodeStyle = {
@@ -247,6 +249,12 @@ export default class CSharpPlugin implements VisualizationPlugin {
                         base.icon = "csharp:Type";
                         base.color = VSColor.Blue;
                 }
+                let instanceCount = props.InstanceMemberCount ?? 0;
+                let staticCount = props.StaticMemberCount ?? 0;
+                base.size += instanceCount;
+                base.outlines.push({style: OutlineStyle.Solid, width: instanceCount});
+                base.size += staticCount;
+                base.outlines.push({style: OutlineStyle.Solid, width: staticCount});
                 break;
             case EntityKind.TypeParameterDefinition:
                 return {

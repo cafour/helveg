@@ -8,8 +8,6 @@ import yargs from "yargs";
 import fs from "fs";
 import path from "path";
 
-console.log(process.cwd());
-
 const args = <any>yargs(process.argv).argv;
 const isRelease = args["release"] === true;
 let isDebug = args["debug"] === true;

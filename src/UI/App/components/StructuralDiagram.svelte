@@ -206,16 +206,30 @@
 
         if (inBackground) {
             loadingScreenElement.classList.remove("hidden");
+            sigma?.kill();
+            sigma = null
         } else {
             loadingScreenElement.classList.add("hidden");
+            if (!sigma) {
+                sigma = initializeSigma(graph);
+            }
         }
     }
 
     export async function stop() {
+        if (graph == null) {
+            console.warn("Cannot stop since the graph is not initialized.");
+            return;
+        }
+        
         if (supervisor?.isRunning) {
             await supervisor.stop();
             state.status = StructuralStatus.Stopped;
             loadingScreenElement.classList.add("hidden");
+
+            if (!sigma) {
+                sigma = initializeSigma(graph);
+            }
         }
     }
 </script>
