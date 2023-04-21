@@ -42,8 +42,8 @@ public record Project : EntityBase
         }
     }
 
-    public ImmutableDictionary<string, ImmutableArray<NumericToken>> Dependencies { get; init; }
-        = ImmutableDictionary<string, ImmutableArray<NumericToken>>.Empty;
+    public ImmutableDictionary<string, ImmutableArray<Dependency>> Dependencies { get; init; }
+        = ImmutableDictionary<string, ImmutableArray<Dependency>>.Empty;
 
     public override void Accept(IEntityVisitor visitor)
     {

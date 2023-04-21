@@ -19,7 +19,6 @@ public class RoslynMiner : IMiner
     private readonly ILogger<RoslynMiner> logger;
 
     private readonly SymbolTokenMap tokenMap;
-    private readonly SymbolTrackingVisitor symbolVisitor;
     private readonly WeakReference<Workspace?> workspaceRef = new(null);
 
     public RoslynMinerOptions Options { get; }
@@ -31,8 +30,7 @@ public class RoslynMiner : IMiner
         Options = options;
         this.logger = logger ?? NullLoggerFactory.Instance.CreateLogger<RoslynMiner>();
 
-        tokenMap = new();
-        symbolVisitor = new(tokenMap);
+        tokenMap = new(this.logger);
     }
 
     public async Task Mine(Workspace workspace, CancellationToken cancellationToken = default)
@@ -117,7 +115,7 @@ public class RoslynMiner : IMiner
         if (Options.ExternalSymbolAnalysisScope >= SymbolAnalysisScope.PublicApi)
         {
             // transcribe assemblies in each framework and external source
-            await Task.WhenAll(workspace.Roots.Values.OfType<IDependencySource>()
+            await Task.WhenAll(workspace.Roots.Values.OfType<ILibrarySource>()
                 .Select(async f => await MineDependencySource(f.Token, cancellationToken)));
         }
     }
@@ -164,7 +162,7 @@ public class RoslynMiner : IMiner
 
     private async Task MineDependencySource(NumericToken dsToken, CancellationToken cancellationToken)
     {
-        using var dsHandle = await GetWorkspace().GetRootExclusively<IDependencySource>(dsToken, cancellationToken);
+        using var dsHandle = await GetWorkspace().GetRootExclusively<ILibrarySource>(dsToken, cancellationToken);
         if (dsHandle.Entity is null)
         {
             logger.LogError("Dependency source '{}' has been removed during symbol mining.", dsToken);
@@ -173,25 +171,25 @@ public class RoslynMiner : IMiner
 
         var transcriber = new RoslynSymbolTranscriber(tokenMap, Options.ExternalSymbolAnalysisScope);
 
-        var assemblies = dsHandle.Entity.Assemblies.Select(a =>
+        var assemblies = dsHandle.Entity.Libraries.Select(l =>
             {
-                if (a.Extensions.OfType<AssemblyExtension>().Any())
+                if (l.Extensions.OfType<AssemblyExtension>().Any())
                 {
-                    return a;
+                    return l;
                 }
 
-                logger.LogDebug("Transcribing a '{}' dependency.", a.Identity.Name);
-                return a with
+                logger.LogDebug("Transcribing a '{}' dependency.", l.Identity.Name);
+                return l with
                 {
-                    Extensions = a.Extensions.Add(new AssemblyExtension
+                    Extensions = l.Extensions.Add(new AssemblyExtension
                     {
-                        Assembly = transcriber.Transcribe(a)
+                        Assembly = transcriber.Transcribe(l.Identity)
                     })
                 };
             })
             .ToImmutableArray();
 
-        dsHandle.Entity = dsHandle.Entity.WithAssemblies(assemblies);
+        dsHandle.Entity = dsHandle.Entity.WithLibraries(assemblies);
     }
 
     private async Task<AssemblyDefinition> GetProjectAssembly(
@@ -199,8 +197,6 @@ public class RoslynMiner : IMiner
         MCA.Project roslynProject,
         CancellationToken cancellationToken = default)
     {
-        var workspace = GetWorkspace();
-
         var compilation = await roslynProject.GetCompilationAsync(cancellationToken);
         if (compilation is null)
         {
@@ -210,95 +206,86 @@ public class RoslynMiner : IMiner
 
         logger.LogInformation("Found the '{}' assembly.", compilation.Assembly.Name);
 
-        tokenMap.Track(AssemblyId.Create(compilation.Assembly), project.Token, compilation);
+        TrackAndVisitProject(project, roslynProject);
 
-        var targetFramework = ParseTargetFramework(roslynProject.Name) ?? project.Dependencies.Keys.FirstOrDefault();
+        var transcriber = new RoslynSymbolTranscriber(tokenMap, Options.ProjectSymbolAnalysisScope);
+        logger.LogDebug("Transcribing the '{}' assembly.", compilation.Assembly.Name);
+        return transcriber.Transcribe(AssemblyId.Create(compilation.Assembly));
+    }
+
+    private void TrackAndVisitProject(Project project, MCA.Project roslynProject)
+    {
+        if(!roslynProject.TryGetCompilation(out var compilation))
+        {
+            return;
+        }
+
+        // 1. Track the project's own assembly.
+        tokenMap.TrackAndVisit(compilation.Assembly, project.Token, compilation);
+
+        // 2. Figure out what set of dependencies to use.
+        var targetFramework = ParseTargetFramework(roslynProject.Name);
+
+        if (string.IsNullOrEmpty(targetFramework) && project.Dependencies.Count == 1)
+        {
+            // Since MSBuildWorkspace omits the " (<TargetFramework>)" project name suffix when there's just one
+            // target framework, assign the only one directly.
+            targetFramework = project.Dependencies.Keys.SingleOrDefault();
+        }
+
         if (string.IsNullOrEmpty(targetFramework))
         {
-            logger.LogError("The '{}' project does not have a target framework.", roslynProject.Name);
-            return AssemblyDefinition.Invalid;
+            logger.LogError("Cannot track dependencies of the '{}' project " +
+                "because its target framework could not be resolved.", roslynProject.Name);
+            return;
         }
 
-        var diagnostics = new List<Diagnostic>();
-
-        if (project.Dependencies.TryGetValue(targetFramework, out var dependencyTokens))
+        if (!project.Dependencies.TryGetValue(targetFramework, out var dependencies))
         {
-            var dependencies = dependencyTokens
-                .Select(t => workspace.Entities.GetValueOrDefault(t) as AssemblyDependency)
-                .Where(d => d is not null)
-                .Cast<AssemblyDependency>()
-                .ToImmutableArray();
-
-            var referenceIds = compilation.References.Select(r =>
-                {
-                    if (compilation.GetAssemblyOrModuleSymbol(r) is not MCA.IAssemblySymbol assembly)
-                    {
-                        return AssemblyId.Invalid;
-                    }
-                    return AssemblyId.Create(assembly, r as MCA.PortableExecutableReference);
-                })
-                .Where(a => a.IsValid)
-                .ToImmutableArray();
-            var dependencyReferenceGroups = dependencies.GroupJoin(
-                referenceIds,
-                d => d.Identity,
-                r => r,
-                (d, r) => (dependency: d, references: r.ToImmutableArray()))
-                .ToImmutableArray();
-
-            foreach (var (dependency, references) in dependencyReferenceGroups)
-            {
-                if (references.Length == 0 || references.Length > 1)
-                {
-                    diagnostics.Add(Diagnostic.Error(
-                        "DependencyResolutionFailure",
-                        $"Dependency '{dependency.Identity.Name}' could not be resolved."));
-                    logger.LogError("Could not resolve dependency '{}' of project '{}' for target framework '{}'.",
-                        dependency.Identity.Name, project.Name, targetFramework);
-                    continue;
-                }
-
-                tokenMap.Track(references[0], dependency.Token, compilation);
-            }
-        }
-        else
-        {
-            diagnostics.Add(Diagnostic.Error(
-                "TargetFrameworkResolutionFailure",
-                $"Failed to resolve dependencies for target framework '{targetFramework}'."));
-            logger.LogError(
-                "Dependencies of '{}' for target framework '{}' could not be resolved.",
-                project.Name,
-                targetFramework);
+            logger.LogError("No dependencies for the '{}' target framework were mined for the '{}' project but " +
+                "MSBuildWorkspace references them.", targetFramework, project.Name);
         }
 
+        var workspace = GetWorkspace();
 
-        // Phase 1: Discover all symbols within the assembly.
-        logger.LogDebug("Visiting the '{}' assembly.", compilation.Assembly.Name);
-        symbolVisitor.VisitAssembly(compilation.Assembly);
+        var dependencyDict = dependencies.ToImmutableDictionary(d => d.Identity);
 
+        // 3. Track the project's dependencies.
         foreach (var reference in compilation.References)
         {
-            var referenceSymbol = compilation.GetAssemblyOrModuleSymbol(reference);
-            if (referenceSymbol is not MCA.IAssemblySymbol referencedAssembly)
+            var symbol = compilation.GetAssemblyOrModuleSymbol(reference);
+            if (symbol is not MCA.IAssemblySymbol assemblySymbol)
             {
-                var diagnostic = Diagnostic.Error(
-                    "MissingAssemblySymbol",
-                    $"Could not obtain an assembly symbol for a metadata reference of '{roslynProject.Name}'. " +
-                    $"The reference is: '{reference}'.");
-                diagnostics.Add(diagnostic);
-                logger.LogWarning(diagnostic.Message);
+                logger.LogDebug("Ignoring the '{}' reference of '{}' because it " +
+                    "cannot be resolved to an IAssemblySymbol.",
+                    reference.Display,
+                    project.Name);
+                continue;
+            }
+                
+            var id = AssemblyId.Create(assemblySymbol, reference as MCA.PortableExecutableReference);
+
+            if (!dependencyDict.TryGetValue(id, out var dependency))
+            {
+                logger.LogError("Cannot track Roslyn dependency of '{}' because it wasn't mined previously.",
+                    id.Name);
                 continue;
             }
 
-            logger.LogDebug("Visiting a '{}' reference.", referencedAssembly.Name);
-            symbolVisitor.VisitAssembly(referencedAssembly);
-        }
+            var dependencyContainer = workspace.Entities.GetValueOrDefault(dependency.Token);
 
-        // Phase 2: Transcribe the assembly into Helveg's structures.
-        logger.LogDebug("Transcribing the '{}' assembly.", compilation.Assembly.Name);
-        var transcriber = new RoslynSymbolTranscriber(tokenMap, Options.ProjectSymbolAnalysisScope);
-        return transcriber.Transcribe(AssemblyId.Create(compilation.Assembly));
+            if (dependencyContainer is not Project
+                && Options.ExternalSymbolAnalysisScope == SymbolAnalysisScope.None)
+            {
+                logger.LogTrace("Ignoring the '{}' reference of '{}' because analysis of external symbols " +
+                    "is disabled.",
+                    reference.Display,
+                    project.Name);
+                continue;
+            }
+
+            tokenMap.TrackAndVisit(assemblySymbol, dependency.Token, compilation);
+        }
     }
 
     private void LogMSBuildDiagnostics(MCA.MSBuild.MSBuildWorkspace workspace)

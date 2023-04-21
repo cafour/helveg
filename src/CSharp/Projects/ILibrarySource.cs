@@ -8,12 +8,12 @@ using System.Threading.Tasks;
 
 namespace Helveg.CSharp.Projects;
 
-public interface IDependencySource : IEntity
+public interface ILibrarySource : IEntity
 {
     [JsonIgnore]
     NumericToken Token { get; }
 
-    ImmutableArray<AssemblyDependency> Assemblies { get; init; }
+    ImmutableArray<Library> Libraries { get; init; }
 
-    IDependencySource WithAssemblies(ImmutableArray<AssemblyDependency> assemblies);
+    ILibrarySource WithLibraries(ImmutableArray<Library> libraries);
 }

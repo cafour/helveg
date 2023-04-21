@@ -7,21 +7,25 @@ using System.Threading.Tasks;
 namespace Helveg.CSharp.Symbols;
 
 /// <summary>
-/// A Roslyn <see cref="Microsoft.CodeAnalysis.SymbolVisitor"/> that assigns <see cref="SymbolToken"/>s to all symbol
-/// definitions it visits.
+/// A Roslyn <see cref="Microsoft.CodeAnalysis.SymbolVisitor"/> that invokes an <see cref="Action{ISymbol}"/> for
+/// each symbol definitions it visits.
 /// </summary>
-internal class SymbolTrackingVisitor : Microsoft.CodeAnalysis.SymbolVisitor
+/// <remarks>
+/// The order of the visists is pre-order from assemblies as the roots to namespaces, types, methods, etc.
+/// all the way to method parameters.
+/// </remarks>
+internal class ActionSymbolVisitor : Microsoft.CodeAnalysis.SymbolVisitor
 {
-    private readonly SymbolTokenMap map;
+    private readonly Action<ISymbol> action;
 
-    public SymbolTrackingVisitor(SymbolTokenMap map)
+    public ActionSymbolVisitor(Action<ISymbol> action)
     {
-        this.map = map;
+        this.action = action;
     }
 
     public override void VisitAssembly(IAssemblySymbol symbol)
     {
-        map.GetOrAdd(symbol);
+        action(symbol);
         foreach (var module in symbol.Modules)
         {
             VisitModule(module);
@@ -30,13 +34,13 @@ internal class SymbolTrackingVisitor : Microsoft.CodeAnalysis.SymbolVisitor
 
     public override void VisitModule(IModuleSymbol symbol)
     {
-        map.GetOrAdd(symbol);
+        action(symbol);
         VisitNamespace(symbol.GlobalNamespace);
     }
 
     public override void VisitNamespace(INamespaceSymbol symbol)
     {
-        map.GetOrAdd(symbol);
+        action(symbol);
 
         foreach (var ns in symbol.GetNamespaceMembers())
         {
@@ -51,7 +55,7 @@ internal class SymbolTrackingVisitor : Microsoft.CodeAnalysis.SymbolVisitor
 
     public override void VisitNamedType(INamedTypeSymbol symbol)
     {
-        map.GetOrAdd(symbol);
+        action(symbol);
 
         foreach (var typeParameter in symbol.TypeParameters)
         {
@@ -71,17 +75,17 @@ internal class SymbolTrackingVisitor : Microsoft.CodeAnalysis.SymbolVisitor
 
     public override void VisitField(IFieldSymbol symbol)
     {
-        map.GetOrAdd(symbol);
+        action(symbol);
     }
 
     public override void VisitEvent(IEventSymbol symbol)
     {
-        map.GetOrAdd(symbol);
+        action(symbol);
     }
 
     public override void VisitProperty(IPropertySymbol symbol)
     {
-        map.GetOrAdd(symbol);
+        action(symbol);
 
         foreach (var parameter in symbol.Parameters)
         {
@@ -91,7 +95,7 @@ internal class SymbolTrackingVisitor : Microsoft.CodeAnalysis.SymbolVisitor
 
     public override void VisitMethod(IMethodSymbol symbol)
     {
-        map.GetOrAdd(symbol);
+        action(symbol);
 
         foreach (var typeParameter in symbol.TypeParameters)
         {
@@ -106,11 +110,11 @@ internal class SymbolTrackingVisitor : Microsoft.CodeAnalysis.SymbolVisitor
 
     public override void VisitParameter(IParameterSymbol symbol)
     {
-        map.GetOrAdd(symbol);
+        action(symbol);
     }
 
     public override void VisitTypeParameter(ITypeParameterSymbol symbol)
     {
-        map.GetOrAdd(symbol);
+        action(symbol);
     }
 }

@@ -53,9 +53,9 @@ public class VisualizationProjectVisitor : ProjectVisitor
             .SetProperty(nameof(Framework.Version), framework.Version)
             .SetProperty(Const.KindProperty, CSConst.KindOf<Framework>());
 
-        if (framework.Assemblies.Length > 0)
+        if (framework.Libraries.Length > 0)
         {
-            builder.AddEdges(CSConst.DeclaresId, framework.Assemblies.Select(d => new Edge(framework.Token, d.Token)));
+            builder.AddEdges(CSConst.DeclaresId, framework.Libraries.Select(d => new Edge(framework.Token, d.Token)));
         }
     }
 
@@ -65,23 +65,23 @@ public class VisualizationProjectVisitor : ProjectVisitor
 
         builder.GetNode(externalDependencySource.Token, externalDependencySource.Name)
             .SetProperty(Const.KindProperty, CSConst.KindOf<ExternalDependencySource>());
-        if (externalDependencySource.Assemblies.Length > 0)
+        if (externalDependencySource.Libraries.Length > 0)
         {
-            builder.AddEdges(CSConst.DeclaresId, externalDependencySource.Assemblies
+            builder.AddEdges(CSConst.DeclaresId, externalDependencySource.Libraries
                 .Select(d => new Edge(externalDependencySource.Token, d.Token)));
         }
     }
 
-    public override void VisitAssemblyDependency(AssemblyDependency assemblyDependency)
+    public override void VisitLibrary(Library library)
     {
-        base.VisitAssemblyDependency(assemblyDependency);
+        base.VisitLibrary(library);
 
-        builder.GetNode(assemblyDependency.Token, assemblyDependency.Identity.Name)
-            .SetProperty(Const.KindProperty, CSConst.KindOf<AssemblyDependency>());
-        var assemblies = assemblyDependency.Extensions.OfType<AssemblyExtension>().ToArray();
+        builder.GetNode(library.Token, library.Identity.Name)
+            .SetProperty(Const.KindProperty, CSConst.KindOf<Library>());
+        var assemblies = library.Extensions.OfType<AssemblyExtension>().ToArray();
         if (assemblies.Length > 0)
         {
-            builder.AddEdges(CSConst.DeclaresId, assemblies.Select(a => new Edge(assemblyDependency.Token, a.Assembly.Token)));
+            builder.AddEdges(CSConst.DeclaresId, assemblies.Select(a => new Edge(library.Token, a.Assembly.Token)));
         }
     }
 }

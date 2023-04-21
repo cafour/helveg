@@ -28,8 +28,8 @@ public abstract class ProjectVisitor : EntityVisitor, IProjectVisitor
         DefaultVisit(externalDependencySource);
     }
 
-    public virtual void VisitAssemblyDependency(AssemblyDependency assemblyDependency)
+    public virtual void VisitLibrary(Library library)
     {
-        DefaultVisit(assemblyDependency);
+        DefaultVisit(library);
     }
 }

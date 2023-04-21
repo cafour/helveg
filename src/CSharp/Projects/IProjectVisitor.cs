@@ -12,5 +12,5 @@ public interface IProjectVisitor : IEntityVisitor
     void VisitProject(Project project);
     void VisitFramework(Framework framework);
     void VisitExternalDependencySource(ExternalDependencySource externalDependencySource);
-    void VisitAssemblyDependency(AssemblyDependency assemblyDependency);
+    void VisitLibrary(Library library);
 }

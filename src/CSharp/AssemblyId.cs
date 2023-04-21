@@ -162,6 +162,6 @@ public sealed record AssemblyId
             return Version == other.Version;
         }
 
-        return false;
+        return true;
     }
 }

@@ -50,11 +50,6 @@ internal class RoslynSymbolTranscriber
         return GetAssembly(reference);
     }
 
-    public AssemblyDefinition Transcribe(AssemblyDependency dependency)
-    {
-        return Transcribe(dependency.Identity);
-    }
-
     private AssemblyDefinition GetAssembly(IAssemblySymbol assembly)
     {
         var helAssembly = new AssemblyDefinition

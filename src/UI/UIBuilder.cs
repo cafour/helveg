@@ -147,7 +147,7 @@ public class UIBuilder
 
     private async Task BuildSingleFile(Func<string, Stream> streamFactory)
     {
-        logger.LogInformation("Building '{}' as a single-file app.", Model);
+        logger.LogInformation("Building '{}' as a single-file app.", Model.Name);
 
         using var stream = streamFactory(EntryPointName);
         using var writer = new StreamWriter(stream);
