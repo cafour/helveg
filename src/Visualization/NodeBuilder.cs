@@ -10,7 +10,7 @@ public class NodeBuilder
 
     public string? Label { get; set; }
 
-    public ConcurrentDictionary<string, string?> Properties { get; }
+    public ConcurrentDictionary<string, object?> Properties { get; }
         = new();
 
     public Node Build()
@@ -22,7 +22,7 @@ public class NodeBuilder
         );
     }
 
-    public NodeBuilder SetProperty(string key, string? value)
+    public NodeBuilder SetProperty(string key, object? value)
     {
         Properties.AddOrUpdate(key, value, (_, _) => value);
         return this;

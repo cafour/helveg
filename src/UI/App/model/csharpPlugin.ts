@@ -1,5 +1,5 @@
 import type { GlyphStyle, NodeStyle } from "./glyph";
-import { OutlineStyle, type Outline, StaticGlyphStyle } from "./glyph";
+import { OutlineStyle } from "./glyph";
 import type { GraphNode } from "./multigraph";
 import type { VisualizationPlugin, VisualizationPluginContext } from "./plugin";
 
@@ -49,15 +49,50 @@ enum TypeKind {
     FunctionPointer = "FunctionPointer"
 }
 
-interface IconFactors {
-    kind: EntityKind;
-    typeKind: TypeKind;
-    accessibility: MemberAccessibility;
+enum MethodKind {
+    Invalid = "Invalid",
+    AnonymousFunction = "AnonymousFunction",
+    Constructor = "Constructor",
+    Conversion = "Conversion",
+    DelegateInvoke = "DelegateInvoke",
+    Destructor = "Destructor",
+    EventAdd = "EventAdd",
+    EventRaise = "EventRaise",
+    EventRemove = "EventRemove",
+    ExplicitInterfaceImplementation = "ExplicitInterfaceImplementation",
+    UserDefinedOperator = "UserDefinedOperator",
+    Ordinary = "Ordinary",
+    PropertyGet = "PropertyGet",
+    PropertySet = "PropertySet",
+    ReducedExtension = "ReducedExtension",
+    StaticConstructor = "StaticConstructor",
+    BuiltinOperator = "BuiltinOperator",
+    DeclareMethod = "DeclareMethod",
+    LocalFunction = "LocalFunction",
+    FunctionPointerSignature = "FunctionPointerSignature"
+}
+
+enum VSColor {
+    DarkGray = "#212121",
+    DarkPurple = "#68217a",
+    Purple = "#6936aa",
+    DarkYellow = "#996f00",
+    Blue = "#005dba"
+}
+
+interface CSharpNodeProperties {
+    Kind: EntityKind,
+    TypeKind?: TypeKind,
+    Accessibility?: MemberAccessibility,
+    MethodKind?: MethodKind,
+    IsConst?: boolean,
+    IsEnumItem?: boolean,
+    DeclaringKind?: EntityKind
 }
 
 const FALLBACK_STYLE: NodeStyle = {
     icon: "csharp:ExplodedDoughnutChart",
-    color: "#212121",
+    color: VSColor.DarkGray,
     size: 5,
     outlines: []
 };
@@ -121,11 +156,7 @@ export default class CSharpPlugin implements VisualizationPlugin {
                     return;
                 }
 
-                let base = plugin.resolveBaseStyle({
-                    accessibility: <MemberAccessibility>node.properties["Accessibility"],
-                    kind: <EntityKind>node.properties["Kind"],
-                    typeKind: <TypeKind>node.properties["TypeKind"]
-                });
+                let base = plugin.resolveBaseStyle(node.properties as CSharpNodeProperties);
                 return {
                     ...FALLBACK_STYLE,
                     ...base
@@ -138,136 +169,149 @@ export default class CSharpPlugin implements VisualizationPlugin {
         }
     }
 
-    private resolveBaseStyle(factors: IconFactors): Partial<NodeStyle> {
+    private resolveBaseStyle(props: CSharpNodeProperties): Partial<NodeStyle> {
         let base: Partial<NodeStyle> = {};
-        switch (factors.kind) {
+        switch (props.Kind) {
             case EntityKind.Solution:
                 return {
                     icon: "csharp:Solution",
                     size: 55,
-                    color: "#68217a",
+                    color: VSColor.DarkPurple,
                     outlines: []
                 };
             case EntityKind.Project:
                 return {
                     icon: "csharp:CSProjectNode",
                     size: 50,
-                    color: "#212121",
+                    color: VSColor.DarkGray,
                     outlines: []
                 };
             case EntityKind.Framework:
                 return {
                     icon: "csharp:Framework",
                     size: 50,
-                    color: "#212121",
+                    color: VSColor.DarkGray,
                     outlines: []
                 };
             case EntityKind.ExternalDependencySource:
                 return {
                     icon: "csharp:ReferenceGroup",
                     size: 50,
-                    color: "#212121",
+                    color: VSColor.DarkGray,
                     outlines: []
                 };
             case EntityKind.Package:
                 return {
                     icon: "csharp:Package",
                     size: 50,
-                    color: "#212121",
+                    color: VSColor.DarkGray,
                     outlines: []
                 };
             case EntityKind.AssemblyDependency:
                 return {
                     icon: "csharp:Reference",
                     size: 45,
-                    color: "#212121",
+                    color: VSColor.DarkGray,
                     outlines: []
                 };
             case EntityKind.AssemblyDefinition:
                 return {
                     icon: "csharp:Assembly",
                     size: 40,
-                    color: "#212121",
+                    color: VSColor.DarkGray,
                     outlines: []
                 };
             case EntityKind.ModuleDefinition:
                 return {
                     icon: "csharp:Module",
                     size: 35,
-                    color: "#6936aa",
+                    color: VSColor.Purple,
                     outlines: []
                 };
             case EntityKind.NamespaceDefinition:
                 return {
                     icon: "csharp:Namespace",
                     size: 30,
-                    color: "#212121",
+                    color: VSColor.DarkGray,
                     outlines: []
                 };
             case EntityKind.TypeDefinition:
                 base.size = 25;
                 base.outlines = [{ style: OutlineStyle.Solid, width: 1 }];
-                switch (factors.typeKind) {
+                switch (props.TypeKind) {
                     case TypeKind.Class:
                         base.icon = "csharp:Class";
-                        base.color = "#996f00";
+                        base.color = VSColor.DarkYellow;
                         break;
                     case TypeKind.Interface:
                         base.icon = "csharp:Interface";
-                        base.color = "#005dba"
+                        base.color = VSColor.Blue;
                         break;
                     case TypeKind.Enum:
                         base.icon = "csharp:Enumeration";
-                        base.color = "#996f00";
+                        base.color = VSColor.DarkYellow;
                         break;
                     case TypeKind.Struct:
                         base.icon = "csharp:Structure";
-                        base.color = "#005dba";
+                        base.color = VSColor.Blue;
                         break;
                     case TypeKind.Delegate:
                         base.icon = "csharp:Delegate";
-                        base.color = "#6936aa";
+                        base.color = VSColor.Purple;
                         break;
                     default:
                         base.icon = "csharp:Type";
-                        base.color = "#005dba";
+                        base.color = VSColor.Blue;
                 }
                 break;
             case EntityKind.TypeParameterDefinition:
                 return {
                     icon: "csharp:Type",
-                    size: 20,
-                    color: "#005dba",
+                    size: props.DeclaringKind === EntityKind.MethodDefinition ? 10 : 20,
+                    color: VSColor.Blue,
                     outlines: []
                 };
             case EntityKind.FieldDefinition:
-                base.icon = "csharp:Field";
-                base.size = 15;
-                base.color = "#005dba";
+                if (props.IsEnumItem) {
+                    return {
+                        icon: "csharp:EnumerationItem",
+                        size: 15,
+                        color: VSColor.Blue
+                    }
+                }
+
                 base.outlines = [{ style: OutlineStyle.Solid, width: 1 }];
+                base.size = 15;
+                if (props.IsConst) {
+                    base.icon = "csharp:Constant";
+                    base.color = VSColor.DarkGray;
+                } else {
+                    base.icon = "csharp:Field";
+                    base.color = VSColor.Blue;
+                }
                 break;
             case EntityKind.MethodDefinition:
                 base.icon = "csharp:Method";
                 base.size = 15;
-                base.color = "#6936aa";
+                base.color = VSColor.Purple;
                 base.outlines = [{ style: OutlineStyle.Solid, width: 1 }];
                 break;
             case EntityKind.PropertyDefinition:
                 base.icon = "csharp:Property";
                 base.size = 15;
-                base.color = "#212121";
+                base.color = VSColor.DarkGray;
                 base.outlines = [{ style: OutlineStyle.Solid, width: 1 }];
                 break;
             case EntityKind.EventDefinition:
                 base.icon = "csharp:Event";
                 base.size = 15;
-                base.color = "#996f00";
+                base.color = VSColor.DarkYellow;
                 base.outlines = [{ style: OutlineStyle.Solid, width: 1 }];
                 break;
             case EntityKind.ParameterDefinition:
                 return {
                     icon: "csharp:LocalVariable",
-                    color: "#005dba",
+                    color: VSColor.Blue,
                     size: 5,
                     outlines: []
                 };
@@ -275,12 +319,12 @@ export default class CSharpPlugin implements VisualizationPlugin {
                 return {
                     icon: "csharp:ExplodedDoughnutChart",
                     size: 5,
-                    color: "#dcdcaa",
+                    color: VSColor.DarkGray,
                     outlines: []
                 };
         }
 
-        switch(factors.accessibility) {
+        switch(props.Accessibility) {
             case MemberAccessibility.Internal:
                 base.icon += "Internal";
                 break;

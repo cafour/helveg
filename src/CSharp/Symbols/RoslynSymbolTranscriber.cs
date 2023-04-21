@@ -250,7 +250,8 @@ internal class RoslynSymbolTranscriber
             IsReadOnly = symbol.IsReadOnly,
             IsRequired = symbol.IsRequired,
             IsConst = symbol.IsConst,
-            RefKind = symbol.RefKind.ToHelvegRefKind()
+            RefKind = symbol.RefKind.ToHelvegRefKind(),
+            IsEnumItem = symbol.ContainingType.TypeKind == Microsoft.CodeAnalysis.TypeKind.Enum
         };
 
         return PopulateMember(symbol, helField);

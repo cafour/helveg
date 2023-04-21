@@ -37,6 +37,8 @@ public static class CSConst
     public const string TargetFrameworksProperty = "TargetFrameworks";
     public const string RestoreTarget = "Restore";
     public const string ResolveReferencesTarget = "ResolveReferences";
+    
+    public const string GlobalNamespaceName = "global";
 
     public static readonly NumericToken InvalidToken = NumericToken.CreateInvalid(CSharpNamespace);
     public static readonly NumericToken NoneToken = NumericToken.CreateNone(CSharpNamespace);

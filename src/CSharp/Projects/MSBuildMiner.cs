@@ -37,18 +37,21 @@ public class MSBuildMiner : IMiner
     {
         workspaceRef = new(workspace);
 
-        var eds = new ExternalDependencySource
+        if (Options.IncludeExternalDependencies)
         {
-            Index = Interlocked.Increment(ref counter),
-            Name = "External Dependencies"
-        };
-        if (!workspace.TryAddRoot(eds))
-        {
-            logger.LogError("Failed to add an external dependency source root to the workspace.");
-        }
-        else
-        {
-            edsToken = eds.Token;
+            var eds = new ExternalDependencySource
+            {
+                Index = Interlocked.Increment(ref counter),
+                Name = "External Dependencies"
+            };
+            if (!workspace.TryAddRoot(eds))
+            {
+                logger.LogError("Failed to add an external dependency source root to the workspace.");
+            }
+            else
+            {
+                edsToken = eds.Token;
+            }
         }
 
         var solution = await GetSolution(workspace.Source.Path, cancellationToken);
@@ -257,6 +260,12 @@ public class MSBuildMiner : IMiner
         MSB.Evaluation.Project msbuildProject,
         string targetFramework)
     {
+        // TODO: Return project depedencies
+        if (!Options.IncludeExternalDependencies)
+        {
+            return ImmutableArray<NumericToken>.Empty;
+        }
+
         var projectName = msbuildProject.GetPropertyValue(CSConst.MSBuildProjectNameProperty);
 
         if (string.IsNullOrEmpty(msbuildProject.GetPropertyValue(CSConst.TargetFrameworkProperty))

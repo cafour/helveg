@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace Helveg;
@@ -17,5 +18,6 @@ public static class HelvegDefaults
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
+        JsonOptions.Converters.Add(new JsonStringEnumConverter());
     }
 }

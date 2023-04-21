@@ -7,7 +7,7 @@ export interface Multigraph {
 
 export interface GraphNode {
     label: string | null,
-    properties: Record<string, string>
+    properties: Record<string, any>
 }
 
 export interface GraphRelation {

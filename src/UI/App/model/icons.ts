@@ -2,9 +2,9 @@ import { readable, type Readable } from "svelte/store";
 import { loadJsonScripts } from "./data";
 
 export enum IconFormat {
-    Unknown = 0,
-    Svg = 1,
-    Png = 2
+    Unknown = "Unknown",
+    Svg = "Svg",
+    Png = "Png"
 }
 
 export interface Icon {

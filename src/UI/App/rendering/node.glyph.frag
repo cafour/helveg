@@ -36,7 +36,7 @@ void main(void) {
 
   float currentSize = v_size;
   if (v_outlines.z > 0.0) {
-    currentSize = outline(v_outlines.z, currentSize, dist, vec4(v_color.rgb, v_color.a * 0.5)) - 1.0;
+    currentSize = outline(v_outlines.z, currentSize, dist, vec4(v_color.rgb, v_color.a * 0.25)) - 1.0;
     if (currentSize < 0.0) {
       // it's the outermost outline
       return;
@@ -44,7 +44,7 @@ void main(void) {
   }
 
   if (v_outlines.y > 0.0) {
-    currentSize = outline(v_outlines.y, currentSize, dist, vec4(v_color.rgb, v_color.a * 0.75)) - 1.0;
+    currentSize = outline(v_outlines.y, currentSize, dist, vec4(v_color.rgb, v_color.a * 0.50)) - 1.0;
     if(currentSize < 0.0) {
       // it's the middle outline
       return;
@@ -52,7 +52,7 @@ void main(void) {
   }
 
   if (v_outlines.x > 0.0) {
-    currentSize = outline(v_outlines.x, currentSize, dist, vec4(v_color.rgb, v_color.a * 1.0));
+    currentSize = outline(v_outlines.x, currentSize, dist, vec4(v_color.rgb, v_color.a * 0.75));
     if (currentSize < 0.0) {
       // it's the innermost outline
       return;

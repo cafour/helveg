@@ -12,8 +12,8 @@ dotnet run --no-build --project "$cliDir" `
     -- `
     "$repoDir\Helveg.sln" `
     --outdir "$appDir/template" `
-    -pa PublicApi `
-    -ea AssembliesOnly `
+    -pa All `
+    -ea None `
     -m StaticApp `
     --verbose `
     --icondir "." `

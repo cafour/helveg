@@ -56,7 +56,7 @@ public class Program
                 options: new MSBuildMinerOptions
                 {
                     MSBuildProperties = msbuildProperties,
-                    IncludeExternalDependencies = externalAnalysis >= AnalysisScope.AssembliesOnly
+                    IncludeExternalDependencies = externalAnalysis >= AnalysisScope.WithoutSymbols
                 },
                 logger: logging.CreateLogger<MSBuildMiner>())
             .AddRoslyn(
