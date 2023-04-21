@@ -5,18 +5,18 @@ precision mediump float;
 in vec2 a_position;
 in float a_size;
 in vec4 a_color;
-in vec4 a_texture;
-in vec4 a_outlines;
+in vec4 a_outlineWidths;
+in vec4 a_outlineStyles;
 
 uniform float u_sizeRatio;
 uniform float u_pixelRatio;
 uniform mat3 u_matrix;
+uniform float u_gap;
 
 out vec4 v_color;
-out float v_border;
-out vec4 v_texture;
-flat out vec4 v_outlines;
-out float v_size;
+out vec4 v_outlineStarts;
+out vec4 v_outlineEnds;
+out vec4 v_outlineStyles;
 
 const float bias = 255.0 / 254.0;
 
@@ -32,17 +32,16 @@ void main() {
   //  - x 2 to correct the formulae
   gl_PointSize = a_size / u_sizeRatio * u_pixelRatio * 2.0;
 
-  v_border = (0.5 / a_size) * u_sizeRatio;
-
   // Extract the color:
   v_color = a_color;
   v_color.a *= bias;
 
-  // Pass the texture coordinates:
-  // NOTE: multiply a_texture by a constant and you get a pattern
-  v_texture = a_texture;
-
-  v_outlines = a_outlines;
-
-  v_size = a_size;
+  float gap = u_gap / a_size;
+  v_outlineStarts = vec4(
+    0.0,
+    a_outlineWidths.x,
+    a_outlineWidths.x + a_outlineWidths.y,
+    a_outlineWidths.x + a_outlineWidths.y + a_outlineWidths.z);
+  v_outlineEnds = vec4(v_outlineStarts.yzw - gap, 1.0);
+  v_outlineStyles = a_outlineStyles;
 }

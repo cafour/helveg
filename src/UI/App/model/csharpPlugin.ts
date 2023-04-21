@@ -1,4 +1,4 @@
-import type { GlyphStyle, NodeStyle } from "./glyph";
+import type { GlyphStyle, NodeStyle, Outlines } from "./glyph";
 import { OutlineStyle } from "./glyph";
 import type { GraphNode } from "./multigraph";
 import type { VisualizationPlugin, VisualizationPluginContext } from "./plugin";
@@ -222,8 +222,7 @@ export default class CSharpPlugin implements VisualizationPlugin {
                     outlines: []
                 };
             case EntityKind.TypeDefinition:
-                base.size = 25;
-                base.outlines = [{ style: OutlineStyle.Solid, width: 1 }];
+                base.size = 15;
                 switch (props.TypeKind) {
                     case TypeKind.Class:
                         base.icon = "csharp:Class";
@@ -248,18 +247,19 @@ export default class CSharpPlugin implements VisualizationPlugin {
                     default:
                         base.icon = "csharp:Type";
                         base.color = VSColor.Blue;
+                        break;
                 }
                 let instanceCount = props.InstanceMemberCount ?? 0;
                 let staticCount = props.StaticMemberCount ?? 0;
-                base.size += instanceCount;
-                base.outlines.push({style: OutlineStyle.Solid, width: instanceCount});
-                base.size += staticCount;
-                base.outlines.push({style: OutlineStyle.Solid, width: staticCount});
+                base.outlines = [
+                    { style: OutlineStyle.Solid, width: Math.max(1, instanceCount) },
+                    { style: OutlineStyle.Solid, width: Math.max(1, staticCount) }
+                ];
                 break;
             case EntityKind.TypeParameterDefinition:
                 return {
                     icon: "csharp:Type",
-                    size: props.DeclaringKind === EntityKind.MethodDefinition ? 10 : 20,
+                    size: props.DeclaringKind === EntityKind.MethodDefinition ? 5 : 10,
                     color: VSColor.Blue,
                     outlines: []
                 };
@@ -267,13 +267,13 @@ export default class CSharpPlugin implements VisualizationPlugin {
                 if (props.IsEnumItem) {
                     return {
                         icon: "csharp:EnumerationItem",
-                        size: 15,
+                        size: 10,
                         color: VSColor.Blue
                     }
                 }
 
                 base.outlines = [{ style: OutlineStyle.Solid, width: 1 }];
-                base.size = 15;
+                base.size = 10;
                 if (props.IsConst) {
                     base.icon = "csharp:Constant";
                     base.color = VSColor.DarkGray;
@@ -293,18 +293,18 @@ export default class CSharpPlugin implements VisualizationPlugin {
                     base.color = VSColor.Purple;
                 }
 
-                base.size = 15;
+                base.size = 10;
                 base.outlines = [{ style: OutlineStyle.Solid, width: 1 }];
                 break;
             case EntityKind.PropertyDefinition:
                 base.icon = "csharp:Property";
-                base.size = 15;
+                base.size = 10;
                 base.color = VSColor.DarkGray;
                 base.outlines = [{ style: OutlineStyle.Solid, width: 1 }];
                 break;
             case EntityKind.EventDefinition:
                 base.icon = "csharp:Event";
-                base.size = 15;
+                base.size = 10;
                 base.color = VSColor.DarkYellow;
                 base.outlines = [{ style: OutlineStyle.Solid, width: 1 }];
                 break;

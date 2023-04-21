@@ -1,35 +1,33 @@
-import { AbstractNodeProgram, NodeProgram, type NodeProgramConstructor } from "sigma/rendering/webgl/programs/common/node";
+import { NodeProgram, type NodeProgramConstructor } from "sigma/rendering/webgl/programs/common/node";
 import type { ProgramDefinition } from "sigma/rendering/webgl/programs/common/program";
 import type { NodeDisplayData, RenderParams } from "sigma/types";
 import { IconAtlas, IconAtlasEntryStatus } from "./iconAtlas";
 import type Sigma from "sigma";
-import vertexShaderSource from "./node.glyph.vert";
-import fragmentShaderSource from "./node.glyph.frag";
-import { getIconDataUrl } from "model/icons";
+import vertexShaderSource from "./node.icon.vert";
+import fragmentShaderSource from "./node.icon.frag";
 import { floatColor } from "sigma/utils";
-import { floatOutlines, type Outlines } from "model/glyph";
 
-interface GlyphNodeDisplayData extends NodeDisplayData {
+export interface IconNodeDisplayData extends NodeDisplayData {
     icon: string;
-    outlines: Outlines;
+    iconSize: number;
 }
 
 const { UNSIGNED_BYTE, FLOAT } = WebGLRenderingContext;
 
 const UNIFORMS = ["u_sizeRatio", "u_pixelRatio", "u_matrix", "u_atlas"];
 
-export default function createGlyphProgram(iconAtlas: IconAtlas): NodeProgramConstructor {
-    return class extends GlyphProgram {
+export default function createIconProgram(iconAtlas: IconAtlas, color?: string): NodeProgramConstructor {
+    return class extends IconProgram {
         constructor(gl: WebGLRenderingContext, renderer: Sigma) {
-            super(gl, renderer, iconAtlas);
+            super(gl, renderer, iconAtlas, color);
         }
     };
 }
 
-export class GlyphProgram extends NodeProgram<typeof UNIFORMS[number]> {
+export class IconProgram extends NodeProgram<typeof UNIFORMS[number]> {
     texture: WebGLTexture;
 
-    constructor(gl: WebGLRenderingContext, renderer: Sigma, private iconAtlas: IconAtlas) {
+    constructor(gl: WebGLRenderingContext, renderer: Sigma, private iconAtlas: IconAtlas, private color?: string) {
         super(gl, renderer);
 
         this.texture = gl.createTexture() as WebGLTexture;
@@ -43,28 +41,27 @@ export class GlyphProgram extends NodeProgram<typeof UNIFORMS[number]> {
     getDefinition(): ProgramDefinition<typeof UNIFORMS[number]> {
         return {
             VERTICES: 1,
-            ARRAY_ITEMS_PER_VERTEX: 9,
+            ARRAY_ITEMS_PER_VERTEX: 8,
             VERTEX_SHADER_SOURCE: vertexShaderSource,
             FRAGMENT_SHADER_SOURCE: fragmentShaderSource,
             UNIFORMS,
             ATTRIBUTES: [
                 { name: "a_position", size: 2, type: FLOAT },
-                { name: "a_size", size: 1, type: FLOAT },
+                { name: "a_iconSize", size: 1, type: FLOAT },
                 { name: "a_color", size: 4, type: UNSIGNED_BYTE, normalized: true },
-                { name: "a_texture", size: 4, type: FLOAT },
-                { name: "a_outlines", size: 4, type: UNSIGNED_BYTE, normalized: false }
+                { name: "a_texture", size: 4, type: FLOAT }
             ],
         };
     }
 
-    processVisibleItem(i: number, data: GlyphNodeDisplayData): void {
+    processVisibleItem(i: number, data: IconNodeDisplayData): void {
         const array = this.array;
         this.iconAtlas.tryAddIcon(data.icon);
 
         array[i++] = data.x;
         array[i++] = data.y;
-        array[i++] = data.size;
-        array[i++] = floatColor(data.color || "#000000");
+        array[i++] = data.iconSize ?? data.size ?? 1;
+        array[i++] = floatColor(this.color ?? data.color ?? "#000000");
 
         let atlasEntry = this.iconAtlas.entries[data.icon];
         if (atlasEntry && atlasEntry.status === IconAtlasEntryStatus.Rendered) {
@@ -79,8 +76,6 @@ export class GlyphProgram extends NodeProgram<typeof UNIFORMS[number]> {
             array[i++] = 0;
             array[i++] = 0;
         }
-
-        array[i++] = floatOutlines(data.outlines)
     }
 
     draw(params: RenderParams): void {
