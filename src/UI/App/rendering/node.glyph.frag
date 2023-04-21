@@ -66,7 +66,9 @@ void main(void) {
   // it's the icon
   currentSize *= isqrt2;
   vec2 texCoord = (gl_PointCoord - vec2(0.5, 0.5)) * (v_size / currentSize) + vec2(0.5, 0.5);
-  if (texCoord.x < 0.0 || texCoord.x > 1.0 || texCoord.y < 0.0 || texCoord.y > 1.0) {
+  
+  // NB: the 2% is a hack to avoid artifacts at the edges of icons in an atlas
+  if (texCoord.x < 0.02 || texCoord.x > 0.98 || texCoord.y < 0.02 || texCoord.y > 0.98) {
     return;
   }
   f_color = texture(u_atlas, v_texture.xy + texCoord * v_texture.zw);

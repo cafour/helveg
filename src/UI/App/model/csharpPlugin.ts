@@ -101,57 +101,26 @@ export default class CSharpPlugin implements VisualizationPlugin {
     name: string = "csharp";
 
     setup(context: VisualizationPluginContext): void {
-        context.dataOptions.defaultIcons["csharp:Solution"] = "csharp:Solution";
-        context.dataOptions.kinds.push("csharp:Solution");
-        context.dataOptions.defaultIcons["csharp:Project"] = "csharp:CSProjectNode";
-        context.dataOptions.kinds.push("csharp:Project");
-        context.dataOptions.defaultIcons["csharp:ExternalDependencySource"] = "csharp:ReferenceGroup";
-        context.dataOptions.kinds.push("csharp:ExternalDependencySource");
-        context.dataOptions.defaultIcons["csharp:Framework"] = "csharp:Framework";
-        context.dataOptions.kinds.push("csharp:Framework");
-        context.dataOptions.defaultIcons["csharp:Package"] = "csharp:Package";
-        context.dataOptions.kinds.push("csharp:Package");
-        context.dataOptions.defaultIcons["csharp:AssemblyDependency"] = "csharp:Reference";
-        context.dataOptions.kinds.push("csharp:AssemblyDependency");
-        context.dataOptions.defaultIcons["csharp:AssemblyDefinition"] = "csharp:Assembly";
-        context.dataOptions.kinds.push("csharp:AssemblyDefinition");
-        context.dataOptions.defaultIcons["csharp:ModuleDefinition"] = "csharp:Module";
-        context.dataOptions.kinds.push("csharp:ModuleDefinition");
-        context.dataOptions.defaultIcons["csharp:NamespaceDefinition"] = "csharp:Namespace";
-        context.dataOptions.kinds.push("csharp:NamespaceDefinition");
-        context.dataOptions.defaultIcons["csharp:TypeDefinition"] = "csharp:Class";
-        context.dataOptions.kinds.push("csharp:TypeDefinition");
-        context.dataOptions.defaultIcons["csharp:TypeParameterDefinition"] = "csharp:Type";
-        context.dataOptions.kinds.push("csharp:TypeParameterDefinition");
-        context.dataOptions.defaultIcons["csharp:FieldDefinition"] = "csharp:Field";
-        context.dataOptions.kinds.push("csharp:FieldDefinition");
-        context.dataOptions.defaultIcons["csharp:MethodDefinition"] = "csharp:Method";
-        context.dataOptions.kinds.push("csharp:MethodDefinition");
-        context.dataOptions.defaultIcons["csharp:PropertyDefinition"] = "csharp:Property";
-        context.dataOptions.kinds.push("csharp:PropertyDefinition");
-        context.dataOptions.defaultIcons["csharp:EventDefinition"] = "csharp:Event";
-        context.dataOptions.kinds.push("csharp:EventDefinition");
-        context.dataOptions.defaultIcons["csharp:ParameterDefinition"] = "csharp:LocalVariable";
-        context.dataOptions.kinds.push("csharp:ParameterDefinition");
-
-        context.dataOptions.selectedKinds.push(
-            "csharp:Solution",
-            "csharp:Project",
-            "csharp:Framework",
-            "csharp:ExternalDependencySource",
-            "csharp:Package",
-            "csharp:AssemblyDependency",
-            "csharp:NamespaceDefinition",
-            "csharp:TypeDefinition",
-            "csharp:TypeParameterDefinition",
-            "csharp:FieldDefinition",
-            "csharp:MethodDefinition",
-            "csharp:PropertyDefinition",
-            "csharp:EventDefinition");
+        context.dataOptions.defaultIcons[EntityKind.Solution] = "csharp:Solution";
+        context.dataOptions.defaultIcons[EntityKind.Project] = "csharp:CSProjectNode";
+        context.dataOptions.defaultIcons[EntityKind.ExternalDependencySource] = "csharp:ReferenceGroup";
+        context.dataOptions.defaultIcons[EntityKind.Framework] = "csharp:Framework";
+        context.dataOptions.defaultIcons[EntityKind.Package] = "csharp:Package";
+        context.dataOptions.defaultIcons[EntityKind.AssemblyDependency] = "csharp:Reference";
+        context.dataOptions.defaultIcons[EntityKind.AssemblyDefinition] = "csharp:Assembly";
+        context.dataOptions.defaultIcons[EntityKind.ModuleDefinition] = "csharp:Module";
+        context.dataOptions.defaultIcons[EntityKind.NamespaceDefinition] = "csharp:Namespace";
+        context.dataOptions.defaultIcons[EntityKind.TypeDefinition] = "csharp:Class";
+        context.dataOptions.defaultIcons[EntityKind.TypeParameterDefinition] = "csharp:Type";
+        context.dataOptions.defaultIcons[EntityKind.FieldDefinition] = "csharp:Field";
+        context.dataOptions.defaultIcons[EntityKind.MethodDefinition] = "csharp:Method";
+        context.dataOptions.defaultIcons[EntityKind.PropertyDefinition] = "csharp:Property";
+        context.dataOptions.defaultIcons[EntityKind.EventDefinition] = "csharp:Event";
+        context.dataOptions.defaultIcons[EntityKind.ParameterDefinition] = "csharp:LocalVariable";
 
         let plugin = this;
         let glyphStyle = <GlyphStyle>{
-            apply(node: GraphNode){
+            apply(node: GraphNode) {
                 if (!(Object.values(EntityKind).includes(node.properties["Kind"] as EntityKind))) {
                     return;
                 }
@@ -166,7 +135,22 @@ export default class CSharpPlugin implements VisualizationPlugin {
 
         for (const kind of Object.values(EntityKind)) {
             context.glyphOptions.styles[kind] = glyphStyle;
+            context.dataOptions.kinds.push(kind);
         }
+
+        context.dataOptions.selectedKinds.push(
+            EntityKind.Solution,
+            EntityKind.Project,
+            EntityKind.Framework,
+            EntityKind.ExternalDependencySource,
+            EntityKind.Package,
+            EntityKind.NamespaceDefinition,
+            EntityKind.TypeDefinition,
+            EntityKind.TypeParameterDefinition,
+            EntityKind.FieldDefinition,
+            EntityKind.MethodDefinition,
+            EntityKind.PropertyDefinition,
+            EntityKind.EventDefinition);
     }
 
     private resolveBaseStyle(props: CSharpNodeProperties): Partial<NodeStyle> {
@@ -291,9 +275,17 @@ export default class CSharpPlugin implements VisualizationPlugin {
                 }
                 break;
             case EntityKind.MethodDefinition:
-                base.icon = "csharp:Method";
+                if (props.MethodKind === MethodKind.BuiltinOperator
+                    || props.MethodKind === MethodKind.UserDefinedOperator) {
+                    base.icon = "csharp:Operator";
+                    base.color = VSColor.Blue;
+                }
+                else {
+                    base.icon = "csharp:Method";
+                    base.color = VSColor.Purple;
+                }
+
                 base.size = 15;
-                base.color = VSColor.Purple;
                 base.outlines = [{ style: OutlineStyle.Solid, width: 1 }];
                 break;
             case EntityKind.PropertyDefinition:
@@ -324,7 +316,7 @@ export default class CSharpPlugin implements VisualizationPlugin {
                 };
         }
 
-        switch(props.Accessibility) {
+        switch (props.Accessibility) {
             case MemberAccessibility.Internal:
                 base.icon += "Internal";
                 break;
