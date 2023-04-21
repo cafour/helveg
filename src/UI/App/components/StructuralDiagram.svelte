@@ -14,15 +14,17 @@
     import { IconAtlas } from "rendering/iconAtlas";
     import createIconProgram from "rendering/node.icon";
     import createOutlinesProgram from "rendering/node.outlines";
-    import { createNodeCompoundProgram } from "sigma/rendering/webgl/programs/common/node";
+    import { createNodeCompoundProgram, type NodeProgramConstructor } from "sigma/rendering/webgl/programs/common/node";
     import { OutlineStyle, getOutlinesWidth, type Outlines } from "model/glyph";
+    import type { GlyphOptions } from "model/options";
+    import NodePointProgram from "sigma/rendering/webgl/programs/node.point";
 
     export let model: VisualizationModel;
     export let state: StructuralState;
     export let iterations: number = 0;
     export let speed: number = 0;
 
-    let diagramElement: HTMLElement;
+    let diagramElement: HTMLElement | null = null;
     let loadingScreenElement: HTMLElement;
 
     let graph: Graph | null = null;
@@ -32,7 +34,7 @@
     let iconAtlas = new IconAtlas();
     let iconProgram = createIconProgram(iconAtlas, "#00000000");
     let outlinesProgram = createOutlinesProgram(0.5);
-    let glyphProgram = createNodeCompoundProgram([
+    let compoundProgram = createNodeCompoundProgram([
         outlinesProgram,
         iconProgram,
     ]);
@@ -59,11 +61,8 @@
         });
     }
 
-    function initializeGraph(model: VisualizationModel) {
-        if (supervisor != null) {
-            supervisor.kill();
-        }
-
+    function initializeGraph(model: VisualizationModel): Graph {
+        console.log(`initialized ${model.isEmpty ? "empty" : "non-empty"}`);
         const graph = new Graph();
         for (const nodeId in model.multigraph.nodes) {
             addNode(graph, nodeId);
@@ -149,13 +148,28 @@
         }
     }
 
-    function initializeSigma(graph: Graph) {
-        let sigma = new Sigma(graph, diagramElement, {
+    function initializeSigma(
+        existingSigma: Sigma | null,
+        element: HTMLElement | null,
+        graph: Graph | null,
+        glyphProgram: NodeProgramConstructor | null = null) {
+
+        if (!element || !graph) {
+            return null;
+        }
+
+        if (existingSigma) {
+            existingSigma.kill();
+        }
+
+        glyphProgram ??= compoundProgram;
+
+        let sigma = new Sigma(graph, element, {
             nodeProgramClasses: {
                 glyph: glyphProgram,
             },
             labelFont: "'Cascadia Mono', 'Consolas', monospace",
-            itemSizesReference: "positions",
+            itemSizesReference: "positions"
         });
         sigma.on("clickNode", (e) => {
             state.selectedNode = model.multigraph.nodes[e.node];
@@ -165,6 +179,10 @@
         // });
         return sigma;
     }
+    
+    function setSigmaSettings(glyphOptions: GlyphOptions) {
+        sigma?.setSetting("renderLabels", glyphOptions.showLabels);
+    }
 
     function onSupervisorProgress(message: ForceAtlas2Progress) {
         iterations = message.iterationCount;
@@ -173,11 +191,15 @@
 
     function initializeSupervisor(
         existingSupervisor: ForceAtlas2Supervisor | null,
-        graph: Graph
+        graph: Graph | null
     ) {
         if (existingSupervisor != null) {
             existingSupervisor.progress.unsubscribe(onSupervisorProgress);
             existingSupervisor.kill();
+        }
+        
+        if (!graph) {
+            return null;
         }
 
         let settings = forceAtlas2.inferSettings(graph);
@@ -187,13 +209,25 @@
         return supervisor;
     }
 
-    $: if (diagramElement) {
-        graph = initializeGraph(model);
-        sigma = initializeSigma(graph);
-        supervisor = initializeSupervisor(supervisor, graph);
-        if (!model.isEmpty) {
-            run();
+    function initializeGlyphProgram(glyphOptions: GlyphOptions) {
+        if (glyphOptions.showIcons && glyphOptions.showOutlines) {
+            return compoundProgram;
+        } else if (glyphOptions.showIcons) {
+            return iconProgram;
+        } else if (glyphOptions.showOutlines) {
+            return outlinesProgram;
+        } else {
+            return NodePointProgram;
         }
+    }
+    
+    $: graph = initializeGraph(model);
+    $: glyphProgram = initializeGlyphProgram(state.glyphOptions);
+    $: sigma = initializeSigma(sigma, diagramElement, graph, glyphProgram);
+    $: setSigmaSettings(state.glyphOptions);
+    $: supervisor = initializeSupervisor(supervisor, graph);
+    $: if (!model.isEmpty) {
+        run();
     }
 
     export function tidy() {}
@@ -222,7 +256,7 @@
         } else {
             loadingScreenElement.classList.add("hidden");
             if (!sigma) {
-                sigma = initializeSigma(graph);
+                sigma = initializeSigma(sigma, diagramElement, graph);
             }
         }
     }
@@ -239,7 +273,7 @@
             loadingScreenElement.classList.add("hidden");
 
             if (!sigma) {
-                sigma = initializeSigma(graph);
+                sigma = initializeSigma(sigma, diagramElement, graph);
             }
         }
     }

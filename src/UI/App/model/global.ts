@@ -47,8 +47,8 @@ async function initialize() {
 window.helveg = {
     iconSets: {},
     model: emptyModel,
-    modelLoaded: new HelvegEvent<void>("helveg.modelLoaded"),
-    iconsLoaded: new HelvegEvent<void>("helveg.iconsLoaded"),
+    modelLoaded: new HelvegEvent<void>("helveg.modelLoaded", true),
+    iconsLoaded: new HelvegEvent<void>("helveg.iconsLoaded", true),
 };
 
 export default window.helveg;

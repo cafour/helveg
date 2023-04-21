@@ -26,7 +26,11 @@ void main(void) {
   // NB: the 2% is a hack to avoid artifacts at the edges of icons in an atlas
   if (texCoord.x > 0.01 && texCoord.x < 0.99 && texCoord.y > 0.01 && texCoord.y < 0.99) {
     vec4 texel = texture(u_atlas, v_texture.xy + texCoord * v_texture.zw);
-    f_color = vec4(mix(f_color, texel, texel.a).rgb, max(texel.a, f_color.a));
+    if (v_color.a > 0.0) {
+      f_color = vec4(mix(v_color, texel, texel.a).rgb, max(texel.a, v_color.a));
+    } else {
+      f_color = texel;
+    }
   }
 
 }

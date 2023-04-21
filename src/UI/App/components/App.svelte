@@ -2,7 +2,10 @@
     import { writable, type Readable, readable } from "svelte/store";
 
     export let model = readable(helveg.model, (set) => {
-        helveg.modelLoaded.subscribe(() => set(helveg.model));
+        helveg.modelLoaded.subscribe(() => {
+            console.log(`loaded ${helveg.model.isEmpty ? "empty" : "non-empty"}`);
+            set(helveg.model);
+        });
         return () => {};
     });
 </script>

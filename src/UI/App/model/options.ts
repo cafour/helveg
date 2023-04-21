@@ -13,7 +13,7 @@ export class GlyphOptions {
         size: 5,
         color: "#202020",
         icon: "base:PolarChart",
-        outlines: [{style: OutlineStyle.Solid, width: 1}]
+        outlines: []
     });
     showIcons: boolean = true;
     showOutlines: boolean = true;

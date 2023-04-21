@@ -23,6 +23,8 @@ float outline(float width, float size, float dist, vec4 color) {
 void main(void) {
   float dist = length(gl_PointCoord - vec2(0.5, 0.5)) * 2.0;
 
+  float a = f_color.a;
+
   if (dist > v_outlineStarts.x && dist < v_outlineEnds.x) {
     f_color = vec4(v_color.rgb, 0.10);
   } else if (dist > v_outlineStarts.y && dist < v_outlineEnds.y) {
@@ -32,4 +34,6 @@ void main(void) {
   } else if (dist > v_outlineStarts.w && dist < v_outlineEnds.w) {
     f_color = vec4(v_color.rgb, 0.20);
   }
+
+  // f_color.a = max(a, f_color.a);
 }

@@ -35,7 +35,7 @@ void main() {
 
   // Extract the color:
   v_color = a_color;
-  v_color.a *= bias;
+  // v_color.a *= bias;
 
   // Pass the texture coordinates:
   // NOTE: multiply a_texture by a constant and you get a pattern
