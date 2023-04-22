@@ -1,318 +1,51 @@
 <script lang="ts">
-    import { Sigma } from "sigma";
-    import Graph from "graphology";
-    import circular from "graphology-layout/circular";
-    import forceAtlas2 from "graphology-layout-forceatlas2";
-    import {
-        ForceAtlas2Supervisor,
-        type ForceAtlas2Progress,
-    } from "layout/forceAltas2Supervisor";
     import type { VisualizationModel } from "model/visualization";
-    import { StructuralStatus, type StructuralState } from "model/structural";
+    import { StructuralStatus, DefaultStructuralDiagram, type StructuralDiagram } from "model/structural";
     import Icon from "./Icon.svelte";
-    import tidyTree from "layout/tidyTree";
-    import { IconAtlas } from "rendering/iconAtlas";
-    import createIconProgram from "rendering/node.icon";
-    import createOutlinesProgram from "rendering/node.outlines";
-    import {
-        createNodeCompoundProgram,
-        type NodeProgramConstructor,
-    } from "sigma/rendering/webgl/programs/common/node";
-    import {
-        OutlineStyle,
-        getOutlinesTotalWidth,
-        type Outlines,
-    } from "model/glyph";
-    import { DEFAULT_EXPORT_OPTIONS, type ExportOptions, type GlyphOptions } from "model/options";
-    import NodePointProgram from "sigma/rendering/webgl/programs/node.point";
-    import { exportDiagram } from "rendering/export";
+    import { readable } from "svelte/store";
+    import type { ExportOptions } from "model/options";
 
     export let model: VisualizationModel;
-    export let state: StructuralState;
-    export let iterations: number = 0;
-    export let speed: number = 0;
+
+    let diagram: StructuralDiagram = new DefaultStructuralDiagram(helveg.glyphStyleRepository);
+
+    export const status = readable(diagram.status, set => {
+        diagram.statusChanged.subscribe(set);
+    });
+    export const stats = readable(diagram.stats, set => {
+        diagram.statsChanged.subscribe(set);
+    });
 
     let diagramElement: HTMLElement | null = null;
     let loadingScreenElement: HTMLElement;
 
-    let graph: Graph | null = null;
-    let sigma: Sigma | null = null;
-    let supervisor: ForceAtlas2Supervisor | null = null;
-
-    let iconAtlas = new IconAtlas();
-    let iconProgram = createIconProgram(iconAtlas, "#00000000");
-    let outlinesProgram = createOutlinesProgram(0.5);
-    let compoundProgram = createNodeCompoundProgram([
-        outlinesProgram,
-        iconProgram,
-    ]);
-
-    function addNode(graph: Graph, nodeId: string) {
-        const node = model.multigraph.nodes[nodeId];
-        const entityKind = node.properties["Kind"];
-        const glyphStyle =
-            state.glyphOptions.styles[entityKind] ??
-            state.glyphOptions.fallbackStyle;
-        const nodeStyle = glyphStyle.apply(node);
-        const outlines = [
-            { width: nodeStyle.size, style: OutlineStyle.Solid },
-            ...nodeStyle.outlines.slice(0, 3),
-        ] as Outlines;
-        graph.addNode(nodeId, {
-            label: node.label || nodeId,
-            size:
-                outlines.length > 0
-                    ? getOutlinesTotalWidth(outlines)
-                    : nodeStyle.size,
-            iconSize: nodeStyle.size,
-            color: nodeStyle.color,
-            type: "glyph",
-            icon: nodeStyle.icon,
-            outlines: outlines,
-        });
-    }
-
-    function initializeGraph(model: VisualizationModel): Graph {
-        DEBUG && console.log(`initialized ${model.isEmpty ? "empty" : "non-empty"}`);
-
-        const graph = new Graph();
-        for (const nodeId in model.multigraph.nodes) {
-            addNode(graph, nodeId);
-        }
-
-        var declaresRelation = model.multigraph.relations["declares"];
-        if (!declaresRelation) {
-            console.warn(
-                "The visualization model does not contain the required 'declares' relation."
-            );
-            return graph;
-        }
-
-        for (const edge of declaresRelation.edges) {
-            try {
-                graph.addDirectedEdge(edge.src, edge.dst);
-            } catch (error) {
-                // console.warn(`Failed to add an edge. edge=${edge}, error=${error}`);
-            }
-        }
-
-        circular.assign(graph);
-        runTidyTree(graph);
-        return graph;
-    }
-
-    function collapseNode(graph: Graph, nodeId: string) {
-        graph.forEachOutNeighbor(nodeId, (neighborId) => {
-            collapseNode(graph, neighborId);
-            graph.dropNode(neighborId);
-        });
-        graph.setNodeAttribute(nodeId, "collapsed", true);
-    }
-
-    function expandNode(
-        graph: Graph,
-        nodeId: string,
-        recursive: boolean = false
-    ) {
-        let declaresRelation = helveg.model.multigraph.relations["declares"];
-        let x = graph.getNodeAttribute(nodeId, "x");
-        let y = graph.getNodeAttribute(nodeId, "y");
-        let neighbours = [
-            ...declaresRelation.edges.filter((edge) => edge.src === nodeId),
-        ];
-        neighbours.forEach((edge, i) => {
-            addNode(graph, edge.dst);
-            graph.setNodeAttribute(
-                edge.dst,
-                "x",
-                x + Math.cos((i / neighbours.length) * 2 * Math.PI)
-            );
-            graph.setNodeAttribute(
-                edge.dst,
-                "y",
-                y + Math.sin((i / neighbours.length) * 2 * Math.PI)
-            );
-            graph.addDirectedEdge(edge.src, edge.dst);
-            if (recursive) {
-                expandNode(graph, edge.dst, true);
-            }
-        });
-
-        graph.setNodeAttribute(nodeId, "collapsed", false);
-    }
-
-    function toggleNode(graph: Graph, nodeId: string) {
-        const collapsed = <boolean | undefined>(
-            graph.getNodeAttribute(nodeId, "collapsed")
-        );
-        if (collapsed) {
-            expandNode(graph, nodeId);
-        } else {
-            collapseNode(graph, nodeId);
-        }
-    }
-
-    function initializeSigma(
-        existingSigma: Sigma | null,
-        element: HTMLElement | null,
-        graph: Graph | null,
-        glyphProgram: NodeProgramConstructor | null = null
-    ) {
-        if (!element || !graph) {
-            return null;
-        }
-
-        if (existingSigma) {
-            existingSigma.kill();
-        }
-
-        glyphProgram ??= compoundProgram;
-
-        let sigma = new Sigma(graph, element, {
-            nodeProgramClasses: {
-                glyph: glyphProgram,
-            },
-            labelFont: "'Cascadia Mono', 'Consolas', monospace",
-            itemSizesReference: "positions",
-        });
-        sigma.on("clickNode", (e) => {
-            state.selectedNode = model.multigraph.nodes[e.node];
-        });
-        // sigma.on("doubleClickNode", (e) => {
-        //     toggleNode(graph, e.node);
-        // });
-        return sigma;
-    }
-
-    function setSigmaSettings(glyphOptions: GlyphOptions) {
-        sigma?.setSetting("renderLabels", glyphOptions.showLabels);
-    }
-
-    function onSupervisorProgress(message: ForceAtlas2Progress) {
-        iterations = message.iterationCount;
-        speed = message.speed;
-    }
-
-    function initializeSupervisor(
-        existingSupervisor: ForceAtlas2Supervisor | null,
-        graph: Graph | null
-    ) {
-        if (existingSupervisor != null) {
-            existingSupervisor.progress.unsubscribe(onSupervisorProgress);
-            existingSupervisor.kill();
-        }
-
-        if (!graph) {
-            return null;
-        }
-
-        let settings = forceAtlas2.inferSettings(graph);
-        settings.adjustSizes = true;
-        supervisor = new ForceAtlas2Supervisor(graph, settings);
-        supervisor.progress.subscribe(onSupervisorProgress);
-        return supervisor;
-    }
-
-    function initializeGlyphProgram(glyphOptions: GlyphOptions) {
-        if (glyphOptions.showIcons && glyphOptions.showOutlines) {
-            return compoundProgram;
-        } else if (glyphOptions.showIcons) {
-            return iconProgram;
-        } else if (glyphOptions.showOutlines) {
-            return outlinesProgram;
-        } else {
-            return NodePointProgram;
-        }
-    }
-
-    $: graph = initializeGraph(model);
-    $: glyphProgram = initializeGlyphProgram(state.glyphOptions);
-    $: sigma = initializeSigma(sigma, diagramElement, graph, glyphProgram);
-    $: setSigmaSettings(state.glyphOptions);
-    $: supervisor = initializeSupervisor(supervisor, graph);
+    $: diagram.element = diagramElement;
+    $: diagram.model = model;
     $: if (!model.isEmpty) {
-        run();
+        diagram.resetLayout();
     }
 
-    export async function runTidyTree(g?: Graph) {
-        g ??= graph ?? undefined;
-        if (!g) {
-            return;
-        }
-        
-        if (supervisor?.isRunning) {
-            await stop();
-        }
-
-        let solutionRoot = Object.entries(model.multigraph.nodes).find(
-            ([k, v]) => v.properties["Kind"] === "csharp:Solution"
-        )?.[0];
-        let frameworkRoots = Object.entries(model.multigraph.nodes).find(
-            ([k, v]) => v.properties["Kind"] === "csharp:Framework"
-        )?.[0];
-        if (solutionRoot) {
-            tidyTree(g, solutionRoot, 1000);
-        }
+    export function resetLayout() {
+        return diagram.resetLayout();
     }
 
-    export async function run(inBackground: boolean = false) {
-        if (graph == null) {
-            console.warn("Cannot run since the graph is not initialized.");
-            return;
-        }
-
-        if (supervisor == null) {
-            console.warn("Cannot run since the supervisor is not initialized.");
-            return;
-        }
-
-        supervisor.start(inBackground);
-
-        state.status = inBackground
-            ? StructuralStatus.RunningInBackground
-            : StructuralStatus.Running;
-
-        if (inBackground) {
-            loadingScreenElement.classList.remove("hidden");
-            sigma?.kill();
-            sigma = null;
-        } else {
-            loadingScreenElement.classList.add("hidden");
-            if (!sigma) {
-                sigma = initializeSigma(sigma, diagramElement, graph);
-            }
-        }
+    export function runLayout(inBackground: boolean) {
+        return diagram.runLayout(inBackground);
     }
 
-    export async function stop() {
-        if (graph == null) {
-            console.warn("Cannot stop since the graph is not initialized.");
-            return;
-        }
-
-        if (supervisor?.isRunning) {
-            await supervisor.stop();
-            state.status = StructuralStatus.Stopped;
-            loadingScreenElement.classList.add("hidden");
-
-            if (!sigma) {
-                sigma = initializeSigma(sigma, diagramElement, graph);
-            }
-        }
+    export function stopLayout() {
+        return diagram.stopLayout();
     }
 
     export function save(options?: ExportOptions) {
-        options = {...DEFAULT_EXPORT_OPTIONS, ...options};
-        options.fileName ??= `${model.multigraph.label}-export.png`;
-        if (sigma) {
-            exportDiagram(sigma, options);
-        }
+        diagram.save(options);
     }
 </script>
 
 <div
     bind:this={loadingScreenElement}
-    class="loading-screen w-100p overflow-hidden h-100p absolute z-1 flex flex-col align-items-center justify-content-center bg-surface-50 hidden"
+    class="loading-screen w-100p overflow-hidden h-100p absolute z-1 flex flex-col align-items-center justify-content-center bg-surface-50"
+    class:hidden={$status !== StructuralStatus.RunningInBackground}
 >
     <div class="w-32 h-32">
         <Icon name="Fallback" />

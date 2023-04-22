@@ -1,9 +1,11 @@
 import { HelvegEvent } from "common/event";
 import { loadJsonScripts } from "./data";
 import { loadIcons, type IconSet } from "./icons";
-import { empty as emptyModel, type VisualizationModel } from "./visualization";
+import { EMPTY_MODEL as emptyModel, type VisualizationModel } from "./visualization";
+import { GlyphStyleRepository } from "./glyph";
 
 export interface HelvegGlobal {
+    glyphStyleRepository: GlyphStyleRepository;
     iconSets: Record<string, IconSet>;
     model: VisualizationModel;
     modelLoaded: HelvegEvent<void>;
@@ -45,6 +47,7 @@ async function initialize() {
 }
 
 window.helveg = {
+    glyphStyleRepository: new GlyphStyleRepository(),
     iconSets: {},
     model: emptyModel,
     modelLoaded: new HelvegEvent<void>("helveg.modelLoaded", true),

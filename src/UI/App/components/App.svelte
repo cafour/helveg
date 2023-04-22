@@ -18,7 +18,7 @@
     import Dock from "./Dock.svelte";
     import DocumentPanel from "./DocumentPanel.svelte";
     import Tab from "./Tab.svelte";
-    import { StructuralState } from "model/structural";
+    import { StructuralState, type StructuralDiagramStats, StructuralStatus } from "model/structural";
     import PropertiesPanel from "./PropertiesPanel.svelte";
     import DataPanel from "./DataPanel.svelte";
     import CSharpPlugin from "model/csharpPlugin";
@@ -30,17 +30,16 @@
     initialState.applyPlugin(new CSharpPlugin());
     let state = writable(initialState);
     let diagram: StructuralDiagram;
-    let iterations: number;
-    let speed: number;
+    let status: Readable<StructuralStatus>;
+    let stats: Readable<StructuralDiagramStats>;
 </script>
 
 <main class="flex flex-row-reverse h-100p relative">
     <StructuralDiagram
         model={$model}
-        bind:state={$state}
         bind:this={diagram}
-        bind:iterations
-        bind:speed
+        bind:stats
+        bind:status
     />
 
     <Dock name="panels">
@@ -50,12 +49,11 @@
         <Tab name="Layout" value="layout-panel" icon="base:Diagram">
             <LayoutPanel
                 bind:options={$state.layoutOptions}
-                status={$state.status}
-                on:run={(e) => diagram.run(e.detail)}
-                on:stop={diagram.stop}
-                on:tidyTree={() => diagram.runTidyTree()}
-                {iterations}
-                {speed}
+                on:run={(e) => diagram.runLayout(e.detail)}
+                on:stop={diagram.stopLayout}
+                on:tidyTree={diagram.resetLayout}
+                status={$status}
+                stats={$stats}
             />
         </Tab>
         <Tab name="Glyphs" value="glyphs-panel" icon="base:PolarChart">

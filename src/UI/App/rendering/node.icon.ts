@@ -16,10 +16,10 @@ const { UNSIGNED_BYTE, FLOAT } = WebGLRenderingContext;
 
 const UNIFORMS = ["u_sizeRatio", "u_pixelRatio", "u_matrix", "u_atlas"];
 
-export default function createIconProgram(iconAtlas: IconAtlas, color?: string): NodeProgramConstructor {
+export default function createIconProgram(iconAtlas: IconAtlas): NodeProgramConstructor {
     return class extends IconProgram {
         constructor(gl: WebGLRenderingContext, renderer: Sigma) {
-            super(gl, renderer, iconAtlas, color);
+            super(gl, renderer, iconAtlas);
         }
     };
 }
@@ -27,7 +27,7 @@ export default function createIconProgram(iconAtlas: IconAtlas, color?: string):
 export class IconProgram extends NodeProgram<typeof UNIFORMS[number]> {
     texture: WebGLTexture;
 
-    constructor(gl: WebGLRenderingContext, renderer: Sigma, private iconAtlas: IconAtlas, private color?: string) {
+    constructor(gl: WebGLRenderingContext, renderer: Sigma, private iconAtlas: IconAtlas) {
         super(gl, renderer);
 
         this.texture = gl.createTexture() as WebGLTexture;
@@ -41,14 +41,13 @@ export class IconProgram extends NodeProgram<typeof UNIFORMS[number]> {
     getDefinition(): ProgramDefinition<typeof UNIFORMS[number]> {
         return {
             VERTICES: 1,
-            ARRAY_ITEMS_PER_VERTEX: 8,
+            ARRAY_ITEMS_PER_VERTEX: 7,
             VERTEX_SHADER_SOURCE: vertexShaderSource,
             FRAGMENT_SHADER_SOURCE: fragmentShaderSource,
             UNIFORMS,
             ATTRIBUTES: [
                 { name: "a_position", size: 2, type: FLOAT },
                 { name: "a_iconSize", size: 1, type: FLOAT },
-                { name: "a_color", size: 4, type: UNSIGNED_BYTE, normalized: true },
                 { name: "a_texture", size: 4, type: FLOAT }
             ],
         };
@@ -61,7 +60,6 @@ export class IconProgram extends NodeProgram<typeof UNIFORMS[number]> {
         array[i++] = data.x;
         array[i++] = data.y;
         array[i++] = data.iconSize ?? data.size ?? 1;
-        array[i++] = floatColor(this.color ?? data.color ?? "#000000");
 
         let atlasEntry = this.iconAtlas.entries[data.icon];
         if (atlasEntry && atlasEntry.status === IconAtlasEntryStatus.Rendered) {

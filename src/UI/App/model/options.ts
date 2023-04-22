@@ -1,10 +1,11 @@
-import { StaticGlyphStyle, type GlyphStyle, type Outline, OutlineStyle, FALLBACK_GLYPH_ICON_NAME as DEFAULT_GLYPH_ICON_NAME } from "./glyph";
+import { StaticGlyphStyle, type GlyphStyle, type Outline, OutlineStyle, FALLBACK_ICON_NAME as DEFAULT_GLYPH_ICON_NAME } from "./glyph";
 
 export interface DataOptions {
     kinds: string[];
     selectedKinds: string[];
     defaultIcons: Record<string, string>;
     fallbackIcon: string;
+    selectedRelations: string[];
 }
 
 export const DEFAULT_DATA_OPTIONS: DataOptions = {
@@ -44,10 +45,12 @@ export const DEFAULT_FORCE_ATLAS2_OPTIONS: ForceAtlas2Options = {
 };
 
 export interface LayoutOptions {
+    hierarchyRelation: string;
     forceAtlas2: ForceAtlas2Options;
 }
 
 export const DEFAULT_LAYOUT_OPTIONS: LayoutOptions = {
+    hierarchyRelation: "declares",
     forceAtlas2: DEFAULT_FORCE_ATLAS2_OPTIONS
 };
 

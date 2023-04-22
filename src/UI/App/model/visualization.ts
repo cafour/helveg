@@ -8,7 +8,7 @@ export interface VisualizationModel
     isEmpty: boolean;
 }
 
-export const empty: VisualizationModel = {
+export const EMPTY_MODEL: VisualizationModel = {
     isEmpty: true,
     documentInfo: {
         createdOn: "0000-00-00T00:00:00.000Z",

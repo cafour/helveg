@@ -2,8 +2,6 @@
 
 precision mediump float;
 
-in vec4 v_color;
-in float v_border;
 in vec4 v_texture;
 in float v_iconSize;
 
@@ -19,18 +17,13 @@ void main(void) {
 
   vec2 texCoord = (gl_PointCoord - vec2(0.5, 0.5)) * sqrt2 + vec2(0.5, 0.5);
 
-  if (dist < radius - v_border) {
-    f_color = v_color;
+  if (dist > radius) {
+    discard;
   }
 
   // NB: the 2% is a hack to avoid artifacts at the edges of icons in an atlas
   if (texCoord.x > 0.01 && texCoord.x < 0.99 && texCoord.y > 0.01 && texCoord.y < 0.99) {
     vec4 texel = texture(u_atlas, v_texture.xy + texCoord * v_texture.zw);
-    if (v_color.a > 0.0) {
-      f_color = vec4(mix(v_color, texel, texel.a).rgb, max(texel.a, v_color.a));
-    } else {
-      f_color = texel;
-    }
+    f_color = texel;
   }
-
 }

@@ -4,8 +4,6 @@ let INT8 = new Int8Array(4);
 let INT32 = new Int32Array(INT8.buffer);
 let FLOAT32 = new Float32Array(INT8.buffer);
 
-export const FALLBACK_GLYPH_ICON_NAME = "base:PolarChart";
-
 export enum OutlineStyle {
     Solid = 0,
     Dashed = 1
@@ -83,5 +81,27 @@ export class StaticGlyphStyle implements GlyphStyle {
 
     apply(_node: GraphNode) {
         return this.style;
+    }
+}
+
+export const FALLBACK_ICON_NAME = "base:PolarChart";
+
+export class GlyphStyleRepository {
+    fallbackStyle: NodeStyle = {
+        size: 5,
+        color: "#202020",
+        icon: FALLBACK_ICON_NAME,
+        outlines: []
+    };
+    styles: Record<string, GlyphStyle> = {};
+    
+    getNodeStyle(node: GraphNode): NodeStyle {
+        let kind = node.properties["Kind"];
+        let style = this.styles[kind];
+        if (style) {
+            return style.apply(node);
+        }
+
+        return this.fallbackStyle;
     }
 }

@@ -1,7 +1,7 @@
 <script lang="ts">
     import type { LayoutOptions } from "model/options";
     import Panel from "./Panel.svelte";
-    import { StructuralStatus } from "model/structural";
+    import { StructuralStatus, type StructuralDiagramStats } from "model/structural";
     import { createEventDispatcher } from "svelte";
     import Icon from "./Icon.svelte";
     import Subpanel from "./Subpanel.svelte";
@@ -9,12 +9,11 @@
 
     export let options: LayoutOptions;
     export let status: StructuralStatus;
-    export let iterations = 0;
-    export let speed = 0;
+    export let stats: StructuralDiagramStats;
 
     $: items = [
-        { key: "Iterations", value: iterations.toString() },
-        { key: "Speed", value: `${speed.toFixed(3)} iterations/s` },
+        { key: "Iterations", value: stats?.iterationCount.toString() },
+        { key: "Speed", value: `${stats?.speed.toFixed(3)} iterations/s` },
     ];
 
     let dispatch = createEventDispatcher();

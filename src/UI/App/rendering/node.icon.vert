@@ -4,7 +4,6 @@ precision mediump float;
 
 in vec2 a_position;
 in float a_iconSize;
-in vec4 a_color;
 in vec4 a_texture;
 in vec4 a_outlines;
 
@@ -12,7 +11,6 @@ uniform float u_sizeRatio;
 uniform float u_pixelRatio;
 uniform mat3 u_matrix;
 
-out vec4 v_color;
 out float v_border;
 out vec4 v_texture;
 out float v_iconSize;
@@ -32,10 +30,6 @@ void main() {
   gl_PointSize = a_iconSize / u_sizeRatio * u_pixelRatio * 2.0;
 
   v_border = (0.5 / a_iconSize) * u_sizeRatio;
-
-  // Extract the color:
-  v_color = a_color;
-  // v_color.a *= bias;
 
   // Pass the texture coordinates:
   // NOTE: multiply a_texture by a constant and you get a pattern
