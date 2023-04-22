@@ -21,6 +21,17 @@
 </script>
 
 <Panel name="Layout" indent={false}>
+    <Subpanel name="TidyTree">
+        <div class="flex flex-row justify-content-center">
+            <button
+                on:click={() => dispatch("tidyTree")}
+                class="button-icon"
+            >
+                <Icon name="base:Run" title="Run" />
+            </button>
+        </div>
+    </Subpanel>
+    
     <Subpanel name="ForceAtlas2" indent={false}>
         <div class="flex flex-row justify-content-center">
             <button

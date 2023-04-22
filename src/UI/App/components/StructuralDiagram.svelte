@@ -97,15 +97,7 @@
         }
 
         circular.assign(graph);
-        let solutionRoot = Object.entries(model.multigraph.nodes).find(
-            ([k, v]) => v.properties["Kind"] === "csharp:Solution"
-        )?.[0];
-        let frameworkRoots = Object.entries(model.multigraph.nodes).find(
-            ([k, v]) => v.properties["Kind"] === "csharp:Framework"
-        )?.[0];
-        if (solutionRoot) {
-            tidyTree(graph, solutionRoot, 1000);
-        }
+        runTidyTree(graph);
         return graph;
     }
 
@@ -242,7 +234,26 @@
         run();
     }
 
-    export function tidy() {}
+    export async function runTidyTree(g?: Graph) {
+        g ??= graph ?? undefined;
+        if (!g) {
+            return;
+        }
+        
+        if (supervisor?.isRunning) {
+            await stop();
+        }
+
+        let solutionRoot = Object.entries(model.multigraph.nodes).find(
+            ([k, v]) => v.properties["Kind"] === "csharp:Solution"
+        )?.[0];
+        let frameworkRoots = Object.entries(model.multigraph.nodes).find(
+            ([k, v]) => v.properties["Kind"] === "csharp:Framework"
+        )?.[0];
+        if (solutionRoot) {
+            tidyTree(g, solutionRoot, 1000);
+        }
+    }
 
     export async function run(inBackground: boolean = false) {
         if (graph == null) {

@@ -52,6 +52,7 @@
                 status={$state.status}
                 on:run={(e) => diagram.run(e.detail)}
                 on:stop={diagram.stop}
+                on:tidyTree={() => diagram.runTidyTree()}
                 {iterations}
                 {speed}
             />
