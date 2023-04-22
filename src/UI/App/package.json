@@ -31,6 +31,8 @@
     "graphology-layout-forceatlas2": "^0.10.1",
     "graphology-utils": "^2.5.2",
     "jsdom": "^21.1.1",
+    "postcss": "^8.4.23",
+    "postcss-preset-env": "^8.3.2",
     "resolve": "^1.22.2",
     "sass": "^1.62.0",
     "sigma": "3.0.0-alpha3",

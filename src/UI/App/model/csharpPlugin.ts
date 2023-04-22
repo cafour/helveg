@@ -254,8 +254,8 @@ export default class CSharpPlugin implements VisualizationPlugin {
                 let staticCount = props.StaticMemberCount ?? 0;
                 base.outlines = [
                     { style: props.IsStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 1 },
-                    { style: OutlineStyle.Solid, width: Math.max(1, instanceCount) },
-                    { style: OutlineStyle.Dashed, width: Math.max(1, staticCount) }
+                    { style: OutlineStyle.Solid, width: Math.max(1, Math.sqrt(instanceCount)) },
+                    { style: OutlineStyle.Dashed, width: Math.max(1, Math.sqrt(staticCount)) }
                 ];
                 break;
             case EntityKind.TypeParameterDefinition:

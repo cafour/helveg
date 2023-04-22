@@ -7,6 +7,9 @@ import inlineBundlePlugin from "./inlineBundle.js";
 import yargs from "yargs";
 import fs from "fs";
 import path from "path";
+import postcss from "postcss";
+import postcssPresetEnv from "postcss-preset-env";
+import autoprefixer from "autoprefixer";
 
 const args = <any>yargs(process.argv).argv;
 const isRelease = args["release"] === true;
@@ -54,6 +57,13 @@ const context = await esbuild.context({
             preprocess: sveltePreprocess()
         }),
         sassPlugin({
+            async transform(source, _, filePath) {
+                const {css} = await postcss([
+                    autoprefixer,
+                    postcssPresetEnv({stage:0})
+                ]).process(source, {from: filePath});
+                return css;
+            },
             loadPaths: [
                 "./node_modules/uniformcss"
             ]

@@ -24,6 +24,7 @@
     import CSharpPlugin from "model/csharpPlugin";
     import GlyphsPanel from "./GlyphsPanel.svelte";
     import LayoutPanel from "./LayoutPanel.svelte";
+    import GuidePanel from "./GuidePanel.svelte";
 
     let initialState = new StructuralState();
     initialState.applyPlugin(new CSharpPlugin());
@@ -73,6 +74,9 @@
                 bind:exportOptions={$state.exportOptions}
                 on:export={(e) => diagram.save(e.detail)}
             />
+        </Tab>
+        <Tab name="Guide" value="guide-panel" icon="base:StatusHelpOutline">
+            <GuidePanel />
         </Tab>
     </Dock>
 </main>
