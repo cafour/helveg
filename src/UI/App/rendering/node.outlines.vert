@@ -42,6 +42,6 @@ void main() {
     a_outlineWidths.x,
     a_outlineWidths.x + a_outlineWidths.y,
     a_outlineWidths.x + a_outlineWidths.y + a_outlineWidths.z);
-  v_outlineEnds = vec4(v_outlineStarts.yzw - gap, 1.0);
+  v_outlineEnds = vec4(v_outlineStarts.yzw - gap * sign(a_outlineWidths).yzw, 1.0);
   v_outlineStyles = a_outlineStyles;
 }

@@ -5,7 +5,7 @@ import type Sigma from "sigma";
 import vertexShaderSource from "./node.outlines.vert";
 import fragmentShaderSource from "./node.outlines.frag";
 import { floatColor } from "sigma/utils";
-import { floatOutlines, type Outlines } from "model/glyph";
+import { floatOutlineStyles, floatOutlineWidths, type Outlines } from "model/glyph";
 
 export interface OutlinesNodeDisplayData extends NodeDisplayData {
     outlines: Outlines;
@@ -52,8 +52,8 @@ export class OutlinesProgram extends NodeProgram<typeof UNIFORMS[number]> {
         array[i++] = data.y;
         array[i++] = data.size;
         array[i++] = floatColor(data.color || "#000000");
-        array[i++] = floatOutlines(data.outlines);
-        array[i++] = 0; // a_outlineStyles
+        array[i++] = floatOutlineWidths(data.outlines);
+        array[i++] = floatOutlineStyles(data.outlines);
     }
 
     draw(params: RenderParams): void {

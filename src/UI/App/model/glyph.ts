@@ -20,7 +20,7 @@ export type Outlines = []
     | [Outline, Outline, Outline]
     | [Outline, Outline, Outline, Outline];
 
-export function floatOutlines(outlines: Outlines): number {
+export function floatOutlineWidths(outlines: Outlines): number {
     if (!outlines) {
         return 0;
     }
@@ -28,16 +28,31 @@ export function floatOutlines(outlines: Outlines): number {
     let w0 = outlines[0]?.width ?? 0;
     let w1 = outlines[1]?.width ?? 0;
     let w2 = outlines[2]?.width ?? 0;
-    let totalWidth = w0 + w1 + w2;
+    let w3 = outlines[3]?.width ?? 0;
+    let totalWidth = w0 + w1 + w2 + w3;
 
     let l0 = (w0 / totalWidth * 255) & 0xff;
     let l1 = (w1 / totalWidth * 255) & 0xff;
     let l2 = (w2 / totalWidth * 255) & 0xff;
-    INT32[0] = (l0 | l1 << 8 | l2 << 16) & 0xffffff;
+    let l3 = (w3 / totalWidth * 255) & 0xff;
+    INT32[0] = (l0 | l1 << 8 | l2 << 16 | l3 << 24) & 0xffffffff;
     return FLOAT32[0];
 }
 
-export function getOutlinesWidth(outlines: Outlines): number {
+export function floatOutlineStyles(outlines: Outlines): number {
+    if (!outlines) {
+        return 0;
+    }
+    
+    let s0 = outlines[0]?.style ?? OutlineStyle.Solid;
+    let s1 = outlines[1]?.style ?? OutlineStyle.Solid;
+    let s2 = outlines[2]?.style ?? OutlineStyle.Solid;
+    let s3 = outlines[3]?.style ?? OutlineStyle.Solid;
+    INT32[0] = (s0 | s1 << 8 | s2 << 16 | s3 << 24) & 0xffffffff;
+    return FLOAT32[0];
+}
+
+export function getOutlinesTotalWidth(outlines: Outlines): number {
     if (!outlines) {
         return 0;
     }
@@ -45,7 +60,8 @@ export function getOutlinesWidth(outlines: Outlines): number {
     let w0 = outlines[0]?.width ?? 0;
     let w1 = outlines[1]?.width ?? 0;
     let w2 = outlines[2]?.width ?? 0;
-    return w0 + w1 + w2;
+    let w3 = outlines[3]?.width ?? 0;
+    return w0 + w1 + w2 + w3;
 }
 
 export interface NodeStyle {

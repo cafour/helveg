@@ -15,7 +15,7 @@
     import createIconProgram from "rendering/node.icon";
     import createOutlinesProgram from "rendering/node.outlines";
     import { createNodeCompoundProgram, type NodeProgramConstructor } from "sigma/rendering/webgl/programs/common/node";
-    import { OutlineStyle, getOutlinesWidth, type Outlines } from "model/glyph";
+    import { OutlineStyle, getOutlinesTotalWidth, type Outlines } from "model/glyph";
     import type { GlyphOptions } from "model/options";
     import NodePointProgram from "sigma/rendering/webgl/programs/node.point";
 
@@ -52,7 +52,7 @@
         ] as Outlines;
         graph.addNode(nodeId, {
             label: node.label || nodeId,
-            size: outlines.length > 0 ? getOutlinesWidth(outlines) : nodeStyle.size,
+            size: outlines.length > 0 ? getOutlinesTotalWidth(outlines) : nodeStyle.size,
             iconSize: nodeStyle.size,
             color: nodeStyle.color,
             type: "glyph",

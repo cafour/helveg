@@ -89,7 +89,8 @@ interface CSharpNodeProperties {
     IsEnumItem?: boolean,
     DeclaringKind?: EntityKind,
     InstanceMemberCount?: number,
-    StaticMemberCount?: number
+    StaticMemberCount?: number,
+    IsStatic?: boolean
 }
 
 const FALLBACK_STYLE: NodeStyle = {
@@ -252,8 +253,9 @@ export default class CSharpPlugin implements VisualizationPlugin {
                 let instanceCount = props.InstanceMemberCount ?? 0;
                 let staticCount = props.StaticMemberCount ?? 0;
                 base.outlines = [
+                    { style: props.IsStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 1 },
                     { style: OutlineStyle.Solid, width: Math.max(1, instanceCount) },
-                    { style: OutlineStyle.Solid, width: Math.max(1, staticCount) }
+                    { style: OutlineStyle.Dashed, width: Math.max(1, staticCount) }
                 ];
                 break;
             case EntityKind.TypeParameterDefinition:
@@ -272,7 +274,7 @@ export default class CSharpPlugin implements VisualizationPlugin {
                     }
                 }
 
-                base.outlines = [{ style: OutlineStyle.Solid, width: 1 }];
+                base.outlines = [{ style: props.IsStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 1 }];
                 base.size = 10;
                 if (props.IsConst) {
                     base.icon = "csharp:Constant";
@@ -294,19 +296,19 @@ export default class CSharpPlugin implements VisualizationPlugin {
                 }
 
                 base.size = 10;
-                base.outlines = [{ style: OutlineStyle.Solid, width: 1 }];
+                base.outlines = [{ style: props.IsStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 1 }];
                 break;
             case EntityKind.PropertyDefinition:
                 base.icon = "csharp:Property";
                 base.size = 10;
                 base.color = VSColor.DarkGray;
-                base.outlines = [{ style: OutlineStyle.Solid, width: 1 }];
+                base.outlines = [{ style: props.IsStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 1 }];
                 break;
             case EntityKind.EventDefinition:
                 base.icon = "csharp:Event";
                 base.size = 10;
                 base.color = VSColor.DarkYellow;
-                base.outlines = [{ style: OutlineStyle.Solid, width: 1 }];
+                base.outlines = [{ style: props.IsStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 1 }];
                 break;
             case EntityKind.ParameterDefinition:
                 return {
