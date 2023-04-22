@@ -2,10 +2,14 @@
     import KeyValueList from "./KeyValueList.svelte";
     import Panel from "./Panel.svelte";
     import type { VisualizationModel } from "model/visualization";
+    import Subpanel from "./Subpanel.svelte";
+    import { createEventDispatcher } from "svelte";
+    import type { ExportOptions } from "model/options";
 
     export let model: VisualizationModel;
+    export let exportOptions: ExportOptions;
 
-    $: items = [
+    $: metadataItems = [
         { key: "Name", value: model.documentInfo.name },
         {
             key: "CreatedOn",
@@ -13,10 +17,63 @@
         },
         { key: "Revision", value: model.documentInfo.revision },
         { key: "HelvegVersion", value: model.documentInfo.helvegVersion },
-        { key: "NodeCount", value: Object.keys(model.multigraph.nodes).length.toString() },
+        {
+            key: "NodeCount",
+            value: Object.keys(model.multigraph.nodes).length.toString(),
+        },
     ];
+
+    let dispatch = createEventDispatcher();
 </script>
 
-<Panel name="Document">
-    <KeyValueList {items} />
+<Panel name="Document" indent={false}>
+    <Subpanel name="Metadata">
+        <KeyValueList items={metadataItems} />
+    </Subpanel>
+    <Subpanel name="Export">
+        <label>
+            <input
+                type="checkbox"
+                bind:checked={exportOptions.includeNodes}
+            />
+            IncludeNodes
+        </label>
+        
+        <label>
+            <input
+                type="checkbox"
+                bind:checked={exportOptions.includeEdges}
+            />
+            IncludeEdges
+        </label>
+        
+        <label>
+            <input
+                type="checkbox"
+                bind:checked={exportOptions.includeLabels}
+            />
+            IncludeLabels
+        </label>
+        
+        <label class="flex flex-row gap-8 align-items-center">
+            Scale
+            <input
+                type="number"
+                min="1"
+                bind:value={exportOptions.scale}
+            />
+        </label>
+        
+        <label class="flex flex-row gap-8 align-items-center">
+            BackgroundColor
+            <input
+                type="color"
+                bind:value={exportOptions.backgroundColor}
+            />
+        </label>
+        
+        <button class="button-stretch" on:click={() => dispatch("export", exportOptions)}>
+            Export
+        </button>
+    </Subpanel>
 </Panel>

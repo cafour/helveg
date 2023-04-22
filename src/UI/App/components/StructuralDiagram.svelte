@@ -14,10 +14,18 @@
     import { IconAtlas } from "rendering/iconAtlas";
     import createIconProgram from "rendering/node.icon";
     import createOutlinesProgram from "rendering/node.outlines";
-    import { createNodeCompoundProgram, type NodeProgramConstructor } from "sigma/rendering/webgl/programs/common/node";
-    import { OutlineStyle, getOutlinesTotalWidth, type Outlines } from "model/glyph";
-    import type { GlyphOptions } from "model/options";
+    import {
+        createNodeCompoundProgram,
+        type NodeProgramConstructor,
+    } from "sigma/rendering/webgl/programs/common/node";
+    import {
+        OutlineStyle,
+        getOutlinesTotalWidth,
+        type Outlines,
+    } from "model/glyph";
+    import { DEFAULT_EXPORT_OPTIONS, type ExportOptions, type GlyphOptions } from "model/options";
     import NodePointProgram from "sigma/rendering/webgl/programs/node.point";
+    import { exportDiagram } from "rendering/export";
 
     export let model: VisualizationModel;
     export let state: StructuralState;
@@ -52,7 +60,10 @@
         ] as Outlines;
         graph.addNode(nodeId, {
             label: node.label || nodeId,
-            size: outlines.length > 0 ? getOutlinesTotalWidth(outlines) : nodeStyle.size,
+            size:
+                outlines.length > 0
+                    ? getOutlinesTotalWidth(outlines)
+                    : nodeStyle.size,
             iconSize: nodeStyle.size,
             color: nodeStyle.color,
             type: "glyph",
@@ -62,7 +73,8 @@
     }
 
     function initializeGraph(model: VisualizationModel): Graph {
-        console.log(`initialized ${model.isEmpty ? "empty" : "non-empty"}`);
+        DEBUG && console.log(`initialized ${model.isEmpty ? "empty" : "non-empty"}`);
+
         const graph = new Graph();
         for (const nodeId in model.multigraph.nodes) {
             addNode(graph, nodeId);
@@ -152,8 +164,8 @@
         existingSigma: Sigma | null,
         element: HTMLElement | null,
         graph: Graph | null,
-        glyphProgram: NodeProgramConstructor | null = null) {
-
+        glyphProgram: NodeProgramConstructor | null = null
+    ) {
         if (!element || !graph) {
             return null;
         }
@@ -169,7 +181,7 @@
                 glyph: glyphProgram,
             },
             labelFont: "'Cascadia Mono', 'Consolas', monospace",
-            itemSizesReference: "positions"
+            itemSizesReference: "positions",
         });
         sigma.on("clickNode", (e) => {
             state.selectedNode = model.multigraph.nodes[e.node];
@@ -179,7 +191,7 @@
         // });
         return sigma;
     }
-    
+
     function setSigmaSettings(glyphOptions: GlyphOptions) {
         sigma?.setSetting("renderLabels", glyphOptions.showLabels);
     }
@@ -197,7 +209,7 @@
             existingSupervisor.progress.unsubscribe(onSupervisorProgress);
             existingSupervisor.kill();
         }
-        
+
         if (!graph) {
             return null;
         }
@@ -220,7 +232,7 @@
             return NodePointProgram;
         }
     }
-    
+
     $: graph = initializeGraph(model);
     $: glyphProgram = initializeGlyphProgram(state.glyphOptions);
     $: sigma = initializeSigma(sigma, diagramElement, graph, glyphProgram);
@@ -275,6 +287,14 @@
             if (!sigma) {
                 sigma = initializeSigma(sigma, diagramElement, graph);
             }
+        }
+    }
+
+    export function save(options?: ExportOptions) {
+        options = {...DEFAULT_EXPORT_OPTIONS, ...options};
+        options.fileName ??= `${model.multigraph.label}-export.png`;
+        if (sigma) {
+            exportDiagram(sigma, options);
         }
     }
 </script>

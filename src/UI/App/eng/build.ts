@@ -39,6 +39,9 @@ const context = await esbuild.context({
     outdir: outDir,
     mainFields: ["svelte", "browser", "module", "main"],
     sourcemap: isDebug,
+    define: {
+       "DEBUG": isDebug ? "true" : "false"
+    },
     splitting: false,
     write: true,
     logLevel: "info",

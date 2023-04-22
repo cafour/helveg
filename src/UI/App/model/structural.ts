@@ -1,5 +1,5 @@
 import type { GraphNode } from "./multigraph";
-import { DataOptions, GlyphOptions, LayoutOptions } from "./options";
+import { DEFAULT_DATA_OPTIONS, DEFAULT_EXPORT_OPTIONS, DEFAULT_GLYPH_OPTIONS, DEFAULT_LAYOUT_OPTIONS, type DataOptions, type ExportOptions, type GlyphOptions, type LayoutOptions } from "./options";
 import type { VisualizationPlugin, VisualizationPluginContext } from "./plugin";
 
 export enum StructuralStatus {
@@ -10,9 +10,10 @@ export enum StructuralStatus {
 
 export class StructuralState {
     selectedNode: GraphNode | null = null;
-    dataOptions: DataOptions = new DataOptions();
-    glyphOptions: GlyphOptions = new GlyphOptions();
-    layoutOptions: LayoutOptions = new LayoutOptions();
+    dataOptions: DataOptions = { ...DEFAULT_DATA_OPTIONS };
+    glyphOptions: GlyphOptions = { ...DEFAULT_GLYPH_OPTIONS };
+    layoutOptions: LayoutOptions = { ...DEFAULT_LAYOUT_OPTIONS };
+    exportOptions: ExportOptions = { ...DEFAULT_EXPORT_OPTIONS };
     status: StructuralStatus = StructuralStatus.Stopped;
 
     applyPlugin(plugin: VisualizationPlugin) {

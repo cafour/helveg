@@ -3,7 +3,9 @@
 
     export let model = readable(helveg.model, (set) => {
         helveg.modelLoaded.subscribe(() => {
-            console.log(`loaded ${helveg.model.isEmpty ? "empty" : "non-empty"}`);
+            DEBUG && console.log(
+                `loaded ${helveg.model.isEmpty ? "empty" : "non-empty"}`
+            );
             set(helveg.model);
         });
         return () => {};
@@ -65,7 +67,11 @@
             <PropertiesPanel node={$state.selectedNode} />
         </Tab>
         <Tab name="Document" value="document-panel" icon="base:Document">
-            <DocumentPanel model={$model} />
+            <DocumentPanel
+                model={$model}
+                bind:exportOptions={$state.exportOptions}
+                on:export={(e) => diagram.save(e.detail)}
+            />
         </Tab>
     </Dock>
 </main>

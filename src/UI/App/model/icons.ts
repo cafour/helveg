@@ -26,14 +26,18 @@ export interface IconOptions {
     viewBoxOnly?: boolean;
 }
 
+export const DEFAULT_ICON_OPTIONS: IconOptions = {
+    removeTitle: true
+}
+
 // icon by Utkarsh Verma (https://github.com/n3r4zzurr0/svg-spinners)
-const fallbackIconSource =
+const FALLBACK_ICON_SOURCE =
     `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="4" cy="12" r="3" fill="currentColor"><animate id="svgSpinners3DotsBounce0" attributeName="cy" begin="0;svgSpinners3DotsBounce1.end+0.25s" calcMode="spline" dur="0.6s" keySplines=".33,.66,.66,1;.33,0,.66,.33" values="12;6;12"/></circle><circle cx="12" cy="12" r="3" fill="currentColor"><animate attributeName="cy" begin="svgSpinners3DotsBounce0.begin+0.1s" calcMode="spline" dur="0.6s" keySplines=".33,.66,.66,1;.33,0,.66,.33" values="12;6;12"/></circle><circle cx="20" cy="12" r="3" fill="currentColor"><animate id="svgSpinners3DotsBounce1" attributeName="cy" begin="svgSpinners3DotsBounce0.begin+0.2s" calcMode="spline" dur="0.6s" keySplines=".33,.66,.66,1;.33,0,.66,.33" values="12;6;12"/></circle></svg>
 `
 
-export const fallbackIcon: Icon = {
-    name: "Fallback",
-    data: fallbackIconSource,
+export const FALLBACK_ICON: Icon = {
+    name: "base:Fallback",
+    data: FALLBACK_ICON_SOURCE,
     format: IconFormat.Svg
 };
 
@@ -45,8 +49,14 @@ export async function loadIcons(): Promise<Record<string, IconSet>> {
 }
 
 export function getIcon(name: string, options?: IconOptions): Icon {
-    if (!helveg.iconSets) {
-        throw new Error("Icons have not been initialized yet.");
+    options = {...DEFAULT_ICON_OPTIONS, ...options};
+
+    if (name === FALLBACK_ICON.name) {
+        return cloneIcon(FALLBACK_ICON, options);
+    }
+
+    if (DEBUG && !helveg.iconSets) {
+        console.debug("")
     }
 
     let segments = name.split(":", 2);
@@ -56,18 +66,18 @@ export function getIcon(name: string, options?: IconOptions): Icon {
     let icon: Icon | null = null;
     if (!iconSet) {
         console.warn(`Icon set for namespace '${namespace}' could not be found. Using fallback icon.`)
-        icon = fallbackIcon;
+        icon = FALLBACK_ICON;
     }
     else {
         icon = structuredClone(iconSet.icons[iconName]);
         if (!icon) {
             console.warn(`Icon '${name}' could not be found. Using fallback icon.`);
-            icon = fallbackIcon;
+            icon = FALLBACK_ICON;
         }
     }
 
     if (icon.format === IconFormat.Svg) {
-        icon.data = tweakIcon(icon.data, options ?? { removeTitle: true });
+        icon.data = cloneSvgIcon(icon.data, options ?? { removeTitle: true });
     }
     return icon;
 }
@@ -101,7 +111,15 @@ function setIconSize(svg: Document, options: IconOptions): string {
     return new XMLSerializer().serializeToString(svg);
 }
 
-function tweakIcon(svgString: string, options: IconOptions): string {
+function cloneIcon(icon: Icon, options: IconOptions): Icon {
+    let clone = structuredClone(icon);
+    if (clone.format === IconFormat.Svg) {
+        clone.data = cloneSvgIcon(clone.data, options);
+    }
+    return clone;
+}
+
+function cloneSvgIcon(svgString: string, options: IconOptions): string {
     const svg = new DOMParser().parseFromString(svgString, "image/svg+xml");
     if (options.removeTitle) {
         removeIconTitle(svg);

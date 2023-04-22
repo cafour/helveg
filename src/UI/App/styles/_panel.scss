@@ -26,13 +26,22 @@
 
 .panel-body,
 .subpanel-body {
-    input[type="checkbox"] {
-        appearance: checkbox;
+    input {
+        padding: 0.125rem;
+        background-color: var(--color-surface-0);
+        border: 1px solid var(--color-surface-100);
+
+        &[type="checkbox"] {
+            appearance: checkbox;
+        }
     }
+
     
     label {
         font-size: 1rem;
-        
+        padding-top: 0.125rem;
+        padding-bottom: 0.125rem;
+
         .icon {
             width: 1rem;
             display: inline-block;

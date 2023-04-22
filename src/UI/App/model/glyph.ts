@@ -4,6 +4,8 @@ let INT8 = new Int8Array(4);
 let INT32 = new Int32Array(INT8.buffer);
 let FLOAT32 = new Float32Array(INT8.buffer);
 
+export const FALLBACK_GLYPH_ICON_NAME = "base:PolarChart";
+
 export enum OutlineStyle {
     Solid = 0,
     Dashed = 1
