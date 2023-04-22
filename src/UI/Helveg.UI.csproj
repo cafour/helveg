@@ -3,6 +3,7 @@
   <Sdk Name="Cafour.MSBuild.JS" Version="0.1.1" />
 
   <PropertyGroup>
+    <JSBuildCommand>run build:$(Configuration)</JSBuildCommand>
     <TargetFrameworks>$(DefaultLibraryFrameworks)</TargetFrameworks>
     <JSWorkingDirectory>$(MSBuildProjectDirectory)/App</JSWorkingDirectory>
   </PropertyGroup>
