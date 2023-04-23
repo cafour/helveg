@@ -367,7 +367,7 @@ function initializeGraph(
         });
     }
 
-    for (const relationId in dataOptions.selectedRelations) {
+    for (const relationId of dataOptions.selectedRelations) {
         const relation = model.multigraph.relations[relationId];
         if (!relation) {
             continue;

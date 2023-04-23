@@ -2,7 +2,7 @@
     import type { VisualizationModel } from "model/visualization";
     import { StructuralStatus, DefaultStructuralDiagram, type StructuralDiagram } from "model/structural";
     import Icon from "./Icon.svelte";
-    import { readable, type Readable } from "svelte/store";
+    import { readable } from "svelte/store";
     import type { ExportOptions } from "model/options";
 
     export let model: VisualizationModel;
@@ -19,7 +19,7 @@
     let diagramElement: HTMLElement | null = null;
     let loadingScreenElement: HTMLElement;
 
-    diagram.element = diagramElement;
+    $: diagram.element = diagramElement;
     $: diagram.model = model;
     $: if (!model.isEmpty) {
         resetLayout();
