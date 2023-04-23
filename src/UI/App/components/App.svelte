@@ -13,10 +13,13 @@
     import { DEFAULT_DATA_OPTIONS, DEFAULT_EXPORT_OPTIONS, DEFAULT_GLYPH_OPTIONS, DEFAULT_LAYOUT_OPTIONS, type DataOptions, type ExportOptions, type GlyphOptions, type LayoutOptions } from "model/options";
     import type { GraphNode } from "model/multigraph";
     import type { Readable } from "svelte/store";
+    import type { HelvegInstance } from "model/instance";
 
-    let model = helveg.model;
-    helveg.modelLoaded.subscribe(() => {
-        DEBUG && console.log(`Model '${helveg.model.multigraph.label}' loaded in App.`);
+    export let instance: HelvegInstance;
+
+    let model = instance.model;
+    instance.modelLoaded.subscribe(() => {
+        DEBUG && console.log(`Model '${instance.model.multigraph.label}' loaded in App.`);
         model = helveg.model;
     });
 

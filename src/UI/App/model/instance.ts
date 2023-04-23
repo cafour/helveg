@@ -37,6 +37,9 @@ export function createInstance(): HelvegInstance {
 export async function initializeInstance(instance: HelvegInstance): Promise<void> {
     instance.app = new App({
         target: document.getElementById("app")!,
+        props: {
+            instance: instance
+        },
         hydrate: false
     });
 
