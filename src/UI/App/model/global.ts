@@ -1,60 +1,15 @@
-import { HelvegEvent } from "common/event";
-import { loadJsonScripts } from "./data";
-import { loadIcons, type IconSet } from "./icons";
-import { EMPTY_MODEL as emptyModel, type VisualizationModel } from "./visualization";
-import { GlyphStyleRepository } from "./glyph";
-
-export interface HelvegGlobal {
-    glyphStyleRepository: GlyphStyleRepository;
-    iconSets: Record<string, IconSet>;
-    model: VisualizationModel;
-    modelLoaded: HelvegEvent<void>;
-    iconsLoaded: HelvegEvent<void>;
-};
-
-/**
- * An interface to be used to extend the `helveg` global object;
- */
-export interface HelvegExtensions {
-}
+import { createInstance, initializeInstance, type HelvegExtensions, type HelvegInstance } from "./instance";
 
 declare global {
     interface Window {
-        helveg: HelvegGlobal & HelvegExtensions;
+        helveg: HelvegInstance & HelvegExtensions;
     }
 
-    var helveg: HelvegGlobal & HelvegExtensions;
+    var helveg: HelvegInstance & HelvegExtensions;
 }
 
-async function initialize() {
-    let iconSets = await loadIcons();
-
-    let dataCandidates = await loadJsonScripts<VisualizationModel>("script#helveg-data");
-    let model: VisualizationModel | null = null;
-    if (dataCandidates.length === 0) {
-        console.warn("No data found. Using empty visualization model.");
-        model = emptyModel;
-    }
-    else {
-        model = dataCandidates[0];
-    }
-
-    window.helveg = window.helveg ?? {};
-    window.helveg.iconSets = iconSets;
-    window.helveg.iconsLoaded.trigger();
-    window.helveg.model = model;
-    window.helveg.modelLoaded.trigger();
+export function initializeGlobal() {
+    window.helveg = createInstance();
+    initializeInstance(window.helveg)
+        .catch(console.error);
 }
-
-window.helveg = {
-    glyphStyleRepository: new GlyphStyleRepository(),
-    iconSets: {},
-    model: emptyModel,
-    modelLoaded: new HelvegEvent<void>("helveg.modelLoaded", true),
-    iconsLoaded: new HelvegEvent<void>("helveg.iconsLoaded", true),
-};
-
-export default window.helveg;
-
-initialize()
-    .catch(e => console.error(e))

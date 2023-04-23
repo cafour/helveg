@@ -1,7 +1,7 @@
 import type { GlyphStyle, NodeStyle, Outlines } from "./glyph";
 import { OutlineStyle } from "./glyph";
 import type { GraphNode } from "./multigraph";
-import type { VisualizationPlugin, VisualizationPluginContext } from "./plugin";
+import type { HelvegPlugin, HelvegPluginContext } from "./plugin";
 
 enum EntityKind {
     Solution = "csharp:Solution",
@@ -100,10 +100,10 @@ const FALLBACK_STYLE: NodeStyle = {
     outlines: []
 };
 
-export default class CSharpPlugin implements VisualizationPlugin {
+export default class CSharpPlugin implements HelvegPlugin {
     name: string = "csharp";
 
-    setup(context: VisualizationPluginContext): void {
+    setup(context: HelvegPluginContext): void {
         context.dataOptions.defaultIcons[EntityKind.Solution] = "csharp:Solution";
         context.dataOptions.defaultIcons[EntityKind.Project] = "csharp:CSProjectNode";
         context.dataOptions.defaultIcons[EntityKind.ExternalDependencySource] = "csharp:ReferenceGroup";

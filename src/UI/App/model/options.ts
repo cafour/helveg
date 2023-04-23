@@ -13,6 +13,7 @@ export const DEFAULT_DATA_OPTIONS: DataOptions = {
     selectedKinds: [],
     defaultIcons: {},
     fallbackIcon: DEFAULT_GLYPH_ICON_NAME,
+    selectedRelations: ["declares"]
 }
 
 export interface GlyphOptions {

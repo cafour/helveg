@@ -1,7 +1,7 @@
 import Graph from "graphology";
 import type { GraphNode } from "./multigraph";
 import { DEFAULT_DATA_OPTIONS, DEFAULT_EXPORT_OPTIONS, DEFAULT_GLYPH_OPTIONS, DEFAULT_LAYOUT_OPTIONS, type DataOptions, type ExportOptions, type GlyphOptions, type LayoutOptions } from "./options";
-import type { VisualizationPlugin, VisualizationPluginContext } from "./plugin";
+import type { HelvegPlugin, HelvegPluginContext } from "./plugin";
 import { EMPTY_MODEL, type VisualizationModel } from "./visualization";
 import { Sigma } from "sigma";
 import { ForceAtlas2Supervisor, type ForceAtlas2Progress } from "layout/forceAltas2Supervisor";
@@ -29,8 +29,8 @@ export class StructuralState {
     exportOptions: ExportOptions = { ...DEFAULT_EXPORT_OPTIONS };
     status: StructuralStatus = StructuralStatus.Stopped;
 
-    applyPlugin(plugin: VisualizationPlugin) {
-        let context: VisualizationPluginContext = {
+    applyPlugin(plugin: HelvegPlugin) {
+        let context: HelvegPluginContext = {
             dataOptions: this.dataOptions,
             glyphOptions: this.glyphOptions
         };
@@ -325,7 +325,7 @@ export class DefaultStructuralDiagram implements StructuralDiagram {
             return;
         }
 
-        DEBUG && console.log("Refreshing the graph.");
+        DEBUG && console.log(`Refreshing the graph to match the '${this._model.multigraph.label}' model.`);
         
         this._graph = initializeGraph(this._model, this._dataOptions);
         stylizeGraph(this._graph, this._model, this._styleRepository);
@@ -369,6 +369,10 @@ function initializeGraph(
 
     for (const relationId in dataOptions.selectedRelations) {
         const relation = model.multigraph.relations[relationId];
+        if (!relation) {
+            continue;
+        }
+
         for (const edge of relation.edges) {
             try {
                 graph.addDirectedEdge(edge.src, edge.dst);

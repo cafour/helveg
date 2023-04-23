@@ -1,9 +1,3 @@
-import "./styles/helveg.scss";
-import App from "./components/App.svelte";
+import { initializeGlobal } from "model/global";
 
-const app = new App({
-    target: document.getElementById("app")!,
-    hydrate: false
-});
-
-export default app;
+initializeGlobal();
