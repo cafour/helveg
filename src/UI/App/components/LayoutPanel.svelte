@@ -7,7 +7,7 @@
     import Subpanel from "./Subpanel.svelte";
     import KeyValueList from "./KeyValueList.svelte";
 
-    export let options: LayoutOptions;
+    export let layoutOptions: LayoutOptions;
     export let status: StructuralStatus;
     export let stats: StructuralDiagramStats;
 

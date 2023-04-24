@@ -104,25 +104,26 @@ export default class CSharpPlugin implements HelvegPlugin {
     name: string = "csharp";
 
     setup(context: HelvegPluginContext): void {
-        context.dataOptions.defaultIcons[EntityKind.Solution] = "csharp:Solution";
-        context.dataOptions.defaultIcons[EntityKind.Project] = "csharp:CSProjectNode";
-        context.dataOptions.defaultIcons[EntityKind.ExternalDependencySource] = "csharp:ReferenceGroup";
-        context.dataOptions.defaultIcons[EntityKind.Framework] = "csharp:Framework";
-        context.dataOptions.defaultIcons[EntityKind.Package] = "csharp:Package";
-        context.dataOptions.defaultIcons[EntityKind.AssemblyDependency] = "csharp:Reference";
-        context.dataOptions.defaultIcons[EntityKind.AssemblyDefinition] = "csharp:Assembly";
-        context.dataOptions.defaultIcons[EntityKind.ModuleDefinition] = "csharp:Module";
-        context.dataOptions.defaultIcons[EntityKind.NamespaceDefinition] = "csharp:Namespace";
-        context.dataOptions.defaultIcons[EntityKind.TypeDefinition] = "csharp:Class";
-        context.dataOptions.defaultIcons[EntityKind.TypeParameterDefinition] = "csharp:Type";
-        context.dataOptions.defaultIcons[EntityKind.FieldDefinition] = "csharp:Field";
-        context.dataOptions.defaultIcons[EntityKind.MethodDefinition] = "csharp:Method";
-        context.dataOptions.defaultIcons[EntityKind.PropertyDefinition] = "csharp:Property";
-        context.dataOptions.defaultIcons[EntityKind.EventDefinition] = "csharp:Event";
-        context.dataOptions.defaultIcons[EntityKind.ParameterDefinition] = "csharp:LocalVariable";
+        // context.dataOptions.defaultIcons[EntityKind.Solution] = "csharp:Solution";
+        // context.dataOptions.defaultIcons[EntityKind.Project] = "csharp:CSProjectNode";
+        // context.dataOptions.defaultIcons[EntityKind.ExternalDependencySource] = "csharp:ReferenceGroup";
+        // context.dataOptions.defaultIcons[EntityKind.Framework] = "csharp:Framework";
+        // context.dataOptions.defaultIcons[EntityKind.Package] = "csharp:Package";
+        // context.dataOptions.defaultIcons[EntityKind.AssemblyDependency] = "csharp:Reference";
+        // context.dataOptions.defaultIcons[EntityKind.AssemblyDefinition] = "csharp:Assembly";
+        // context.dataOptions.defaultIcons[EntityKind.ModuleDefinition] = "csharp:Module";
+        // context.dataOptions.defaultIcons[EntityKind.NamespaceDefinition] = "csharp:Namespace";
+        // context.dataOptions.defaultIcons[EntityKind.TypeDefinition] = "csharp:Class";
+        // context.dataOptions.defaultIcons[EntityKind.TypeParameterDefinition] = "csharp:Type";
+        // context.dataOptions.defaultIcons[EntityKind.FieldDefinition] = "csharp:Field";
+        // context.dataOptions.defaultIcons[EntityKind.MethodDefinition] = "csharp:Method";
+        // context.dataOptions.defaultIcons[EntityKind.PropertyDefinition] = "csharp:Property";
+        // context.dataOptions.defaultIcons[EntityKind.EventDefinition] = "csharp:Event";
+        // context.dataOptions.defaultIcons[EntityKind.ParameterDefinition] = "csharp:LocalVariable";
 
         let plugin = this;
         let glyphStyle = <GlyphStyle>{
+            name: "csharp:Entity",
             apply(node: GraphNode) {
                 if (!(Object.values(EntityKind).includes(node.properties["Kind"] as EntityKind))) {
                     return;
@@ -135,25 +136,26 @@ export default class CSharpPlugin implements HelvegPlugin {
                 };
             }
         }
+        context.styles["csharp:Entity"] = glyphStyle;
 
-        for (const kind of Object.values(EntityKind)) {
-            context.glyphOptions.styles[kind] = glyphStyle;
-            context.dataOptions.kinds.push(kind);
-        }
+        // for (const kind of Object.values(EntityKind)) {
+        //     context.glyphOptions.styles[kind] = glyphStyle;
+        //     context.dataOptions.kinds.push(kind);
+        // }
 
-        context.dataOptions.selectedKinds.push(
-            EntityKind.Solution,
-            EntityKind.Project,
-            EntityKind.Framework,
-            EntityKind.ExternalDependencySource,
-            EntityKind.Package,
-            EntityKind.NamespaceDefinition,
-            EntityKind.TypeDefinition,
-            EntityKind.TypeParameterDefinition,
-            EntityKind.FieldDefinition,
-            EntityKind.MethodDefinition,
-            EntityKind.PropertyDefinition,
-            EntityKind.EventDefinition);
+        // context.dataOptions.selectedKinds.push(
+        //     EntityKind.Solution,
+        //     EntityKind.Project,
+        //     EntityKind.Framework,
+        //     EntityKind.ExternalDependencySource,
+        //     EntityKind.Package,
+        //     EntityKind.NamespaceDefinition,
+        //     EntityKind.TypeDefinition,
+        //     EntityKind.TypeParameterDefinition,
+        //     EntityKind.FieldDefinition,
+        //     EntityKind.MethodDefinition,
+        //     EntityKind.PropertyDefinition,
+        //     EntityKind.EventDefinition);
     }
 
     private resolveBaseStyle(props: CSharpNodeProperties): Partial<NodeStyle> {
@@ -254,8 +256,8 @@ export default class CSharpPlugin implements HelvegPlugin {
                 let staticCount = props.StaticMemberCount ?? 0;
                 base.outlines = [
                     { style: props.IsStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 1 },
-                    { style: OutlineStyle.Solid, width: Math.max(1, Math.sqrt(instanceCount)) },
-                    { style: OutlineStyle.Dashed, width: Math.max(1, Math.sqrt(staticCount)) }
+                    { style: OutlineStyle.Solid, width: Math.max(1, instanceCount) },
+                    { style: OutlineStyle.Dashed, width: Math.max(1, staticCount) }
                 ];
                 break;
             case EntityKind.TypeParameterDefinition:

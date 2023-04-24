@@ -1,5 +1,4 @@
-import { readable, type Readable } from "svelte/store";
-import { loadJsonScripts } from "./data";
+import { HelvegEvent } from "common/event";
 
 export enum IconFormat {
     Unknown = "Unknown",
@@ -36,57 +35,68 @@ const FALLBACK_ICON_SOURCE =
 `
 
 export const FALLBACK_ICON: Icon = {
-    name: "base:Fallback",
+    name: "Fallback",
     data: FALLBACK_ICON_SOURCE,
     format: IconFormat.Svg
 };
 
-export async function loadIcons(): Promise<Record<string, IconSet>> {
-    let result: Record<string, IconSet> = {};
-    let iconSets = await loadJsonScripts<IconSet>("script.helveg-icons");
-    iconSets.forEach(s => result[s.namespace] = s);
-    return result;
-}
+export class IconRegistry {
+    private sets: Record<string, IconSet> = {};
+    private _setAdded = new HelvegEvent<string>("helveg.IconRegistry.setAdded", true);
 
-export function getIcon(name: string, options?: IconOptions): Icon {
-    options = {...DEFAULT_ICON_OPTIONS, ...options};
-
-    if (name === FALLBACK_ICON.name) {
-        return cloneIcon(FALLBACK_ICON, options);
+    register(set: IconSet) {
+        if (this.sets[set.namespace]) {
+            throw new Error(`Icon set with namespace '${set.namespace}' already registered.`);
+        }
+        this.sets[set.namespace] = set;
+        this.setAdded.trigger(set.namespace);
     }
 
-    if (DEBUG && !helveg.iconSets) {
-        console.debug("")
-    }
+    get(name: string, options?: IconOptions): Icon {
+        options = { ...DEFAULT_ICON_OPTIONS, ...options };
 
-    let segments = name.split(":", 2);
-    let namespace = segments[0];
-    let iconName = segments[1];
-    let iconSet = helveg.iconSets[namespace];
-    let icon: Icon | null = null;
-    if (!iconSet) {
-        console.warn(`Icon set for namespace '${namespace}' could not be found. Using fallback icon.`)
-        icon = FALLBACK_ICON;
-    }
-    else {
-        icon = structuredClone(iconSet.icons[iconName]);
-        if (!icon) {
-            console.warn(`Icon '${name}' could not be found. Using fallback icon.`);
+        if (name === FALLBACK_ICON.name) {
+            return cloneIcon(FALLBACK_ICON, options);
+        }
+
+        let segments = name.split(":", 2);
+        let namespace = segments[0];
+        let iconName = segments[1];
+        let iconSet = this.sets[namespace];
+        let icon: Icon | null = null;
+        if (!iconSet) {
+            console.warn(`Icon set for namespace '${namespace}' could not be found. Using fallback icon.`)
             icon = FALLBACK_ICON;
         }
+        else {
+            icon = structuredClone(iconSet.icons[iconName]);
+            if (!icon) {
+                console.warn(`Icon '${name}' could not be found. Using fallback icon.`);
+                icon = FALLBACK_ICON;
+            }
+        }
+
+        if (icon.format === IconFormat.Svg) {
+            icon.data = cloneSvgIcon(icon.data, options ?? { removeTitle: true });
+        }
+        return icon;
     }
 
-    if (icon.format === IconFormat.Svg) {
-        icon.data = cloneSvgIcon(icon.data, options ?? { removeTitle: true });
+    getIconDataUrl(name: string, options?: IconOptions): string {
+        let icon = this.get(name, options);
+        switch (icon.format) {
+            case IconFormat.Svg:
+                return svgToDataURI(icon.data);
+            case IconFormat.Png:
+                return `data:image/png,${icon.data}`;
+            default:
+                throw new Error(`IconFormat '${icon.format}' is not supported.`);
+        }
     }
-    return icon;
-}
-
-export function getIconReadable(name: string, options?: IconOptions): Readable<Icon> {
-    return readable(getIcon(name, options), set => {
-        helveg.iconsLoaded.subscribe(() => set(getIcon(name, options)));
-        return () => { };
-    });
+    
+    get setAdded() {
+        return this._setAdded;
+    }
 }
 
 function removeIconTitle(svg: Document) {
@@ -94,11 +104,11 @@ function removeIconTitle(svg: Document) {
 }
 
 function setIconSize(svg: Document, options: IconOptions): string {
-    if(options.viewBoxOnly) {
+    if (options.viewBoxOnly) {
         svg.documentElement.removeAttribute("width");
         svg.documentElement.removeAttribute("height");
     }
-    
+
     if (options.width && !svg.documentElement.hasAttribute("width")) {
         svg.documentElement.setAttribute("width", options.width.toString());
     }
@@ -168,14 +178,3 @@ function svgToDataURI(svg: string): string {
     return svg;
 }
 
-export function getIconDataUrl(name: string, options?: IconOptions): string {
-    let icon = getIcon(name, options);
-    switch (icon.format) {
-        case IconFormat.Svg:
-            return svgToDataURI(icon.data);
-        case IconFormat.Png:
-            return `data:image/png,${icon.data}`;
-        default:
-            throw new Error(`IconFormat '${icon.format}' is not supported.`);
-    }
-}

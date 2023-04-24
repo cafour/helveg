@@ -4,7 +4,7 @@
     import Subpanel from "./Subpanel.svelte";
     import type { DataOptions } from "model/options";
 
-    export let options: DataOptions;
+    export let dataOptions: DataOptions;
 </script>
 
 <Panel name="Data" indent={false}>
@@ -13,14 +13,14 @@
         <button on:click={() => {}} class="button-stretch">Refresh Diagram</button>
     </div>
     <Subpanel name="IncludedKinds">
-        {#each options.kinds as kind}
+        {#each dataOptions.kinds as kind}
             <label>
                 <input
                     type="checkbox"
-                    bind:group={options.selectedKinds}
+                    bind:group={dataOptions.selectedKinds}
                     value={kind}
                 />
-                <Icon name={options.defaultIcons[kind] ?? options.fallbackIcon} />
+                <Icon name={dataOptions.defaultIcons[kind] ?? dataOptions.fallbackIcon} />
                 {kind}
             </label>
         {/each}

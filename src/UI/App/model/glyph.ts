@@ -43,7 +43,7 @@ export function floatOutlineStyles(outlines: Outlines): number {
     if (!outlines) {
         return 0;
     }
-    
+
     let s0 = outlines[0]?.style ?? OutlineStyle.Solid;
     let s1 = outlines[1]?.style ?? OutlineStyle.Solid;
     let s2 = outlines[2]?.style ?? OutlineStyle.Solid;
@@ -72,10 +72,13 @@ export interface NodeStyle {
 }
 
 export interface GlyphStyle {
+    name: string;
     apply(node: GraphNode): NodeStyle;
 }
 
 export class StaticGlyphStyle implements GlyphStyle {
+    name: string = "Fallback";
+
     constructor(public style: NodeStyle) {
     }
 
@@ -86,22 +89,31 @@ export class StaticGlyphStyle implements GlyphStyle {
 
 export const FALLBACK_ICON_NAME = "base:PolarChart";
 
-export class GlyphStyleRepository {
-    fallbackStyle: NodeStyle = {
-        size: 5,
-        color: "#202020",
-        icon: FALLBACK_ICON_NAME,
-        outlines: []
-    };
-    styles: Record<string, GlyphStyle> = {};
-    
-    getNodeStyle(node: GraphNode): NodeStyle {
-        let kind = node.properties["Kind"];
-        let style = this.styles[kind];
-        if (style) {
-            return style.apply(node);
+export const FALLBACK_STYLE = new StaticGlyphStyle({
+    size: 5,
+    color: "#202020",
+    icon: FALLBACK_ICON_NAME,
+    outlines: []
+});
+
+export class GlyphStyleRegistry {
+    private styles: Record<string, GlyphStyle> = {};
+
+    register(style: GlyphStyle): void {
+        if (this.styles[style.name]) {
+            throw new Error(`The registry already contains a style named '${style.name}'.`);
         }
 
-        return this.fallbackStyle;
+        this.styles[style.name] = style;
+    }
+
+    get(styleName: string): GlyphStyle {
+        let style = this.styles[styleName];
+        if (!style) {
+            DEBUG && console.log(`Could not find the '${styleName}' style.`);
+            return FALLBACK_STYLE;
+        }
+
+        return style;
     }
 }

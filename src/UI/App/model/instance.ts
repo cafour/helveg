@@ -1,36 +1,36 @@
 import { HelvegEvent } from "common/event";
 import { loadJsonScripts } from "./data";
-import { loadIcons, type IconSet } from "./icons";
-import { EMPTY_MODEL as emptyModel, type VisualizationModel } from "./visualization";
-import { GlyphStyleRepository } from "./glyph";
+import type { IconSet } from "./icons";
+import { EMPTY_MODEL, type VisualizationModel } from "./visualization";
+import { GlyphStyleRegistry } from "./glyph";
 import App from "components/App.svelte";
 import { HelvegPluginRegistry } from "./plugin";
+import { IconRegistry } from "./icons";
+import { DEFAULT_HELVEG_OPTIONS, type HelvegOptions } from "./options";
 
 export interface HelvegInstance {
-    glyphStyleRepository: GlyphStyleRepository;
-    iconSets: Record<string, IconSet>;
     model: VisualizationModel;
-    modelLoaded: HelvegEvent<void>;
-    iconsLoaded: HelvegEvent<void>;
+    loaded: HelvegEvent<VisualizationModel>;
+    styles: GlyphStyleRegistry;
+    icons: IconRegistry;
     app: App | null;
     plugins: HelvegPluginRegistry;
+    options: HelvegOptions;
 };
 
-/**
- * An interface to be used to extend the `helveg` global object;
- */
-export interface HelvegExtensions {
-}
-
 export function createInstance(): HelvegInstance {
+    let iconRegistry = new IconRegistry();
+    let styleRegistry = new GlyphStyleRegistry();
+    let pluginRegistry = new HelvegPluginRegistry(iconRegistry, styleRegistry);
+
     return <HelvegInstance>{
-        glyphStyleRepository: new GlyphStyleRepository(),
-        iconSets: {},
-        model: emptyModel,
-        modelLoaded: new HelvegEvent<void>("helveg.modelLoaded", true),
-        iconsLoaded: new HelvegEvent<void>("helveg.iconsLoaded", true),
+        model: EMPTY_MODEL,
+        loaded: new HelvegEvent<VisualizationModel>("helveg.loaded", true),
+        styles: styleRegistry,
+        icons: iconRegistry,
+        plugins: pluginRegistry,
         app: null,
-        plugins: new HelvegPluginRegistry()
+        options: DEFAULT_HELVEG_OPTIONS
     };
 }
 
@@ -44,19 +44,28 @@ export async function initializeInstance(instance: HelvegInstance): Promise<void
     });
 
     let iconSets = await loadIcons();
+    for (let namespace in iconSets) {
+        instance.icons.register(iconSets[namespace]);
+    }
+
     let dataCandidates = await loadJsonScripts<VisualizationModel>("script#helveg-data");
     let model: VisualizationModel | null = null;
     if (dataCandidates.length === 0) {
         console.warn("No data found. Using empty visualization model.");
-        model = emptyModel;
+        model = EMPTY_MODEL;
     }
     else {
         model = dataCandidates[0];
-        DEBUG && console.log("Model loaded.");
+        DEBUG && console.log(`Model '${model.multigraph.label}' loaded.`);
     }
 
-    instance.iconSets = iconSets;
-    instance.iconsLoaded.trigger();
     instance.model = model;
-    instance.modelLoaded.trigger();
+    instance.loaded.trigger(model);
+}
+
+export async function loadIcons(): Promise<Record<string, IconSet>> {
+    let result: Record<string, IconSet> = {};
+    let iconSets = await loadJsonScripts<IconSet>("script.helveg-icons");
+    iconSets.forEach(s => result[s.namespace] = s);
+    return result;
 }

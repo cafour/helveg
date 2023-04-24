@@ -1,19 +1,35 @@
 <script lang="ts">
     import type { VisualizationModel } from "model/visualization";
-    import { StructuralStatus, DefaultStructuralDiagram, type StructuralDiagram } from "model/structural";
+    import { StructuralStatus, StructuralDiagram, type AbstractStructuralDiagram, type StructuralDiagramStats } from "model/structural";
     import Icon from "./Icon.svelte";
-    import { readable } from "svelte/store";
-    import type { ExportOptions } from "model/options";
+    import type { DataOptions, ExportOptions, GlyphOptions, HelvegOptions, LayoutOptions } from "model/options";
+    import { getContext } from "svelte";
+    import type { HelvegInstance } from "model/instance";
 
     export let model: VisualizationModel;
+    export let dataOptions: DataOptions;
+    export let layoutOptions: LayoutOptions;
+    export let glyphOptions: GlyphOptions;
 
-    let diagram: StructuralDiagram = new DefaultStructuralDiagram(helveg.glyphStyleRepository);
+    let instance = getContext<HelvegInstance>("helveg");
+    let diagram: AbstractStructuralDiagram = new StructuralDiagram(instance);
 
-    export const status = readable(diagram.status, set => {
-        diagram.statusChanged.subscribe(set);
+    export let status: StructuralStatus = StructuralStatus.Stopped;
+    export let stats: StructuralDiagramStats = {
+        iterationCount: 0,
+        speed: 0
+    };
+    export let selectedNodeId: string | null = null;
+
+    diagram.statusChanged.subscribe(s => {
+        status = s;
     });
-    export const stats = readable(diagram.stats, set => {
-        diagram.statsChanged.subscribe(set);
+    diagram.statsChanged.subscribe(s => {
+        DEBUG && console.log("Stats changed", s);
+        stats = s;
+    });
+    diagram.nodeSelected.subscribe(n => {
+        selectedNodeId = n;
     });
 
     let diagramElement: HTMLElement | null = null;
@@ -24,6 +40,10 @@
     $: if (!model.isEmpty) {
         resetLayout();
     }
+
+    $: diagram.dataOptions = dataOptions;
+    $: diagram.layoutOptions = layoutOptions;
+    $: diagram.glyphOptions = glyphOptions;
 
     export function resetLayout() {
         return diagram.resetLayout();
@@ -45,7 +65,7 @@
 <div
     bind:this={loadingScreenElement}
     class="loading-screen w-100p overflow-hidden h-100p absolute z-1 flex flex-col align-items-center justify-content-center bg-surface-50"
-    class:hidden={$status !== StructuralStatus.RunningInBackground}
+    class:hidden={status !== StructuralStatus.RunningInBackground}
 >
     <div class="w-32 h-32">
         <Icon name="Fallback" />

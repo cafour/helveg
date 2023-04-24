@@ -7,13 +7,14 @@ import { Sigma } from "sigma";
 import { ForceAtlas2Supervisor, type ForceAtlas2Progress } from "layout/forceAltas2Supervisor";
 import { IconAtlas } from "rendering/iconAtlas";
 import { HelvegEvent } from "common/event";
-import { OutlineStyle, getOutlinesTotalWidth, type Outlines, type GlyphStyle, GlyphStyleRepository } from "./glyph";
+import { OutlineStyle, getOutlinesTotalWidth, type Outlines, type GlyphStyle, GlyphStyleRegistry } from "./glyph";
 import type { SigmaNodeEventPayload } from "sigma/sigma";
 import { createGlyphProgram, type GlyphProgramOptions } from "rendering/node.glyph";
 import forceAtlas2 from "graphology-layout-forceatlas2";
-import type { NodeProgramConstructor } from "sigma/rendering/webgl/programs/common/node";
+import type { NodeProgram, NodeProgramConstructor } from "sigma/rendering/webgl/programs/common/node";
 import { exportDiagram } from "rendering/export";
 import tidyTree from "layout/tidyTree";
+import type { HelvegInstance } from "./instance";
 
 export enum StructuralStatus {
     Stopped,
@@ -21,30 +22,12 @@ export enum StructuralStatus {
     RunningInBackground
 }
 
-export class StructuralState {
-    selectedNode: GraphNode | null = null;
-    dataOptions: DataOptions = { ...DEFAULT_DATA_OPTIONS };
-    glyphOptions: GlyphOptions = { ...DEFAULT_GLYPH_OPTIONS };
-    layoutOptions: LayoutOptions = { ...DEFAULT_LAYOUT_OPTIONS };
-    exportOptions: ExportOptions = { ...DEFAULT_EXPORT_OPTIONS };
-    status: StructuralStatus = StructuralStatus.Stopped;
-
-    applyPlugin(plugin: HelvegPlugin) {
-        let context: HelvegPluginContext = {
-            dataOptions: this.dataOptions,
-            glyphOptions: this.glyphOptions
-        };
-
-        plugin.setup(context);
-    }
-}
-
 export interface StructuralDiagramStats {
     iterationCount: number;
     speed: number;
 }
 
-export interface StructuralDiagram {
+export interface AbstractStructuralDiagram {
     get element(): HTMLElement | null;
     set element(value: HTMLElement | null);
 
@@ -78,12 +61,11 @@ export interface StructuralDiagram {
 /**
  * An implementation of StructuralDiagram that is tied to an HTMLElement but not to a specific UI framework.
  */
-export class DefaultStructuralDiagram implements StructuralDiagram {
+export class StructuralDiagram implements AbstractStructuralDiagram {
     private _element: HTMLElement | null = null;
     private _model: VisualizationModel = EMPTY_MODEL;
     private _dataOptions: DataOptions = DEFAULT_DATA_OPTIONS;
     private _glyphOptions: GlyphOptions = DEFAULT_GLYPH_OPTIONS
-    private _styleRepository: GlyphStyleRepository;
     private _layoutOptions: LayoutOptions = DEFAULT_LAYOUT_OPTIONS;
     private _status: StructuralStatus = StructuralStatus.Stopped;
     private _statusChanged: HelvegEvent<StructuralStatus>
@@ -101,17 +83,19 @@ export class DefaultStructuralDiagram implements StructuralDiagram {
     private _graph: Graph | null = null;
     private _sigma: Sigma | null = null;
     private _supervisor: ForceAtlas2Supervisor | null = null;
-    private _iconAtlas: IconAtlas = new IconAtlas();
-    private _glyphProgramOptions: GlyphProgramOptions = {
-        gap: 0.5,
-        iconAtlas: this._iconAtlas,
-        showIcons: true,
-        showOutlines: true
-    };
-    private _glyphProgram = createGlyphProgram(this._glyphProgramOptions);
+    private _iconAtlas: IconAtlas;
+    private _glyphProgramOptions: GlyphProgramOptions;
+    private _glyphProgram: NodeProgramConstructor;
 
-    constructor(styleRepository: GlyphStyleRepository) {
-        this._styleRepository = styleRepository;
+    constructor(private _instance: HelvegInstance) {
+        this._iconAtlas = new IconAtlas(this._instance.icons);
+        this._glyphProgramOptions = {
+            gap: 0.5,
+            iconAtlas: this._iconAtlas,
+            showIcons: true,
+            showOutlines: true
+        };
+        this._glyphProgram = createGlyphProgram(this._glyphProgramOptions);
     }
 
     save(options?: ExportOptions): void {
@@ -124,7 +108,7 @@ export class DefaultStructuralDiagram implements StructuralDiagram {
             DEBUG && console.warn("Cannot save since the sigma instance is not initialized.")
             return;
         }
-        
+
         DEBUG && console.log("Saving the diagram.");
 
         options = { ...DEFAULT_EXPORT_OPTIONS, ...options };
@@ -146,9 +130,13 @@ export class DefaultStructuralDiagram implements StructuralDiagram {
         }
 
         DEBUG && console.log("Resetting the layout.");
-        
+
         if (this._supervisor?.isRunning) {
             await this.stopLayout();
+        }
+        if (this._supervisor) {
+            this._supervisor.kill();
+            this._supervisor = initializeSupervisor(this._graph, this.onSupervisorProgress.bind(this));
         }
 
         // TODO: add a setting for roots
@@ -161,7 +149,7 @@ export class DefaultStructuralDiagram implements StructuralDiagram {
         if (solutionRoot) {
             tidyTree(this._graph, solutionRoot, 1000);
         }
-        
+
         if (this._sigma) {
             this._sigma.scheduleRefresh();
         }
@@ -201,7 +189,7 @@ export class DefaultStructuralDiagram implements StructuralDiagram {
         }
 
         DEBUG && console.log("Stopping the layout.");
-        
+
         if (this._supervisor?.isRunning) {
             await this._supervisor.stop();
             this.status = StructuralStatus.Stopped;
@@ -309,14 +297,14 @@ export class DefaultStructuralDiagram implements StructuralDiagram {
         if (!this._element || !this._graph) {
             return;
         }
-        
+
         DEBUG && console.log("Refreshing the sigma instance.");
 
         if (this._sigma) {
             this._sigma.kill();
         }
 
-        this._sigma = initializeSigma(this._element, this._graph, this._glyphProgram, this.onNodeClick);
+        this._sigma = initializeSigma(this._element, this._graph, this._glyphProgram, this.onNodeClick.bind(this));
         configureSigma(this._sigma, this._glyphOptions);
     }
 
@@ -326,10 +314,10 @@ export class DefaultStructuralDiagram implements StructuralDiagram {
         }
 
         DEBUG && console.log(`Refreshing the graph to match the '${this._model.multigraph.label}' model.`);
-        
+
         this._graph = initializeGraph(this._model, this._dataOptions);
-        stylizeGraph(this._graph, this._model, this._styleRepository);
-        
+        stylizeGraph(this._graph, this._model, this._instance.styles);
+
         if (this._supervisor) {
             this._supervisor.kill();
             this._supervisor = null;
@@ -337,7 +325,7 @@ export class DefaultStructuralDiagram implements StructuralDiagram {
 
         this._sigma?.setGraph(this._graph);
 
-        this._supervisor = initializeSupervisor(this._graph, this.onSupervisorProgress);
+        this._supervisor = initializeSupervisor(this._graph, this.onSupervisorProgress.bind(this));
     }
 
     private onNodeClick(event: SigmaNodeEventPayload): void {
@@ -363,7 +351,8 @@ function initializeGraph(
         graph.addNode(nodeId, {
             label: node.label || nodeId,
             x: 0,
-            y: 0
+            y: 0,
+            style: "csharp:Entity"
         });
     }
 
@@ -385,21 +374,41 @@ function initializeGraph(
     return graph;
 }
 
-function stylizeGraph(graph: Graph, model: VisualizationModel, styleRepository: GlyphStyleRepository) {
+function stylizeGraph(graph: Graph, model: VisualizationModel, styleRepository: GlyphStyleRegistry) {
     graph.forEachNode((node, attributes) => {
-        const style = styleRepository.getNodeStyle(model.multigraph.nodes[node]);
+        if (!attributes.style) {
+            DEBUG && console.log(`Node '${node}' is missing a style attribute.`);
+            return;
+        }
+
+        if (!model.multigraph.nodes[node]) {
+            DEBUG && console.log(`Node '${node}' does not exist in the model.`);
+            return;
+        }
+
+        const glyphStyle = styleRepository.get(attributes.style);
+        if (!glyphStyle) {
+            DEBUG && console.log(`Glyph style '${attributes.style}' could not be found.`);
+            return;
+        }
+
+        const nodeStyle = glyphStyle.apply(model.multigraph.nodes[node]);
+        if (!nodeStyle) {
+            DEBUG && console.log(`Glyph style '${attributes.style}' could not be applied to node '${node}'.`);
+            return;
+        }
 
         const outlines = [
-            { width: style.size, style: OutlineStyle.Solid },
-            ...style.outlines.slice(0, 3),
+            { width: nodeStyle.size, style: OutlineStyle.Solid },
+            ...nodeStyle.outlines.slice(0, 3),
         ] as Outlines;
         attributes.size = outlines.length > 0
             ? getOutlinesTotalWidth(outlines)
-            : style.size;
-        attributes.iconSize = style.size;
-        attributes.color = style.color;
+            : nodeStyle.size;
+        attributes.iconSize = nodeStyle.size;
+        attributes.color = nodeStyle.color;
         attributes.type = "glyph";
-        attributes.icon = style.icon;
+        attributes.icon = nodeStyle.icon;
         attributes.outlines = outlines;
     });
 }

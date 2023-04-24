@@ -2,7 +2,7 @@
 /// https://github.com/Yomguithereal/sigma-experiments/blob/master/renderers/src/node/node.pictogram.ts
 
 import { HelvegEvent } from "common/event";
-import { getIconDataUrl } from "model/icons";
+import type { IconRegistry } from "model/icons";
 
 export interface IconAtlasOptions {
     iconSize: number;
@@ -52,7 +52,7 @@ export class IconAtlas {
     private writePositionY = 0;
     private pendingImages: PendingImage[] = [];
 
-    constructor(options?: IconAtlasOptions) {
+    constructor(private iconRegistry: IconRegistry, options?: IconAtlasOptions) {
         this.options = { ...DEFAULT_OPTIONS, ...options };
         this.id = ++IconAtlas.atlasId;
         this.width = this.options.iconSize;
@@ -93,7 +93,7 @@ export class IconAtlas {
             console.error(`Failed to load ${image.id}.`);
         });
         image.setAttribute("crossorigin", "");
-        image.src = getIconDataUrl(name, {
+        image.src = this.iconRegistry.getIconDataUrl(name, {
             width: this.options.iconSize,
             height: this.options.iconSize });
         return true;
