@@ -230,6 +230,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
             if (filter === null) {
                 this._glyphProgramOptions.diagramMode = StructuralDiagramMode.Normal;
                 this._graph.forEachNode((_, a) => a.highlighted = undefined);
+                this._sigma?.refresh();
                 return;
             }
 
@@ -240,6 +241,8 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
                     this._graph.setNodeAttribute(id, "highlighted", filter!(node));
                 }
             });
+            
+            this._sigma?.refresh();
         }
         catch (e: any) {
             this._instance.logger.warn(e?.message 
