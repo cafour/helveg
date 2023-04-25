@@ -4,12 +4,14 @@ import type { NodeDisplayData, RenderParams } from "sigma/types";
 import { IconProgram } from "./node.icon";
 import type { Sigma } from "sigma";
 import { OutlinesProgram } from "./node.outlines";
+import type { StructuralDiagramMode } from "model/structural";
 
 export interface GlyphProgramOptions {
     showIcons: boolean;
     showOutlines: boolean;
     gap: number;
     iconAtlas: IconAtlas;
+    diagramMode: StructuralDiagramMode;
 }
 
 export function createGlyphProgram(options: GlyphProgramOptions): NodeProgramConstructor {
@@ -19,8 +21,8 @@ export function createGlyphProgram(options: GlyphProgramOptions): NodeProgramCon
 
         constructor(gl: WebGLRenderingContext, renderer: Sigma) {
             super(gl, renderer);
-            this.iconProgram = new IconProgram(gl, renderer, options.iconAtlas);
-            this.outlinesProgram = new OutlinesProgram(gl, renderer);
+            this.iconProgram = new IconProgram(gl, renderer, options);
+            this.outlinesProgram = new OutlinesProgram(gl, renderer, options);
         }
 
         process(offset: number, data: NodeDisplayData): void {

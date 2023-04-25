@@ -2,7 +2,7 @@
     import type { VisualizationModel } from "model/visualization";
     import { StructuralStatus, StructuralDiagram, type AbstractStructuralDiagram, type StructuralDiagramStats } from "model/structural";
     import Icon from "./Icon.svelte";
-    import type { DataOptions, ExportOptions, GlyphOptions, HelvegOptions, LayoutOptions } from "model/options";
+    import type { DataOptions, ExportOptions, GlyphOptions, HelvegOptions, LayoutOptions, SearchMode } from "model/options";
     import { getContext } from "svelte";
     import type { HelvegInstance } from "model/instance";
 
@@ -59,6 +59,10 @@
 
     export function save(options?: ExportOptions) {
         diagram.save(options);
+    }
+    
+    export function highlight(searchText: string | null, searchMode: SearchMode) {
+        diagram.highlight(searchText, searchMode);
     }
 </script>
 

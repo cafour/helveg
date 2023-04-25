@@ -1,6 +1,6 @@
 export enum AppIcons {
     DataPanel = "base:Database",
-    LayoutPanel = "base:ForceDirectedLayout",
+    LayoutPanel = "base:Diagram",
     GlyphsPanel = "base:PolarChart",
     PropertiesPanel = "base:ShowAllConfigurations",
     DocumentPanel = "base:Document",

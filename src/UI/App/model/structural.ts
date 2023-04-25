@@ -13,6 +13,8 @@ import type { NodeProgramConstructor } from "sigma/rendering/webgl/programs/comm
 import { exportDiagram } from "rendering/export";
 import tidyTree from "layout/tidyTree";
 import type { HelvegInstance } from "./instance";
+import { buildFilter } from "./filter";
+import type { NodeDisplayData } from "sigma/types";
 
 export enum StructuralStatus {
     Stopped,
@@ -23,6 +25,11 @@ export enum StructuralStatus {
 export interface StructuralDiagramStats {
     iterationCount: number;
     speed: number;
+}
+
+export enum StructuralDiagramMode {
+    Normal = "normal",
+    Highlighting = "highlighting"
 }
 
 export interface AbstractStructuralDiagram {
@@ -54,8 +61,17 @@ export interface AbstractStructuralDiagram {
     runLayout(inBackground: boolean): Promise<void>;
     stopLayout(): Promise<void>;
     save(options?: ExportOptions): void;
-    highlight(searchText: string, searchMode: SearchMode);
+    highlight(searchText: string | null, searchMode: SearchMode);
 }
+
+export interface HelvegNodeAttributes extends NodeDisplayData {
+    style: string;
+    icon: string;
+    iconSize: number;
+    outlines: Outlines;
+}
+
+type HelvegGraph = Graph<Partial<HelvegNodeAttributes>>;
 
 /**
  * An implementation of StructuralDiagram that is tied to an HTMLElement but not to a specific UI framework.
@@ -63,6 +79,7 @@ export interface AbstractStructuralDiagram {
 export class StructuralDiagram implements AbstractStructuralDiagram {
     private _element: HTMLElement | null = null;
     private _model: VisualizationModel = EMPTY_MODEL;
+    private _nodeKeys: string[] = [];
     private _dataOptions: DataOptions = DEFAULT_DATA_OPTIONS;
     private _glyphOptions: GlyphOptions = DEFAULT_GLYPH_OPTIONS
     private _layoutOptions: LayoutOptions = DEFAULT_LAYOUT_OPTIONS;
@@ -79,7 +96,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
     private _nodeSelected: HelvegEvent<string | null>
         = new HelvegEvent<string | null>("helveg.StructuralDiagram.nodeSelected");
 
-    private _graph: Graph | null = null;
+    private _graph: HelvegGraph | null = null;
     private _sigma: Sigma | null = null;
     private _supervisor: ForceAtlas2Supervisor | null = null;
     private _iconAtlas: IconAtlas;
@@ -92,7 +109,8 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
             gap: 0.5,
             iconAtlas: this._iconAtlas,
             showIcons: true,
-            showOutlines: true
+            showOutlines: true,
+            diagramMode: StructuralDiagramMode.Normal,
         };
         this._glyphProgram = createGlyphProgram(this._glyphProgramOptions);
     }
@@ -199,10 +217,30 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
         }
     }
 
-    highlight(searchText: string, searchMode: SearchMode) {
-        
+    highlight(searchText: string | null, searchMode: SearchMode) {
+        if (!this._graph) {
+            DEBUG && console.warn("Cannot highlight since the graph is not initialized.");
+            return;
+        }
+
+        let filter = buildFilter(searchText, searchMode, this._nodeKeys);
+        if (filter === null) {
+            this._glyphProgramOptions.diagramMode = StructuralDiagramMode.Normal;
+            this._graph.forEachNode((_, a) => a.highlighted = undefined);
+            return;
+        }
+
+        this._glyphProgramOptions.diagramMode = StructuralDiagramMode.Highlighting;
+        Object.entries(this._model.multigraph.nodes).forEach(([id, node]) => {
+            if (this._graph?.hasNode(id)) {
+                this._graph.setNodeAttribute(id, "highlighted", filter!(node));
+            }
+        });
+
+        DEBUG && console.log(`Highlighting ${this._graph.reduceNodes((count, _, attributes) => 
+            attributes.highlighted ? count + 1 : count, 0)} nodes.`);
     }
-    
+
     get element(): HTMLElement | null {
         return this._element;
     }
@@ -220,6 +258,10 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
         this._model = value;
         this.refreshGraph();
         this.refreshSigma();
+
+        this._nodeKeys = Object.values(this._model.multigraph.nodes)
+            .flatMap(n => Object.keys(n.properties))
+            .filter((v, i, a) => a.indexOf(v) === i);
     }
 
     get dataOptions(): DataOptions {
@@ -341,21 +383,26 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
             speed: message.speed
         };
     }
+
+    // private nodeReducer(node: HelvegNodeAttributes, data: HelvegNodeAttributes): Partial<NodeDisplayData> {
+
+    // }
 }
 
 function initializeGraph(
     model: VisualizationModel,
     dataOptions: DataOptions,
-): Graph {
+): HelvegGraph {
 
-    const graph = new Graph();
+    const graph = new Graph<Partial<HelvegNodeAttributes>>();
     for (const nodeId in model.multigraph.nodes) {
         const node = model.multigraph.nodes[nodeId];
         graph.addNode(nodeId, {
             label: node.label || nodeId,
             x: 0,
             y: 0,
-            style: "csharp:Entity"
+            style: "csharp:Entity",
+
         });
     }
 
@@ -416,12 +463,12 @@ function stylizeGraph(graph: Graph, model: VisualizationModel, styleRepository: 
     });
 }
 
-
 function initializeSigma(
     element: HTMLElement,
     graph: Graph,
     glyphProgram: NodeProgramConstructor,
-    onClick: (payload: SigmaNodeEventPayload) => void,
+    onClick?: (payload: SigmaNodeEventPayload) => void,
+    nodeReducer?: (node: string, data: Partial<HelvegNodeAttributes>) => Partial<HelvegNodeAttributes>
 ): Sigma {
 
     const sigma = new Sigma(graph, element, {
@@ -429,9 +476,17 @@ function initializeSigma(
             glyph: glyphProgram,
         },
         labelFont: "'Cascadia Mono', 'Consolas', monospace",
-        itemSizesReference: "positions",
+        itemSizesReference: "positions"
     });
-    sigma.on("clickNode", onClick);
+
+    if (onClick) {
+        sigma.on("clickNode", onClick);
+    }
+
+    if (nodeReducer) {
+        sigma.setSetting("nodeReducer", nodeReducer);
+    }
+
     return sigma;
 }
 

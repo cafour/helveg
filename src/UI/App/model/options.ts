@@ -1,13 +1,13 @@
 import { StaticGlyphStyle, type GlyphStyle, type Outline, OutlineStyle, FALLBACK_ICON_NAME as DEFAULT_GLYPH_ICON_NAME } from "./glyph";
 
 export enum SearchMode {
-    Contains,
-    Regex,
-    JavaScript
+    Contains = "contains",
+    Regex = "regex",
+    JavaScript = "js"
 }
 
 export interface DataOptions {
-    searchText: string;
+    searchText: string | null;
     searchMode: SearchMode;
     kinds: string[];
     selectedKinds: string[];
@@ -17,6 +17,8 @@ export interface DataOptions {
 }
 
 export const DEFAULT_DATA_OPTIONS: DataOptions = {
+    searchText: null,
+    searchMode: SearchMode.Contains,
     kinds: [],
     selectedKinds: [],
     defaultIcons: {},

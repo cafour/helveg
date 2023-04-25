@@ -17,6 +17,8 @@
     }
     .light &, &.light {
         svg {
+            color: var(--icon-light);
+
             path, g#outline path {
                 fill: var(--icon-light);
             }

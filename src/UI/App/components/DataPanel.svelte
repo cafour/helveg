@@ -1,5 +1,8 @@
 <script lang="ts">
-    import { select_multiple_value } from "svelte/internal";
+    import {
+        createEventDispatcher,
+        select_multiple_value,
+    } from "svelte/internal";
     import Icon from "./Icon.svelte";
     import Panel from "./Panel.svelte";
     import RadioGroup from "./RadioGroup.svelte";
@@ -25,14 +28,16 @@
     ];
     let selectedSearchMode: SearchMode = SearchMode.Contains;
     let searchText: string = "";
+
+    let dispatch = createEventDispatcher();
 </script>
 
 <Panel name="Data" indent={false}>
     <div class="indent">
         <em class="mb-16 block">This panel is currently non-functional.</em>
-        <button on:click={() => {}} class="button-stretch"
-            >Refresh Diagram</button
-        >
+        <button on:click={() => {}} class="button-stretch">
+            Refresh Diagram
+        </button>
     </div>
     <Subpanel name="Search">
         <div class="flex flex-row gap-4">
@@ -41,9 +46,19 @@
                 groupName="searchMode"
                 items={searchModes}
                 bind:selected={selectedSearchMode}
-                class=light
+                class="light"
             />
         </div>
+        <button
+            on:click={() =>
+                dispatch("highlight", {
+                    searchText: searchText,
+                    searchMode: selectedSearchMode,
+                })}
+            class="button-stretch mt-8"
+        >
+            Highlight
+        </button>
     </Subpanel>
     <!-- <Subpanel name="IncludedKinds">
         {#each dataOptions.kinds as kind}

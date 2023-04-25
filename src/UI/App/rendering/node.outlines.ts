@@ -6,25 +6,38 @@ import vertexShaderSource from "./node.outlines.vert";
 import fragmentShaderSource from "./node.outlines.frag";
 import { floatColor } from "sigma/utils";
 import { floatOutlineStyles, floatOutlineWidths, type Outlines } from "model/glyph";
-
-export interface OutlinesNodeDisplayData extends NodeDisplayData {
-    outlines: Outlines;
-}
+import { StructuralDiagramMode, type HelvegNodeAttributes } from "model/structural";
 
 const { UNSIGNED_BYTE, FLOAT } = WebGLRenderingContext;
 
 const UNIFORMS = ["u_sizeRatio", "u_pixelRatio", "u_matrix", "u_gap"];
 
-export default function createOutlinesProgram(gap: number = 0.5): NodeProgramConstructor {
+export interface OutlinesProgramOptions {
+    gap: number;
+    diagramMode: StructuralDiagramMode;
+}
+
+export const DEFAULT_OUTLINES_PROGRAM_OPTIONS: OutlinesProgramOptions = {
+    gap: 0,
+    diagramMode: StructuralDiagramMode.Normal
+};
+
+export default function createOutlinesProgram(options?: Partial<OutlinesProgramOptions>): NodeProgramConstructor {
+    if (options === undefined) {
+        options = DEFAULT_OUTLINES_PROGRAM_OPTIONS;
+    } else {
+        Object.assign(options, DEFAULT_OUTLINES_PROGRAM_OPTIONS);
+    }
+
     return class extends OutlinesProgram {
         constructor(gl: WebGLRenderingContext, renderer: Sigma) {
-            super(gl, renderer, gap);
+            super(gl, renderer, options as OutlinesProgramOptions);
         }
     };
 }
 
 export class OutlinesProgram extends NodeProgram<typeof UNIFORMS[number]> {
-    constructor(gl: WebGLRenderingContext, renderer: Sigma, private gap: number = 0.5) {
+    constructor(gl: WebGLRenderingContext, renderer: Sigma, private options: OutlinesProgramOptions) {
         super(gl, renderer);
     }
 
@@ -45,13 +58,16 @@ export class OutlinesProgram extends NodeProgram<typeof UNIFORMS[number]> {
         };
     }
 
-    processVisibleItem(i: number, data: OutlinesNodeDisplayData): void {
+    processVisibleItem(i: number, data: HelvegNodeAttributes): void {
         const array = this.array;
 
+        const useColor = this.options.diagramMode === StructuralDiagramMode.Normal
+            || data.highlighted === true;
+        
         array[i++] = data.x;
         array[i++] = data.y;
         array[i++] = data.size;
-        array[i++] = floatColor(data.color || "#000000");
+        array[i++] = floatColor(useColor ? data.color || "#000000" : "#aaaaaa");
         array[i++] = floatOutlineWidths(data.outlines);
         array[i++] = floatOutlineStyles(data.outlines);
     }
@@ -64,7 +80,7 @@ export class OutlinesProgram extends NodeProgram<typeof UNIFORMS[number]> {
         gl.uniform1f(u_sizeRatio, params.sizeRatio);
         gl.uniform1f(u_pixelRatio, params.pixelRatio);
         gl.uniformMatrix3fv(u_matrix, false, params.matrix);
-        gl.uniform1f(u_gap, this.gap);
+        gl.uniform1f(u_gap, this.options.gap);
 
         gl.drawArrays(gl.POINTS, 0, this.verticesCount);
     }
