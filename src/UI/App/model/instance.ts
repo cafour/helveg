@@ -7,6 +7,7 @@ import App from "components/App.svelte";
 import { HelvegPluginRegistry } from "./plugin";
 import { IconRegistry } from "./icons";
 import { DEFAULT_HELVEG_OPTIONS, type HelvegOptions } from "./options";
+import { Logger } from "./logger";
 
 export interface HelvegInstance {
     model: VisualizationModel;
@@ -16,6 +17,7 @@ export interface HelvegInstance {
     app: App | null;
     plugins: HelvegPluginRegistry;
     options: HelvegOptions;
+    logger: Logger;
 };
 
 export function createInstance(): HelvegInstance {
@@ -30,7 +32,8 @@ export function createInstance(): HelvegInstance {
         icons: iconRegistry,
         plugins: pluginRegistry,
         app: null,
-        options: DEFAULT_HELVEG_OPTIONS
+        options: DEFAULT_HELVEG_OPTIONS,
+        logger: new Logger()
     };
 }
 

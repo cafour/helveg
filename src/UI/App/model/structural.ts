@@ -233,13 +233,21 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
         }
 
         this._glyphProgramOptions.diagramMode = StructuralDiagramMode.Highlighting;
-        Object.entries(this._model.multigraph.nodes).forEach(([id, node]) => {
-            if (this._graph?.hasNode(id)) {
-                this._graph.setNodeAttribute(id, "highlighted", filter!(node));
-            }
-        });
+        try {
+            Object.entries(this._model.multigraph.nodes).forEach(([id, node]) => {
+                if (this._graph?.hasNode(id)) {
+                    this._graph.setNodeAttribute(id, "highlighted", filter!(node));
+                }
+            });
+        }
+        catch (e: any) {
+            this._instance.logger.warn(e?.message 
+                ?? e?.toString() 
+                ?? "Something bad happened while highlighting nodes.");
+            return;
+        }
 
-        DEBUG && console.log(`Highlighting ${this._graph.reduceNodes((count, _, attributes) => 
+        this._instance.logger.info(`Highlighting ${this._graph.reduceNodes((count, _, attributes) =>
             attributes.highlighted ? count + 1 : count, 0)} nodes.`);
     }
 
@@ -254,15 +262,23 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
             return;
         }
 
-        for (let id of filterNodes(this._model.multigraph, filter, true)) {
-            if (this._graph.hasNode(id)) {
-                this._graph.dropNode(id);
+        try {
+            for (let id of filterNodes(this._model.multigraph, filter, true)) {
+                if (this._graph.hasNode(id)) {
+                    this._graph.dropNode(id);
+                }
             }
         }
+        catch (e: any) {
+            this._instance.logger.warn(e?.message 
+                ?? e?.toString() 
+                ?? "Something bad happened while isolating nodes.");
+            return;
+        }
 
-        DEBUG && console.log(`Isolated ${this._graph.nodes().length} nodes.`);
+        this._instance.logger.info(`Isolated ${this._graph.nodes().length} nodes.`);
     }
-    
+
     async reset(): Promise<void> {
         this.refreshGraph();
         await this.resetLayout();
@@ -399,7 +415,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
         this._sigma?.setGraph(this._graph);
 
         this._supervisor = initializeSupervisor(this._graph, this.onSupervisorProgress.bind(this));
-        
+
         this._glyphProgramOptions.diagramMode = StructuralDiagramMode.Normal;
     }
 

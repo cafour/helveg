@@ -17,6 +17,7 @@
     import type { HelvegInstance } from "model/instance";
     import { setContext } from "svelte";
     import { AppIcons } from "model/const";
+    import Toast from "./Toast.svelte";
 
     export let instance: HelvegInstance;
     setContext("helveg", instance);
@@ -102,4 +103,6 @@
             <GuidePanel />
         </Tab>
     </Dock>
+
+    <Toast />
 </main>

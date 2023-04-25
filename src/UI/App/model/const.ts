@@ -8,5 +8,12 @@ export enum AppIcons {
     
     ContainsMode = "base:String",
     RegexMode = "base:RegularExpression",
-    JavaScriptMode = "base:JSFileNode"
+    JavaScriptMode = "base:JSFileNode",
+    
+    DebugToast = "base:StatusRunning",
+    InfoToast = "base:StatusInformation",
+    WarningToast = "base:StatusWarning",
+    ErrorToast = "base:StatusError",
+    SuccessToast = "base:StatusSuccess",
+    MessageToast = "base:Message"
 }

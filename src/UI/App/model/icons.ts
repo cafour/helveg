@@ -65,13 +65,13 @@ export class IconRegistry {
         let iconSet = this.sets[namespace];
         let icon: Icon | null = null;
         if (!iconSet) {
-            console.warn(`Icon set for namespace '${namespace}' could not be found. Using fallback icon.`)
+            DEBUG && console.warn(`Icon set for namespace '${namespace}' could not be found. Using fallback icon.`)
             icon = FALLBACK_ICON;
         }
         else {
             icon = structuredClone(iconSet.icons[iconName]);
             if (!icon) {
-                console.warn(`Icon '${name}' could not be found. Using fallback icon.`);
+                DEBUG && console.warn(`Icon '${name}' could not be found. Using fallback icon.`);
                 icon = FALLBACK_ICON;
             }
         }
