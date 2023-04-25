@@ -72,7 +72,7 @@
             />
         </label>
         
-        <button class="button-stretch" on:click={() => dispatch("export", exportOptions)}>
+        <button class="button-stretch" on:click|preventDefault={() => dispatch("export", exportOptions)}>
             Export
         </button>
     </Subpanel>

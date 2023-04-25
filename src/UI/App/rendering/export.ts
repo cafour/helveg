@@ -71,9 +71,10 @@ export function exportDiagram(sigma: Sigma, options?: ExportOptions) {
 
     exportCanvas.toBlob((blob) => {
         if (blob) {
+            console.log("blob");
             FileSaver.saveAs(blob, options?.fileName ?? "helveg-export.png");
         }
-
+        
         tmpRenderer.kill();
         tmpRoot.remove();
     }, "image/png");

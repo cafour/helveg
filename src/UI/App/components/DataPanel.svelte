@@ -1,14 +1,12 @@
 <script lang="ts">
-    import {
-        createEventDispatcher,
-        select_multiple_value,
-    } from "svelte/internal";
+    import { createEventDispatcher } from "svelte/internal";
     import Icon from "./Icon.svelte";
     import Panel from "./Panel.svelte";
     import RadioGroup from "./RadioGroup.svelte";
     import Subpanel from "./Subpanel.svelte";
     import { SearchMode, type DataOptions } from "model/options";
     import { AppIcons } from "model/const";
+    import ResizingTextarea from "./ResizingTextarea.svelte";
 
     export let dataOptions: DataOptions;
 
@@ -40,25 +38,28 @@
         </button>
     </div>
     <Subpanel name="Search">
-        <div class="flex flex-row gap-4">
-            <input type="text" bind:value={searchText} />
-            <RadioGroup
-                groupName="searchMode"
-                items={searchModes}
-                bind:selected={selectedSearchMode}
-                class="light"
-            />
-        </div>
-        <button
-            on:click={() =>
+        <form
+            on:submit|preventDefault={() =>
                 dispatch("highlight", {
                     searchText: searchText,
                     searchMode: selectedSearchMode,
                 })}
-            class="button-stretch mt-8"
         >
-            Highlight
-        </button>
+            <div class="flex flex-row gap-4">
+                <ResizingTextarea bind:value={searchText} class="monospace" />
+                <RadioGroup
+                    groupName="searchMode"
+                    items={searchModes}
+                    bind:selected={selectedSearchMode}
+                    class="light"
+                />
+            </div>
+            <input
+                type="submit"
+                class="button-stretch mt-8"
+                value="Highlight"
+            />
+        </form>
     </Subpanel>
     <!-- <Subpanel name="IncludedKinds">
         {#each dataOptions.kinds as kind}
