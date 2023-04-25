@@ -15,4 +15,16 @@
             }
         }
     }
+    .light &, &.light {
+        svg {
+            path, g#outline path {
+                fill: var(--icon-light);
+            }
+            
+            path:not(.canvas):not(.icon-vs-out) {
+                fill: var(--icon-dark);
+            }
+        }
+    
+    }
 }
