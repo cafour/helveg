@@ -1,10 +1,12 @@
-import type { GraphNode } from "./multigraph";
+import type { GraphNode, Multigraph } from "./multigraph";
 import { SearchMode } from "./options";
 
-export function buildFilter(
+export type NodeFilter = (node: GraphNode) => boolean;
+
+export function buildNodeFilter(
     searchText: string | null,
     mode: SearchMode,
-    variableNames?: string[]): ((node: GraphNode) => boolean) | null {
+    variableNames?: string[]): NodeFilter | null {
 
     if (searchText == null || searchText.trim() == "") {
         return null;
@@ -30,4 +32,17 @@ export function buildFilter(
     }
 
     throw new Error(`'${mode}' is an unknown search mode.`)
+}
+
+export function* filterNodes(graph: Multigraph, filter: NodeFilter | null, invert: boolean = false) {
+    if (!filter) {
+        return;
+    }
+
+    for (let id in graph.nodes) {
+        // '!=' works as logical XOR here
+        if (filter(graph.nodes[id]) != invert) {
+            yield id;
+        }
+    }
 }

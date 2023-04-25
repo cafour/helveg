@@ -32,9 +32,8 @@
 
 <Panel name="Data" indent={false}>
     <div class="indent">
-        <em class="mb-16 block">This panel is currently non-functional.</em>
-        <button on:click={() => {}} class="button-stretch">
-            Refresh Diagram
+        <button on:click={() => dispatch("reset")} class="button-stretch">
+            Reset
         </button>
     </div>
     <Subpanel name="Search">
@@ -59,6 +58,16 @@
                 class="button-stretch mt-8"
                 value="Highlight"
             />
+            <button
+                class="button-stretch mt-8"
+                on:click|preventDefault={() =>
+                    dispatch("isolate", {
+                        searchText: searchText,
+                        searchMode: selectedSearchMode,
+                    })}
+            >
+                Isolate
+            </button>
         </form>
     </Subpanel>
     <!-- <Subpanel name="IncludedKinds">

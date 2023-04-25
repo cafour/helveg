@@ -21,4 +21,3 @@ export interface GraphEdge {
     label: string | null,
     properties: Record<string, string>
 }
-

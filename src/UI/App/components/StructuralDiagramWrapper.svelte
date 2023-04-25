@@ -60,9 +60,17 @@
     export function save(options?: ExportOptions) {
         diagram.save(options);
     }
-    
+
     export function highlight(searchText: string | null, searchMode: SearchMode) {
         diagram.highlight(searchText, searchMode);
+    }
+
+    export function isolate(searchText: string | null, searchMode: SearchMode) {
+        diagram.isolate(searchText, searchMode);
+    }
+
+    export function reset() {
+        diagram.reset();
     }
 </script>
 

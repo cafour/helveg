@@ -9,7 +9,7 @@ enum EntityKind {
     ExternalDependencySource = "csharp:ExternalDependencySource",
     Framework = "csharp:Framework",
     Package = "csharp:Package",
-    AssemblyDependency = "csharp:AssemblyDependency",
+    Library = "csharp:Library",
     AssemblyDefinition = "csharp:AssemblyDefinition",
     ModuleDefinition = "csharp:ModuleDefinition",
     NamespaceDefinition = "csharp:NamespaceDefinition",
@@ -196,9 +196,9 @@ export default class CSharpPlugin implements HelvegPlugin {
                     color: VSColor.DarkGray,
                     outlines: []
                 };
-            case EntityKind.AssemblyDependency:
+            case EntityKind.Library:
                 return {
-                    icon: "csharp:Reference",
+                    icon: "csharp:Library",
                     size: 45,
                     color: VSColor.DarkGray,
                     outlines: []

@@ -54,8 +54,14 @@
 
     <Dock name="panels">
         <Tab name="Data" value="data-panel" icon={AppIcons.DataPanel}>
-            <DataPanel bind:dataOptions={$dataOptions}
-                on:highlight={e => diagram.highlight(e.detail.searchText, e.detail.searchMode)} />
+            <DataPanel
+                bind:dataOptions={$dataOptions}
+                on:reset={diagram.reset}
+                on:highlight={(e) =>
+                    diagram.highlight(e.detail.searchText, e.detail.searchMode)}
+                on:isolate={(e) =>
+                    diagram.isolate(e.detail.searchText, e.detail.searchMode)}
+            />
         </Tab>
         <Tab name="Layout" value="layout-panel" icon={AppIcons.LayoutPanel}>
             <LayoutPanel

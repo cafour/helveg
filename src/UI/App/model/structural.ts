@@ -13,7 +13,7 @@ import type { NodeProgramConstructor } from "sigma/rendering/webgl/programs/comm
 import { exportDiagram } from "rendering/export";
 import tidyTree from "layout/tidyTree";
 import type { HelvegInstance } from "./instance";
-import { buildFilter } from "./filter";
+import { buildNodeFilter, filterNodes } from "./filter";
 import type { NodeDisplayData } from "sigma/types";
 
 export enum StructuralStatus {
@@ -61,7 +61,9 @@ export interface AbstractStructuralDiagram {
     runLayout(inBackground: boolean): Promise<void>;
     stopLayout(): Promise<void>;
     save(options?: ExportOptions): void;
-    highlight(searchText: string | null, searchMode: SearchMode);
+    highlight(searchText: string | null, searchMode: SearchMode): void;
+    isolate(searchText: string | null, searchMode: SearchMode): void;
+    reset(): Promise<void>;
 }
 
 export interface HelvegNodeAttributes extends NodeDisplayData {
@@ -217,13 +219,13 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
         }
     }
 
-    highlight(searchText: string | null, searchMode: SearchMode) {
+    highlight(searchText: string | null, searchMode: SearchMode): void {
         if (!this._graph) {
-            DEBUG && console.warn("Cannot highlight since the graph is not initialized.");
+            DEBUG && console.warn("Cannot highlight nodes since the graph is not initialized.");
             return;
         }
 
-        let filter = buildFilter(searchText, searchMode, this._nodeKeys);
+        let filter = buildNodeFilter(searchText, searchMode, this._nodeKeys);
         if (filter === null) {
             this._glyphProgramOptions.diagramMode = StructuralDiagramMode.Normal;
             this._graph.forEachNode((_, a) => a.highlighted = undefined);
@@ -241,6 +243,31 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
             attributes.highlighted ? count + 1 : count, 0)} nodes.`);
     }
 
+    isolate(searchText: string | null, searchMode: SearchMode): void {
+        if (!this._graph) {
+            DEBUG && console.warn("Cannot isolate nodes since the graph is not initialized.");
+            return;
+        }
+
+        let filter = buildNodeFilter(searchText, searchMode, this._nodeKeys);
+        if (filter === null) {
+            return;
+        }
+
+        for (let id of filterNodes(this._model.multigraph, filter, true)) {
+            if (this._graph.hasNode(id)) {
+                this._graph.dropNode(id);
+            }
+        }
+
+        DEBUG && console.log(`Isolated ${this._graph.nodes().length} nodes.`);
+    }
+    
+    async reset(): Promise<void> {
+        this.refreshGraph();
+        await this.resetLayout();
+    }
+
     get element(): HTMLElement | null {
         return this._element;
     }
@@ -256,6 +283,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
 
     set model(value: VisualizationModel) {
         this._model = value;
+
         this.refreshGraph();
         this.refreshSigma();
 
@@ -343,7 +371,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
             return;
         }
 
-        DEBUG && console.log("Refreshing the sigma instance.");
+        DEBUG && console.log("Refreshing the Sigma.js instance.");
 
         if (this._sigma) {
             this._sigma.kill();
@@ -354,7 +382,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
     }
 
     private refreshGraph(): void {
-        if (!this._model) {
+        if (!this._model || this._model.isEmpty) {
             return;
         }
 
@@ -371,6 +399,8 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
         this._sigma?.setGraph(this._graph);
 
         this._supervisor = initializeSupervisor(this._graph, this.onSupervisorProgress.bind(this));
+        
+        this._glyphProgramOptions.diagramMode = StructuralDiagramMode.Normal;
     }
 
     private onNodeClick(event: SigmaNodeEventPayload): void {
