@@ -1,7 +1,5 @@
 import Graph from "graphology";
-import type { GraphNode } from "./multigraph";
-import { DEFAULT_DATA_OPTIONS, DEFAULT_EXPORT_OPTIONS, DEFAULT_GLYPH_OPTIONS, DEFAULT_LAYOUT_OPTIONS, type DataOptions, type ExportOptions, type GlyphOptions, type LayoutOptions } from "./options";
-import type { HelvegPlugin, HelvegPluginContext } from "./plugin";
+import { DEFAULT_DATA_OPTIONS, DEFAULT_EXPORT_OPTIONS, DEFAULT_GLYPH_OPTIONS, DEFAULT_LAYOUT_OPTIONS, SearchMode, type DataOptions, type ExportOptions, type GlyphOptions, type LayoutOptions } from "./options";
 import { EMPTY_MODEL, type VisualizationModel } from "./visualization";
 import { Sigma } from "sigma";
 import { ForceAtlas2Supervisor, type ForceAtlas2Progress } from "layout/forceAltas2Supervisor";
@@ -11,7 +9,7 @@ import { OutlineStyle, getOutlinesTotalWidth, type Outlines, type GlyphStyle, Gl
 import type { SigmaNodeEventPayload } from "sigma/sigma";
 import { createGlyphProgram, type GlyphProgramOptions } from "rendering/node.glyph";
 import forceAtlas2 from "graphology-layout-forceatlas2";
-import type { NodeProgram, NodeProgramConstructor } from "sigma/rendering/webgl/programs/common/node";
+import type { NodeProgramConstructor } from "sigma/rendering/webgl/programs/common/node";
 import { exportDiagram } from "rendering/export";
 import tidyTree from "layout/tidyTree";
 import type { HelvegInstance } from "./instance";
@@ -52,10 +50,11 @@ export interface AbstractStructuralDiagram {
     get selectedNodeId(): string | null;
     get nodeSelected(): HelvegEvent<string | null>;
 
-    save(options?: ExportOptions): void;
     resetLayout(): Promise<void>;
     runLayout(inBackground: boolean): Promise<void>;
     stopLayout(): Promise<void>;
+    save(options?: ExportOptions): void;
+    highlight(searchText: string, searchMode: SearchMode);
 }
 
 /**
@@ -96,26 +95,6 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
             showOutlines: true
         };
         this._glyphProgram = createGlyphProgram(this._glyphProgramOptions);
-    }
-
-    save(options?: ExportOptions): void {
-        if (!this._graph) {
-            DEBUG && console.warn("Cannot save since the graph is not initialized.")
-            return;
-        }
-
-        if (!this._sigma) {
-            DEBUG && console.warn("Cannot save since the sigma instance is not initialized.")
-            return;
-        }
-
-        DEBUG && console.log("Saving the diagram.");
-
-        options = { ...DEFAULT_EXPORT_OPTIONS, ...options };
-        options.fileName ??= `${this._model.multigraph.label}-export.png`;
-        if (this._sigma) {
-            exportDiagram(this._sigma, options);
-        }
     }
 
     async resetLayout(): Promise<void> {
@@ -200,6 +179,30 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
         }
     }
 
+    save(options?: ExportOptions): void {
+        if (!this._graph) {
+            DEBUG && console.warn("Cannot save since the graph is not initialized.")
+            return;
+        }
+
+        if (!this._sigma) {
+            DEBUG && console.warn("Cannot save since the sigma instance is not initialized.")
+            return;
+        }
+
+        DEBUG && console.log("Saving the diagram.");
+
+        options = { ...DEFAULT_EXPORT_OPTIONS, ...options };
+        options.fileName ??= `${this._model.multigraph.label}-export.png`;
+        if (this._sigma) {
+            exportDiagram(this._sigma, options);
+        }
+    }
+
+    highlight(searchText: string, searchMode: SearchMode) {
+        
+    }
+    
     get element(): HTMLElement | null {
         return this._element;
     }

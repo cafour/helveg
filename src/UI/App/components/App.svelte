@@ -16,6 +16,7 @@
     import { writable, type Readable } from "svelte/store";
     import type { HelvegInstance } from "model/instance";
     import { setContext } from "svelte";
+    import { AppIcons } from "model/const";
 
     export let instance: HelvegInstance;
     setContext("helveg", instance);
@@ -43,18 +44,19 @@
     <StructuralDiagramWrapper
         {model}
         bind:this={diagram}
-        bind:status={status}
-        bind:selectedNodeId={selectedNodeId}
-        bind:stats={stats}
+        bind:status
+        bind:selectedNodeId
+        bind:stats
         bind:dataOptions={$dataOptions}
         bind:glyphOptions={$glyphOptions}
-        bind:layoutOptions={$layoutOptions} />
+        bind:layoutOptions={$layoutOptions}
+    />
 
     <Dock name="panels">
-        <Tab name="Data" value="data-panel" icon="base:Database">
+        <Tab name="Data" value="data-panel" icon={AppIcons.DataPanel}>
             <DataPanel bind:dataOptions={$dataOptions} />
         </Tab>
-        <Tab name="Layout" value="layout-panel" icon="base:Diagram">
+        <Tab name="Layout" value="layout-panel" icon={AppIcons.LayoutPanel}>
             <LayoutPanel
                 bind:layoutOptions={$layoutOptions}
                 on:run={(e) => diagram.runLayout(e.detail)}
@@ -64,13 +66,13 @@
                 {stats}
             />
         </Tab>
-        <Tab name="Glyphs" value="glyphs-panel" icon="base:PolarChart">
+        <Tab name="Glyphs" value="glyphs-panel" icon={AppIcons.GlyphsPanel}>
             <GlyphsPanel bind:glyphOptions={$glyphOptions} />
         </Tab>
         <Tab
             name="Properties"
             value="properties-panel"
-            icon="base:ShowAllConfigurations"
+            icon={AppIcons.PropertiesPanel}
         >
             <PropertiesPanel
                 node={selectedNodeId
@@ -78,14 +80,18 @@
                     : null}
             />
         </Tab>
-        <Tab name="Document" value="document-panel" icon="base:Document">
+        <Tab
+            name="Document"
+            value="document-panel"
+            icon={AppIcons.DocumentPanel}
+        >
             <DocumentPanel
                 {model}
                 bind:exportOptions={$exportOptions}
                 on:export={(e) => diagram.save(e.detail)}
             />
         </Tab>
-        <Tab name="Guide" value="guide-panel" icon="base:StatusHelpOutline">
+        <Tab name="Guide" value="guide-panel" icon={AppIcons.GuidePanel}>
             <GuidePanel />
         </Tab>
     </Dock>

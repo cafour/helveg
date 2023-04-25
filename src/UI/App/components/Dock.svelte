@@ -62,7 +62,7 @@
                 title={tabDescriptor.name}
             >
                 {#if tabDescriptor.icon}
-                    <Icon name={tabDescriptor.icon} />
+                    <Icon name={tabDescriptor.icon} title={tabDescriptor.name} />
                 {/if}
             </div>
         {/each}

@@ -1,6 +1,10 @@
 <script lang="ts">
+    import { AppIcons } from "model/const";
     import Icon from "./Icon.svelte";
     import Panel from "./Panel.svelte";
+    import GlyphsPanel from "./GlyphsPanel.svelte";
+    import PropertiesPanel from "./PropertiesPanel.svelte";
+    import DocumentPanel from "./DocumentPanel.svelte";
 </script>
 
 <Panel name="Guide">
@@ -12,12 +16,12 @@
 
     <dl>
         <dt>
-            <Icon name="base:Database" /> Data
+            <Icon name={AppIcons.DataPanel} /> Data
         </dt>
         <dd>Filters the nodes and relations shown.</dd>
 
         <dt>
-            <Icon name="base:Diagram" /> Layout
+            <Icon name={AppIcons.LayoutPanel} /> Layout
         </dt>
         <dd>
             Contains settings affecting how the nodes are laid out. <br />
@@ -25,17 +29,17 @@
         </dd>
 
         <dt>
-            <Icon name="base:PolarChart" /> Glyphs
+            <Icon name={AppIcons.GlyphsPanel} /> Glyphs
         </dt>
         <dd>Contains settings affecting the appearance of node glyphs.</dd>
 
         <dt>
-            <Icon name="base:ShowAllConfigurations" /> Properties
+            <Icon name={AppIcons.PropertiesPanel} /> Properties
         </dt>
         <dd>Shows metadata of the currently selected node.</dd>
 
         <dt>
-            <Icon name="base:Document" /> Document
+            <Icon name={AppIcons.DocumentPanel} /> Document
         </dt>
         <dd>
             Contains document metadata. <br />

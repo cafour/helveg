@@ -5,21 +5,22 @@
     import RadioGroup from "./RadioGroup.svelte";
     import Subpanel from "./Subpanel.svelte";
     import { SearchMode, type DataOptions } from "model/options";
+    import { AppIcons } from "model/const";
 
     export let dataOptions: DataOptions;
 
     let searchModes = [
         {
             value: SearchMode.Contains,
-            icon: "base:String",
+            icon: AppIcons.ContainsMode,
         },
         {
             value: SearchMode.Regex,
-            icon: "base:RegularExpression",
+            icon: AppIcons.RegexMode,
         },
         {
             value: SearchMode.JavaScript,
-            icon: "base:JSFileNode",
+            icon: AppIcons.JavaScriptMode,
         },
     ];
     let selectedSearchMode: SearchMode = SearchMode.Contains;
