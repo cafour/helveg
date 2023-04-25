@@ -7,7 +7,7 @@
 
     let initialHeight: number | null;
 
-    function resize(event: KeyboardEvent) {
+    function onKeyup(event: KeyboardEvent) {
         if (!event.target) {
             return;
         }
@@ -30,9 +30,22 @@
             textarea.scrollHeight
         )}px`;
     }
+
+    function onKeydown(event: KeyboardEvent) {
+        let textarea = event.target as HTMLTextAreaElement;
+        if (textarea && event.key === "Enter") {
+            event.preventDefault();
+            textarea.form?.dispatchEvent(new Event("submit", { bubbles: false, cancelable: true }));
+        }
+    }
 </script>
 
-<textarea bind:value class={additionalClass} on:keyup|preventDefault={resize} />
+<textarea
+    bind:value
+    class={additionalClass}
+    on:keyup|preventDefault={onKeyup}
+    on:keydown={onKeydown}
+/>
 
 <style>
     textarea {
