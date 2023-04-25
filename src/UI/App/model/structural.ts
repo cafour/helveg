@@ -225,15 +225,16 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
             return;
         }
 
-        let filter = buildNodeFilter(searchText, searchMode, this._nodeKeys);
-        if (filter === null) {
-            this._glyphProgramOptions.diagramMode = StructuralDiagramMode.Normal;
-            this._graph.forEachNode((_, a) => a.highlighted = undefined);
-            return;
-        }
-
-        this._glyphProgramOptions.diagramMode = StructuralDiagramMode.Highlighting;
         try {
+            let filter = buildNodeFilter(searchText, searchMode, this._nodeKeys);
+            if (filter === null) {
+                this._glyphProgramOptions.diagramMode = StructuralDiagramMode.Normal;
+                this._graph.forEachNode((_, a) => a.highlighted = undefined);
+                return;
+            }
+
+            this._glyphProgramOptions.diagramMode = StructuralDiagramMode.Highlighting;
+
             Object.entries(this._model.multigraph.nodes).forEach(([id, node]) => {
                 if (this._graph?.hasNode(id)) {
                     this._graph.setNodeAttribute(id, "highlighted", filter!(node));
@@ -257,12 +258,11 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
             return;
         }
 
-        let filter = buildNodeFilter(searchText, searchMode, this._nodeKeys);
-        if (filter === null) {
-            return;
-        }
-
         try {
+            let filter = buildNodeFilter(searchText, searchMode, this._nodeKeys);
+            if (filter === null) {
+                return;
+            }
             for (let id of filterNodes(this._model.multigraph, filter, true)) {
                 if (this._graph.hasNode(id)) {
                     this._graph.dropNode(id);
