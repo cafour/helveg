@@ -36,9 +36,6 @@ export default function createFireProgram(options?: Partial<FireProgramOptions>)
 }
 
 export class FireProgram extends NodeProgram<typeof UNIFORMS[number]> {
-    private renderParams: RenderParams | null = null;
-    private renderFrame: number = 0;
-    
     constructor(gl: WebGLRenderingContext, renderer: Sigma, private options: FireProgramOptions) {
         super(gl, renderer);
     }
@@ -75,36 +72,13 @@ export class FireProgram extends NodeProgram<typeof UNIFORMS[number]> {
     }
 
     draw(params: RenderParams): void {
-        this.renderParams = params;
-        if (this.options.particleCount > 0) {
-            this.scheduleRenderOutsideSigma();
-        } else {
-            cancelAnimationFrame(this.renderFrame);
-        }
-    }
-
-    private scheduleRenderOutsideSigma() {
-        if (this.options.particleCount > 0 && this.renderFrame === 0) {
-            this.renderFrame = requestAnimationFrame(() => {
-                this.renderFrame = 0;
-                this.renderOutsideSigma();
-                this.scheduleRenderOutsideSigma();
-            });
-        }
-    }
-    
-    private renderOutsideSigma(): void {
-        if (!this.renderParams) {
-            return;
-        }
-
         const gl = this.gl as WebGL2RenderingContext;
 
         const { u_sizeRatio, u_pixelRatio, u_matrix, u_time } = this.uniformLocations;
 
-        gl.uniform1f(u_sizeRatio, this.renderParams.sizeRatio);
-        gl.uniform1f(u_pixelRatio, this.renderParams.pixelRatio);
-        gl.uniformMatrix3fv(u_matrix, false, this.renderParams.matrix);
+        gl.uniform1f(u_sizeRatio, params.sizeRatio);
+        gl.uniform1f(u_pixelRatio, params.pixelRatio);
+        gl.uniformMatrix3fv(u_matrix, false, params.matrix);
         gl.uniform1f(u_time, performance.now() / 1000.0);
 
         gl.drawArraysInstanced(gl.POINTS, 0, this.verticesCount, this.options.particleCount);

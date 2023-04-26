@@ -15,6 +15,7 @@ import tidyTree from "layout/tidyTree";
 import type { HelvegInstance } from "./instance";
 import { buildNodeFilter, filterNodes } from "./filter";
 import type { NodeDisplayData } from "sigma/types";
+import type { SigmaEffectsExtension } from "rendering/effects";
 
 export enum StructuralStatus {
     Stopped,
@@ -87,17 +88,14 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
     private _glyphOptions: GlyphOptions = DEFAULT_GLYPH_OPTIONS
     private _layoutOptions: LayoutOptions = DEFAULT_LAYOUT_OPTIONS;
     private _status: StructuralStatus = StructuralStatus.Stopped;
-    private _statusChanged: HelvegEvent<StructuralStatus>
-        = new HelvegEvent<StructuralStatus>("helveg.StructuralDiagram.statusChanged");
+    private _statusChanged = new HelvegEvent<StructuralStatus>("helveg.StructuralDiagram.statusChanged");
     private _stats: StructuralDiagramStats = {
         iterationCount: 0,
         speed: 0
-    };
-    private _statsChanged: HelvegEvent<StructuralDiagramStats>
-        = new HelvegEvent<StructuralDiagramStats>("helveg.StructuralDiagram.statsChanged");
+    };  
+    private _statsChanged = new HelvegEvent<StructuralDiagramStats>("helveg.StructuralDiagram.statsChanged");
     private _selectedNodeId: string | null = null;
-    private _nodeSelected: HelvegEvent<string | null>
-        = new HelvegEvent<string | null>("helveg.StructuralDiagram.nodeSelected");
+    private _nodeSelected = new HelvegEvent<string | null>("helveg.StructuralDiagram.nodeSelected");
 
     private _graph: HelvegGraph | null = null;
     private _sigma: Sigma | null = null;
