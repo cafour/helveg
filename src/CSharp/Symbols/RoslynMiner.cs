@@ -267,7 +267,7 @@ public class RoslynMiner : IMiner
 
             if (!dependencyDict.TryGetValue(id, out var dependency))
             {
-                logger.LogError("Cannot track Roslyn dependency of '{}' because it wasn't mined previously.",
+                logger.LogTrace("Cannot track Roslyn dependency of '{}' because it wasn't mined previously.",
                     id.Name);
                 continue;
             }

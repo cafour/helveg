@@ -109,6 +109,12 @@ public class UIBuilder
     public UIBuilder SetVisualizationModel(VisualizationModel visualizationModel)
     {
         Model = visualizationModel;
+        logger.LogDebug(
+            "Using the '{}' visualization model with {} nodes, {} relations, and {} edges in total.",
+            Model.Name, 
+            Model.Multigraph.Nodes.Count, 
+            Model.Multigraph.Relations.Count, 
+            Model.Multigraph.Relations.Sum(r => r.Value.Edges.Length));
         return this;
     }
 

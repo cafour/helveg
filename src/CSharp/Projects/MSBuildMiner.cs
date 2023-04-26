@@ -7,12 +7,6 @@ using System.Threading.Tasks;
 using MSB = Microsoft.Build;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using System.Xml;
-using NuGet.ProjectModel;
-using System.Collections.Generic;
-using NuGet.Frameworks;
-using System.Collections.Concurrent;
-using Helveg.CSharp.Packages;
 
 namespace Helveg.CSharp.Projects;
 
@@ -239,7 +233,7 @@ public class MSBuildMiner : IMiner
 
         var projectName = msbuildProject.GetPropertyValue(CSConst.MSBuildProjectNameProperty);
 
-        project = project with 
+        project = project with
         {
             Name = projectName
         };
@@ -343,7 +337,7 @@ public class MSBuildMiner : IMiner
         var frameworkName = NullIfEmpty(item.GetMetadata("FrameworkReferenceName"));
         var frameworkVersion = NullIfEmpty(item.GetMetadata("FrameworkReferenceVersion"));
 
-        if (!string.IsNullOrEmpty(frameworkName))
+        if (Options.IncludeExternalDependencies && !string.IsNullOrEmpty(frameworkName))
         {
             using var frameworkHandle = await GetOrAddFramework(frameworkName, frameworkVersion, cancellationToken);
             if (frameworkHandle.Entity is not null)
@@ -392,7 +386,8 @@ public class MSBuildMiner : IMiner
                 logger.LogError("Could not resolve a project reference to '{}'.", projectReferencePath);
                 return dependency with
                 {
-                    Token = solution.Token.Derive(NumericToken.NoneValue)
+                    Token = solution?.Token.Derive(NumericToken.NoneValue)
+                        ?? CSConst.NoneToken
                 };
             }
 
@@ -403,42 +398,42 @@ public class MSBuildMiner : IMiner
         }
 
         using var eds = await GetExternalDependencySource();
-        if (eds.Entity is null)
+        if (Options.IncludeExternalDependencies && eds.Entity is not null)
         {
-            logger.LogError("The global external dependency source doesn't exist. This is likely a bug.");
+
+            var existingLibrary = eds.Entity.Libraries
+                .FirstOrDefault(a => a.Identity == dependency.Identity);
+            if (existingLibrary is not null)
+            {
+                return dependency with
+                {
+                    Token = existingLibrary.Token
+                };
+            }
+
+            var libraryToken = edsToken.Derive(Interlocked.Increment(ref counter));
+
+            eds.Entity = eds.Entity with
+            {
+                Libraries = eds.Entity.Libraries.Add(new Library
+                {
+                    Token = libraryToken,
+                    ContainingEntity = eds.Entity.Token,
+                    Identity = dependency.Identity,
+                    PackageId = packageId,
+                    PackageVersion = packageVersion
+                })
+            };
+
             return dependency with
             {
-                Token = CSConst.NoneToken
+                Token = libraryToken
             };
         }
-
-        var existingLibrary = eds.Entity.Libraries
-            .FirstOrDefault(a => a.Identity == dependency.Identity);
-        if (existingLibrary is not null)
-        {
-            return dependency with
-            {
-                Token = existingLibrary.Token
-            };
-        }
-
-        var libraryToken = edsToken.Derive(Interlocked.Increment(ref counter));
-
-        eds.Entity = eds.Entity with
-        {
-            Libraries = eds.Entity.Libraries.Add(new Library
-            {
-                Token = libraryToken,
-                ContainingEntity = eds.Entity.Token,
-                Identity = dependency.Identity,
-                PackageId = packageId,
-                PackageVersion = packageVersion
-            })
-        };
 
         return dependency with
         {
-            Token = libraryToken
+            Token = CSConst.NoneToken
         };
     }
 

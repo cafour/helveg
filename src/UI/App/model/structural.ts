@@ -266,6 +266,10 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
             if (filter === null) {
                 return;
             }
+
+            this._supervisor?.kill();
+            this._supervisor = null;
+
             for (let id of filterNodes(this._model.multigraph, filter, true)) {
                 if (this._graph.hasNode(id)) {
                     this._graph.dropNode(id);
@@ -277,6 +281,11 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
                 ?? e?.toString() 
                 ?? "Something bad happened while isolating nodes.");
             return;
+        }
+        finally {
+            this._supervisor = initializeSupervisor(
+                this._graph,
+                this.onSupervisorProgress.bind(this));
         }
 
         this._instance.logger.info(`Isolated ${this._graph.nodes().length} nodes.`);
