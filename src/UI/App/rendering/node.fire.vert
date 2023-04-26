@@ -10,19 +10,21 @@ uniform float u_sizeRatio;
 uniform float u_pixelRatio;
 uniform mat3 u_matrix;
 uniform float u_time;
+uniform float u_normalizationRatio;
 
 out vec4 v_color;
 
-const vec4 LOW_COLOR = vec4(0.8, 0.0, 0.0, 1.0);
-const vec4 MID_COLOR = vec4(1.0, 0.5, 0.0, 1.0);
-const vec4 TOP_COLOR = vec4(0.0, 0.0, 0.0, 1.0);
-const float SCALE = 0.1;
+const vec4 LOW_COLOR = vec4(0.8, 0.0, 0.0, 0.1);
+const vec4 MID_COLOR = vec4(1.0, 0.5, 0.0, 0.8);
+const vec4 TOP_COLOR = vec4(0.0, 0.0, 0.0, 0.8);
 
-struct Particle {
-    vec3 position;
-    float pad;
-    vec4 color;
-};
+// The sice of a particle relative to the size of the node.
+const float PARTICLE_SCALE = 0.25;
+
+// The ratio of the fires' width to its height.
+const float ASPECT_RATIO = 0.5;
+
+const float SPEED = 2.0;
 
 struct Emitter {
     vec2 position;
@@ -48,44 +50,74 @@ float modHeight(float v, float height)
     return v - floor(v * (1.0 / height)) * height;
 }
 
+/**
+* Returns a position of the current fire particle relative to the center of the fire.
+* The 'x' coordinate is in [-1, 1] and the 'y' coordinate is in [-1 / ASPECT_RATIO, 1 / ASPECT_RATIO].
+*/
+vec3 fire()
+{
+    // The maximum fire height.
+    float maxHeight = 1.0 / ASPECT_RATIO * 2.0;
+
+    // Snowflake is essentially the 'index' as a float between 0 and 1.
+    float snowflake = rand(float(gl_InstanceID) * float(gl_VertexID));
+
+    // The length of this snowflake's life. Causes the fire to look more natural since the flakes don't die out
+    // all at once.
+    float life = 1.0 - 0.1 * snowflake;
+
+    // The maximum height of this particular snowflake.
+    float height = life * maxHeight;
+
+    // The offset at which this snowflake starts when u_time = 0.
+    float initialHeight = snowflake * height;
+
+    float velocity = (snowflake + 1.0) / 2.0 * SPEED * a_intensity;
+
+    // The current height of the snowflake. It resets once it reaches its maximum height.
+    float offsetY = modHeight(initialHeight + u_time * velocity, height);
+
+    float lateral = pow(smoothstep(0.0, height, offsetY), 0.25);
+    float angle = 3.14159 * (snowflake * 2.0 - 1.0);
+    float wiggleX = (noise(snowflake * 123.99 + u_time) * 2.0 - 1.0) * 0.2;
+    // float wiggleZ = (noise(gl_LocalInvocationID.z * 98.2002 + u_time) * 2.0 - 1.0) * 2.0;
+    float offsetX = (cos(angle) + wiggleX) * lateral * a_intensity;
+    // float offsetZ = sin(angle) * radius * lateral + wiggleZ;
+    
+    return vec3(offsetX, offsetY, offsetY / height);
+}
+
 void main()
 {
     if (a_intensity < 0.001) {
         gl_PointSize = 0.0;
         return;
     }
-    
-    Emitter emitter;
-    emitter.position = a_position;
-    emitter.radius = (a_size * SCALE) / u_sizeRatio * u_pixelRatio * 2.0;
-    gl_PointSize = emitter.radius * a_intensity;
 
-    float maxHeight = 4.0 * emitter.radius;
-    float index = float(gl_InstanceID);
-    float snowflake = rand(float(index));
+    vec3 fireResult = fire();
+    vec2 fireOffset = fireResult.xy * (a_size / u_sizeRatio) * u_normalizationRatio;
 
-    float life = (1.0 - pow(snowflake, 4.0));
+    float nodeSize = a_size / u_sizeRatio * u_pixelRatio;
+    gl_PointSize = nodeSize * PARTICLE_SCALE * a_intensity;
 
-    float height = life * maxHeight;
-    float initialHeight = snowflake * height;
-    float velocity = (snowflake + 1.0) * 4.0;
-    float offsetY = modHeight(initialHeight + u_time * velocity, height);
 
-    float lateral = pow(smoothstep(0.0, height, offsetY), 0.25) * life;
-    float radius = pow(rand(index), 2.0) * emitter.radius;
-    float angle = 3.14159 * (rand(index) * 2.0 - 1.0);
-    float wiggleX = (noise(index * 123.99 + u_time) * 2.0 - 1.0) * 2.0;
-    // float wiggleZ = (noise(gl_LocalInvocationID.z * 98.2002 + u_time) * 2.0 - 1.0) * 2.0;
-    float offsetX = cos(angle) * radius * lateral + wiggleX;
-    // float offsetZ = sin(angle) * radius * lateral + wiggleZ;
+    gl_Position = vec4(
+        (u_matrix * vec3(a_position + fireOffset, 1.0)).xy,
+        0,
+        1
+    );
 
-    gl_Position = vec4((u_matrix * vec3(emitter.position + vec2(offsetX, offsetY), 1)).xy, 0, 1);
+    if (a_intensity < 1.0) {
+        v_color = TOP_COLOR;
+        v_color.a = fireResult.z;
+        return;
+    }
 
     v_color = mix(
         mix(
             LOW_COLOR,
             MID_COLOR,
-            smoothstep(0.0, height * 0.3, offsetY)),
+            smoothstep(0.0, 0.3, fireResult.z)),
         TOP_COLOR,
-        smoothstep(height * 0.3, height, offsetY));
+        smoothstep(0.3, 1.0, fireResult.z));
 }

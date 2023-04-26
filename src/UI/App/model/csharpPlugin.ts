@@ -167,8 +167,7 @@ export default class CSharpPlugin implements HelvegPlugin {
                     icon: "csharp:Solution",
                     size: 55,
                     color: VSColor.DarkPurple,
-                    outlines: [],
-                    fire: FireStatus.Flame
+                    outlines: []
                 };
             case EntityKind.Project:
                 return {
@@ -228,6 +227,7 @@ export default class CSharpPlugin implements HelvegPlugin {
                 };
             case EntityKind.TypeDefinition:
                 base.size = 15;
+                base.fire = FireStatus.Flame;
                 switch (props.TypeKind) {
                     case TypeKind.Class:
                         base.icon = "csharp:Class";
@@ -301,6 +301,7 @@ export default class CSharpPlugin implements HelvegPlugin {
 
                 base.size = 10;
                 base.outlines = [{ style: props.IsStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 1 }];
+                base.fire = FireStatus.Smoke;
                 break;
             case EntityKind.PropertyDefinition:
                 base.icon = "csharp:Property";

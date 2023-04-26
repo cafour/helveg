@@ -9,7 +9,7 @@ import { FireStatus } from "model/glyph";
 
 const { UNSIGNED_BYTE, FLOAT } = WebGLRenderingContext;
 
-const UNIFORMS = ["u_sizeRatio", "u_pixelRatio", "u_matrix", "u_time"];
+const UNIFORMS = ["u_sizeRatio", "u_pixelRatio", "u_matrix", "u_time", "u_normalizationRatio"];
 
 export interface FireProgramOptions {
     diagramMode: StructuralDiagramMode;
@@ -50,7 +50,7 @@ export class FireProgram extends NodeProgram<typeof UNIFORMS[number]> {
             ATTRIBUTES: [
                 { name: "a_position", size: 2, type: FLOAT },
                 { name: "a_size", size: 1, type: FLOAT },
-                { name: "a_intensity", size: 1, type: FLOAT },
+                { name: "a_intensity", size: 1, type: FLOAT }
             ],
         };
     }
@@ -74,12 +74,13 @@ export class FireProgram extends NodeProgram<typeof UNIFORMS[number]> {
     draw(params: RenderParams): void {
         const gl = this.gl as WebGL2RenderingContext;
 
-        const { u_sizeRatio, u_pixelRatio, u_matrix, u_time } = this.uniformLocations;
+        const { u_sizeRatio, u_pixelRatio, u_matrix, u_time, u_normalizationRatio } = this.uniformLocations;
 
         gl.uniform1f(u_sizeRatio, params.sizeRatio);
         gl.uniform1f(u_pixelRatio, params.pixelRatio);
         gl.uniformMatrix3fv(u_matrix, false, params.matrix);
         gl.uniform1f(u_time, performance.now() / 1000.0);
+        gl.uniform1f(u_normalizationRatio, (1.0 / this.renderer.getGraphToViewportRatio()) / (this.renderer as any).normalizationFunction.ratio * 0.90);
 
         gl.drawArraysInstanced(gl.POINTS, 0, this.verticesCount, this.options.particleCount);
     }

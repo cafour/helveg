@@ -114,6 +114,7 @@ export class SigmaEffectsExtension {
 
     private onSigmaRender(params: RenderParams): void {
         this.renderParams = params;
+        this.fireProgram.render(this.renderParams);
         this.requestRender();
     }
 

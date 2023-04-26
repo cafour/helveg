@@ -343,6 +343,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
         this._glyphProgramOptions.showIcons = this._glyphOptions.showIcons;
         this._glyphProgramOptions.showOutlines = this._glyphOptions.showOutlines;
         this._glyphProgramOptions.showFire = this._glyphOptions.showFire;
+        this._glyphProgramOptions.particleCount = this._glyphOptions.showFire ? 64 : 0;
     }
 
     get layoutOptions(): LayoutOptions {
