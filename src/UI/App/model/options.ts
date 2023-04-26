@@ -1,4 +1,4 @@
-import { StaticGlyphStyle, type GlyphStyle, type Outline, OutlineStyle, FALLBACK_ICON_NAME as DEFAULT_GLYPH_ICON_NAME } from "./glyph";
+import { StaticGlyphStyle, type GlyphStyle, type Outline, OutlineStyle, FALLBACK_ICON_NAME as DEFAULT_GLYPH_ICON_NAME, FireStatus } from "./glyph";
 
 export enum SearchMode {
     Contains = "contains",
@@ -32,6 +32,7 @@ export interface GlyphOptions {
     showIcons: boolean;
     showOutlines: boolean;
     showLabels: boolean;
+    showFire: boolean;
 }
 
 export const DEFAULT_GLYPH_OPTIONS: GlyphOptions = {
@@ -40,11 +41,13 @@ export const DEFAULT_GLYPH_OPTIONS: GlyphOptions = {
         size: 5,
         color: "#202020",
         icon: DEFAULT_GLYPH_ICON_NAME,
-        outlines: []
+        outlines: [],
+        fire: FireStatus.None
     }),
     showIcons: true,
     showOutlines: true,
-    showLabels: true
+    showLabels: true,
+    showFire: true
 }
 
 export interface ForceAtlas2Options {

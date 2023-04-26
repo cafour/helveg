@@ -18,4 +18,8 @@
         <input type="checkbox" bind:checked={glyphOptions.showLabels} />
         ShowLabels
     </label>
+    <label>
+        <input type="checkbox" bind:checked={glyphOptions.showFire} />
+        ShowFire
+    </label>
 </Panel>

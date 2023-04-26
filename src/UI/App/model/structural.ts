@@ -5,7 +5,7 @@ import { Sigma } from "sigma";
 import { ForceAtlas2Supervisor, type ForceAtlas2Progress } from "layout/forceAltas2Supervisor";
 import { IconAtlas } from "rendering/iconAtlas";
 import { HelvegEvent } from "common/event";
-import { OutlineStyle, getOutlinesTotalWidth, type Outlines, type GlyphStyle, GlyphStyleRegistry } from "./glyph";
+import { OutlineStyle, getOutlinesTotalWidth, type Outlines, type GlyphStyle, GlyphStyleRegistry, FireStatus } from "./glyph";
 import type { SigmaNodeEventPayload } from "sigma/sigma";
 import { createGlyphProgram, type GlyphProgramOptions } from "rendering/node.glyph";
 import forceAtlas2 from "graphology-layout-forceatlas2";
@@ -71,6 +71,7 @@ export interface HelvegNodeAttributes extends NodeDisplayData {
     icon: string;
     iconSize: number;
     outlines: Outlines;
+    fire: FireStatus;
 }
 
 type HelvegGraph = Graph<Partial<HelvegNodeAttributes>>;
@@ -112,6 +113,8 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
             iconAtlas: this._iconAtlas,
             showIcons: true,
             showOutlines: true,
+            showFire: true,
+            particleCount: 32,
             diagramMode: StructuralDiagramMode.Normal,
         };
         this._glyphProgram = createGlyphProgram(this._glyphProgramOptions);
@@ -341,6 +344,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
 
         this._glyphProgramOptions.showIcons = this._glyphOptions.showIcons;
         this._glyphProgramOptions.showOutlines = this._glyphOptions.showOutlines;
+        this._glyphProgramOptions.showFire = this._glyphOptions.showFire;
     }
 
     get layoutOptions(): LayoutOptions {
@@ -459,8 +463,7 @@ function initializeGraph(
             label: node.label || nodeId,
             x: 0,
             y: 0,
-            style: "csharp:Entity",
-
+            style: "csharp:Entity"
         });
     }
 
@@ -482,7 +485,7 @@ function initializeGraph(
     return graph;
 }
 
-function stylizeGraph(graph: Graph, model: VisualizationModel, styleRepository: GlyphStyleRegistry) {
+function stylizeGraph(graph: HelvegGraph, model: VisualizationModel, styleRepository: GlyphStyleRegistry) {
     graph.forEachNode((node, attributes) => {
         if (!attributes.style) {
             DEBUG && console.log(`Node '${node}' is missing a style attribute.`);
@@ -518,6 +521,7 @@ function stylizeGraph(graph: Graph, model: VisualizationModel, styleRepository: 
         attributes.type = "glyph";
         attributes.icon = nodeStyle.icon;
         attributes.outlines = outlines;
+        attributes.fire = nodeStyle.fire;
     });
 }
 

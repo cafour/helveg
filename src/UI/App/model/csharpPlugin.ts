@@ -1,4 +1,4 @@
-import type { GlyphStyle, NodeStyle, Outlines } from "./glyph";
+import { FireStatus, type GlyphStyle, type NodeStyle, type Outlines } from "./glyph";
 import { OutlineStyle } from "./glyph";
 import type { GraphNode } from "./multigraph";
 import type { HelvegPlugin, HelvegPluginContext } from "./plugin";
@@ -97,7 +97,8 @@ const FALLBACK_STYLE: NodeStyle = {
     icon: "csharp:ExplodedDoughnutChart",
     color: VSColor.DarkGray,
     size: 5,
-    outlines: []
+    outlines: [],
+    fire: FireStatus.None
 };
 
 export default class CSharpPlugin implements HelvegPlugin {
@@ -166,7 +167,8 @@ export default class CSharpPlugin implements HelvegPlugin {
                     icon: "csharp:Solution",
                     size: 55,
                     color: VSColor.DarkPurple,
-                    outlines: []
+                    outlines: [],
+                    fire: FireStatus.Flame
                 };
             case EntityKind.Project:
                 return {

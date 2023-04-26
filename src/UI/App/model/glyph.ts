@@ -64,11 +64,18 @@ export function getOutlinesTotalWidth(outlines: Outlines): number {
     return w0 + w1 + w2 + w3;
 }
 
+export enum FireStatus {
+    None = "none",
+    Smoke = "smoke",
+    Flame = "flame"
+}
+
 export interface NodeStyle {
     icon: string;
     color: string;
     size: number;
     outlines: Outlines;
+    fire: FireStatus;
 }
 
 export interface GlyphStyle {
@@ -93,7 +100,8 @@ export const FALLBACK_STYLE = new StaticGlyphStyle({
     size: 5,
     color: "#202020",
     icon: FALLBACK_ICON_NAME,
-    outlines: []
+    outlines: [],
+    fire: FireStatus.None
 });
 
 export class GlyphStyleRegistry {
