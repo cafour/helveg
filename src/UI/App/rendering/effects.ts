@@ -114,12 +114,17 @@ export class SigmaEffectsExtension {
 
     private onSigmaRender(params: RenderParams): void {
         this.renderParams = params;
-        this.fireProgram.render(this.renderParams);
-        this.requestRender();
+        if (this.options.showFire) {
+            this.fireProgram.render(this.renderParams);
+            this.requestRender();
+        }
     }
 
     private requestRender() {
-        if (this.options.particleCount > 0 && this.renderFrame === 0) {
+        if (this.options.showFire
+            && this.options.isFireAnimated
+            && this.options.particleCount > 0
+            && this.renderFrame === 0) {
             this.renderFrame = requestAnimationFrame(() => {
                 this.renderFrame = 0;
                 if (this.renderParams) {

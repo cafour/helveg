@@ -14,11 +14,15 @@ const UNIFORMS = ["u_sizeRatio", "u_pixelRatio", "u_matrix", "u_time", "u_normal
 export interface FireProgramOptions {
     diagramMode: StructuralDiagramMode;
     particleCount: number;
+    showFire: boolean;
+    isFireAnimated: boolean;
 }
 
 export const DEFAULT_OUTLINES_PROGRAM_OPTIONS: FireProgramOptions = {
     diagramMode: StructuralDiagramMode.Normal,
-    particleCount: 32
+    particleCount: 32,
+    showFire: true,
+    isFireAnimated: true,
 };
 
 export default function createFireProgram(options?: Partial<FireProgramOptions>): NodeProgramConstructor {
@@ -79,8 +83,10 @@ export class FireProgram extends NodeProgram<typeof UNIFORMS[number]> {
         gl.uniform1f(u_sizeRatio, params.sizeRatio);
         gl.uniform1f(u_pixelRatio, params.pixelRatio);
         gl.uniformMatrix3fv(u_matrix, false, params.matrix);
-        gl.uniform1f(u_time, performance.now() / 1000.0);
-        gl.uniform1f(u_normalizationRatio, (1.0 / this.renderer.getGraphToViewportRatio()) / (this.renderer as any).normalizationFunction.ratio * 0.90);
+        gl.uniform1f(u_time, this.options.isFireAnimated ? performance.now() / 1000.0 : 42.0);
+        gl.uniform1f(u_normalizationRatio,
+            (1.0 / this.renderer.getGraphToViewportRatio())
+                / (this.renderer as any).normalizationFunction.ratio * 0.90);
 
         gl.drawArraysInstanced(gl.POINTS, 0, this.verticesCount, this.options.particleCount);
     }

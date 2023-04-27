@@ -15,7 +15,6 @@ import tidyTree from "layout/tidyTree";
 import type { HelvegInstance } from "./instance";
 import { buildNodeFilter, filterNodes } from "./filter";
 import type { NodeDisplayData } from "sigma/types";
-import type { SigmaEffectsExtension } from "rendering/effects";
 
 export enum StructuralStatus {
     Stopped,
@@ -112,6 +111,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
             showIcons: true,
             showOutlines: true,
             showFire: true,
+            isFireAnimated: true,
             particleCount: 32,
             diagramMode: StructuralDiagramMode.Normal,
         };
@@ -343,7 +343,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
         this._glyphProgramOptions.showIcons = this._glyphOptions.showIcons;
         this._glyphProgramOptions.showOutlines = this._glyphOptions.showOutlines;
         this._glyphProgramOptions.showFire = this._glyphOptions.showFire;
-        this._glyphProgramOptions.particleCount = this._glyphOptions.showFire ? 64 : 0;
+        this._glyphProgramOptions.isFireAnimated = this._glyphOptions.isFireAnimated;
     }
 
     get layoutOptions(): LayoutOptions {

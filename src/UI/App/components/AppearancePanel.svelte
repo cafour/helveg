@@ -24,5 +24,9 @@
             <input type="checkbox" bind:checked={glyphOptions.showFire} />
             ShowFire
         </label>
+        <label>
+            <input type="checkbox" bind:checked={glyphOptions.isFireAnimated} />
+            IsFireAnimated
+        </label>
     </Subpanel>
 </Panel>

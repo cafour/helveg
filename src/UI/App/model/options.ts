@@ -33,6 +33,7 @@ export interface GlyphOptions {
     showOutlines: boolean;
     showLabels: boolean;
     showFire: boolean;
+    isFireAnimated: boolean;
 }
 
 export const DEFAULT_GLYPH_OPTIONS: GlyphOptions = {
@@ -47,7 +48,8 @@ export const DEFAULT_GLYPH_OPTIONS: GlyphOptions = {
     showIcons: true,
     showOutlines: true,
     showLabels: true,
-    showFire: true
+    showFire: true,
+    isFireAnimated: true
 }
 
 export interface ForceAtlas2Options {
