@@ -1,5 +1,5 @@
 import Graph from "graphology";
-import { DEFAULT_DATA_OPTIONS, DEFAULT_EXPORT_OPTIONS, DEFAULT_GLYPH_OPTIONS, DEFAULT_LAYOUT_OPTIONS, SearchMode, type DataOptions, type ExportOptions, type GlyphOptions, type LayoutOptions } from "./options";
+import { DEFAULT_DATA_OPTIONS, DEFAULT_EXPORT_OPTIONS, DEFAULT_GLYPH_OPTIONS, DEFAULT_LAYOUT_OPTIONS, SearchMode, type DataOptions, type ExportOptions, type GlyphOptions, type LayoutOptions, type ToolOptions, DEFAULT_TOOL_OPTIONS } from "./options";
 import { EMPTY_MODEL, type VisualizationModel } from "./visualization";
 import { Sigma } from "sigma";
 import { ForceAtlas2Supervisor, type ForceAtlas2Progress } from "layout/forceAltas2Supervisor";
@@ -49,6 +49,9 @@ export interface AbstractStructuralDiagram {
     get layoutOptions(): LayoutOptions;
     set layoutOptions(value: LayoutOptions);
 
+    get toolOptions(): ToolOptions;
+    set toolOptions(value: ToolOptions);
+
     get status(): StructuralStatus;
     get statusChanged(): HelvegEvent<StructuralStatus>;
 
@@ -69,7 +72,7 @@ export interface AbstractStructuralDiagram {
     save(options?: ExportOptions): void;
     highlight(searchText: string | null, searchMode: SearchMode): void;
     isolate(searchText: string | null, searchMode: SearchMode): void;
-    reset(): Promise<void>;
+    refresh(): Promise<void>;
     cut(nodeId: string): void;
 }
 
@@ -94,6 +97,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
     private _dataOptions: DataOptions = DEFAULT_DATA_OPTIONS;
     private _glyphOptions: GlyphOptions = DEFAULT_GLYPH_OPTIONS
     private _layoutOptions: LayoutOptions = DEFAULT_LAYOUT_OPTIONS;
+    private _toolOptions: ToolOptions = DEFAULT_TOOL_OPTIONS;
     private _status: StructuralStatus = StructuralStatus.Stopped;
     private _statusChanged = new HelvegEvent<StructuralStatus>("helveg.StructuralDiagram.statusChanged");
     private _stats: StructuralDiagramStats = {
@@ -156,6 +160,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
         // )?.[0];
         if (solutionRoot) {
             tidyTree(this._graph, solutionRoot, 1000);
+            this.stats = { iterationCount: 0, speed: 0 };
         }
 
         if (this._sigma) {
@@ -299,7 +304,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
         this._instance.logger.info(`Isolated ${this._graph.nodes().length} nodes.`);
     }
 
-    async reset(): Promise<void> {
+    async refresh(): Promise<void> {
         this.refreshGraph();
         await this.resetLayout();
     }
@@ -314,12 +319,12 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
             throw new Error(`Cannot cut node '${nodeId}' since it does not exist in the graph.`);
         }
 
-        if (!this._dataOptions.isCuttingTransitive) {
+        if (!this._toolOptions.isCuttingTransitive) {
             this._graph.dropNode(nodeId);
             return;
         }
 
-        let reachable = bfs(this._graph, nodeId);
+        let reachable = bfs(this._graph, nodeId, { relation: this._toolOptions.cuttingRelation });
 
         this.refreshSupervisor(true, () => {
             reachable.forEach(id => this._graph?.dropNode(id));
@@ -383,6 +388,14 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
 
     set layoutOptions(value: LayoutOptions) {
         this._layoutOptions = value;
+    }
+
+    get toolOptions(): ToolOptions {
+        return this._toolOptions;
+    }
+
+    set toolOptions(value: ToolOptions) {
+        this._toolOptions = value;
     }
 
     get status(): StructuralStatus {
@@ -505,7 +518,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
             if (!this._graph) {
                 return;
             }
-    
+
             this._supervisor = initializeSupervisor(this._graph, this.onSupervisorProgress.bind(this));
             if (shouldLayoutContinue
                 && (lastStatus === StructuralStatus.Running || lastStatus === StructuralStatus.RunningInBackground)) {
@@ -579,7 +592,9 @@ function initializeGraph(
 
         for (const edge of relation.edges) {
             try {
-                graph.addDirectedEdge(edge.src, edge.dst);
+                graph.addDirectedEdge(edge.src, edge.dst, {
+                    relation: relationId,
+                });
             } catch (error) {
                 DEBUG && console.warn(`Failed to add an edge. edge=${edge}, error=${error}`);
             }

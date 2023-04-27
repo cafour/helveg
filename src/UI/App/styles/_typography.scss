@@ -4,7 +4,10 @@ html,
 dt,
 dd,
 label,
-button {
+button,
+input,
+textarea,
+select {
     font-family: 'Segoe UI', sans-serif;
     line-height: 1.5;
     color: var(--font-color-base);

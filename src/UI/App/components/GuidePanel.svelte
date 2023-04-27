@@ -34,6 +34,11 @@
         <dd>Contains settings affecting the appearance of the diagram.</dd>
 
         <dt>
+            <Icon name={AppIcons.ToolsPanel} /> Tools
+        </dt>
+        <dd>Allows you to configure the behaviour of some of the tools.</dd>
+        
+        <dt>
             <Icon name={AppIcons.PropertiesPanel} /> Properties
         </dt>
         <dd>Shows metadata of the currently selected node.</dd>

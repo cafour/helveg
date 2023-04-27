@@ -2,6 +2,7 @@ export enum AppIcons {
     DataPanel = "base:Database",
     LayoutPanel = "base:Diagram",
     AppearancePanel = "base:ColorPalette",
+    ToolsPanel = "base:Toolbox",
     PropertiesPanel = "base:ShowAllConfigurations",
     DocumentPanel = "base:Document",
     GuidePanel = "base:StatusHelpOutline",
@@ -33,6 +34,7 @@ export enum AppPanels {
     Data = "data-panel",
     Layout = "layout-panel",
     Appearance = "appearance-panel",
+    Tools = "tools-panel",
     Properties = "properties-panel",
     Document = "document-panel",
     Guide = "guide-panel"

@@ -19,6 +19,7 @@
     import { AppIcons, AppPanels, AppTools } from "model/const";
     import Toast from "./Toast.svelte";
     import ToolBox from "./ToolBox.svelte";
+    import ToolsPanel from "./ToolsPanel.svelte";
 
     export let instance: HelvegInstance;
     setContext("helveg", instance);
@@ -36,6 +37,7 @@
     let layoutOptions = writable(helveg.options.layout);
     let glyphOptions = writable(helveg.options.glyph);
     let exportOptions = writable(helveg.options.export);
+    let toolOptions = writable(helveg.options.tool);
     let diagram: StructuralDiagramWrapper;
     let dock: Dock;
     let propertiesPanel: PropertiesPanel;
@@ -47,7 +49,9 @@
     function onNodeSelected(nodeId: string) {
         switch (selectedTool) {
             case AppTools.ShowProperties:
-                propertiesPanel.$set({node: instance.model.multigraph.nodes[nodeId] ?? null})
+                propertiesPanel.$set({
+                    node: instance.model.multigraph.nodes[nodeId] ?? null,
+                });
                 dock.setTab(AppPanels.Properties);
                 break;
             case AppTools.Cut:
@@ -55,10 +59,19 @@
                 break;
         }
     }
+    
+    function onToolChanged(tool: string) {
+        switch(tool) {
+            case AppTools.Cut:
+                dock.setTab(AppPanels.Tools);
+                break;
+        }
+    }
 </script>
 
 <main class="flex flex-row-reverse h-100p relative">
-    <ToolBox bind:selectedTool />
+    <ToolBox bind:selectedTool
+    on:change={() => onToolChanged(selectedTool)} />
 
     <StructuralDiagramWrapper
         {model}
@@ -69,6 +82,7 @@
         bind:dataOptions={$dataOptions}
         bind:glyphOptions={$glyphOptions}
         bind:layoutOptions={$layoutOptions}
+        bind:toolOptions={$toolOptions}
         canDragNodes={selectedTool === AppTools.Move}
         on:nodeSelected={(e) => onNodeSelected(e.detail)}
     />
@@ -101,14 +115,15 @@
         >
             <AppearancePanel bind:glyphOptions={$glyphOptions} />
         </Tab>
+        <Tab name="Tools" value={AppPanels.Tools} icon={AppIcons.ToolsPanel}>
+            <ToolsPanel bind:toolOptions={$toolOptions} {model} />
+        </Tab>
         <Tab
             name="Properties"
             value={AppPanels.Properties}
             icon={AppIcons.PropertiesPanel}
         >
-            <PropertiesPanel
-                bind:this={propertiesPanel}
-            />
+            <PropertiesPanel bind:this={propertiesPanel} />
         </Tab>
         <Tab
             name="Document"

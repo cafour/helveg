@@ -24,6 +24,7 @@
             type="radio"
             name={groupName}
             bind:group={selected}
+            on:change
             value={item.value}
             id={item.id ?? `${groupName}-${item.value}`}
         />

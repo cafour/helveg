@@ -7,25 +7,27 @@ export enum SearchMode {
 }
 
 export interface DataOptions {
-    searchText: string | null;
-    searchMode: SearchMode;
     kinds: string[];
     selectedKinds: string[];
     defaultIcons: Record<string, string>;
     fallbackIcon: string;
     selectedRelations: string[];
-    isCuttingTransitive: boolean;
-    cuttingRelation: string | null;
 }
 
 export const DEFAULT_DATA_OPTIONS: DataOptions = {
-    searchText: null,
-    searchMode: SearchMode.Contains,
     kinds: [],
     selectedKinds: [],
     defaultIcons: {},
     fallbackIcon: DEFAULT_GLYPH_ICON_NAME,
-    selectedRelations: ["declares"],
+    selectedRelations: ["declares"]
+}
+
+export interface ToolOptions {
+    isCuttingTransitive: boolean;
+    cuttingRelation: string;
+}
+
+export const DEFAULT_TOOL_OPTIONS: ToolOptions = {
     isCuttingTransitive: true,
     cuttingRelation: "declares"
 }
@@ -97,11 +99,13 @@ export interface HelvegOptions {
     data: DataOptions;
     glyph: GlyphOptions;
     export: ExportOptions;
+    tool: ToolOptions;
 }
 
 export const DEFAULT_HELVEG_OPTIONS: HelvegOptions = {
     layout: DEFAULT_LAYOUT_OPTIONS,
     data: DEFAULT_DATA_OPTIONS,
     glyph: DEFAULT_GLYPH_OPTIONS,
-    export: DEFAULT_EXPORT_OPTIONS
+    export: DEFAULT_EXPORT_OPTIONS,
+    tool: DEFAULT_TOOL_OPTIONS
 };

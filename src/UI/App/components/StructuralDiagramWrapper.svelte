@@ -11,9 +11,9 @@
         DataOptions,
         ExportOptions,
         GlyphOptions,
-        HelvegOptions,
         LayoutOptions,
         SearchMode,
+        ToolOptions,
     } from "model/options";
     import { createEventDispatcher, getContext } from "svelte";
     import type { HelvegInstance } from "model/instance";
@@ -22,6 +22,7 @@
     export let dataOptions: DataOptions;
     export let layoutOptions: LayoutOptions;
     export let glyphOptions: GlyphOptions;
+    export let toolOptions: ToolOptions;
 
     let instance = getContext<HelvegInstance>("helveg");
     let diagram: AbstractStructuralDiagram = new StructuralDiagram(instance);
@@ -57,6 +58,7 @@
     $: diagram.dataOptions = dataOptions;
     $: diagram.layoutOptions = layoutOptions;
     $: diagram.glyphOptions = glyphOptions;
+    $: diagram.toolOptions = toolOptions;
     $: diagram.canDragNodes = canDragNodes;
 
     export function resetLayout() {
@@ -86,8 +88,8 @@
         diagram.isolate(searchText, searchMode);
     }
 
-    export function reset() {
-        diagram.reset();
+    export function refresh() {
+        diagram.refresh();
     }
     
     export function cut(nodeId: string) {

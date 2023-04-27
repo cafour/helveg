@@ -31,11 +31,11 @@
 </script>
 
 <Panel name="Data" indent={false}>
-    <div class="indent">
-        <button on:click={() => dispatch("reset")} class="button-stretch">
-            Reset
+    <Subpanel>
+        <button on:click={() => dispatch("refresh")} class="button-stretch">
+            Refresh
         </button>
-    </div>
+    </Subpanel>
     <Subpanel name="Search">
         <form
             on:submit|preventDefault={() =>

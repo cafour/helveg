@@ -33,5 +33,10 @@
 </script>
 
 <div class="toolbox">
-    <RadioGroup groupName="tools" items={tools} bind:selected={selectedTool} />
+    <RadioGroup
+        groupName="tools"
+        items={tools}
+        bind:selected={selectedTool}
+        on:change
+    />
 </div>
