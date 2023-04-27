@@ -1,5 +1,7 @@
 ﻿using Helveg.CSharp.Projects;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -18,6 +20,8 @@ internal class RoslynSymbolTranscriber
 {
     private readonly WeakReference<Compilation?> compilationRef = new(null);
     private readonly SymbolTokenMap tokenMap;
+    private ImmutableDictionary<ISymbol, ImmutableArray<Diagnostic>> symbolDiagnostics
+        = ImmutableDictionary<ISymbol, ImmutableArray<Diagnostic>>.Empty;
 
     public SymbolAnalysisScope Scope { get; }
 
@@ -36,6 +40,8 @@ internal class RoslynSymbolTranscriber
         }
 
         compilationRef.SetTarget(compilation);
+        symbolDiagnostics = GetDiagnostics();
+
         if (AssemblyId.Create(compilation.Assembly) == assemblyId)
         {
             return GetAssembly(compilation.Assembly);
@@ -47,15 +53,14 @@ internal class RoslynSymbolTranscriber
             return AssemblyDefinition.Invalid;
         }
 
+        symbolDiagnostics = ImmutableDictionary<ISymbol, ImmutableArray<Diagnostic>>.Empty;
         return GetAssembly(reference);
     }
 
     private AssemblyDefinition GetAssembly(IAssemblySymbol assembly)
     {
-        var helAssembly = new AssemblyDefinition
+        var helAssembly = PopulateDefinition(assembly, new AssemblyDefinition()) with 
         {
-            Token = tokenMap.GetOrAdd(assembly),
-            Name = assembly.Name,
             Identity = AssemblyId.Create(assembly)
         };
 
@@ -69,10 +74,8 @@ internal class RoslynSymbolTranscriber
 
     private ModuleDefinition GetModule(IModuleSymbol module, AssemblyReference containingAssembly)
     {
-        var helModule = new ModuleDefinition
+        var helModule = PopulateDefinition(module, new ModuleDefinition()) with
         {
-            Token = tokenMap.GetOrAdd(module),
-            Name = module.Name,
             ReferencedAssemblies = module.ReferencedAssemblySymbols
                 .Select(GetAssemblyReference)
                 .ToImmutableArray(),
@@ -90,7 +93,7 @@ internal class RoslynSymbolTranscriber
         ModuleReference containingModule,
         NamespaceReference? containingNamespace)
     {
-        var helNamespace = new NamespaceDefinition
+        var helNamespace = PopulateDefinition(@namespace, new NamespaceDefinition()) with
         {
             Token = tokenMap.GetOrAdd(@namespace),
             Name = @namespace.Name,
@@ -119,9 +122,8 @@ internal class RoslynSymbolTranscriber
             type = type.OriginalDefinition;
         }
 
-        var helType = new TypeDefinition
+        var helType = PopulateMember(type, new TypeDefinition()) with 
         {
-            Token = tokenMap.GetOrAdd(type),
             MetadataName = type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
             ContainingNamespace = containingNamespace,
             ContainingType = containingType,
@@ -139,8 +141,6 @@ internal class RoslynSymbolTranscriber
             BaseType = type.BaseType is null ? null : GetTypeReference(type.BaseType),
             Interfaces = type.Interfaces.Select(GetTypeReference).ToImmutableArray(),
         };
-
-        helType = PopulateMember(type, helType);
 
         var reference = helType.Reference;
 
@@ -193,10 +193,8 @@ internal class RoslynSymbolTranscriber
                 "must not be null.");
         }
 
-        var helTypeParameter = new TypeParameterDefinition
+        var helTypeParameter = PopulateDefinition(symbol, new TypeParameterDefinition()) with 
         {
-            Token = tokenMap.GetOrAdd(symbol),
-            Name = symbol.Name,
             DeclaringType = declaringType,
             DeclaringMethod = declaringMethod,
             ContainingNamespace = containingNamespace
@@ -210,9 +208,8 @@ internal class RoslynSymbolTranscriber
         TypeReference containingType,
         NamespaceReference containingNamespace)
     {
-        var helEvent = new EventDefinition
+        var helEvent = PopulateMember(symbol, new EventDefinition()) with
         {
-            Token = tokenMap.GetOrAdd(symbol),
             EventType = GetTypeReference(symbol.Type),
             ContainingType = containingType,
             ContainingNamespace = containingNamespace,
@@ -221,7 +218,7 @@ internal class RoslynSymbolTranscriber
             RaiseMethod = symbol.RaiseMethod is null ? null : GetMethodReference(symbol.RaiseMethod)
         };
 
-        return PopulateMember(symbol, helEvent);
+        return helEvent;
     }
 
     private FieldDefinition GetField(
@@ -229,9 +226,8 @@ internal class RoslynSymbolTranscriber
         TypeReference containingType,
         NamespaceReference containingNamespace)
     {
-        var helField = new FieldDefinition
+        var helField = PopulateMember(symbol, new FieldDefinition()) with
         {
-            Token = tokenMap.GetOrAdd(symbol),
             FieldType = GetTypeReference(symbol.Type),
             ContainingType = containingType,
             ContainingNamespace = containingNamespace,
@@ -249,7 +245,7 @@ internal class RoslynSymbolTranscriber
             IsEnumItem = symbol.ContainingType.TypeKind == Microsoft.CodeAnalysis.TypeKind.Enum
         };
 
-        return PopulateMember(symbol, helField);
+        return helField;
     }
 
     private PropertyDefinition GetProperty(
@@ -257,9 +253,8 @@ internal class RoslynSymbolTranscriber
         TypeReference containingType,
         NamespaceReference containingNamespace)
     {
-        var helProperty = new PropertyDefinition
+        var helProperty = PopulateMember(symbol, new PropertyDefinition()) with
         {
-            Token = tokenMap.GetOrAdd(symbol),
             PropertyType = GetTypeReference(symbol.Type),
             ContainingType = containingType,
             ContainingNamespace = containingNamespace,
@@ -272,8 +267,6 @@ internal class RoslynSymbolTranscriber
                 : GetPropertyReference(symbol.OverriddenProperty),
             RefKind = symbol.RefKind.ToHelvegRefKind()
         };
-
-        helProperty = PopulateMember(symbol, helProperty);
 
         return helProperty with
         {
@@ -293,9 +286,8 @@ internal class RoslynSymbolTranscriber
             symbol = symbol.OriginalDefinition;
         }
 
-        var helMethod = new MethodDefinition
+        var helMethod = PopulateMember(symbol, new MethodDefinition()) with
         {
-            Token = tokenMap.GetOrAdd(symbol),
             AssociatedEvent = symbol.AssociatedSymbol is not null && symbol.AssociatedSymbol is IEventSymbol e
                 ? GetEventReference(e)
                 : null,
@@ -314,8 +306,6 @@ internal class RoslynSymbolTranscriber
             RefKind = symbol.RefKind.ToHelvegRefKind(),
             ReturnType = GetTypeReference(symbol.ReturnType)
         };
-
-        helMethod = PopulateMember(symbol, helMethod);
 
         return helMethod with
         {
@@ -336,10 +326,8 @@ internal class RoslynSymbolTranscriber
         MethodReference? declaringMethod,
         PropertyReference? declaringProperty)
     {
-        var helParameter = new ParameterDefinition
+        var helParameter = PopulateDefinition(symbol, new ParameterDefinition()) with
         {
-            Token = tokenMap.GetOrAdd(symbol),
-            Name = symbol.Name,
             Ordinal = symbol.Ordinal,
             DeclaringMethod = declaringMethod,
             DeclaringProperty = declaringProperty,
@@ -358,9 +346,8 @@ internal class RoslynSymbolTranscriber
     private TMember PopulateMember<TMember>(ISymbol symbol, TMember helMember)
         where TMember : MemberDefinition
     {
-        return helMember with
+        return PopulateDefinition(symbol, helMember) with
         {
-            Name = symbol.Name,
             Accessibility = symbol.DeclaredAccessibility.ToHelvegAccessibility(),
             CanBeReferencedByName = symbol.CanBeReferencedByName,
             IsAbstract = symbol.IsAbstract,
@@ -370,6 +357,19 @@ internal class RoslynSymbolTranscriber
             IsSealed = symbol.IsSealed,
             IsStatic = symbol.IsStatic,
             IsVirtual = symbol.IsVirtual
+        };
+    }
+
+    private T PopulateDefinition<T>(ISymbol symbol, T definition)
+        where T : SymbolDefinition
+    {
+        return definition with
+        {
+            Token = tokenMap.GetOrAdd(symbol),
+            Name = symbol.Name,
+            Diagnostics = symbolDiagnostics.TryGetValue(symbol, out var diagnostics)
+                ? diagnostics
+                : ImmutableArray<Diagnostic>.Empty
         };
     }
 
@@ -531,5 +531,65 @@ internal class RoslynSymbolTranscriber
             Token = tokenMap.GetOrAdd(symbol)
         };
         return reference;
+    }
+
+    private ImmutableDictionary<ISymbol, ImmutableArray<Diagnostic>> GetDiagnostics()
+    {
+        if (!compilationRef.TryGetTarget(out var compilation) || compilation is null)
+        {
+            return ImmutableDictionary<ISymbol, ImmutableArray<Diagnostic>>.Empty;
+        }
+
+        var roslynDiagnostics = compilation.GetDiagnostics();
+
+        var builder = ImmutableDictionary.CreateBuilder<ISymbol, ImmutableArray<Diagnostic>>(
+            SymbolEqualityComparer.Default);
+
+        foreach (var roslynDiagnostic in roslynDiagnostics)
+        {
+            if (roslynDiagnostic.Location.SourceTree is null)
+            {
+                // TODO: We should probably report metadata diagnostics somewhere.
+                continue;
+            }
+
+            ISymbol? relatedSymbol = null;
+
+            var semanticModel = compilation.GetSemanticModel(
+                roslynDiagnostic.Location.SourceTree,
+                ignoreAccessibility: true);
+            if (roslynDiagnostic.Location.SourceTree.TryGetRoot(out var root))
+            {
+                // 1. Try to find a declaration closeby.
+                var syntaxNode = root.FindNode(roslynDiagnostic.Location.SourceSpan)
+                    .FirstAncestorOrSelf<SyntaxNode>(n =>
+                    {
+                        relatedSymbol = semanticModel.GetDeclaredSymbol(n);
+                        return relatedSymbol is not null;
+                    });
+
+                // 2. Try to find any enclosing symbol.
+                relatedSymbol ??= semanticModel.GetEnclosingSymbol(
+                        (roslynDiagnostic.Location.SourceSpan.Start + roslynDiagnostic.Location.SourceSpan.End) / 2);
+            }
+
+            // 3. If everything else fails, this diagnostic will be associated with the assembly itself.
+            relatedSymbol ??= compilation.Assembly;
+
+            var helvegDiagnostic = new Diagnostic(
+                roslynDiagnostic.Id,
+                roslynDiagnostic.GetMessage(),
+                roslynDiagnostic.Severity.ToHelvegSeverity());
+
+            var existing = builder.GetValueOrDefault(relatedSymbol);
+            existing = existing.IsDefault ? ImmutableArray<Diagnostic>.Empty : existing;
+
+            if (!existing.Contains(helvegDiagnostic))
+            {
+                builder[relatedSymbol] = existing.Add(helvegDiagnostic);
+            }
+        }
+
+        return builder.ToImmutable();
     }
 }
