@@ -78,6 +78,7 @@ export interface HelvegNodeAttributes extends NodeDisplayData {
     iconSize: number;
     outlines: Outlines;
     fire: FireStatus;
+    fixed: boolean;
 }
 
 type HelvegGraph = Graph<Partial<HelvegNodeAttributes>>;
@@ -478,12 +479,14 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
         if (this._canDragNodes) {
             this._draggedNodeId = event.node;
             this._graph?.setNodeAttribute(event.node, "highlighted", true);
+            this._graph?.setNodeAttribute(event.node, "fixed", true);
         }
     }
 
     private onUp(coords: Coordinates): void {
         if (this._draggedNodeId) {
             this._graph?.setNodeAttribute(this._draggedNodeId, "highlighted", false);
+            this._graph?.setNodeAttribute(this._draggedNodeId, "fixed", false);
             this._draggedNodeId = null;
         }
     }
@@ -499,10 +502,6 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
         this._graph.setNodeAttribute(this._draggedNodeId, "y", pos.y);
         return false;
     }
-
-    // private nodeReducer(node: HelvegNodeAttributes, data: HelvegNodeAttributes): Partial<NodeDisplayData> {
-
-    // }
 }
 
 function initializeGraph(
@@ -531,7 +530,7 @@ function initializeGraph(
             try {
                 graph.addDirectedEdge(edge.src, edge.dst);
             } catch (error) {
-                // console.warn(`Failed to add an edge. edge=${edge}, error=${error}`);
+                DEBUG && console.warn(`Failed to add an edge. edge=${edge}, error=${error}`);
             }
         }
     }

@@ -55,6 +55,9 @@ devDependencies:
   graphology-layout-forceatlas2:
     specifier: ^0.10.1
     version: 0.10.1(graphology-types@0.24.7)
+  graphology-types:
+    specifier: ^0.24.7
+    version: 0.24.7
   graphology-utils:
     specifier: ^2.5.2
     version: 2.5.2(graphology-types@0.24.7)

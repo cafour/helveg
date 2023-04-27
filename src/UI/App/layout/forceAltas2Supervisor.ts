@@ -5,6 +5,9 @@ import { createEdgeWeightGetter } from "graphology-utils/getters";
 import type { ForceAtlas2Settings } from "graphology-layout-forceatlas2";
 import helpers from "graphology-layout-forceatlas2/helpers";
 import forceAtlas2WorkerCode from "inline-bundle:../layout/forceAtlas2Worker.ts";
+import type { Attributes, EdgeMapper } from "graphology-types";
+
+type GraphMatrices = { nodes: Float32Array, edges: Float32Array };
 
 export interface ForceAtlas2Progress {
     iterationCount: number;
@@ -21,10 +24,7 @@ export class ForceAtlas2Supervisor {
     private running: boolean = false;
     private inBackground: boolean = false;
     private lastPerformanceTime: number = 0;
-    private matrices = {
-        nodes: new Float32Array(),
-        edges: new Float32Array()
-    };
+    private matrices: GraphMatrices = { nodes: new Float32Array(0), edges: new Float32Array(0) };
 
     constructor(private graph: Graph, private settings: ForceAtlas2Settings) {
         this.graph.on("nodeAdded", this.handleGraphUpdate);
@@ -45,7 +45,7 @@ export class ForceAtlas2Supervisor {
             barnesHutOptimize: false,
             barnesHutTheta: 0.5
         }, this.settings);
-        var validationError = helpers.validateSettings(this.settings);
+        let validationError = helpers.validateSettings(this.settings);
         if (validationError) {
             throw new Error(validationError);
         }
@@ -180,7 +180,7 @@ export class ForceAtlas2Supervisor {
 
     private update(message: UpdateMessage) {
         this.matrices.nodes = new Float32Array(message.nodes);
-        helpers.assignLayoutChanges(this.graph, this.matrices.nodes, null);
+        assignLayoutChanges(this.graph, this.matrices.nodes, null, true);
         if (!this.inBackground && this.running) {
             this.askForSingleIteration();
         }
@@ -192,7 +192,7 @@ export class ForceAtlas2Supervisor {
         let worker = new Worker(url);
         worker.onmessage = this.handleMessage.bind(this);
 
-        this.matrices = helpers.graphToByteArrays(this.graph, createEdgeWeightGetter("weight").fromEntry);
+        this.matrices = graphToByteArrays(this.graph, createEdgeWeightGetter("weight").fromEntry);
         worker.postMessage({
             kind: MessageKind.Init,
             edges: this.matrices.edges.buffer
@@ -203,3 +203,102 @@ export class ForceAtlas2Supervisor {
         return worker;
     }
 }
+
+const FLOATS_PER_NODE = 10;
+const FLOATS_PER_EDGE = 3;
+
+// Based on https://github.com/graphology/graphology/blob/master/src/layout-forceatlas2/helpers.js
+function graphToByteArrays(
+    graph: Graph,
+    getEdgeWeight: EdgeMapper<number, Attributes, Attributes>): GraphMatrices {
+
+    let order = graph.order;
+    let size = graph.size;
+    let index = {};
+    let j;
+
+    // NOTE: float32 could lead to issues if edge array needs to index large
+    // number of nodes.
+    let NodeMatrix = new Float32Array(order * FLOATS_PER_NODE);
+    let EdgeMatrix = new Float32Array(size * FLOATS_PER_EDGE);
+
+    // Iterate through nodes
+    j = 0;
+    graph.forEachNode((node, attr) => {
+        // Node index
+        index[node] = j;
+
+        // Populating byte array
+        NodeMatrix[j] = attr.x;
+        NodeMatrix[j + 1] = attr.y;
+        NodeMatrix[j + 2] = 0; // dx
+        NodeMatrix[j + 3] = 0; // dy
+        NodeMatrix[j + 4] = 0; // old_dx
+        NodeMatrix[j + 5] = 0; // old_dy
+        NodeMatrix[j + 6] = 1; // mass
+        NodeMatrix[j + 7] = 1; // convergence
+        NodeMatrix[j + 8] = attr.size || 1;
+        NodeMatrix[j + 9] = attr.fixed ? 1 : 0;
+        j += FLOATS_PER_NODE;
+    });
+
+    // Iterate through edges
+    j = 0;
+    graph.forEachEdge((edge, attr, source, target, sa, ta, u) => {
+        let sj = index[source];
+        let tj = index[target];
+
+        let weight = getEdgeWeight(edge, attr, source, target, sa, ta, u);
+
+        // Incrementing mass to be a node's weighted degree
+        NodeMatrix[sj + 6] += weight;
+        NodeMatrix[tj + 6] += weight;
+
+        // Populating byte array
+        EdgeMatrix[j] = sj;
+        EdgeMatrix[j + 1] = tj;
+        EdgeMatrix[j + 2] = weight;
+        j += FLOATS_PER_EDGE;
+    });
+
+    return {
+        nodes: NodeMatrix,
+        edges: EdgeMatrix
+    };
+};
+
+
+// Based on https://github.com/graphology/graphology/blob/master/src/layout-forceatlas2/helpers.js
+function assignLayoutChanges(
+    graph: Graph,
+    nodeMatrix: Float32Array,
+    outputReducer: ((node: string, attr: Attributes) => Attributes) | null = null,
+    isFixedVolatile: boolean = false) {
+    var i = 0;
+
+    graph.updateEachNodeAttributes(function (node, attr) {
+        if (!attr.fixed) {
+            attr.x = nodeMatrix[i];
+            attr.y = nodeMatrix[i + 1];
+        } else if (isFixedVolatile) {
+            nodeMatrix[i] = attr.x;
+            nodeMatrix[i + 1] = attr.y;
+        }
+
+        i += FLOATS_PER_NODE;
+
+        return outputReducer ? outputReducer(node, attr) : attr;
+    });
+};
+
+// Based on https://github.com/graphology/graphology/blob/master/src/layout-forceatlas2/helpers.js
+function readGraphPositions(graph: Graph, nodeMatrix: Float32Array) {
+    var i = 0;
+
+    graph.forEachNode(function (_, attr) {
+        nodeMatrix[i] = attr.x;
+        nodeMatrix[i + 1] = attr.y;
+
+        i += FLOATS_PER_NODE;
+    });
+};
