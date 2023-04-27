@@ -12,6 +12,7 @@ export interface DataOptions {
     defaultIcons: Record<string, string>;
     fallbackIcon: string;
     selectedRelations: string[];
+    tidyTreeRelation: string;
 }
 
 export const DEFAULT_DATA_OPTIONS: DataOptions = {
@@ -19,7 +20,8 @@ export const DEFAULT_DATA_OPTIONS: DataOptions = {
     selectedKinds: [],
     defaultIcons: {},
     fallbackIcon: DEFAULT_GLYPH_ICON_NAME,
-    selectedRelations: ["declares"]
+    selectedRelations: ["declares"],
+    tidyTreeRelation: "declares"
 }
 
 export interface ToolOptions {

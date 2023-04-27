@@ -90,8 +90,9 @@
     <Dock name="panels" bind:this={dock}>
         <Tab name="Data" value={AppPanels.Data} icon={AppIcons.DataPanel}>
             <DataPanel
+                {model}
                 bind:dataOptions={$dataOptions}
-                on:reset={diagram.reset}
+                on:refresh={diagram.refresh}
                 on:highlight={(e) =>
                     diagram.highlight(e.detail.searchText, e.detail.searchMode)}
                 on:isolate={(e) =>

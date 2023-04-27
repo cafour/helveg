@@ -159,7 +159,10 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
         //     ([k, v]) => v.properties["Kind"] === "csharp:Framework"
         // )?.[0];
         if (solutionRoot) {
-            tidyTree(this._graph, solutionRoot, 1000);
+            tidyTree(this._graph, solutionRoot, {
+                radius: 1000,
+                relation: this.dataOptions.tidyTreeRelation
+            });
             this.stats = { iterationCount: 0, speed: 0 };
         }
 
@@ -363,7 +366,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
 
     set dataOptions(value: DataOptions) {
         this._dataOptions = value;
-        this.refreshGraph();
+        // the graph needs to be refreshed manually by calling refresh()
     }
 
     get glyphOptions(): GlyphOptions {

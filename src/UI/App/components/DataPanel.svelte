@@ -1,14 +1,17 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte/internal";
-    import Icon from "./Icon.svelte";
     import Panel from "./Panel.svelte";
     import RadioGroup from "./RadioGroup.svelte";
     import Subpanel from "./Subpanel.svelte";
     import { SearchMode, type DataOptions } from "model/options";
     import { AppIcons } from "model/const";
     import ResizingTextarea from "./ResizingTextarea.svelte";
+    import type { VisualizationModel } from "model/visualization";
+
+    let dispatch = createEventDispatcher();
 
     export let dataOptions: DataOptions;
+    export let model: VisualizationModel;
 
     let searchModes = [
         {
@@ -27,7 +30,8 @@
     let selectedSearchMode: SearchMode = SearchMode.Contains;
     let searchText: string = "";
 
-    let dispatch = createEventDispatcher();
+    $: relations = model ? Object.keys(model.multigraph.relations).sort() : [];
+    let workDataOptions = structuredClone(dataOptions);
 </script>
 
 <Panel name="Data" indent={false}>
@@ -69,6 +73,35 @@
                 Isolate
             </button>
         </form>
+    </Subpanel>
+    <Subpanel name="IncludedRelations">
+        {#each relations as relation}
+            <label>
+                <input
+                    type="checkbox"
+                    bind:group={workDataOptions.selectedRelations}
+                    value={relation}
+                />
+                {relation}
+            </label>
+        {/each}
+        <label class="flex flex-row gap-8 align-items-center">
+            TidyTreeRelation
+            <select bind:value={workDataOptions.tidyTreeRelation}>
+                {#each relations as relation}
+                    <option value={relation}>{relation}</option>
+                {/each}
+            </select>
+        </label>
+        <button
+            class="button-stretch mt-8"
+            on:click|preventDefault={() => {
+                dataOptions = workDataOptions;
+                dispatch("refresh");
+            }}
+        >
+            Apply
+        </button>
     </Subpanel>
     <!-- <Subpanel name="IncludedKinds">
         {#each dataOptions.kinds as kind}
