@@ -50,6 +50,9 @@
                 propertiesPanel.$set({node: instance.model.multigraph.nodes[nodeId] ?? null})
                 dock.setTab(AppPanels.Properties);
                 break;
+            case AppTools.Cut:
+                diagram.cut(nodeId);
+                break;
         }
     }
 </script>

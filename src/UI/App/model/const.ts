@@ -20,8 +20,8 @@ export enum AppIcons {
     MoveTool = "base:MoveGlyph",
     ShowPropertiesTool = "base:ShowAllConfigurations",
     ExpandTool = "base:Branch",
-    SawTool = "base:Cut",
-    
+    CutTool = "base:Cut",
+
     UnknownDiagnostic = "base:StatusHelp",
     HiddenDiagnostic = "base:StatusHidden",
     InfoDiagnostic = "base:StatusInformation",
@@ -42,5 +42,5 @@ export enum AppTools {
     Move = "move",
     ShowProperties = "showProperties",
     Expand = "expand",
-    Saw = "saw",
+    Cut = "cut",
 }

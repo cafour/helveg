@@ -7,25 +7,25 @@
             value: AppTools.ShowProperties,
             label: "ShowProperties",
             icon: AppIcons.ShowPropertiesTool,
-            hideLabel: true
+            hideLabel: true,
         },
         {
             value: AppTools.Move,
             label: "Move",
             icon: AppIcons.MoveTool,
-            hideLabel: true
+            hideLabel: true,
         },
         {
             value: AppTools.Expand,
             label: "Expand",
             icon: AppIcons.ExpandTool,
-            hideLabel: true
+            hideLabel: true,
         },
         {
-            value: AppTools.Saw,
-            label: "Saw",
-            icon: AppIcons.SawTool,
-            hideLabel: true
+            value: AppTools.Cut,
+            label: "Cut",
+            icon: AppIcons.CutTool,
+            hideLabel: true,
         },
     ];
 

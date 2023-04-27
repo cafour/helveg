@@ -14,6 +14,8 @@ export interface DataOptions {
     defaultIcons: Record<string, string>;
     fallbackIcon: string;
     selectedRelations: string[];
+    isCuttingTransitive: boolean;
+    cuttingRelation: string | null;
 }
 
 export const DEFAULT_DATA_OPTIONS: DataOptions = {
@@ -23,7 +25,9 @@ export const DEFAULT_DATA_OPTIONS: DataOptions = {
     selectedKinds: [],
     defaultIcons: {},
     fallbackIcon: DEFAULT_GLYPH_ICON_NAME,
-    selectedRelations: ["declares"]
+    selectedRelations: ["declares"],
+    isCuttingTransitive: true,
+    cuttingRelation: "declares"
 }
 
 export interface GlyphOptions {

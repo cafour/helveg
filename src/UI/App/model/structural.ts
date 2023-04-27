@@ -15,7 +15,7 @@ import tidyTree from "layout/tidyTree";
 import type { HelvegInstance } from "./instance";
 import { buildNodeFilter, filterNodes } from "./filter";
 import type { Coordinates, NodeDisplayData } from "sigma/types";
-import type { MouseCoords } from "sigma/types";
+import type { Attributes } from "graphology-types";
 
 export enum StructuralStatus {
     Stopped,
@@ -70,6 +70,7 @@ export interface AbstractStructuralDiagram {
     highlight(searchText: string | null, searchMode: SearchMode): void;
     isolate(searchText: string | null, searchMode: SearchMode): void;
     reset(): Promise<void>;
+    cut(nodeId: string): void;
 }
 
 export interface HelvegNodeAttributes extends NodeDisplayData {
@@ -143,10 +144,8 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
         if (this._supervisor?.isRunning) {
             await this.stopLayout();
         }
-        if (this._supervisor) {
-            this._supervisor.kill();
-            this._supervisor = initializeSupervisor(this._graph, this.onSupervisorProgress.bind(this));
-        }
+
+        this.refreshSupervisor();
 
         // TODO: add a setting for roots
         let solutionRoot = Object.entries(this._model.multigraph.nodes).find(
@@ -277,25 +276,24 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
                 return;
             }
 
-            this._supervisor?.kill();
-            this._supervisor = null;
-
-            for (let id of filterNodes(this._model.multigraph, filter, true)) {
-                if (this._graph.hasNode(id)) {
-                    this._graph.dropNode(id);
+            this.refreshSupervisor(true, () => {
+                if (!this._graph) {
+                    return;
                 }
-            }
+
+                for (let id of filterNodes(this._model.multigraph, filter, true)) {
+                    if (this._graph.hasNode(id)) {
+                        this._graph.dropNode(id);
+                    }
+                }
+            });
+
         }
         catch (e: any) {
             this._instance.logger.warn(e?.message
                 ?? e?.toString()
                 ?? "Something bad happened while isolating nodes.");
             return;
-        }
-        finally {
-            this._supervisor = initializeSupervisor(
-                this._graph,
-                this.onSupervisorProgress.bind(this));
         }
 
         this._instance.logger.info(`Isolated ${this._graph.nodes().length} nodes.`);
@@ -304,6 +302,30 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
     async reset(): Promise<void> {
         this.refreshGraph();
         await this.resetLayout();
+    }
+
+    cut(nodeId: string): void {
+        if (!this._graph) {
+            DEBUG && console.warn("Cannot cut nodes since the graph is not initialized.");
+            return;
+        }
+
+        if (!this._graph.hasNode(nodeId)) {
+            throw new Error(`Cannot cut node '${nodeId}' since it does not exist in the graph.`);
+        }
+
+        if (!this._dataOptions.isCuttingTransitive) {
+            this._graph.dropNode(nodeId);
+            return;
+        }
+
+        let reachable = bfs(this._graph, nodeId);
+
+        this.refreshSupervisor(true, () => {
+            reachable.forEach(id => this._graph?.dropNode(id));
+        })
+
+        this._instance.logger.info(`Cut ${reachable.size} nodes.`);
     }
 
     get element(): HTMLElement | null {
@@ -452,16 +474,45 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
         this._graph = initializeGraph(this._model, this._dataOptions);
         stylizeGraph(this._graph, this._model, this._instance.styles);
 
+        this.refreshSupervisor(false, () => this._graph && this._sigma?.setGraph(this._graph));
+
+        this._supervisor = initializeSupervisor(this._graph, this.onSupervisorProgress.bind(this));
+
+        this._glyphProgramOptions.diagramMode = StructuralDiagramMode.Normal;
+    }
+
+    /**
+     * Kills the current instance of the FA2 supervisor and spawns a new one. Calls `modify` while no supervisor
+     * is running. If `shouldLayoutContinue` is true, the newly spawned supervisor will be started if the original one
+     * was running.
+     */
+    private refreshSupervisor(shouldLayoutContinue: boolean = false, modify?: () => void) {
+        let lastStatus = this.status;
+
         if (this._supervisor) {
             this._supervisor.kill();
             this._supervisor = null;
         }
 
-        this._sigma?.setGraph(this._graph);
+        this.status = StructuralStatus.Stopped;
 
-        this._supervisor = initializeSupervisor(this._graph, this.onSupervisorProgress.bind(this));
-
-        this._glyphProgramOptions.diagramMode = StructuralDiagramMode.Normal;
+        try {
+            if (modify) {
+                modify();
+            }
+        }
+        finally {
+            if (!this._graph) {
+                return;
+            }
+    
+            this._supervisor = initializeSupervisor(this._graph, this.onSupervisorProgress.bind(this));
+            if (shouldLayoutContinue
+                && (lastStatus === StructuralStatus.Running || lastStatus === StructuralStatus.RunningInBackground)) {
+                this._supervisor.start(lastStatus === StructuralStatus.RunningInBackground);
+                this.status = lastStatus;
+            }
+        }
     }
 
     private onNodeClick(event: SigmaNodeEventPayload): void {
@@ -593,7 +644,8 @@ function initializeSigma(
             glyph: glyphProgram,
         },
         labelFont: "'Cascadia Mono', 'Consolas', monospace",
-        itemSizesReference: "positions"
+        itemSizesReference: "positions",
+        // zoomToSizeRatioFunction: (cameraRatio) => cameraRatio,
     });
 
     if (onClick) {
@@ -610,8 +662,7 @@ function initializeSigma(
     }
 
     if (onMove) {
-        sigma.getMouseCaptor().on("mousemovebody", e => 
-        {
+        sigma.getMouseCaptor().on("mousemovebody", e => {
             if (onMove(e) === false) {
                 // prevent Sigma from moving the camera
                 e.preventSigmaDefault();
@@ -620,8 +671,7 @@ function initializeSigma(
             }
 
         });
-        sigma.getTouchCaptor().on("touchmove", e =>
-        {
+        sigma.getTouchCaptor().on("touchmove", e => {
             if (e.touches.length == 1) {
                 onMove(e.touches[0]);
                 e.original.preventDefault();
@@ -649,6 +699,39 @@ function initializeSupervisor(
     const supervisor = new ForceAtlas2Supervisor(graph, settings);
     supervisor.progress.subscribe(onSupervisorProgress);
     return supervisor;
+}
+
+interface BfsOptions {
+    relation: string;
+    callback: (node: string, attr: Attributes, depth: number) => void;
+}
+
+function bfs(graph: Graph, nodeId: string, options?: Partial<BfsOptions>): Set<string> {
+    let opts = { maxDepth: Number.MAX_SAFE_INTEGER, ...options };
+
+    let visited = new Set<string>();
+    let queue = [nodeId];
+    let depth = 0;
+    while (queue.length > 0 && depth < opts.maxDepth) {
+        let node = queue.shift()!;
+        if (visited.has(node) || !graph.hasNode(node)) {
+            continue;
+        }
+        visited.add(node);
+
+        if (opts.callback) {
+            opts.callback(node, graph.getNodeAttributes(node), depth);
+        }
+
+        graph.forEachOutboundEdge(node, (edge, attr, src, dst, srcAttr, dstAttr, undir) => {
+            if (opts.relation && attr.relation !== opts.relation) {
+                return;
+            }
+            queue.push(dst);
+        });
+        depth++;
+    }
+    return visited;
 }
 
 // function collapseNode(graph: Graph, nodeId: string) {

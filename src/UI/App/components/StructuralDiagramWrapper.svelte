@@ -89,6 +89,10 @@
     export function reset() {
         diagram.reset();
     }
+    
+    export function cut(nodeId: string) {
+        diagram.cut(nodeId);
+    }
 
     let dispatch = createEventDispatcher();
 
