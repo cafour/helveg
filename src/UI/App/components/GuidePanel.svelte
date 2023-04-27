@@ -2,7 +2,7 @@
     import { AppIcons } from "model/const";
     import Icon from "./Icon.svelte";
     import Panel from "./Panel.svelte";
-    import GlyphsPanel from "./GlyphsPanel.svelte";
+    import GlyphsPanel from "./AppearancePanel.svelte";
     import PropertiesPanel from "./PropertiesPanel.svelte";
     import DocumentPanel from "./DocumentPanel.svelte";
 </script>
@@ -29,9 +29,9 @@
         </dd>
 
         <dt>
-            <Icon name={AppIcons.GlyphsPanel} /> Glyphs
+            <Icon name={AppIcons.AppearancePanel} /> Appearance
         </dt>
-        <dd>Contains settings affecting the appearance of node glyphs.</dd>
+        <dd>Contains settings affecting the appearance of the diagram.</dd>
 
         <dt>
             <Icon name={AppIcons.PropertiesPanel} /> Properties

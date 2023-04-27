@@ -1,15 +1,15 @@
 export enum AppIcons {
     DataPanel = "base:Database",
     LayoutPanel = "base:Diagram",
-    GlyphsPanel = "base:PolarChart",
+    AppearancePanel = "base:ColorPalette",
     PropertiesPanel = "base:ShowAllConfigurations",
     DocumentPanel = "base:Document",
     GuidePanel = "base:StatusHelpOutline",
-    
+
     ContainsMode = "base:String",
     RegexMode = "base:RegularExpression",
     JavaScriptMode = "base:JSFileNode",
-    
+
     DebugToast = "base:StatusRunning",
     InfoToast = "base:StatusInformation",
     WarningToast = "base:StatusWarning",

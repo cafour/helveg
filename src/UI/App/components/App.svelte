@@ -10,7 +10,7 @@
     } from "model/structural";
     import PropertiesPanel from "./PropertiesPanel.svelte";
     import DataPanel from "./DataPanel.svelte";
-    import GlyphsPanel from "./GlyphsPanel.svelte";
+    import AppearancePanel from "./AppearancePanel.svelte";
     import LayoutPanel from "./LayoutPanel.svelte";
     import GuidePanel from "./GuidePanel.svelte";
     import { writable, type Readable } from "svelte/store";
@@ -74,8 +74,8 @@
                 {stats}
             />
         </Tab>
-        <Tab name="Glyphs" value="glyphs-panel" icon={AppIcons.GlyphsPanel}>
-            <GlyphsPanel bind:glyphOptions={$glyphOptions} />
+        <Tab name="Appearance" value="appearance-panel" icon={AppIcons.AppearancePanel}>
+            <AppearancePanel bind:glyphOptions={$glyphOptions} />
         </Tab>
         <Tab
             name="Properties"
