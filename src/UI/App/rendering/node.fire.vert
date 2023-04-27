@@ -54,7 +54,7 @@ float modHeight(float v, float height)
 * Returns a position of the current fire particle relative to the center of the fire.
 * The 'x' coordinate is in [-1, 1] and the 'y' coordinate is in [-1 / ASPECT_RATIO, 1 / ASPECT_RATIO].
 */
-vec3 fire()
+vec4 fire()
 {
     // The maximum fire height.
     float maxHeight = 1.0 / ASPECT_RATIO * 2.0;
@@ -64,7 +64,7 @@ vec3 fire()
 
     // The length of this snowflake's life. Causes the fire to look more natural since the flakes don't die out
     // all at once.
-    float life = 1.0 - 0.1 * snowflake;
+    float life = 1.0 - 0.2 * snowflake;
 
     // The maximum height of this particular snowflake.
     float height = life * maxHeight;
@@ -84,7 +84,7 @@ vec3 fire()
     float offsetX = (cos(angle) + wiggleX) * lateral * a_intensity;
     // float offsetZ = sin(angle) * radius * lateral + wiggleZ;
     
-    return vec3(offsetX, offsetY, offsetY / height);
+    return vec4(offsetX, offsetY, offsetY / height, snowflake);
 }
 
 void main()
@@ -94,11 +94,11 @@ void main()
         return;
     }
 
-    vec3 fireResult = fire();
+    vec4 fireResult = fire();
     vec2 fireOffset = fireResult.xy * (a_size / u_sizeRatio) * u_normalizationRatio;
 
     float nodeSize = a_size / u_sizeRatio * u_pixelRatio;
-    gl_PointSize = nodeSize * PARTICLE_SCALE * a_intensity;
+    gl_PointSize = nodeSize * PARTICLE_SCALE * a_intensity * (1.0 - fireResult.w * 0.5);
 
 
     gl_Position = vec4(
