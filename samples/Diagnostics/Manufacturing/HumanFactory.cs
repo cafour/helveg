@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Helveg.Sample.Diagnostics.Data;
 
 namespace Helveg.Sample.Diagnostics.Manufacturing
@@ -43,6 +44,11 @@ namespace Helveg.Sample.Diagnostics.Manufacturing
         public ICheeseUnit ShipCheese(CheesePiece piece)
         {
             return piece.Amount;
+        }
+
+        public async Task EatCheese(CheesePiece piece)
+        {
+            // This produces a warning on purpose since the method is async but doesn't await.
         }
     }
 }
