@@ -16,8 +16,9 @@
     import { writable, type Readable } from "svelte/store";
     import type { HelvegInstance } from "model/instance";
     import { setContext } from "svelte";
-    import { AppIcons } from "model/const";
+    import { AppIcons, AppPanels, AppTools } from "model/const";
     import Toast from "./Toast.svelte";
+    import ToolBox from "./ToolBox.svelte";
 
     export let instance: HelvegInstance;
     setContext("helveg", instance);
@@ -36,12 +37,26 @@
     let glyphOptions = writable(helveg.options.glyph);
     let exportOptions = writable(helveg.options.export);
     let diagram: StructuralDiagramWrapper;
+    let dock: Dock;
+    let propertiesPanel: PropertiesPanel;
     let status: StructuralStatus;
     let selectedNodeId: string | null;
     let stats: StructuralDiagramStats;
+    let selectedTool: string;
+
+    function onNodeSelected(nodeId: string) {
+        switch (selectedTool) {
+            case AppTools.ShowProperties:
+                propertiesPanel.$set({node: instance.model.multigraph.nodes[nodeId] ?? null})
+                dock.setTab(AppPanels.Properties);
+                break;
+        }
+    }
 </script>
 
 <main class="flex flex-row-reverse h-100p relative">
+    <ToolBox bind:selectedTool />
+
     <StructuralDiagramWrapper
         {model}
         bind:this={diagram}
@@ -51,10 +66,11 @@
         bind:dataOptions={$dataOptions}
         bind:glyphOptions={$glyphOptions}
         bind:layoutOptions={$layoutOptions}
+        on:nodeSelected={(e) => onNodeSelected(e.detail)}
     />
 
-    <Dock name="panels">
-        <Tab name="Data" value="data-panel" icon={AppIcons.DataPanel}>
+    <Dock name="panels" bind:this={dock}>
+        <Tab name="Data" value={AppPanels.Data} icon={AppIcons.DataPanel}>
             <DataPanel
                 bind:dataOptions={$dataOptions}
                 on:reset={diagram.reset}
@@ -64,7 +80,7 @@
                     diagram.isolate(e.detail.searchText, e.detail.searchMode)}
             />
         </Tab>
-        <Tab name="Layout" value="layout-panel" icon={AppIcons.LayoutPanel}>
+        <Tab name="Layout" value={AppPanels.Layout} icon={AppIcons.LayoutPanel}>
             <LayoutPanel
                 bind:layoutOptions={$layoutOptions}
                 on:run={(e) => diagram.runLayout(e.detail)}
@@ -74,23 +90,25 @@
                 {stats}
             />
         </Tab>
-        <Tab name="Appearance" value="appearance-panel" icon={AppIcons.AppearancePanel}>
+        <Tab
+            name="Appearance"
+            value={AppPanels.Appearance}
+            icon={AppIcons.AppearancePanel}
+        >
             <AppearancePanel bind:glyphOptions={$glyphOptions} />
         </Tab>
         <Tab
             name="Properties"
-            value="properties-panel"
+            value={AppPanels.Properties}
             icon={AppIcons.PropertiesPanel}
         >
             <PropertiesPanel
-                node={selectedNodeId
-                    ? instance.model.multigraph.nodes[selectedNodeId]
-                    : null}
+                bind:this={propertiesPanel}
             />
         </Tab>
         <Tab
             name="Document"
-            value="document-panel"
+            value={AppPanels.Document}
             icon={AppIcons.DocumentPanel}
         >
             <DocumentPanel
@@ -99,7 +117,7 @@
                 on:export={(e) => diagram.save(e.detail)}
             />
         </Tab>
-        <Tab name="Guide" value="guide-panel" icon={AppIcons.GuidePanel}>
+        <Tab name="Guide" value={AppPanels.Guide} icon={AppIcons.GuidePanel}>
             <GuidePanel />
         </Tab>
     </Dock>

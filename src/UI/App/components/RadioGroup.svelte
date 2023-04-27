@@ -4,6 +4,7 @@
         id?: string;
         label?: string;
         icon?: string;
+        hideLabel?: boolean;
     }
 </script>
 
@@ -24,13 +25,13 @@
             name={groupName}
             bind:group={selected}
             value={item.value}
-            id={item.id ?? `radio-${item.value}`}
+            id={item.id ?? `${groupName}-${item.value}`}
         />
-        <label for={item.id ?? `radio-${item.value}`}>
+        <label for={item.id ?? `${groupName}-${item.value}`}>
             {#if item.icon}
-                <Icon name={item.icon} />
+                <Icon name={item.icon} title={item.label} />
             {/if}
-            {#if item.label}
+            {#if item.label && !item.hideLabel}
                 {item.label}
             {/if}
         </label>

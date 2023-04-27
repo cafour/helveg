@@ -3,7 +3,7 @@
     import KeyValueList from "./KeyValueList.svelte";
     import Panel from "./Panel.svelte";
 
-    export let node: GraphNode | null;
+    export let node: GraphNode | null = null;
     $: nodeItems =
         [
             ["Label", node?.label ?? null],

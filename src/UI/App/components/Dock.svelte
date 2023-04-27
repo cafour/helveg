@@ -40,12 +40,21 @@
 
     let currentTab = DockContext.currentTab;
     let tabDescriptors = DockContext.tabDescriptors;
-    
+
     onMount(() => {
         $currentTab = localStorage.getItem(`Dock.${name}.currentTab`);
     });
 
-    function changeTab(value: string) {
+    export function setTab(value: string) {
+        if (value === $currentTab) {
+            return;
+        }
+
+        $currentTab = $currentTab === value ? null : value;
+        localStorage.setItem(`Dock.${name}.currentTab`, $currentTab!);
+    }
+    
+    export function toggleTab(value: string) {
         $currentTab = $currentTab === value ? null : value;
         localStorage.setItem(`Dock.${name}.currentTab`, $currentTab!);
     }
@@ -57,7 +66,7 @@
             <div
                 class="tab-item cursor-pointer select-none"
                 class:active={$currentTab === tabDescriptor.value}
-                on:click={() => changeTab(tabDescriptor.value)}
+                on:click={() => toggleTab(tabDescriptor.value)}
                 on:keypress
                 title={tabDescriptor.name}
             >

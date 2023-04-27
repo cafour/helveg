@@ -15,5 +15,26 @@ export enum AppIcons {
     WarningToast = "base:StatusWarning",
     ErrorToast = "base:StatusError",
     SuccessToast = "base:StatusSuccess",
-    MessageToast = "base:Message"
+    MessageToast = "base:Message",
+    
+    MoveTool = "base:MoveGlyph",
+    ShowPropertiesTool = "base:ShowAllConfigurations",
+    ExpandTool = "base:Branch",
+    SawTool = "base:Cut",
+}
+
+export enum AppPanels {
+    Data = "data-panel",
+    Layout = "layout-panel",
+    Appearance = "appearance-panel",
+    Properties = "properties-panel",
+    Document = "document-panel",
+    Guide = "guide-panel"
+}
+
+export enum AppTools {
+    Move = "move",
+    ShowProperties = "showProperties",
+    Expand = "expand",
+    Saw = "saw",
 }

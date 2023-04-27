@@ -1,9 +1,21 @@
 <script lang="ts">
     import type { VisualizationModel } from "model/visualization";
-    import { StructuralStatus, StructuralDiagram, type AbstractStructuralDiagram, type StructuralDiagramStats } from "model/structural";
+    import {
+        StructuralStatus,
+        StructuralDiagram,
+        type AbstractStructuralDiagram,
+        type StructuralDiagramStats,
+    } from "model/structural";
     import Icon from "./Icon.svelte";
-    import type { DataOptions, ExportOptions, GlyphOptions, HelvegOptions, LayoutOptions, SearchMode } from "model/options";
-    import { getContext } from "svelte";
+    import type {
+        DataOptions,
+        ExportOptions,
+        GlyphOptions,
+        HelvegOptions,
+        LayoutOptions,
+        SearchMode,
+    } from "model/options";
+    import { createEventDispatcher, getContext } from "svelte";
     import type { HelvegInstance } from "model/instance";
 
     export let model: VisualizationModel;
@@ -17,18 +29,18 @@
     export let status: StructuralStatus = StructuralStatus.Stopped;
     export let stats: StructuralDiagramStats = {
         iterationCount: 0,
-        speed: 0
+        speed: 0,
     };
     export let selectedNodeId: string | null = null;
 
-    diagram.statusChanged.subscribe(s => {
+    diagram.statusChanged.subscribe((s) => {
         status = s;
     });
-    diagram.statsChanged.subscribe(s => {
+    diagram.statsChanged.subscribe((s) => {
         DEBUG && console.log("Stats changed", s);
         stats = s;
     });
-    diagram.nodeSelected.subscribe(n => {
+    diagram.nodeSelected.subscribe((n) => {
         selectedNodeId = n;
     });
 
@@ -61,7 +73,10 @@
         diagram.save(options);
     }
 
-    export function highlight(searchText: string | null, searchMode: SearchMode) {
+    export function highlight(
+        searchText: string | null,
+        searchMode: SearchMode
+    ) {
         diagram.highlight(searchText, searchMode);
     }
 
@@ -72,11 +87,17 @@
     export function reset() {
         diagram.reset();
     }
+
+    let dispatch = createEventDispatcher();
+
+    diagram.nodeSelected.subscribe((n) => {
+        dispatch("nodeSelected", n);
+    });
 </script>
 
 <div
     bind:this={loadingScreenElement}
-    class="loading-screen w-100p overflow-hidden h-100p absolute z-1 flex flex-col align-items-center justify-content-center bg-surface-50"
+    class="loading-screen flex flex-col"
     class:hidden={status !== StructuralStatus.RunningInBackground}
 >
     <div class="w-32 h-32">
@@ -87,5 +108,5 @@
 
 <div
     bind:this={diagramElement}
-    class="diagram w-100p h-100p overflow-hidden absolute z-0"
+    class="diagram"
 />
