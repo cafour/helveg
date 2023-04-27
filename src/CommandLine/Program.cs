@@ -1,5 +1,4 @@
 ﻿using System.CommandLine;
-using System.CommandLine.Invocation;
 using System.IO;
 using System.Linq;
 using Microsoft.Build.Locator;
@@ -10,14 +9,10 @@ using System;
 using System.CommandLine.Builder;
 using System.CommandLine.Parsing;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Numerics;
 using System.CommandLine.NamingConventionBinder;
 using Helveg.Visualization;
 using Helveg.CSharp;
 using System.Collections.Immutable;
-using System.Text.Json;
-using System.Threading;
 using Helveg.UI;
 using Helveg.CSharp.Symbols;
 using Helveg.CSharp.Projects;
@@ -114,8 +109,10 @@ public class Program
         uib.StylesDirectory = styleDir;
         uib.ScriptsDirectory = scriptDir;
         uib.IconsDirectory = iconDir;
-        uib.SetVisualizationModel(new() {
-            DocumentInfo = new() {
+        uib.SetVisualizationModel(new()
+        {
+            DocumentInfo = new()
+            {
                 Name = multigraph.Label ?? multigraph.Id,
                 CreatedOn = DateTimeOffset.UtcNow
             },
@@ -151,7 +148,10 @@ public class Program
         rootCmd.AddArgument(new Argument<FileSystemInfo>(
             name: "SOURCE",
             description: "Path to a project or a solution",
-            getDefaultValue: () => new DirectoryInfo(Environment.CurrentDirectory)));
+            getDefaultValue: () => new DirectoryInfo(Environment.CurrentDirectory))
+        {
+            Arity = ArgumentArity.ExactlyOne
+        });
         var propertyOption = new Option<Dictionary<string, string>>(
             aliases: new[] { "-p", "--properties" },
             parseArgument: a => a.Tokens
@@ -200,16 +200,24 @@ public class Program
 
         var builder = new CommandLineBuilder(rootCmd)
             .UseHelp()
+            .UseExceptionHandler((e, c) =>
+            {
+                program.logging.CreateLogger("").LogCritical(e, e.Message);
+            }, 1)
             .AddMiddleware(c =>
             {
+                bool isVerbose = c.ParseResult.GetValueForOption(verboseOption);
+                
                 program.isForced = c.ParseResult.GetValueForOption(forceOption);
 
-                LogLevel minimumLevel = c.ParseResult.GetValueForOption(verboseOption)
-                    ? LogLevel.Debug
-                    : LogLevel.Information;
+                LogLevel minimumLevel = isVerbose ? LogLevel.Debug : LogLevel.Information;
                 program.logging = LoggerFactory.Create(b =>
                 {
-                    b.AddConsoleFormatter<BriefConsoleFormatter, ConsoleFormatterOptions>(d => d.TimestampFormat = "HH:mm:ss.fff");
+                    b.AddConsoleFormatter<BriefConsoleFormatter, BriefConsoleFormatterOptions>(d =>
+                    {
+                        d.TimestampFormat = "HH:mm:ss.fff";
+                        d.IncludeStacktraces = isVerbose;
+                    });
                     b.AddConsole(d => d.FormatterName = "brief");
                     b.SetMinimumLevel(minimumLevel);
                 });
@@ -230,5 +238,5 @@ public class Program
             _ => SymbolAnalysisScope.None
         };
     }
-    
+
 }

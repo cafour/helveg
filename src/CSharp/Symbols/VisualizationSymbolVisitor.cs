@@ -19,21 +19,21 @@ public class VisualizationSymbolVisitor : SymbolVisitor
     public override void DefaultVisit(ISymbolDefinition symbol)
     {
         var node = builder.GetNode(symbol.Token, symbol.Name)
-            .SetProperty(Const.KindProperty, CSConst.KindOf(symbol.GetType()))
+            .SetProperty(CSProperties.Kind, CSConst.KindOf(symbol.GetType()))
             .SetProperty(Const.DiagnosticsProperty, symbol.Diagnostics);
 
         if (symbol is IMemberDefinition member)
         {
             node
-            .SetProperty(nameof(member.Accessibility), member.Accessibility)
-            .SetProperty(nameof(member.IsSealed), member.IsSealed)
-            .SetProperty(nameof(member.IsStatic), member.IsStatic)
-            .SetProperty(nameof(member.IsAbstract), member.IsAbstract)
-            .SetProperty(nameof(member.IsExtern), member.IsExtern)
-            .SetProperty(nameof(member.IsOverride), member.IsOverride)
-            .SetProperty(nameof(member.IsVirtual), member.IsVirtual)
-            .SetProperty(nameof(member.IsImplicitlyDeclared), member.IsImplicitlyDeclared)
-            .SetProperty(nameof(member.CanBeReferencedByName), member.CanBeReferencedByName);
+                .SetProperty(nameof(member.Accessibility), member.Accessibility)
+                .SetProperty(nameof(member.IsSealed), member.IsSealed)
+                .SetProperty(nameof(member.IsStatic), member.IsStatic)
+                .SetProperty(nameof(member.IsAbstract), member.IsAbstract)
+                .SetProperty(nameof(member.IsExtern), member.IsExtern)
+                .SetProperty(nameof(member.IsOverride), member.IsOverride)
+                .SetProperty(nameof(member.IsVirtual), member.IsVirtual)
+                .SetProperty(nameof(member.IsImplicitlyDeclared), member.IsImplicitlyDeclared)
+                .SetProperty(nameof(member.CanBeReferencedByName), member.CanBeReferencedByName);
         }
     }
 
@@ -51,6 +51,12 @@ public class VisualizationSymbolVisitor : SymbolVisitor
 
     public override void VisitNamespace(NamespaceDefinition @namespace)
     {
+        if (!@namespace.GetAllTypes().Any())
+        {
+            // ignore namespace without any types in it or any subnamespaces
+            return;
+        }
+
         base.VisitNamespace(@namespace);
 
         if (@namespace.IsGlobalNamespace)
@@ -77,8 +83,8 @@ public class VisualizationSymbolVisitor : SymbolVisitor
             .SetProperty(nameof(TypeDefinition.IsRecord), type.IsRecord);
 
         var (instanceCount, staticCount) = CountMembers(type);
-        node.SetProperty("InstanceMemberCount", instanceCount)
-            .SetProperty("StaticMemberCount", staticCount);
+        node.SetProperty(CSProperties.InstanceMemberCount, instanceCount)
+            .SetProperty(CSProperties.StaticMemberCount, staticCount);
 
         builder.AddEdges(CSConst.DeclaresId, type.Fields.Select(f => new Edge(type.Token, f.Token)));
         builder.AddEdges(CSConst.DeclaresId, type.Events.Select(e => new Edge(type.Token, e.Token)));
@@ -181,7 +187,7 @@ public class VisualizationSymbolVisitor : SymbolVisitor
         base.VisitTypeParameter(typeParameter);
 
         builder.GetNode(typeParameter.Token)
-            .SetProperty("DeclaringKind", typeParameter.DeclaringMethod is not null
+            .SetProperty(CSProperties.DeclaringKind, typeParameter.DeclaringMethod is not null
                 ? CSConst.KindOf<MethodDefinition>()
                 : CSConst.KindOf<TypeDefinition>());
     }

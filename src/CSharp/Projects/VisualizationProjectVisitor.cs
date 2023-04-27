@@ -26,7 +26,7 @@ public class VisualizationProjectVisitor : ProjectVisitor
 
         builder.GetNode(solution.Token, solution.Name)
             .SetProperty(nameof(Solution.Path), solution.Path)
-            .SetProperty(Const.KindProperty, CSConst.KindOf<Solution>());
+            .SetProperty(CSProperties.Kind, CSConst.KindOf<Solution>());
         builder.AddEdges(CSConst.DeclaresId, solution.Projects.Select(p => new Edge(solution.Id, p.Id)));
     }
 
@@ -36,7 +36,7 @@ public class VisualizationProjectVisitor : ProjectVisitor
 
         builder.GetNode(project.Token, project.Name)
             .SetProperty(nameof(Solution.Path), project.Path)
-            .SetProperty(Const.KindProperty, CSConst.KindOf<Project>());
+            .SetProperty(CSProperties.Kind, CSConst.KindOf<Project>());
 
         var assemblies = project.Extensions.OfType<AssemblyExtension>().ToArray();
         if (assemblies.Length > 0)
@@ -51,7 +51,7 @@ public class VisualizationProjectVisitor : ProjectVisitor
 
         builder.GetNode(framework.Token, framework.Name)
             .SetProperty(nameof(Framework.Version), framework.Version)
-            .SetProperty(Const.KindProperty, CSConst.KindOf<Framework>());
+            .SetProperty(CSProperties.Kind, CSConst.KindOf<Framework>());
 
         if (framework.Libraries.Length > 0)
         {
@@ -64,7 +64,7 @@ public class VisualizationProjectVisitor : ProjectVisitor
         base.VisitExternalDependencySource(externalDependencySource);
 
         builder.GetNode(externalDependencySource.Token, externalDependencySource.Name)
-            .SetProperty(Const.KindProperty, CSConst.KindOf<ExternalDependencySource>());
+            .SetProperty(CSProperties.Kind, CSConst.KindOf<ExternalDependencySource>());
         if (externalDependencySource.Libraries.Length > 0)
         {
             builder.AddEdges(CSConst.DeclaresId, externalDependencySource.Libraries
@@ -77,7 +77,7 @@ public class VisualizationProjectVisitor : ProjectVisitor
         base.VisitLibrary(library);
 
         builder.GetNode(library.Token, library.Identity.Name)
-            .SetProperty(Const.KindProperty, CSConst.KindOf<Library>());
+            .SetProperty(CSProperties.Kind, CSConst.KindOf<Library>());
         var assemblies = library.Extensions.OfType<AssemblyExtension>().ToArray();
         if (assemblies.Length > 0)
         {
