@@ -1,6 +1,6 @@
 import { FireStatus, type GlyphStyle, type NodeStyle, type Outlines } from "./glyph";
 import { OutlineStyle } from "./glyph";
-import type { GraphNode } from "./multigraph";
+import { DiagnosticSeverity, type GraphNode, type NodeProperties } from "./multigraph";
 import type { HelvegPlugin, HelvegPluginContext } from "./plugin";
 
 enum EntityKind {
@@ -80,7 +80,7 @@ enum VSColor {
     Blue = "#005dba"
 }
 
-interface CSharpNodeProperties {
+interface CSharpNodeProperties extends NodeProperties {
     Kind: EntityKind,
     TypeKind?: TypeKind,
     Accessibility?: MemberAccessibility,
@@ -126,14 +126,22 @@ export default class CSharpPlugin implements HelvegPlugin {
         let glyphStyle = <GlyphStyle>{
             name: "csharp:Entity",
             apply(node: GraphNode) {
-                if (!(Object.values(EntityKind).includes(node.properties["Kind"] as EntityKind))) {
+                let props = node.properties as CSharpNodeProperties;
+                if (!(Object.values(EntityKind).includes(props.Kind))) {
                     return;
                 }
 
-                let base = plugin.resolveBaseStyle(node.properties as CSharpNodeProperties);
+                let base = plugin.resolveBaseStyle(props);
+                let fire = !props.Diagnostics ? FireStatus.None
+                    : props.Diagnostics.filter(d => d.severity === DiagnosticSeverity.Error).length > 0
+                        ? FireStatus.Flame
+                        : props.Diagnostics.filter(d => d.severity === DiagnosticSeverity.Warning).length > 0
+                            ? FireStatus.Smoke
+                            : FireStatus.None;
                 return {
                     ...FALLBACK_STYLE,
-                    ...base
+                    ...base,
+                    fire
                 };
             }
         }

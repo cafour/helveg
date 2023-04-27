@@ -1,16 +1,21 @@
+param(
+    [string]$source=$null
+)
+
 $appDir = "$PSScriptRoot"
 $cliDir = Resolve-Path "$PSScriptRoot\..\..\CommandLine"
 $repoDir = Resolve-Path "$PSScriptRoot\..\..\.."
+$source ??= "$repoDir\Helveg.sln"
 
 # A: Kolik regenerací je potřeba na napsání jednoho software visualization toolu?
 # N: 14.
 
 Remove-Item -Recurse -Force "$appDir\template" -ErrorAction 'SilentlyContinue'
 dotnet build "$cliDir"
-echo "$cliDir $repoDir"
+echo "Running Helveg.CommandLine on $source"
 dotnet run --no-build --project "$cliDir" `
     -- `
-    "$repoDir\Helveg.sln" `
+    "$source" `
     --outdir "$appDir/template" `
     -pa PublicApi `
     -ea None `

@@ -5,9 +5,27 @@ export interface Multigraph {
     relations: Record<string, GraphRelation>
 }
 
+export enum DiagnosticSeverity {
+    Unknown = "Unknown",
+    Hidden = "Hidden",
+    Info = "Info",
+    Warning = "Warning",
+    Error = "Error"
+}
+
+export interface Diagnostic {
+    id: string,
+    message: string,
+    severity: DiagnosticSeverity,
+}
+
+export interface NodeProperties {
+    Diagnostics?: Diagnostic[]
+}
+
 export interface GraphNode {
     label: string | null,
-    properties: Record<string, any>
+    properties: NodeProperties & Record<string, any>
 }
 
 export interface GraphRelation {
