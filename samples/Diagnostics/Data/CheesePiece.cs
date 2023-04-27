@@ -1,7 +1,7 @@
 using System;
-using Helveg.Sample.Manufacturing;
+using Helveg.Sample.Diagnostics.Manufacturing;
 
-namespace Helveg.Sample.Data
+namespace Helveg.Sample.Diagnostics.Data
 {
     public struct CheesePiece : IData
     {

@@ -1,6 +1,6 @@
 using System;
 
-namespace Helveg.Sample.Manufacturing
+namespace Helveg.Sample.Diagnostics.Manufacturing
 {
     public class RobotWorker : ICheeseWorker
     {

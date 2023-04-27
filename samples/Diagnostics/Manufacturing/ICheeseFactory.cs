@@ -1,6 +1,6 @@
-using Helveg.Sample.Data;
+using Helveg.Sample.Diagnostics.Data;
 
-namespace Helveg.Sample.Manufacturing
+namespace Helveg.Sample.Diagnostics.Manufacturing
 {
     public interface ICheeseFactory
     {

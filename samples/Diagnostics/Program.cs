@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Helveg.Sample
+namespace Helveg.Sample.Diagnostics
 {
     public static class Program
     {

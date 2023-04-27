@@ -1,6 +1,6 @@
 using System;
 
-namespace Helveg.Sample.Data
+namespace Helveg.Sample.Diagnostics.Data
 {
     public interface IData
     {

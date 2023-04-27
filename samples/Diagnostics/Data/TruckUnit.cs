@@ -1,4 +1,4 @@
-namespace Helveg.Sample.Data
+namespace Helveg.Sample.Diagnostics.Data
 {
     public class TruckUnit : UnitBase
     {

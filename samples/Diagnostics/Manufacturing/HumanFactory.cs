@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using Helveg.Sample.Data;
+using Helveg.Sample.Diagnostics.Data;
 
-namespace Helveg.Sample.Manufacturing
+namespace Helveg.Sample.Diagnostics.Manufacturing
 {
     public class HumanFactory : ICheeseFactory
     {
