@@ -66,6 +66,7 @@
         bind:dataOptions={$dataOptions}
         bind:glyphOptions={$glyphOptions}
         bind:layoutOptions={$layoutOptions}
+        canDragNodes={selectedTool === AppTools.Move}
         on:nodeSelected={(e) => onNodeSelected(e.detail)}
     />
 

@@ -14,7 +14,8 @@ import { exportDiagram } from "rendering/export";
 import tidyTree from "layout/tidyTree";
 import type { HelvegInstance } from "./instance";
 import { buildNodeFilter, filterNodes } from "./filter";
-import type { NodeDisplayData } from "sigma/types";
+import type { Coordinates, NodeDisplayData } from "sigma/types";
+import type { MouseCoords } from "sigma/types";
 
 export enum StructuralStatus {
     Stopped,
@@ -57,6 +58,11 @@ export interface AbstractStructuralDiagram {
     get selectedNodeId(): string | null;
     get nodeSelected(): HelvegEvent<string | null>;
 
+    get canDragNodes(): boolean;
+    set canDragNodes(value: boolean);
+
+    get draggedNodeId(): string | null;
+
     resetLayout(): Promise<void>;
     runLayout(inBackground: boolean): Promise<void>;
     stopLayout(): Promise<void>;
@@ -91,10 +97,12 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
     private _stats: StructuralDiagramStats = {
         iterationCount: 0,
         speed: 0
-    };  
+    };
     private _statsChanged = new HelvegEvent<StructuralDiagramStats>("helveg.StructuralDiagram.statsChanged");
     private _selectedNodeId: string | null = null;
     private _nodeSelected = new HelvegEvent<string | null>("helveg.StructuralDiagram.nodeSelected");
+    private _canDragNodes: boolean = false;
+    private _draggedNodeId: string | null = null;
 
     private _graph: HelvegGraph | null = null;
     private _sigma: Sigma | null = null;
@@ -242,12 +250,12 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
                     this._graph.setNodeAttribute(id, "highlighted", filter!(node));
                 }
             });
-            
+
             this._sigma?.refresh();
         }
         catch (e: any) {
-            this._instance.logger.warn(e?.message 
-                ?? e?.toString() 
+            this._instance.logger.warn(e?.message
+                ?? e?.toString()
                 ?? "Something bad happened while highlighting nodes.");
             return;
         }
@@ -278,8 +286,8 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
             }
         }
         catch (e: any) {
-            this._instance.logger.warn(e?.message 
-                ?? e?.toString() 
+            this._instance.logger.warn(e?.message
+                ?? e?.toString()
                 ?? "Something bad happened while isolating nodes.");
             return;
         }
@@ -386,15 +394,28 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
         return this._selectedNodeId;
     }
 
-    get nodeSelected(): HelvegEvent<string | null> {
-        return this._nodeSelected;
-    }
-
     private set selectedNodeId(value: string | null) {
         if (this._selectedNodeId !== value) {
             this._selectedNodeId = value;
             this._nodeSelected.trigger(value);
         }
+    }
+
+    get nodeSelected(): HelvegEvent<string | null> {
+        return this._nodeSelected;
+    }
+
+    get canDragNodes(): boolean {
+        return this._canDragNodes;
+    }
+
+    set canDragNodes(value: boolean) {
+        this._canDragNodes = value;
+        this._draggedNodeId = null;
+    }
+
+    get draggedNodeId(): string | null {
+        return this._draggedNodeId;
     }
 
     private refreshSigma(): void {
@@ -408,7 +429,15 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
             this._sigma.kill();
         }
 
-        this._sigma = initializeSigma(this._element, this._graph, this._glyphProgram, this.onNodeClick.bind(this));
+        this._sigma = initializeSigma(
+            this._element,
+            this._graph,
+            this._glyphProgram,
+            this.onNodeClick.bind(this),
+            this.onNodeDown.bind(this),
+            this.onUp.bind(this),
+            this.onMove.bind(this)
+        );
         configureSigma(this._sigma, this._glyphOptions);
     }
 
@@ -443,6 +472,32 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
             iterationCount: message.iterationCount,
             speed: message.speed
         };
+    }
+
+    private onNodeDown(event: SigmaNodeEventPayload): void {
+        if (this._canDragNodes) {
+            this._draggedNodeId = event.node;
+            this._graph?.setNodeAttribute(event.node, "highlighted", true);
+        }
+    }
+
+    private onUp(coords: Coordinates): void {
+        if (this._draggedNodeId) {
+            this._graph?.setNodeAttribute(this._draggedNodeId, "highlighted", false);
+            this._draggedNodeId = null;
+        }
+    }
+
+    private onMove(coords: Coordinates): boolean {
+        if (!this._draggedNodeId || !this._sigma || !this._graph) {
+            return true;
+        }
+
+        const pos = this._sigma.viewportToGraph(coords)
+
+        this._graph.setNodeAttribute(this._draggedNodeId, "x", pos.x);
+        this._graph.setNodeAttribute(this._draggedNodeId, "y", pos.y);
+        return false;
     }
 
     // private nodeReducer(node: HelvegNodeAttributes, data: HelvegNodeAttributes): Partial<NodeDisplayData> {
@@ -529,7 +584,9 @@ function initializeSigma(
     graph: Graph,
     glyphProgram: NodeProgramConstructor,
     onClick?: (payload: SigmaNodeEventPayload) => void,
-    nodeReducer?: (node: string, data: Partial<HelvegNodeAttributes>) => Partial<HelvegNodeAttributes>
+    onNodeDown?: (payload: SigmaNodeEventPayload) => void,
+    onUp?: (coords: Coordinates) => void,
+    onMove?: (coords: Coordinates) => boolean | void
 ): Sigma {
 
     const sigma = new Sigma(graph, element, {
@@ -544,8 +601,33 @@ function initializeSigma(
         sigma.on("clickNode", onClick);
     }
 
-    if (nodeReducer) {
-        sigma.setSetting("nodeReducer", nodeReducer);
+    if (onNodeDown) {
+        sigma.on("downNode", onNodeDown);
+    }
+
+    if (onUp) {
+        sigma.getMouseCaptor().on("mouseup", onUp);
+        sigma.getTouchCaptor().on("touchup", e => onUp(e.touches[0]));
+    }
+
+    if (onMove) {
+        sigma.getMouseCaptor().on("mousemovebody", e => 
+        {
+            if (onMove(e) === false) {
+                // prevent Sigma from moving the camera
+                e.preventSigmaDefault();
+                e.original.preventDefault();
+                e.original.stopPropagation();
+            }
+
+        });
+        sigma.getTouchCaptor().on("touchmove", e =>
+        {
+            if (e.touches.length == 1) {
+                onMove(e.touches[0]);
+                e.original.preventDefault();
+            }
+        });
     }
 
     return sigma;

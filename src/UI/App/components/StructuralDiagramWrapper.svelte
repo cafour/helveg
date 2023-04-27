@@ -32,6 +32,7 @@
         speed: 0,
     };
     export let selectedNodeId: string | null = null;
+    export let canDragNodes: boolean = false;
 
     diagram.statusChanged.subscribe((s) => {
         status = s;
@@ -56,6 +57,7 @@
     $: diagram.dataOptions = dataOptions;
     $: diagram.layoutOptions = layoutOptions;
     $: diagram.glyphOptions = glyphOptions;
+    $: diagram.canDragNodes = canDragNodes;
 
     export function resetLayout() {
         return diagram.resetLayout();
@@ -106,7 +108,4 @@
     <div>Running in the background...</div>
 </div>
 
-<div
-    bind:this={diagramElement}
-    class="diagram"
-/>
+<div bind:this={diagramElement} class="diagram" />
