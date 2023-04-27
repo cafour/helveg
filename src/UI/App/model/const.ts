@@ -16,11 +16,17 @@ export enum AppIcons {
     ErrorToast = "base:StatusError",
     SuccessToast = "base:StatusSuccess",
     MessageToast = "base:Message",
-    
+
     MoveTool = "base:MoveGlyph",
     ShowPropertiesTool = "base:ShowAllConfigurations",
     ExpandTool = "base:Branch",
     SawTool = "base:Cut",
+    
+    UnknownDiagnostic = "base:StatusHelp",
+    HiddenDiagnostic = "base:StatusHidden",
+    InfoDiagnostic = "base:StatusInformation",
+    WarningDiagnostic = "base:StatusWarning",
+    ErrorDiagnostic = "base:StatusError"
 }
 
 export enum AppPanels {
