@@ -110,7 +110,7 @@ public class Program
         {
             DocumentInfo = new()
             {
-                Name = Path.GetFileNameWithoutExtension(source.FullName) ?? multigraph.Id,
+                Name = source.Name ?? multigraph.Id,
                 CreatedOn = DateTimeOffset.UtcNow
             },
             Multigraph = multigraph
