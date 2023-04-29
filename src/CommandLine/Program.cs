@@ -26,6 +26,8 @@ public class Program
     public const string ForceAlias = "--force";
 
     private ILoggerFactory logging = new NullLoggerFactory();
+    private ILogger logger = new NullLogger<Program>();
+
     private bool isForced = false;
 
     public async Task<Multigraph?> RunAnalysis(
@@ -34,8 +36,6 @@ public class Program
         AnalysisScope projectAnalysis,
         AnalysisScope externalAnalysis)
     {
-        var logger = logging.CreateLogger<Program>();
-
         if (!source.Exists)
         {
             logger.LogCritical("Source '{}' does not exist.", source.FullName);
@@ -77,21 +77,37 @@ public class Program
     }
 
     public async Task<int> RunPipeline(
-        FileSystemInfo source,
-        Dictionary<string, string> properties,
+        FileSystemInfo? source,
+        Dictionary<string, string>? properties,
         AnalysisScope projectAnalysis,
         AnalysisScope externalAnalysis,
         UIMode mode,
-        string outDir,
-        string styleDir,
-        string scriptDir,
-        string iconDir)
+        string? name,
+        string? @out,
+        string? outDir,
+        string? styleDir,
+        string? scriptDir,
+        string? iconDir)
     {
-        var outDirInfo = new DirectoryInfo(outDir);
+        if (source is null || !source.Exists)
+        {
+            logger.LogCritical($"'{source}' is not a valid SOURCE argument.");
+            return 1;
+        }
+        
+        if (string.IsNullOrEmpty(outDir))
+        {
+            logger.LogCritical($"'{outDir}' is not a valid valid --outdir value.");
+            return 1;
+        }
+
+        var outDirInfo = new DirectoryInfo(outDir ?? "");
         if (!outDirInfo.Exists)
         {
             outDirInfo.Create();
         }
+
+        properties ??= new Dictionary<string, string>();
 
         // code analysis
         var multigraph = await RunAnalysis(source, properties, projectAnalysis, externalAnalysis);
@@ -103,14 +119,15 @@ public class Program
         var uib = await UIBuilder.CreateDefault(logging.CreateLogger<UIBuilder>());
         await uib.UseCSharp();
         uib.Mode = mode;
-        uib.StylesDirectory = styleDir;
-        uib.ScriptsDirectory = scriptDir;
-        uib.IconsDirectory = iconDir;
+        uib.StylesDirectory = !string.IsNullOrEmpty(styleDir) ? styleDir : uib.StylesDirectory;
+        uib.ScriptsDirectory = !string.IsNullOrEmpty(scriptDir) ? scriptDir : uib.ScriptsDirectory;
+        uib.IconsDirectory = !string.IsNullOrEmpty(iconDir) ? iconDir : uib.IconsDirectory;
+        uib.EntryPointName = !string.IsNullOrEmpty(@out) ? @out : uib.EntryPointName;
         uib.SetVisualizationModel(new()
         {
             DocumentInfo = new()
             {
-                Name = source.Name ?? multigraph.Id,
+                Name = name ?? source.Name ?? multigraph.Id,
                 CreatedOn = DateTimeOffset.UtcNow
             },
             Multigraph = multigraph
@@ -177,6 +194,13 @@ public class Program
             aliases: new[] { "-m", "--mode" },
             getDefaultValue: () => UIMode.SingleFile,
             description: "UI mode to use."));
+        rootCmd.AddOption(new Option<string?>(
+            aliases: new[] { "-n", "--name" },
+            description: "Name of the visualization."));
+        rootCmd.AddOption(new Option<string>(
+            aliases: new[] { "-o", "--out" },
+            getDefaultValue: () => UIBuilder.DefaultEntryPointName,
+            description: "Name of the output HTML file."));
         rootCmd.AddOption(new Option<string>(
             aliases: new[] { "--outdir" },
             getDefaultValue: () => Directory.GetCurrentDirectory(),
@@ -196,10 +220,6 @@ public class Program
 
         var builder = new CommandLineBuilder(rootCmd)
             .UseHelp()
-            .UseExceptionHandler((e, c) =>
-            {
-                program.logging.CreateLogger("").LogCritical(e, e.Message);
-            }, 1)
             .AddMiddleware(c =>
             {
                 bool isVerbose = c.ParseResult.GetValueForOption(verboseOption);
@@ -217,7 +237,12 @@ public class Program
                     b.AddConsole(d => d.FormatterName = "brief");
                     b.SetMinimumLevel(minimumLevel);
                 });
+                program.logger = program.logging.CreateLogger("");
             })
+            .UseExceptionHandler((e, c) =>
+            {
+                program.logger.LogCritical(e, e.Message);
+            }, 1)
             .Build(); // Sets ImplicitParser inside the root command. Yes, it's weird, I know.
         var errorCode = await builder.InvokeAsync(args);
         program.logging.Dispose();
