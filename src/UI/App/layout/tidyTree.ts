@@ -1,14 +1,17 @@
 import type Graph from "graphology";
 import { tree, hierarchy } from "d3-hierarchy";
+import type { Coordinates } from "model/graph";
 
 export interface TidyTreeLayoutOptions {
     radius: number;
     relation: string | null;
+    offset: Coordinates
 }
 
 const DEFAULT_OPTIONS: TidyTreeLayoutOptions = {
     radius: 100,
-    relation: "declares"
+    relation: "declares",
+    offset: {x: 0, y: 0}
 }
 
 export default function tidyTree(graph: Graph, rootId: string, options?: Partial<TidyTreeLayoutOptions>) {
@@ -26,8 +29,8 @@ export default function tidyTree(graph: Graph, rootId: string, options?: Partial
     root.each(node => {
         const { x, y } = <typeof node & { x: number, y: number }>node;
         if (x != null && y != null && !isNaN(x) && !isNaN(y)) {
-            graph.setNodeAttribute(node.data, "x", y * Math.cos(x));
-            graph.setNodeAttribute(node.data, "y", y * Math.sin(x));
+            graph.setNodeAttribute(node.data, "x", opts.offset.x + y * Math.cos(x));
+            graph.setNodeAttribute(node.data, "y", opts.offset.y + y * Math.sin(x));
         }
     })
 }

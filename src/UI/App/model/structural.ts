@@ -16,8 +16,9 @@ import type { HelvegInstance } from "./instance";
 import { buildNodeFilter, filterNodes } from "./filter";
 import type { Coordinates, NodeDisplayData } from "sigma/types";
 import type { Attributes } from "graphology-types";
-import type { HelvegGraph, HelvegNodeAttributes } from "./graph";
+import { findRoots, type HelvegGraph, type HelvegNodeAttributes } from "./graph";
 import { bfs } from "./traversal";
+import { wheellOfFortune } from "layout/circular";
 
 export enum StructuralStatus {
     Stopped,
@@ -142,21 +143,23 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
 
         this.refreshSupervisor();
 
-        // TODO: add a setting for roots
-        let solutionRoot = Object.entries(this._model.multigraph.nodes).find(
-            ([k, v]) => v.properties["Kind"] === "Solution"
-        )?.[0];
-        // let frameworkRoots = Object.entries(this._model.multigraph.nodes).find(
-        //     ([k, v]) => v.properties["Kind"] === "csharp:Framework"
-        // )?.[0];
-        if (solutionRoot) {
-            tidyTree(this._graph, solutionRoot, {
+        let roots = findRoots(this._graph, this.layoutOptions.tidyTree.relation ?? undefined);
+        let i = 0;
+        let { radius, theta } = roots.size <= 1 ? { radius: 0, theta: 0 } : wheellOfFortune(1000, roots.size);
+        radius = Math.min(radius, 4000);
+        for (let root of roots) {
+            tidyTree(this._graph, root, {
                 radius: 1000,
-                relation: this.layoutOptions.tidyTree.relation
+                relation: this.layoutOptions.tidyTree.relation,
+                offset: {
+                    x: radius * Math.cos(theta * i),
+                    y: radius * Math.sin(theta * i)
+                }
             });
-            this.stats = { iterationCount: 0, speed: 0 };
+            i++;
         }
 
+        this.stats = { iterationCount: 0, speed: 0 };
         if (this._sigma) {
             this._sigma.scheduleRefresh();
         }
