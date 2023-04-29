@@ -31,7 +31,6 @@
     let searchText: string = "";
 
     $: relations = model ? Object.keys(model.multigraph.relations).sort() : [];
-    let workDataOptions = structuredClone(dataOptions);
 </script>
 
 <Panel name="Data" indent={false}>
@@ -79,29 +78,12 @@
             <label>
                 <input
                     type="checkbox"
-                    bind:group={workDataOptions.selectedRelations}
+                    bind:group={dataOptions.selectedRelations}
                     value={relation}
                 />
                 {relation}
             </label>
         {/each}
-        <label class="flex flex-row gap-8 align-items-center">
-            TidyTreeRelation
-            <select bind:value={workDataOptions.tidyTreeRelation}>
-                {#each relations as relation}
-                    <option value={relation}>{relation}</option>
-                {/each}
-            </select>
-        </label>
-        <button
-            class="button-stretch mt-8"
-            on:click|preventDefault={() => {
-                dataOptions = workDataOptions;
-                dispatch("refresh");
-            }}
-        >
-            Apply
-        </button>
     </Subpanel>
     <!-- <Subpanel name="IncludedKinds">
         {#each dataOptions.kinds as kind}

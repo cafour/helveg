@@ -46,3 +46,8 @@ export enum AppTools {
     Expand = "expand",
     Cut = "cut",
 }
+
+export enum Colors {
+    DarkGray = "#202020",
+    White = "#ffffff"
+}

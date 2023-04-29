@@ -1,3 +1,4 @@
+import { Colors } from "./const";
 import { StaticGlyphStyle, type GlyphStyle, type Outline, OutlineStyle, FALLBACK_ICON_NAME as DEFAULT_GLYPH_ICON_NAME, FireStatus } from "./glyph";
 
 export enum SearchMode {
@@ -12,7 +13,6 @@ export interface DataOptions {
     defaultIcons: Record<string, string>;
     fallbackIcon: string;
     selectedRelations: string[];
-    tidyTreeRelation: string;
 }
 
 export const DEFAULT_DATA_OPTIONS: DataOptions = {
@@ -20,18 +20,17 @@ export const DEFAULT_DATA_OPTIONS: DataOptions = {
     selectedKinds: [],
     defaultIcons: {},
     fallbackIcon: DEFAULT_GLYPH_ICON_NAME,
-    selectedRelations: ["declares"],
-    tidyTreeRelation: "declares"
+    selectedRelations: ["declares"]
 }
 
 export interface ToolOptions {
     isCuttingTransitive: boolean;
-    cuttingRelation: string;
+    cuttingRelation: string | null;
 }
 
 export const DEFAULT_TOOL_OPTIONS: ToolOptions = {
     isCuttingTransitive: true,
-    cuttingRelation: "declares"
+    cuttingRelation: null
 }
 
 export interface GlyphOptions {
@@ -48,7 +47,7 @@ export const DEFAULT_GLYPH_OPTIONS: GlyphOptions = {
     styles: {},
     fallbackStyle: new StaticGlyphStyle({
         size: 5,
-        color: "#202020",
+        color: Colors.DarkGray,
         icon: DEFAULT_GLYPH_ICON_NAME,
         outlines: [],
         fire: FireStatus.None
@@ -68,14 +67,22 @@ export const DEFAULT_FORCE_ATLAS2_OPTIONS: ForceAtlas2Options = {
     gravity: 1
 };
 
+export interface TidyTreeOptions {
+    relation: string | null;
+}
+
+export const DEFAULT_TIDY_TREE_OPTIONS: TidyTreeOptions = {
+    relation: null
+}
+
 export interface LayoutOptions {
-    hierarchyRelation: string;
     forceAtlas2: ForceAtlas2Options;
+    tidyTree: TidyTreeOptions;
 }
 
 export const DEFAULT_LAYOUT_OPTIONS: LayoutOptions = {
-    hierarchyRelation: "declares",
-    forceAtlas2: DEFAULT_FORCE_ATLAS2_OPTIONS
+    forceAtlas2: DEFAULT_FORCE_ATLAS2_OPTIONS,
+    tidyTree: DEFAULT_TIDY_TREE_OPTIONS
 };
 
 export interface ExportOptions {
@@ -92,7 +99,7 @@ export const DEFAULT_EXPORT_OPTIONS: ExportOptions = {
     includeEdges: true,
     includeNodes: true,
     includeLabels: true,
-    backgroundColor: "#ffffff",
+    backgroundColor: Colors.White,
     scale: 1
 }
 

@@ -153,7 +153,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
 
         // TODO: add a setting for roots
         let solutionRoot = Object.entries(this._model.multigraph.nodes).find(
-            ([k, v]) => v.properties["Kind"] === "csharp:Solution"
+            ([k, v]) => v.properties["Kind"] === "Solution"
         )?.[0];
         // let frameworkRoots = Object.entries(this._model.multigraph.nodes).find(
         //     ([k, v]) => v.properties["Kind"] === "csharp:Framework"
@@ -161,7 +161,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
         if (solutionRoot) {
             tidyTree(this._graph, solutionRoot, {
                 radius: 1000,
-                relation: this.dataOptions.tidyTreeRelation
+                relation: this.layoutOptions.tidyTree.relation
             });
             this.stats = { iterationCount: 0, speed: 0 };
         }
@@ -366,7 +366,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
 
     set dataOptions(value: DataOptions) {
         this._dataOptions = value;
-        // the graph needs to be refreshed manually by calling refresh()
+        DEBUG && console.log("DataOptions have changed. This has no effect until the next refresh().");
     }
 
     get glyphOptions(): GlyphOptions {
@@ -391,6 +391,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
 
     set layoutOptions(value: LayoutOptions) {
         this._layoutOptions = value;
+        DEBUG && console.log("LayoutOptions have changed. This has no effect until the next refresh().");
     }
 
     get toolOptions(): ToolOptions {
@@ -576,7 +577,11 @@ function initializeGraph(
     dataOptions: DataOptions,
 ): HelvegGraph {
 
-    const graph = new Graph<Partial<HelvegNodeAttributes>>();
+    const graph = new Graph<Partial<HelvegNodeAttributes>>({
+        multi: true,
+        allowSelfLoops: true,
+        type: "directed"
+    });
     for (const nodeId in model.multigraph.nodes) {
         const node = model.multigraph.nodes[nodeId];
         graph.addNode(nodeId, {
@@ -597,6 +602,7 @@ function initializeGraph(
             try {
                 graph.addDirectedEdge(edge.src, edge.dst, {
                     relation: relationId,
+                    type: "arrow"
                 });
             } catch (error) {
                 DEBUG && console.warn(`Failed to add an edge. edge=${edge}, error=${error}`);
@@ -720,7 +726,7 @@ function initializeSupervisor(
 }
 
 interface BfsOptions {
-    relation: string;
+    relation: string | null;
     callback: (node: string, attr: Attributes, depth: number) => void;
 }
 

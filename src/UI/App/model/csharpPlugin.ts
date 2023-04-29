@@ -4,22 +4,22 @@ import { DiagnosticSeverity, type GraphNode, type NodeProperties } from "./multi
 import type { HelvegPlugin, HelvegPluginContext } from "./plugin";
 
 enum EntityKind {
-    Solution = "csharp:Solution",
-    Project = "csharp:Project",
-    ExternalDependencySource = "csharp:ExternalDependencySource",
-    Framework = "csharp:Framework",
-    Package = "csharp:Package",
-    Library = "csharp:Library",
-    AssemblyDefinition = "csharp:AssemblyDefinition",
-    ModuleDefinition = "csharp:ModuleDefinition",
-    NamespaceDefinition = "csharp:NamespaceDefinition",
-    TypeDefinition = "csharp:TypeDefinition",
-    FieldDefinition = "csharp:FieldDefinition",
-    PropertyDefinition = "csharp:PropertyDefinition",
-    EventDefinition = "csharp:EventDefinition",
-    MethodDefinition = "csharp:MethodDefinition",
-    TypeParameterDefinition = "csharp:TypeParameterDefinition",
-    ParameterDefinition = "csharp:ParameterDefinition"
+    Solution = "Solution",
+    Project = "Project",
+    ExternalDependencySource = "ExternalDependencySource",
+    Framework = "Framework",
+    Package = "Package",
+    Library = "Library",
+    Assembly = "Assembly",
+    Module = "Module",
+    Namespace = "Namespace",
+    Type = "Type",
+    Field = "Field",
+    Property = "Property",
+    Event = "Event",
+    Method = "Method",
+    TypeParameter = "TypeParameter",
+    Parameter = "Parameter"
 }
 
 enum MemberAccessibility {
@@ -146,6 +146,8 @@ export default class CSharpPlugin implements HelvegPlugin {
             }
         }
         context.styles["csharp:Entity"] = glyphStyle;
+        helveg.options.layout.tidyTree.relation ??= "declares";
+        helveg.options.tool.cuttingRelation ??= "declares";
 
         // for (const kind of Object.values(EntityKind)) {
         //     context.glyphOptions.styles[kind] = glyphStyle;
@@ -212,28 +214,28 @@ export default class CSharpPlugin implements HelvegPlugin {
                     color: VSColor.DarkGray,
                     outlines: []
                 };
-            case EntityKind.AssemblyDefinition:
+            case EntityKind.Assembly:
                 return {
                     icon: "csharp:Assembly",
                     size: 40,
                     color: VSColor.DarkGray,
                     outlines: []
                 };
-            case EntityKind.ModuleDefinition:
+            case EntityKind.Module:
                 return {
                     icon: "csharp:Module",
                     size: 35,
                     color: VSColor.Purple,
                     outlines: []
                 };
-            case EntityKind.NamespaceDefinition:
+            case EntityKind.Namespace:
                 return {
                     icon: "csharp:Namespace",
                     size: 30,
                     color: VSColor.DarkGray,
                     outlines: []
                 };
-            case EntityKind.TypeDefinition:
+            case EntityKind.Type:
                 base.size = 15;
                 base.fire = FireStatus.Flame;
                 switch (props.TypeKind) {
@@ -270,14 +272,14 @@ export default class CSharpPlugin implements HelvegPlugin {
                     { style: OutlineStyle.Dashed, width: Math.max(1, staticCount) }
                 ];
                 break;
-            case EntityKind.TypeParameterDefinition:
+            case EntityKind.TypeParameter:
                 return {
                     icon: "csharp:Type",
-                    size: props.DeclaringKind === EntityKind.MethodDefinition ? 5 : 10,
+                    size: props.DeclaringKind === EntityKind.Method ? 5 : 10,
                     color: VSColor.Blue,
                     outlines: []
                 };
-            case EntityKind.FieldDefinition:
+            case EntityKind.Field:
                 if (props.IsEnumItem) {
                     return {
                         icon: "csharp:EnumerationItem",
@@ -296,7 +298,7 @@ export default class CSharpPlugin implements HelvegPlugin {
                     base.color = VSColor.Blue;
                 }
                 break;
-            case EntityKind.MethodDefinition:
+            case EntityKind.Method:
                 if (props.MethodKind === MethodKind.BuiltinOperator
                     || props.MethodKind === MethodKind.UserDefinedOperator) {
                     base.icon = "csharp:Operator";
@@ -311,19 +313,19 @@ export default class CSharpPlugin implements HelvegPlugin {
                 base.outlines = [{ style: props.IsStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 1 }];
                 base.fire = FireStatus.Smoke;
                 break;
-            case EntityKind.PropertyDefinition:
+            case EntityKind.Property:
                 base.icon = "csharp:Property";
                 base.size = 10;
                 base.color = VSColor.DarkGray;
                 base.outlines = [{ style: props.IsStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 1 }];
                 break;
-            case EntityKind.EventDefinition:
+            case EntityKind.Event:
                 base.icon = "csharp:Event";
                 base.size = 10;
                 base.color = VSColor.DarkYellow;
                 base.outlines = [{ style: props.IsStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 1 }];
                 break;
-            case EntityKind.ParameterDefinition:
+            case EntityKind.Parameter:
                 return {
                     icon: "csharp:LocalVariable",
                     color: VSColor.Blue,

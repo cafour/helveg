@@ -102,6 +102,7 @@
         <Tab name="Layout" value={AppPanels.Layout} icon={AppIcons.LayoutPanel}>
             <LayoutPanel
                 bind:layoutOptions={$layoutOptions}
+                {model}
                 on:run={(e) => diagram.runLayout(e.detail)}
                 on:stop={diagram.stopLayout}
                 on:tidyTree={diagram.resetLayout}

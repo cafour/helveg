@@ -40,6 +40,8 @@ public static class CSConst
 
     public const string GlobalNamespaceName = "global";
 
+    public const string DefinitionSuffix = "Definition";
+
     public static readonly NumericToken InvalidToken = NumericToken.CreateInvalid(CSharpNamespace);
     public static readonly NumericToken NoneToken = NumericToken.CreateNone(CSharpNamespace);
 
@@ -51,6 +53,11 @@ public static class CSConst
 
     internal static string KindOf(Type type)
     {
-        return $"{CSharpNamespace}:{type.Name}";
+        var kind = type.Name;
+        if (kind.Length > DefinitionSuffix.Length && kind.EndsWith(DefinitionSuffix, StringComparison.Ordinal))
+        {
+            kind = kind[0..^(DefinitionSuffix.Length)];
+        }
+        return kind;
     }
 }

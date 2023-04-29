@@ -106,6 +106,11 @@ export class SigmaEffectsExtension {
 
     private onSigmaKill(): void {
         DEBUG && console.log("Killing Helveg's effects extension of Sigma.js.");
+        if (this.renderFrame) {
+            cancelAnimationFrame(this.renderFrame);
+            this.renderFrame = 0;
+        }
+
         this.canvas.remove();
         this.canvas = null!;
         this.sigma = null!;

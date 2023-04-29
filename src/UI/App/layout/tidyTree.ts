@@ -3,7 +3,7 @@ import { tree, hierarchy } from "d3-hierarchy";
 
 export interface TidyTreeLayoutOptions {
     radius: number;
-    relation: string;
+    relation: string | null;
 }
 
 const DEFAULT_OPTIONS: TidyTreeLayoutOptions = {
