@@ -85,6 +85,7 @@ export interface ExportOptions {
     includeEdges: boolean;
     includeNodes: boolean;
     includeLabels: boolean;
+    includeEffects: boolean;
     backgroundColor: string;
     scale: number;
 }
@@ -94,6 +95,7 @@ export const DEFAULT_EXPORT_OPTIONS: ExportOptions = {
     includeEdges: true,
     includeNodes: true,
     includeLabels: true,
+    includeEffects: true,
     backgroundColor: Colors.White,
     scale: 1
 }

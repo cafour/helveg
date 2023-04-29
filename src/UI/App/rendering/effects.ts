@@ -76,7 +76,8 @@ export class SigmaEffectsExtension {
         this.sigma.addListener("resize", this.onSigmaResize.bind(this));
 
         this.canvas = document.createElement("canvas");
-        this.canvas.classList.add(`"helveg-effects-${++SigmaEffectsExtension.counter}"`);
+        this.canvas.classList.add("helveg-effects");
+        this.canvas.id = `"helveg-effects-${++SigmaEffectsExtension.counter}"`;
         this.canvas.style.position = "absolute";
 
         this.sigma.getContainer().prepend(this.canvas);
