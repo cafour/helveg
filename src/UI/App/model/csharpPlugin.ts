@@ -1,7 +1,7 @@
 import type { HelvegOptions } from "model/options";
 import { FireStatus, type GlyphStyle, type NodeStyle, type Outlines } from "./glyph";
 import { OutlineStyle } from "./glyph";
-import type { HelvegGraph } from "./graph";
+import { expandNode, findRoots, type HelvegGraph } from "./graph";
 import { DiagnosticSeverity, type GraphNode, type NodeProperties } from "./multigraph";
 import type { HelvegPlugin } from "./plugin";
 import { bfs } from "./traversal";
@@ -126,10 +126,12 @@ const FALLBACK_STYLE: NodeStyle = {
 
 export interface CSharpDataOptions {
     includedKinds: string[];
+    autoExpandedKinds: string[];
 }
 
 const DEFAULT_CSHARP_DATA_OPTIONS: CSharpDataOptions = {
-    includedKinds: []
+    includedKinds: [],
+    autoExpandedKinds: []
 }
 
 declare module "model/options" {
@@ -184,28 +186,36 @@ export class CSharpPlugin implements HelvegPlugin {
             EntityKind.Package,
             EntityKind.Namespace,
             EntityKind.Type,
-            EntityKind.TypeParameter,
             EntityKind.Field,
             EntityKind.Method,
             EntityKind.Property,
             EntityKind.Event);
+
+        this.csharpDataOptions.autoExpandedKinds.push(
+            EntityKind.Solution,
+            EntityKind.Project,
+            EntityKind.Framework,
+            EntityKind.ExternalDependencySource,
+            EntityKind.Package,
+            EntityKind.Namespace
+        );
     }
 
     onVisualize(model: Readonly<VisualizationModel>, graph: HelvegGraph): void {
-        
+
         let includedNodes = new Set<string>();
         let excludedNodes = new Set<string>();
-        
+
         // 1. split nodes into included and excluded
         Object.entries(model.multigraph.nodes)
-        .forEach(([id, node]) => {
-            if (this.csharpDataOptions.includedKinds.includes(node.properties.Kind)) {
-                includedNodes.add(id);
-            }
-            else {
-                excludedNodes.add(id);
-            }
-        });
+            .forEach(([id, node]) => {
+                if (this.csharpDataOptions.includedKinds.includes(node.properties.Kind)) {
+                    includedNodes.add(id);
+                }
+                else {
+                    excludedNodes.add(id);
+                }
+            });
 
         // 2. drop nodes that are not included but add transitive "declares" edges to keep the tree connected
         includedNodes.forEach(id => {
@@ -241,6 +251,27 @@ export class CSharpPlugin implements HelvegPlugin {
 
         // 3. drop all remaining unincluded nodes (they should only exist if they were roots to begin with)
         excludedNodes.forEach(id => graph.hasNode(id) && graph.dropNode(id));
+        
+        // 4. collapse all nodes
+        graph.forEachNode((node, attr) => {
+            attr.collapsed = true;
+            attr.hidden = true;
+        });
+        
+        // 5. expand nodes that are auto-expanded, stop at first non-auto-expanded node
+        let roots = findRoots(graph, "declares");
+        for(let root of roots) {
+            graph.setNodeAttribute(root, "hidden", false);
+            bfs(graph, root, {
+                relation: "declares",
+                callback: n => {
+                    let kind = model.multigraph.nodes[n].properties.Kind;
+                    if (this.csharpDataOptions.autoExpandedKinds.includes(kind)) {
+                        expandNode(graph, n, false, "declares");
+                    }
+                }
+            })
+        }
     }
 
     private resolveBaseStyle(props: CSharpNodeProperties): Partial<NodeStyle> {

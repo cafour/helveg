@@ -7,7 +7,7 @@
     import { AppIcons } from "model/const";
     import ResizingTextarea from "./ResizingTextarea.svelte";
     import { dataOptions, model } from "./App.svelte";
-    import IncludedCSharpKindsSubpanel from "./IncludedCSharpKindsSubpanel.svelte";
+    import CSharpKindsSubpanel from "./CSharpKindsSubpanel.svelte";
 
     let dispatch = createEventDispatcher();
 
@@ -73,7 +73,7 @@
             </button>
         </form>
     </Subpanel>
-    <Subpanel name="IncludedRelations">
+    <Subpanel name="Relations">
         {#each relations as relation}
             <label>
                 <input
@@ -85,5 +85,5 @@
             </label>
         {/each}
     </Subpanel>
-    <IncludedCSharpKindsSubpanel />
+    <CSharpKindsSubpanel />
 </Panel>

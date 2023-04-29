@@ -5,7 +5,8 @@ import { IconAtlas, IconAtlasEntryStatus } from "./iconAtlas";
 import type Sigma from "sigma";
 import vertexShaderSource from "./node.icon.vert";
 import fragmentShaderSource from "./node.icon.frag";
-import { StructuralDiagramMode, type HelvegNodeAttributes } from "model/structural";
+import { StructuralDiagramMode } from "model/structural";
+import type { HelvegNodeAttributes } from "model/graph";
 
 const { UNSIGNED_BYTE, FLOAT } = WebGLRenderingContext;
 
@@ -57,8 +58,8 @@ export class IconProgram extends NodeProgram<typeof UNIFORMS[number]> {
         const array = this.array;
         this.options.iconAtlas.tryAddIcon(data.icon);
 
-        const isVisible = this.options.diagramMode === StructuralDiagramMode.Normal
-            || data.highlighted === true;
+        const isVisible = (this.options.diagramMode === StructuralDiagramMode.Normal
+            || data.highlighted === true);
         
         array[i++] = data.x;
         array[i++] = data.y;

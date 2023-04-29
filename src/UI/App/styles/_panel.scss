@@ -123,4 +123,17 @@
             margin-left: 1rem;
         }
     }
+
+    table {
+        thead {
+            font-weight: bold;
+            font-size: 0.8rem;
+            border-bottom: 1px solid var(--color-surface-100);
+        }
+        
+        td, th {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+        }
+    }
 }
