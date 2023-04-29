@@ -9,7 +9,9 @@ input,
 textarea,
 select,
 td,
-th   {
+th,
+span,
+strong {
     font-family: 'Segoe UI', sans-serif;
     line-height: 1.5;
     color: var(--font-color-base);
