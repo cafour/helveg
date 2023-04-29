@@ -11,5 +11,6 @@ public enum AnalysisScope
     None,
     WithoutSymbols,
     PublicApi,
+    Explicit,
     All
 }

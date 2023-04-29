@@ -19,8 +19,8 @@ dotnet run --no-build --project "$cliDir" `
     -- `
     "$source" `
     --outdir "$appDir/template" `
-    -pa PublicApi `
-    -ea None `
+    -pa Explicit `
+    -ea WithoutSymbols `
     -m StaticApp `
     --verbose `
     --icondir "." `

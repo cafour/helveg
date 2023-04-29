@@ -16,15 +16,16 @@ internal static class RoslynExtensions
 
     public static bool IsInAnalysisScope(this MCA.ISymbol symbol, SymbolAnalysisScope scope)
     {
+        var isExplicit = !symbol.IsImplicitlyDeclared && (symbol.CanBeReferencedByName
+                || (symbol is MCA.IMethodSymbol method && method.MethodKind == MCA.MethodKind.Constructor));
         return scope switch
         {
             SymbolAnalysisScope.All => true,
-            SymbolAnalysisScope.PublicApi =>
-                !symbol.IsImplicitlyDeclared
-                && symbol.CanBeReferencedByName
+            SymbolAnalysisScope.PublicApi => isExplicit
                 && (symbol.DeclaredAccessibility == MCA.Accessibility.Public
-                || symbol.DeclaredAccessibility == MCA.Accessibility.Protected)
+                    || symbol.DeclaredAccessibility == MCA.Accessibility.Protected)
                 && (symbol.ContainingType is null || symbol.ContainingType.IsInAnalysisScope(scope)),
+            SymbolAnalysisScope.Explicit => isExplicit,
             _ => false
         };
     }

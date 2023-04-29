@@ -234,6 +234,7 @@ public class Program
         {
             AnalysisScope.None => SymbolAnalysisScope.None,
             AnalysisScope.PublicApi => SymbolAnalysisScope.PublicApi,
+            AnalysisScope.Explicit => SymbolAnalysisScope.Explicit,
             AnalysisScope.All => SymbolAnalysisScope.All,
             _ => SymbolAnalysisScope.None
         };

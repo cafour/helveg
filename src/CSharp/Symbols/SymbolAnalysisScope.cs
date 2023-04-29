@@ -10,5 +10,6 @@ public enum SymbolAnalysisScope
 {
     None,
     PublicApi,
+    Explicit,
     All
 }
