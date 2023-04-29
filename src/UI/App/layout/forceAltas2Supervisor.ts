@@ -6,6 +6,7 @@ import type { ForceAtlas2Settings } from "graphology-layout-forceatlas2";
 import helpers from "graphology-layout-forceatlas2/helpers";
 import forceAtlas2WorkerCode from "inline-bundle:../layout/forceAtlas2Worker.ts";
 import type { Attributes, EdgeMapper } from "graphology-types";
+import type { HelvegGraph } from "model/graph";
 
 type GraphMatrices = { nodes: Float32Array, edges: Float32Array };
 
@@ -225,6 +226,11 @@ function graphToByteArrays(
     // Iterate through nodes
     j = 0;
     graph.forEachNode((node, attr) => {
+        // Completely ignore hidden nodes
+        if (attr.hidden === true) {
+            return;
+        }
+
         // Node index
         index[node] = j;
 
@@ -247,6 +253,10 @@ function graphToByteArrays(
     graph.forEachEdge((edge, attr, source, target, sa, ta, u) => {
         let sj = index[source];
         let tj = index[target];
+
+        if (sa.hidden === true || ta.hidden === true) {
+            return;
+        }
 
         let weight = getEdgeWeight(edge, attr, source, target, sa, ta, u);
 
@@ -276,7 +286,11 @@ function assignLayoutChanges(
     isFixedVolatile: boolean = false) {
     var i = 0;
 
-    graph.updateEachNodeAttributes(function (node, attr) {
+    graph.updateEachNodeAttributes((node, attr) => {
+        if (attr.hidden === true) {
+            return attr;
+        }
+        
         if (!attr.fixed) {
             attr.x = nodeMatrix[i];
             attr.y = nodeMatrix[i + 1];

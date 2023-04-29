@@ -5,20 +5,20 @@ import type { EdgeEntry } from "graphology-types";
 export type { Coordinates } from "sigma/types";
 
 export interface HelvegNodeAttributes extends NodeDisplayData {
-    style: string;
-    icon: string;
-    iconSize: number;
-    outlines: Outlines;
-    fire: FireStatus;
-    fixed: boolean;
-    collapsed: boolean;
+    style?: string;
+    icon?: string;
+    iconSize?: number;
+    outlines?: Outlines;
+    fire?: FireStatus;
+    fixed?: boolean;
+    collapsed?: boolean;
 }
 
 export interface HelvegEdgeAttributes extends EdgeDisplayData {
-    relation: string;
+    relation?: string;
 }
 
-export type HelvegGraph = Graph<Partial<HelvegNodeAttributes>, Partial<HelvegEdgeAttributes>>;
+export type HelvegGraph = Graph<HelvegNodeAttributes, HelvegEdgeAttributes>;
 
 export function findRoots(graph: Graph, relation?: string) {
     let roots = new Set<string>();

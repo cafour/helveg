@@ -341,7 +341,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
             return;
         }
 
-        toggleNode(this._graph, nodeId);
+        this.refreshSupervisor(true, () => toggleNode(this._graph!, nodeId));
     }
 
     get element(): HTMLElement | null {
