@@ -2,7 +2,7 @@ import type { HelvegOptions } from "model/options";
 import { FireStatus, type GlyphStyle, type NodeStyle, type Outlines } from "./glyph";
 import { OutlineStyle } from "./glyph";
 import { expandNode, findRoots, type HelvegGraph } from "./graph";
-import { DiagnosticSeverity, type GraphNode, type NodeProperties } from "./multigraph";
+import { DiagnosticSeverity, type Node, type NodeProperties } from "./multigraph";
 import type { HelvegPlugin } from "./plugin";
 import { bfs } from "./traversal";
 import type { VisualizationModel } from "./visualization";
@@ -157,7 +157,7 @@ export class CSharpPlugin implements HelvegPlugin {
         let plugin = this;
         this.glyphStyles.push({
             name: "Entity",
-            apply(node: GraphNode) {
+            apply(node: Node) {
                 let props = node.properties as CSharpNodeProperties;
                 if (!(Object.values(EntityKind).includes(props.Kind))) {
                     return FALLBACK_STYLE;

@@ -1,4 +1,4 @@
-import type { GraphNode } from "./multigraph";
+import type { Node } from "./multigraph";
 
 let INT8 = new Int8Array(4);
 let INT32 = new Int32Array(INT8.buffer);
@@ -80,7 +80,7 @@ export interface NodeStyle {
 
 export interface GlyphStyle {
     name: string;
-    apply(node: GraphNode): NodeStyle;
+    apply(node: Node): NodeStyle;
 }
 
 export class StaticGlyphStyle implements GlyphStyle {
@@ -89,7 +89,7 @@ export class StaticGlyphStyle implements GlyphStyle {
     constructor(public style: NodeStyle) {
     }
 
-    apply(_node: GraphNode) {
+    apply(_node: Node) {
         return this.style;
     }
 }

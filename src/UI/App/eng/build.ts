@@ -43,7 +43,7 @@ const context = await esbuild.context({
     mainFields: ["svelte", "browser", "module", "main"],
     sourcemap: isDebug,
     define: {
-       "DEBUG": isDebug ? "true" : "false"
+        "DEBUG": isDebug ? "true" : "false"
     },
     splitting: false,
     write: true,
@@ -51,7 +51,7 @@ const context = await esbuild.context({
     bundle: true,
     platform: "browser",
     minify: isRelease,
-    tsconfig: "./tsconfig.json",
+    tsconfig: "./tsconfig.json.wtf",
     plugins: [
         inlineBundlePlugin(),
         esbuildSvelte({
@@ -59,10 +59,10 @@ const context = await esbuild.context({
         }),
         sassPlugin({
             async transform(source, _, filePath) {
-                const {css} = await postcss([
+                const { css } = await postcss([
                     autoprefixer,
-                    postcssPresetEnv({stage:0})
-                ]).process(source, {from: filePath});
+                    postcssPresetEnv({ stage: 0 })
+                ]).process(source, { from: filePath });
                 return css;
             },
             loadPaths: [

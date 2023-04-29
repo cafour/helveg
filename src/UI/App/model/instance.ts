@@ -59,7 +59,7 @@ export async function initializeInstance(instance: HelvegInstance): Promise<void
     }
     else {
         model = dataCandidates[0];
-        DEBUG && console.log(`Model '${model.multigraph.label}' loaded.`);
+        DEBUG && console.log(`Model '${model.documentInfo.name}' loaded.`);
     }
 
     instance.model = model;

@@ -65,10 +65,7 @@ public class Program
 
         var workspace = await workflow.Run(new DataSource(source.FullName, DateTimeOffset.UtcNow));
 
-        var multigraphBuilder = new MultigraphBuilder
-        {
-            Label = Path.GetFileNameWithoutExtension(workspace.Source.Path)
-        };
+        var multigraphBuilder = new MultigraphBuilder();
 
         var symbolVisitor = new VisualizationSymbolVisitor(multigraphBuilder);
         workspace.Accept(symbolVisitor);
@@ -113,11 +110,10 @@ public class Program
         {
             DocumentInfo = new()
             {
-                Name = multigraph.Label ?? multigraph.Id,
+                Name = Path.GetFileNameWithoutExtension(source.FullName) ?? multigraph.Id,
                 CreatedOn = DateTimeOffset.UtcNow
             },
-            Multigraph = multigraph,
-            Name = multigraph.Label ?? multigraph.Id
+            Multigraph = multigraph
         });
 
         await uib.Build(path =>

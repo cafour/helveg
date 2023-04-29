@@ -111,7 +111,7 @@ public class UIBuilder
         Model = visualizationModel;
         logger.LogDebug(
             "Using the '{}' visualization model with {} nodes, {} relations, and {} edges in total.",
-            Model.Name, 
+            Model.DocumentInfo.Name, 
             Model.Multigraph.Nodes.Count, 
             Model.Multigraph.Relations.Count, 
             Model.Multigraph.Relations.Sum(r => r.Value.Edges.Length));
@@ -153,7 +153,7 @@ public class UIBuilder
 
     private async Task BuildSingleFile(Func<string, Stream> streamFactory)
     {
-        logger.LogInformation("Building '{}' as a single-file app.", Model.Name);
+        logger.LogInformation("Building '{}' as a single-file app.", Model.DocumentInfo.Name);
 
         using var stream = streamFactory(EntryPointName);
         using var writer = new StreamWriter(stream);
@@ -162,7 +162,7 @@ public class UIBuilder
 @$"<!DOCTYPE html>
 <html lang=""en"">
     <head>
-        <title>{Model.Name} | Helveg</title>
+        <title>{Model.DocumentInfo.Name} | Helveg</title>
         <meta charset=""utf-8"" />
         <meta content=""width=device-width, initial-scale=1.0"" name=""viewport"" />
         ");
@@ -218,7 +218,7 @@ public class UIBuilder
 
     private async Task BuildStatic(Func<string, Stream> streamFactory)
     {
-        logger.LogInformation("Building a '{}' static app.", Model.Name);
+        logger.LogInformation("Building a '{}' static app.", Model.DocumentInfo.Name);
 
         async Task WriteFile(string filePath, string contents)
         {

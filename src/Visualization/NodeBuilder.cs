@@ -8,8 +8,6 @@ public class NodeBuilder
 {
     public string Id { get; set; } = Const.Invalid;
 
-    public string? Label { get; set; }
-
     public ConcurrentDictionary<string, object?> Properties { get; }
         = new();
 
@@ -17,7 +15,6 @@ public class NodeBuilder
     {
         return new Node(
             id: Id,
-            label: Label,
             properties: Properties.ToImmutableDictionary()
         );
     }

@@ -12,15 +12,12 @@ public class RelationBuilder
 {
     public string Id { get; set; } = Const.Invalid;
 
-    public string? Label { get; set; }
-
     public List<Edge> Edges { get; } = new();
 
     public Relation Build()
     {
         return new(
             id: Id,
-            label: Label,
             edges: Edges.ToImmutableArray());
     }
 

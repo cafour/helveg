@@ -1,12 +1,12 @@
 <script lang="ts">
-    import { DiagnosticSeverity, type Diagnostic, type GraphNode } from "model/multigraph";
+    import { DiagnosticSeverity, type Diagnostic, type Node } from "model/multigraph";
     import KeyValueList from "./KeyValueList.svelte";
     import Panel from "./Panel.svelte";
     import Subpanel from "./Subpanel.svelte";
     import { AppIcons } from "model/const";
     import Icon from "./Icon.svelte";
 
-    export let node: GraphNode | null = null;
+    export let node: Node | null = null;
     $: nodeItems =
         [
             ["Label", node?.label ?? null],

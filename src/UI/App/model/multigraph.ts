@@ -1,8 +1,7 @@
 export interface Multigraph {
     id: string,
-    label: string | null,
-    nodes: Record<string, GraphNode>
-    relations: Record<string, GraphRelation>
+    nodes: Record<string, Node>
+    relations: Record<string, Relation>
 }
 
 export enum DiagnosticSeverity {
@@ -20,22 +19,24 @@ export interface Diagnostic {
 }
 
 export interface NodeProperties {
+    Label?: string,
     Diagnostics?: Diagnostic[]
 }
 
-export interface GraphNode {
-    label: string | null,
+export interface Node {
     properties: NodeProperties & Record<string, any>
 }
 
-export interface GraphRelation {
-    label: string | null,
-    edges: GraphEdge[]
+export interface Relation {
+    edges: Edge[]
 }
 
-export interface GraphEdge {
+export interface EdgeProperties {
+    Label?: string
+}
+
+export interface Edge {
     src: string,
     dst: string,
-    label: string | null,
-    properties: Record<string, string>
+    properties: EdgeProperties & Record<string, any>
 }

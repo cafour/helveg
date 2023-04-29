@@ -17,8 +17,6 @@ public record Multigraph
 
     public string Id { get; init; } = Const.Invalid;
 
-    public string? Label { get; init; }
-
     public ImmutableDictionary<string, Node> Nodes { get; init; }
         = ImmutableDictionary<string, Node>.Empty;
 

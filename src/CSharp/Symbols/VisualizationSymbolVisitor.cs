@@ -61,7 +61,8 @@ public class VisualizationSymbolVisitor : SymbolVisitor
 
         if (@namespace.IsGlobalNamespace)
         {
-            builder.GetNode(@namespace.Token).Label = CSConst.GlobalNamespaceName;
+            builder.GetNode(@namespace.Token)
+                .SetProperty(Const.LabelProperty, CSConst.GlobalNamespaceName);
         }
 
         builder.AddEdges(CSConst.DeclaresId, @namespace.Namespaces.Select(n => new Edge(@namespace.Token, n.Token)));

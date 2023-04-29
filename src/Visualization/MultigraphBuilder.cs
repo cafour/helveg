@@ -12,8 +12,6 @@ public class MultigraphBuilder
 {
     public string Id { get; set; } = Const.Unknown;
 
-    public string? Label { get; set; }
-
     public ConcurrentDictionary<string, NodeBuilder> Nodes { get; } = new();
 
     public ConcurrentDictionary<string, RelationBuilder> Relations { get; } = new();
@@ -23,7 +21,6 @@ public class MultigraphBuilder
         return new Multigraph
         {
             Id = Id,
-            Label = Label,
             Nodes = Nodes.ToImmutableDictionary(
                 p => p.Key,
                 p => p.Value.Build()
@@ -37,7 +34,16 @@ public class MultigraphBuilder
 
     public NodeBuilder GetNode(string id, string? label = null)
     {
-        return Nodes.GetOrAdd(id, _ => new NodeBuilder { Id = id, Label = label });
+        return Nodes.GetOrAdd(id, _ =>
+        {
+            var builder = new NodeBuilder { Id = id };
+            if (!string.IsNullOrEmpty(label))
+            {
+                builder.SetProperty(Const.LabelProperty, label);
+            }
+
+            return builder;
+        });
     }
 
     public RelationBuilder GetRelation(string id)
@@ -53,7 +59,7 @@ public class MultigraphBuilder
 
     public MultigraphBuilder AddEdges(string relationId, IEnumerable<Edge> edges)
     {
-        foreach(var edge in edges)
+        foreach (var edge in edges)
         {
             AddEdge(relationId, edge);
         }
