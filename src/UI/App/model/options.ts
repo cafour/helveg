@@ -1,5 +1,5 @@
 import { Colors } from "./const";
-import { StaticGlyphStyle, type GlyphStyle, type Outline, OutlineStyle, FALLBACK_ICON_NAME as DEFAULT_GLYPH_ICON_NAME, FireStatus } from "./glyph";
+import { StaticGlyphStyle, type GlyphStyle, FALLBACK_ICON_NAME as DEFAULT_GLYPH_ICON_NAME, FireStatus } from "./glyph";
 
 export enum SearchMode {
     Contains = "contains",
@@ -8,18 +8,10 @@ export enum SearchMode {
 }
 
 export interface DataOptions {
-    kinds: string[];
-    selectedKinds: string[];
-    defaultIcons: Record<string, string>;
-    fallbackIcon: string;
     selectedRelations: string[];
 }
 
 export const DEFAULT_DATA_OPTIONS: DataOptions = {
-    kinds: [],
-    selectedKinds: [],
-    defaultIcons: {},
-    fallbackIcon: DEFAULT_GLYPH_ICON_NAME,
     selectedRelations: ["declares"]
 }
 

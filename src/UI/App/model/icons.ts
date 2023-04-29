@@ -14,7 +14,7 @@ export interface Icon {
 
 export interface IconSet {
     namespace: string;
-    icons: Record<string, Icon>;
+    icons: Record<string, Icon> | Map<string, Icon>;
 }
 
 export interface IconOptions {

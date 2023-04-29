@@ -1,11 +1,15 @@
 @use "./variables.scss";
 
 .icon {
-    .light-lightblue,
-    .light-lightblue-10,
-    .light-blue,
-    .light-blue-10 {
-        fill: var(--color-primary-500);
+    .theme-helveg &, &.theme-helveg {
+        svg {
+            .light-lightblue,
+            .light-lightblue-10,
+            .light-blue,
+            .light-blue-10 {
+                fill: var(--color-primary-500);
+            }
+        }
     }
 
     *:disabled & {
@@ -15,7 +19,7 @@
             }
         }
     }
-    .light &, &.light {
+    .theme-light &, &.theme-light {
         svg {
             color: var(--icon-light);
 

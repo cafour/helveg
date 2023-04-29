@@ -2,9 +2,6 @@
     import { AppIcons } from "model/const";
     import Icon from "./Icon.svelte";
     import Panel from "./Panel.svelte";
-    import GlyphsPanel from "./AppearancePanel.svelte";
-    import PropertiesPanel from "./PropertiesPanel.svelte";
-    import DocumentPanel from "./DocumentPanel.svelte";
 </script>
 
 <Panel name="Guide">
@@ -14,9 +11,9 @@
 
     <h3>Panels</h3>
 
-    <dl>
+    <dl class="theme-helveg">
         <dt>
-            <Icon name={AppIcons.DataPanel} /> Data
+            <Icon name={AppIcons.DataPanel}/> Data
         </dt>
         <dd>Filters the nodes and relations shown.</dd>
 

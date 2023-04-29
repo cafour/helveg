@@ -1,31 +1,29 @@
 <script lang="ts">
-    import type { GlyphOptions } from "model/options";
     import Panel from "./Panel.svelte";
     import Subpanel from "./Subpanel.svelte";
-
-    export let glyphOptions: GlyphOptions;
+    import { glyphOptions } from "./App.svelte";
 </script>
 
 <Panel name="Appearance" indent={false}>
     <Subpanel name="Glyphs">
         <label>
-            <input type="checkbox" bind:checked={glyphOptions.showIcons} />
+            <input type="checkbox" bind:checked={$glyphOptions.showIcons} />
             ShowIcons
         </label>
         <label>
-            <input type="checkbox" bind:checked={glyphOptions.showOutlines} />
+            <input type="checkbox" bind:checked={$glyphOptions.showOutlines} />
             ShowOutlines
         </label>
         <label>
-            <input type="checkbox" bind:checked={glyphOptions.showLabels} />
+            <input type="checkbox" bind:checked={$glyphOptions.showLabels} />
             ShowLabels
         </label>
         <label>
-            <input type="checkbox" bind:checked={glyphOptions.showFire} />
+            <input type="checkbox" bind:checked={$glyphOptions.showFire} />
             ShowFire
         </label>
         <label>
-            <input type="checkbox" bind:checked={glyphOptions.isFireAnimated} />
+            <input type="checkbox" bind:checked={$glyphOptions.isFireAnimated} />
             IsFireAnimated
         </label>
     </Subpanel>

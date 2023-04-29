@@ -1,25 +1,21 @@
 <script lang="ts">
     import KeyValueList from "./KeyValueList.svelte";
     import Panel from "./Panel.svelte";
-    import type { VisualizationModel } from "model/visualization";
     import Subpanel from "./Subpanel.svelte";
     import { createEventDispatcher } from "svelte";
-    import type { ExportOptions } from "model/options";
-
-    export let model: VisualizationModel;
-    export let exportOptions: ExportOptions;
+    import { exportOptions, model } from "./App.svelte";
 
     $: metadataItems = [
-        { key: "Name", value: model.documentInfo.name },
+        { key: "Name", value: $model.documentInfo.name },
         {
             key: "CreatedOn",
-            value: new Date(model.documentInfo.createdOn).toLocaleString(),
+            value: new Date($model.documentInfo.createdOn).toLocaleString(),
         },
-        { key: "Revision", value: model.documentInfo.revision },
-        { key: "HelvegVersion", value: model.documentInfo.helvegVersion },
+        { key: "Revision", value: $model.documentInfo.revision },
+        { key: "HelvegVersion", value: $model.documentInfo.helvegVersion },
         {
             key: "NodeCount",
-            value: Object.keys(model.multigraph.nodes).length.toString(),
+            value: Object.keys($model.multigraph.nodes).length.toString(),
         },
     ];
 
@@ -34,7 +30,7 @@
         <label>
             <input
                 type="checkbox"
-                bind:checked={exportOptions.includeNodes}
+                bind:checked={$exportOptions.includeNodes}
             />
             IncludeNodes
         </label>
@@ -42,7 +38,7 @@
         <label>
             <input
                 type="checkbox"
-                bind:checked={exportOptions.includeEdges}
+                bind:checked={$exportOptions.includeEdges}
             />
             IncludeEdges
         </label>
@@ -50,7 +46,7 @@
         <label>
             <input
                 type="checkbox"
-                bind:checked={exportOptions.includeLabels}
+                bind:checked={$exportOptions.includeLabels}
             />
             IncludeLabels
         </label>
@@ -60,7 +56,7 @@
             <input
                 type="number"
                 min="1"
-                bind:value={exportOptions.scale}
+                bind:value={$exportOptions.scale}
             />
         </label>
         
@@ -68,7 +64,7 @@
             BackgroundColor
             <input
                 type="color"
-                bind:value={exportOptions.backgroundColor}
+                bind:value={$exportOptions.backgroundColor}
             />
         </label>
         

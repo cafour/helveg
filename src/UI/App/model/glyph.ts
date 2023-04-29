@@ -105,14 +105,15 @@ export const FALLBACK_STYLE = new StaticGlyphStyle({
 });
 
 export class GlyphStyleRegistry {
-    private styles: Record<string, GlyphStyle> = {};
+    private styles = new Map<string, GlyphStyle>();
 
-    register(style: GlyphStyle): void {
-        if (this.styles[style.name]) {
+    register(namespace: string | null, style: GlyphStyle): void {
+        let name = namespace && !style.name.startsWith(`${namespace}:`) ? `${namespace}:${style.name}` : style.name;
+        if (this.styles.has(name)) {
             throw new Error(`The registry already contains a style named '${style.name}'.`);
         }
 
-        this.styles[style.name] = style;
+        this.styles[name] = style;
     }
 
     get(styleName: string): GlyphStyle {

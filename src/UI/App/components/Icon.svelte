@@ -5,20 +5,23 @@
     import { getContext } from "svelte";
     export let name: string;
     export let title: string | null = null;
+    export let theme: string | null = null;
     
-    let helveg = getContext<HelvegInstance>("helveg");
+    let instance = getContext<HelvegInstance>("helveg");
 
     function getIconReadable(
         name: string,
         options?: IconOptions
     ): Readable<Icon> {
-        return readable(helveg.icons.get(name, options), set => {
-            let update = () => set(helveg.icons.get(name, options));
-            helveg.icons.setAdded.subscribe(update);
-            return () => helveg.icons.setAdded.unsubscribe(update);
+        return readable(instance.icons.get(name, options), set => {
+            let update = () => set(instance.icons.get(name, options));
+            instance.icons.setAdded.subscribe(update);
+            return () => instance.icons.setAdded.unsubscribe(update);
         });
     }
 
+    $: themeClass = theme != null ? `theme-${theme}` : "";
+    
     $: icon = getIconReadable(name, {
         viewBoxOnly: true,
         removeTitle: title != null,
@@ -26,7 +29,7 @@
     });
 </script>
 
-<div class="icon" {title}>
+<div class="icon {themeClass}" {title}>
     {#if $icon.format === IconFormat.Svg}
         {@html $icon.data}
     {:else if $icon.format == IconFormat.Png}

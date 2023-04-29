@@ -1,5 +1,18 @@
+<script lang="ts" context="module">
+    import type { Readable, Writable } from "svelte/store";
+    import type * as opts from "model/options";
+    import type { VisualizationModel } from "model/visualization";
+
+    export let dataOptions: Writable<opts.DataOptions> = null!;
+    export let layoutOptions: Writable<opts.LayoutOptions> = null!;
+    export let glyphOptions: Writable<opts.GlyphOptions> = null!;
+    export let exportOptions: Writable<opts.ExportOptions> = null!;
+    export let toolOptions: Writable<opts.ToolOptions> = null!;;
+    export let model: Readable<VisualizationModel> = null!;
+</script>
+
 <script lang="ts">
-    import "model/instance";
+    import { writable, readable } from "svelte/store";
     import StructuralDiagramWrapper from "./StructuralDiagramWrapper.svelte";
     import Dock from "./Dock.svelte";
     import DocumentPanel from "./DocumentPanel.svelte";
@@ -13,7 +26,6 @@
     import AppearancePanel from "./AppearancePanel.svelte";
     import LayoutPanel from "./LayoutPanel.svelte";
     import GuidePanel from "./GuidePanel.svelte";
-    import { writable, type Readable } from "svelte/store";
     import type { HelvegInstance } from "model/instance";
     import { setContext } from "svelte";
     import { AppIcons, AppPanels, AppTools } from "model/const";
@@ -24,20 +36,17 @@
     export let instance: HelvegInstance;
     setContext("helveg", instance);
 
-    let model = instance.model;
-    instance.loaded.subscribe(() => {
-        DEBUG &&
-            console.log(
-                `Model '${instance.model.multigraph.label}' loaded in App.`
-            );
-        model = instance.model;
+    dataOptions = writable(instance.options.data);
+    layoutOptions = writable(instance.options.layout);
+    glyphOptions = writable(instance.options.glyph);
+    exportOptions = writable(instance.options.export);
+    toolOptions = writable(instance.options.tool);
+    model = readable(instance.model, set => {
+        instance.loaded.subscribe((model) => {
+            set(model);
+        });
     });
 
-    let dataOptions = writable(helveg.options.data);
-    let layoutOptions = writable(helveg.options.layout);
-    let glyphOptions = writable(helveg.options.glyph);
-    let exportOptions = writable(helveg.options.export);
-    let toolOptions = writable(helveg.options.tool);
     let diagram: StructuralDiagramWrapper;
     let dock: Dock;
     let propertiesPanel: PropertiesPanel;
@@ -59,9 +68,9 @@
                 break;
         }
     }
-    
+
     function onToolChanged(tool: string) {
-        switch(tool) {
+        switch (tool) {
             case AppTools.Cut:
                 dock.setTab(AppPanels.Tools);
                 break;
@@ -70,19 +79,13 @@
 </script>
 
 <main class="flex flex-row-reverse h-100p relative">
-    <ToolBox bind:selectedTool
-    on:change={() => onToolChanged(selectedTool)} />
+    <ToolBox bind:selectedTool on:change={() => onToolChanged(selectedTool)} />
 
     <StructuralDiagramWrapper
-        {model}
         bind:this={diagram}
         bind:status
         bind:selectedNodeId
         bind:stats
-        bind:dataOptions={$dataOptions}
-        bind:glyphOptions={$glyphOptions}
-        bind:layoutOptions={$layoutOptions}
-        bind:toolOptions={$toolOptions}
         canDragNodes={selectedTool === AppTools.Move}
         on:nodeSelected={(e) => onNodeSelected(e.detail)}
     />
@@ -90,8 +93,6 @@
     <Dock name="panels" bind:this={dock}>
         <Tab name="Data" value={AppPanels.Data} icon={AppIcons.DataPanel}>
             <DataPanel
-                {model}
-                bind:dataOptions={$dataOptions}
                 on:refresh={diagram.refresh}
                 on:highlight={(e) =>
                     diagram.highlight(e.detail.searchText, e.detail.searchMode)}
@@ -101,8 +102,6 @@
         </Tab>
         <Tab name="Layout" value={AppPanels.Layout} icon={AppIcons.LayoutPanel}>
             <LayoutPanel
-                bind:layoutOptions={$layoutOptions}
-                {model}
                 on:run={(e) => diagram.runLayout(e.detail)}
                 on:stop={diagram.stopLayout}
                 on:tidyTree={diagram.resetLayout}
@@ -115,10 +114,10 @@
             value={AppPanels.Appearance}
             icon={AppIcons.AppearancePanel}
         >
-            <AppearancePanel bind:glyphOptions={$glyphOptions} />
+            <AppearancePanel />
         </Tab>
         <Tab name="Tools" value={AppPanels.Tools} icon={AppIcons.ToolsPanel}>
-            <ToolsPanel bind:toolOptions={$toolOptions} {model} />
+            <ToolsPanel />
         </Tab>
         <Tab
             name="Properties"
@@ -133,8 +132,6 @@
             icon={AppIcons.DocumentPanel}
         >
             <DocumentPanel
-                {model}
-                bind:exportOptions={$exportOptions}
                 on:export={(e) => diagram.save(e.detail)}
             />
         </Tab>

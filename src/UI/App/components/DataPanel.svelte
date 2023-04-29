@@ -3,15 +3,13 @@
     import Panel from "./Panel.svelte";
     import RadioGroup from "./RadioGroup.svelte";
     import Subpanel from "./Subpanel.svelte";
-    import { SearchMode, type DataOptions } from "model/options";
+    import { SearchMode } from "model/options";
     import { AppIcons } from "model/const";
     import ResizingTextarea from "./ResizingTextarea.svelte";
-    import type { VisualizationModel } from "model/visualization";
+    import { dataOptions, model } from "./App.svelte";
+    import IncludedCSharpKindsSubpanel from "./IncludedCSharpKindsSubpanel.svelte";
 
     let dispatch = createEventDispatcher();
-
-    export let dataOptions: DataOptions;
-    export let model: VisualizationModel;
 
     let searchModes = [
         {
@@ -30,7 +28,9 @@
     let selectedSearchMode: SearchMode = SearchMode.Contains;
     let searchText: string = "";
 
-    $: relations = model ? Object.keys(model.multigraph.relations).sort() : [];
+    $: relations = $model
+        ? Object.keys($model.multigraph.relations).sort()
+        : [];
 </script>
 
 <Panel name="Data" indent={false}>
@@ -53,7 +53,7 @@
                     groupName="searchMode"
                     items={searchModes}
                     bind:selected={selectedSearchMode}
-                    class="light"
+                    class="theme-light"
                 />
             </div>
             <input
@@ -78,24 +78,12 @@
             <label>
                 <input
                     type="checkbox"
-                    bind:group={dataOptions.selectedRelations}
+                    bind:group={$dataOptions.selectedRelations}
                     value={relation}
                 />
                 {relation}
             </label>
         {/each}
     </Subpanel>
-    <!-- <Subpanel name="IncludedKinds">
-        {#each dataOptions.kinds as kind}
-            <label>
-                <input
-                    type="checkbox"
-                    bind:group={dataOptions.selectedKinds}
-                    value={kind}
-                />
-                <Icon name={dataOptions.defaultIcons[kind] ?? dataOptions.fallbackIcon} />
-                {kind}
-            </label>
-        {/each}
-    </Subpanel> -->
+    <IncludedCSharpKindsSubpanel />
 </Panel>

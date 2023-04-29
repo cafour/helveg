@@ -1,3 +1,4 @@
+import type { HelvegOptions } from "model/options";
 import { createInstance, initializeInstance, type HelvegInstance } from "./instance";
 import type { HelvegPlugin } from "./plugin";
 
@@ -15,9 +16,9 @@ declare global {
     const helveg: HelvegInstance & HelvegExtensions;
 }
 
-export function initializeGlobal(plugins?: HelvegPlugin[]) {
+export function initializeGlobal(pluginFuncs?: ((options: HelvegOptions) => HelvegPlugin)[]) {
     window.helveg = createInstance();
-    plugins?.forEach(plugin => window.helveg.plugins.register(plugin));
+    pluginFuncs?.forEach(plugin => window.helveg.plugins.register(plugin(window.helveg.options)));
 
     initializeInstance(window.helveg)
         .catch(console.error);

@@ -1,46 +1,49 @@
 import type { GlyphStyle, GlyphStyleRegistry } from "./glyph";
-import type { IconRegistry, IconSet } from "./icons";
-import type { HelvegInstance } from "./instance";
-
-export interface HelvegPluginContext {
-    iconSets: Record<string, IconSet>;
-    styles: Record<string, GlyphStyle>;
-}
+import type { HelvegGraph } from "./graph";
+import type { Icon, IconRegistry, IconSet } from "./icons";
+import type { VisualizationModel } from "./visualization";
 
 export interface HelvegPlugin {
     name: string;
-    setup(context: HelvegPluginContext): void;
+    icons?: Map<string, Icon>;
+    glyphStyles?: GlyphStyle[];
+    onVisualize?(model: Readonly<VisualizationModel>, graph: HelvegGraph): void;
 }
 
 export class HelvegPluginRegistry {
-    private data: Record<string, HelvegPlugin> = {};
-    
+    private names: Set<string> = new Set();
+    private data: HelvegPlugin[] = [];
+
     constructor(private iconRegistry: IconRegistry, private styleRegistry: GlyphStyleRegistry) {
     }
 
     register(plugin: HelvegPlugin) {
-        if (this.data[plugin.name]) {
+        if (this.names.has(plugin.name)) {
             throw new Error(`A plugin with the name '${plugin.name}' has already been registered.`);
         }
 
-        this.data[plugin.name] = plugin;
-        
-        let context: HelvegPluginContext = {
-            iconSets: {},
-            styles: {}
-        };
-        plugin.setup(context);
-        
-        for (let [_, iconSet] of Object.entries(context.iconSets)) {
+        this.data.push(plugin);
+
+        if (plugin.icons) {
+            let iconSet = {
+                namespace: plugin.name,
+                icons: plugin.icons
+            };
             this.iconRegistry.register(iconSet);
         }
-        
-        for (let [_, style] of Object.entries(context.styles)) {
-            this.styleRegistry.register(style);
+
+        if (plugin.glyphStyles) {
+            for (let style of plugin.glyphStyles) {
+                this.styleRegistry.register(plugin.name, style);
+            }
         }
     }
 
     get(name: string): HelvegPlugin | null {
         return this.data[name] ?? null;
+    }
+
+    getAll(): IterableIterator<HelvegPlugin> {
+        return this.data.values();
     }
 }

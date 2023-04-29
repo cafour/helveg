@@ -1,9 +1,13 @@
+import type { HelvegOptions } from "model/options";
 import { FireStatus, type GlyphStyle, type NodeStyle, type Outlines } from "./glyph";
 import { OutlineStyle } from "./glyph";
+import type { HelvegGraph } from "./graph";
 import { DiagnosticSeverity, type GraphNode, type NodeProperties } from "./multigraph";
-import type { HelvegPlugin, HelvegPluginContext } from "./plugin";
+import type { HelvegPlugin } from "./plugin";
+import { bfs } from "./traversal";
+import type { VisualizationModel } from "./visualization";
 
-enum EntityKind {
+export enum EntityKind {
     Solution = "Solution",
     Project = "Project",
     ExternalDependencySource = "ExternalDependencySource",
@@ -20,6 +24,25 @@ enum EntityKind {
     Method = "Method",
     TypeParameter = "TypeParameter",
     Parameter = "Parameter"
+}
+
+export enum DefaultEntityKindIcons {
+    Solution = "csharp:Solution",
+    Project = "csharp:CSProjectNode",
+    ExternalDependencySource = "csharp:ReferenceGroup",
+    Framework = "csharp:Framework",
+    Package = "csharp:Package",
+    Library = "csharp:Library",
+    Assembly = "csharp:Assembly",
+    Module = "csharp:Module",
+    Namespace = "csharp:Namespace",
+    Type = "csharp:Class",
+    TypeParameter = "csharp:Type",
+    Field = "csharp:Field",
+    Method = "csharp:Method",
+    Property = "csharp:Property",
+    Event = "csharp:Event",
+    Parameter = "csharp:LocalVariable",
 }
 
 enum MemberAccessibility {
@@ -80,7 +103,7 @@ enum VSColor {
     Blue = "#005dba"
 }
 
-interface CSharpNodeProperties extends NodeProperties {
+export interface CSharpNodeProperties extends NodeProperties {
     Kind: EntityKind,
     TypeKind?: TypeKind,
     Accessibility?: MemberAccessibility,
@@ -101,34 +124,37 @@ const FALLBACK_STYLE: NodeStyle = {
     fire: FireStatus.None
 };
 
-export default class CSharpPlugin implements HelvegPlugin {
+export interface CSharpDataOptions {
+    includedKinds: string[];
+}
+
+const DEFAULT_CSHARP_DATA_OPTIONS: CSharpDataOptions = {
+    includedKinds: []
+}
+
+declare module "model/options" {
+    export interface DataOptions {
+        csharp: CSharpDataOptions;
+    }
+}
+
+export default function csharp(options: HelvegOptions): CSharpPlugin {
+    return new CSharpPlugin(options);
+}
+
+export class CSharpPlugin implements HelvegPlugin {
     name: string = "csharp";
+    csharpDataOptions: CSharpDataOptions = { ...DEFAULT_CSHARP_DATA_OPTIONS };
+    glyphStyles: GlyphStyle[] = [];
 
-    setup(context: HelvegPluginContext): void {
-        // context.dataOptions.defaultIcons[EntityKind.Solution] = "csharp:Solution";
-        // context.dataOptions.defaultIcons[EntityKind.Project] = "csharp:CSProjectNode";
-        // context.dataOptions.defaultIcons[EntityKind.ExternalDependencySource] = "csharp:ReferenceGroup";
-        // context.dataOptions.defaultIcons[EntityKind.Framework] = "csharp:Framework";
-        // context.dataOptions.defaultIcons[EntityKind.Package] = "csharp:Package";
-        // context.dataOptions.defaultIcons[EntityKind.AssemblyDependency] = "csharp:Reference";
-        // context.dataOptions.defaultIcons[EntityKind.AssemblyDefinition] = "csharp:Assembly";
-        // context.dataOptions.defaultIcons[EntityKind.ModuleDefinition] = "csharp:Module";
-        // context.dataOptions.defaultIcons[EntityKind.NamespaceDefinition] = "csharp:Namespace";
-        // context.dataOptions.defaultIcons[EntityKind.TypeDefinition] = "csharp:Class";
-        // context.dataOptions.defaultIcons[EntityKind.TypeParameterDefinition] = "csharp:Type";
-        // context.dataOptions.defaultIcons[EntityKind.FieldDefinition] = "csharp:Field";
-        // context.dataOptions.defaultIcons[EntityKind.MethodDefinition] = "csharp:Method";
-        // context.dataOptions.defaultIcons[EntityKind.PropertyDefinition] = "csharp:Property";
-        // context.dataOptions.defaultIcons[EntityKind.EventDefinition] = "csharp:Event";
-        // context.dataOptions.defaultIcons[EntityKind.ParameterDefinition] = "csharp:LocalVariable";
-
+    constructor(options: HelvegOptions) {
         let plugin = this;
-        let glyphStyle = <GlyphStyle>{
-            name: "csharp:Entity",
+        this.glyphStyles.push({
+            name: "Entity",
             apply(node: GraphNode) {
                 let props = node.properties as CSharpNodeProperties;
                 if (!(Object.values(EntityKind).includes(props.Kind))) {
-                    return;
+                    return FALLBACK_STYLE;
                 }
 
                 let base = plugin.resolveBaseStyle(props);
@@ -144,29 +170,77 @@ export default class CSharpPlugin implements HelvegPlugin {
                     fire
                 };
             }
-        }
-        context.styles["csharp:Entity"] = glyphStyle;
-        helveg.options.layout.tidyTree.relation ??= "declares";
-        helveg.options.tool.cuttingRelation ??= "declares";
+        });
 
-        // for (const kind of Object.values(EntityKind)) {
-        //     context.glyphOptions.styles[kind] = glyphStyle;
-        //     context.dataOptions.kinds.push(kind);
-        // }
+        options.layout.tidyTree.relation ??= "declares";
+        options.tool.cuttingRelation ??= "declares";
+        options.data.csharp = this.csharpDataOptions;
 
-        // context.dataOptions.selectedKinds.push(
-        //     EntityKind.Solution,
-        //     EntityKind.Project,
-        //     EntityKind.Framework,
-        //     EntityKind.ExternalDependencySource,
-        //     EntityKind.Package,
-        //     EntityKind.NamespaceDefinition,
-        //     EntityKind.TypeDefinition,
-        //     EntityKind.TypeParameterDefinition,
-        //     EntityKind.FieldDefinition,
-        //     EntityKind.MethodDefinition,
-        //     EntityKind.PropertyDefinition,
-        //     EntityKind.EventDefinition);
+        this.csharpDataOptions.includedKinds.push(
+            EntityKind.Solution,
+            EntityKind.Project,
+            EntityKind.Framework,
+            EntityKind.ExternalDependencySource,
+            EntityKind.Package,
+            EntityKind.Namespace,
+            EntityKind.Type,
+            EntityKind.TypeParameter,
+            EntityKind.Field,
+            EntityKind.Method,
+            EntityKind.Property,
+            EntityKind.Event);
+    }
+
+    onVisualize(model: Readonly<VisualizationModel>, graph: HelvegGraph): void {
+        
+        let includedNodes = new Set<string>();
+        let excludedNodes = new Set<string>();
+        
+        // 1. split nodes into included and excluded
+        Object.entries(model.multigraph.nodes)
+        .forEach(([id, node]) => {
+            if (this.csharpDataOptions.includedKinds.includes(node.properties.Kind)) {
+                includedNodes.add(id);
+            }
+            else {
+                excludedNodes.add(id);
+            }
+        });
+
+        // 2. drop nodes that are not included but add transitive "declares" edges to keep the tree connected
+        includedNodes.forEach(id => {
+            // 2.0. set style
+            graph.setNodeAttribute(id, "style", "csharp:Entity");
+
+            // 2.1. find nodes that are reachable from the current node, stop at included nodes
+            let reachableNodes = bfs(graph, id, {
+                relation: "declares",
+                callback: n => n === id || !includedNodes.has(n)
+            });
+
+            // 2.2 add the transitive edges and remove the unincluded nodes
+            reachableNodes.forEach(child => {
+                if (child === id) {
+                    // obviously, the node doesn't declare itself
+                    return;
+                }
+
+                if (includedNodes.has(child)) {
+                    let edgeKey = `declares;${id};${child}`;
+                    if (!graph.hasEdge(edgeKey)) {
+                        graph.addDirectedEdgeWithKey(edgeKey, id, child, {
+                            relation: "declares"
+                        });
+                    }
+                }
+                else {
+                    graph.dropNode(child);
+                }
+            });
+        });
+
+        // 3. drop all remaining unincluded nodes (they should only exist if they were roots to begin with)
+        excludedNodes.forEach(id => graph.hasNode(id) && graph.dropNode(id));
     }
 
     private resolveBaseStyle(props: CSharpNodeProperties): Partial<NodeStyle> {

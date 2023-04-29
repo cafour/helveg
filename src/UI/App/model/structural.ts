@@ -16,6 +16,8 @@ import type { HelvegInstance } from "./instance";
 import { buildNodeFilter, filterNodes } from "./filter";
 import type { Coordinates, NodeDisplayData } from "sigma/types";
 import type { Attributes } from "graphology-types";
+import type { HelvegGraph, HelvegNodeAttributes } from "./graph";
+import { bfs } from "./traversal";
 
 export enum StructuralStatus {
     Stopped,
@@ -75,17 +77,6 @@ export interface AbstractStructuralDiagram {
     refresh(): Promise<void>;
     cut(nodeId: string): void;
 }
-
-export interface HelvegNodeAttributes extends NodeDisplayData {
-    style: string;
-    icon: string;
-    iconSize: number;
-    outlines: Outlines;
-    fire: FireStatus;
-    fixed: boolean;
-}
-
-type HelvegGraph = Graph<Partial<HelvegNodeAttributes>>;
 
 /**
  * An implementation of StructuralDiagram that is tied to an HTMLElement but not to a specific UI framework.
@@ -489,6 +480,11 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
         DEBUG && console.log(`Refreshing the graph to match the '${this._model.multigraph.label}' model.`);
 
         this._graph = initializeGraph(this._model, this._dataOptions);
+        for (let plugin of this._instance.plugins.getAll()) {
+            if (plugin.onVisualize) {
+                plugin.onVisualize(this._model, this._graph);
+            }
+        }
         stylizeGraph(this._graph, this._model, this._instance.styles);
 
         this.refreshSupervisor(false, () => this._graph && this._sigma?.setGraph(this._graph));
@@ -587,8 +583,7 @@ function initializeGraph(
         graph.addNode(nodeId, {
             label: node.label || nodeId,
             x: 0,
-            y: 0,
-            style: "csharp:Entity"
+            y: 0
         });
     }
 
@@ -600,7 +595,7 @@ function initializeGraph(
 
         for (const edge of relation.edges) {
             try {
-                graph.addDirectedEdge(edge.src, edge.dst, {
+                graph.addDirectedEdgeWithKey(`${relationId};${edge.src};${edge.dst}`, edge.src, edge.dst, {
                     relation: relationId,
                     type: "arrow"
                 });
@@ -723,39 +718,6 @@ function initializeSupervisor(
     const supervisor = new ForceAtlas2Supervisor(graph, settings);
     supervisor.progress.subscribe(onSupervisorProgress);
     return supervisor;
-}
-
-interface BfsOptions {
-    relation: string | null;
-    callback: (node: string, attr: Attributes, depth: number) => void;
-}
-
-function bfs(graph: Graph, nodeId: string, options?: Partial<BfsOptions>): Set<string> {
-    let opts = { maxDepth: Number.MAX_SAFE_INTEGER, ...options };
-
-    let visited = new Set<string>();
-    let queue = [nodeId];
-    let depth = 0;
-    while (queue.length > 0 && depth < opts.maxDepth) {
-        let node = queue.shift()!;
-        if (visited.has(node) || !graph.hasNode(node)) {
-            continue;
-        }
-        visited.add(node);
-
-        if (opts.callback) {
-            opts.callback(node, graph.getNodeAttributes(node), depth);
-        }
-
-        graph.forEachOutboundEdge(node, (edge, attr, src, dst, srcAttr, dstAttr, undir) => {
-            if (opts.relation && attr.relation !== opts.relation) {
-                return;
-            }
-            queue.push(dst);
-        });
-        depth++;
-    }
-    return visited;
 }
 
 // function collapseNode(graph: Graph, nodeId: string) {

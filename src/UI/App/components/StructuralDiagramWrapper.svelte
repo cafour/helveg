@@ -1,5 +1,4 @@
 <script lang="ts">
-    import type { VisualizationModel } from "model/visualization";
     import {
         StructuralStatus,
         StructuralDiagram,
@@ -8,21 +7,18 @@
     } from "model/structural";
     import Icon from "./Icon.svelte";
     import type {
-        DataOptions,
         ExportOptions,
-        GlyphOptions,
-        LayoutOptions,
         SearchMode,
-        ToolOptions,
     } from "model/options";
     import { createEventDispatcher, getContext } from "svelte";
     import type { HelvegInstance } from "model/instance";
-
-    export let model: VisualizationModel;
-    export let dataOptions: DataOptions;
-    export let layoutOptions: LayoutOptions;
-    export let glyphOptions: GlyphOptions;
-    export let toolOptions: ToolOptions;
+    import {
+        dataOptions,
+        glyphOptions,
+        layoutOptions,
+        model,
+        toolOptions,
+    } from "./App.svelte";
 
     let instance = getContext<HelvegInstance>("helveg");
     let diagram: AbstractStructuralDiagram = new StructuralDiagram(instance);
@@ -50,15 +46,15 @@
     let loadingScreenElement: HTMLElement;
 
     $: diagram.element = diagramElement;
-    $: diagram.model = model;
-    $: if (!model.isEmpty) {
+    $: diagram.model = $model;
+    $: if (!$model.isEmpty) {
         resetLayout();
     }
 
-    $: diagram.dataOptions = dataOptions;
-    $: diagram.layoutOptions = layoutOptions;
-    $: diagram.glyphOptions = glyphOptions;
-    $: diagram.toolOptions = toolOptions;
+    $: diagram.dataOptions = $dataOptions;
+    $: diagram.layoutOptions = $layoutOptions;
+    $: diagram.glyphOptions = $glyphOptions;
+    $: diagram.toolOptions = $toolOptions;
     $: diagram.canDragNodes = canDragNodes;
 
     export function resetLayout() {
@@ -91,7 +87,7 @@
     export function refresh() {
         diagram.refresh();
     }
-    
+
     export function cut(nodeId: string) {
         diagram.cut(nodeId);
     }
