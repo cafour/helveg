@@ -77,7 +77,7 @@ export class SigmaEffectsExtension {
 
         this.canvas = document.createElement("canvas");
         this.canvas.classList.add("helveg-effects");
-        this.canvas.id = `"helveg-effects-${++SigmaEffectsExtension.counter}"`;
+        // this.canvas.id = `"helveg-effects-${++SigmaEffectsExtension.counter}"`;
         this.canvas.style.position = "absolute";
 
         this.sigma.getContainer().prepend(this.canvas);
@@ -102,6 +102,8 @@ export class SigmaEffectsExtension {
 
         this.canvas.setAttribute("width", width * pixelRatio + "px");
         this.canvas.setAttribute("height", height * pixelRatio + "px");
+        this.canvas.style.width = width * pixelRatio + "px";
+        this.canvas.style.height = height * pixelRatio + "px";
         this.gl.viewport(0, 0, width * pixelRatio, height * pixelRatio);
     }
 
@@ -121,6 +123,7 @@ export class SigmaEffectsExtension {
     private onSigmaRender(params: RenderParams): void {
         this.renderParams = params;
         if (this.options.showFire) {
+            this.gl.clear(this.gl.COLOR_BUFFER_BIT);
             this.fireProgram.render(this.renderParams);
             this.requestRender();
         }
@@ -134,6 +137,7 @@ export class SigmaEffectsExtension {
             this.renderFrame = requestAnimationFrame(() => {
                 this.renderFrame = 0;
                 if (this.renderParams) {
+                    this.gl.clear(this.gl.COLOR_BUFFER_BIT);
                     this.fireProgram.render(this.renderParams);
                     this.requestRender();
                 }
