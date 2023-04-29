@@ -41,6 +41,9 @@
     diagram.nodeSelected.subscribe((n) => {
         selectedNodeId = n;
     });
+    diagram.nodeClicked.subscribe((n) => {
+        dispatch("nodeClicked", n);
+    });
 
     let diagramElement: HTMLElement | null = null;
     let loadingScreenElement: HTMLElement;
@@ -90,6 +93,10 @@
 
     export function cut(nodeId: string) {
         diagram.cut(nodeId);
+    }
+    
+    export function toggleNode(nodeId: string) {
+        diagram.toggleNode(nodeId);
     }
 
     let dispatch = createEventDispatcher();

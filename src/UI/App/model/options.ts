@@ -12,17 +12,19 @@ export interface DataOptions {
 }
 
 export const DEFAULT_DATA_OPTIONS: DataOptions = {
-    selectedRelations: ["declares"]
+    selectedRelations: []
 }
 
 export interface ToolOptions {
     isCuttingTransitive: boolean;
     cuttingRelation: string | null;
+    collapsingRelation: string | null;
 }
 
 export const DEFAULT_TOOL_OPTIONS: ToolOptions = {
     isCuttingTransitive: true,
-    cuttingRelation: null
+    cuttingRelation: null,
+    collapsingRelation: null
 }
 
 export interface GlyphOptions {

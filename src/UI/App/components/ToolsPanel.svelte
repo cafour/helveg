@@ -25,4 +25,14 @@
             </select>
         </label>
     </Subpanel>
+    <Subpanel name="Collapse" icon={AppIcons.ToggleTool}>
+        <label class="flex flex-row gap-8 align-items-center">
+            CollapsingRelation
+            <select bind:value={$toolOptions.collapsingRelation}>
+                {#each relations as relation}
+                    <option value={relation}>{relation}</option>
+                {/each}
+            </select>
+        </label>
+    </Subpanel>
 </Panel>

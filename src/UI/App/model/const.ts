@@ -20,7 +20,7 @@ export enum AppIcons {
 
     MoveTool = "base:MoveGlyph",
     ShowPropertiesTool = "base:ShowAllConfigurations",
-    ExpandTool = "base:Branch",
+    ToggleTool = "base:Branch",
     CutTool = "base:Cut",
 
     UnknownDiagnostic = "base:StatusHelp",
@@ -43,7 +43,7 @@ export enum AppPanels {
 export enum AppTools {
     Move = "move",
     ShowProperties = "showProperties",
-    Expand = "expand",
+    Toggle = "expand",
     Cut = "cut",
 }
 

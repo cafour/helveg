@@ -45,6 +45,10 @@ export enum DefaultEntityKindIcons {
     Parameter = "csharp:LocalVariable",
 }
 
+export enum Relations {
+    Declares = "declares"
+}
+
 enum MemberAccessibility {
     Invalid = "Invalid",
     Private = "Private",
@@ -174,8 +178,10 @@ export class CSharpPlugin implements HelvegPlugin {
             }
         });
 
-        options.layout.tidyTree.relation ??= "declares";
-        options.tool.cuttingRelation ??= "declares";
+        options.layout.tidyTree.relation ??= Relations.Declares;
+        options.tool.cuttingRelation ??= Relations.Declares;
+        options.tool.collapsingRelation ??= Relations.Declares;
+        options.data.selectedRelations.push(Relations.Declares);
         options.data.csharp = this.csharpDataOptions;
 
         this.csharpDataOptions.includedKinds.push(
@@ -223,7 +229,7 @@ export class CSharpPlugin implements HelvegPlugin {
 
             // 2.1. find nodes that are reachable from the current node, stop at included nodes
             let reachableNodes = bfs(graph, id, {
-                relation: "declares",
+                relation: Relations.Declares,
                 callback: n => n === id || !includedNodes.has(n)
             });
 
@@ -238,7 +244,7 @@ export class CSharpPlugin implements HelvegPlugin {
                     let edgeKey = `declares;${id};${child}`;
                     if (!graph.hasEdge(edgeKey)) {
                         graph.addDirectedEdgeWithKey(edgeKey, id, child, {
-                            relation: "declares"
+                            relation: Relations.Declares
                         });
                     }
                 }
@@ -258,15 +264,15 @@ export class CSharpPlugin implements HelvegPlugin {
         });
         
         // 5. expand nodes that are auto-expanded, stop at first non-auto-expanded node
-        let roots = findRoots(graph, "declares");
+        let roots = findRoots(graph, Relations.Declares);
         for(let root of roots) {
             graph.setNodeAttribute(root, "hidden", false);
             bfs(graph, root, {
-                relation: "declares",
+                relation: Relations.Declares,
                 callback: n => {
                     let kind = model.multigraph.nodes[n].properties.Kind;
                     if (this.csharpDataOptions.autoExpandedKinds.includes(kind)) {
-                        expandNode(graph, n, false, "declares");
+                        expandNode(graph, n, false, Relations.Declares);
                     }
                 }
             })

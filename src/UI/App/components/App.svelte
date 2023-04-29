@@ -7,7 +7,7 @@
     export let layoutOptions: Writable<opts.LayoutOptions> = null!;
     export let glyphOptions: Writable<opts.GlyphOptions> = null!;
     export let exportOptions: Writable<opts.ExportOptions> = null!;
-    export let toolOptions: Writable<opts.ToolOptions> = null!;;
+    export let toolOptions: Writable<opts.ToolOptions> = null!;
     export let model: Readable<VisualizationModel> = null!;
 </script>
 
@@ -41,7 +41,7 @@
     glyphOptions = writable(instance.options.glyph);
     exportOptions = writable(instance.options.export);
     toolOptions = writable(instance.options.tool);
-    model = readable(instance.model, set => {
+    model = readable(instance.model, (set) => {
         instance.loaded.subscribe((model) => {
             set(model);
         });
@@ -69,6 +69,14 @@
         }
     }
 
+    function onNodeClicked(nodeId: string) {
+        switch (selectedTool) {
+            case AppTools.Toggle:
+                diagram.toggleNode(nodeId);
+                break;
+        }
+    }
+
     function onToolChanged(tool: string) {
         switch (tool) {
             case AppTools.Cut:
@@ -88,6 +96,7 @@
         bind:stats
         canDragNodes={selectedTool === AppTools.Move}
         on:nodeSelected={(e) => onNodeSelected(e.detail)}
+        on:nodeClicked={(e) => onNodeClicked(e.detail)}
     />
 
     <Dock name="panels" bind:this={dock}>
@@ -131,9 +140,7 @@
             value={AppPanels.Document}
             icon={AppIcons.DocumentPanel}
         >
-            <DocumentPanel
-                on:export={(e) => diagram.save(e.detail)}
-            />
+            <DocumentPanel on:export={(e) => diagram.save(e.detail)} />
         </Tab>
         <Tab name="Guide" value={AppPanels.Guide} icon={AppIcons.GuidePanel}>
             <GuidePanel />

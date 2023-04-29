@@ -16,9 +16,9 @@
             hideLabel: true,
         },
         {
-            value: AppTools.Expand,
-            label: "Expand",
-            icon: AppIcons.ExpandTool,
+            value: AppTools.Toggle,
+            label: "Toggle",
+            icon: AppIcons.ToggleTool,
             hideLabel: true,
         },
         {

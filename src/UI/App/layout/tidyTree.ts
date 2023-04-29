@@ -10,7 +10,7 @@ export interface TidyTreeLayoutOptions {
 
 const DEFAULT_OPTIONS: TidyTreeLayoutOptions = {
     radius: 100,
-    relation: "declares",
+    relation: null,
     offset: {x: 0, y: 0}
 }
 

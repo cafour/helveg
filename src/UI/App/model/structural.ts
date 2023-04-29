@@ -16,7 +16,7 @@ import type { HelvegInstance } from "./instance";
 import { buildNodeFilter, filterNodes } from "./filter";
 import type { Coordinates, NodeDisplayData } from "sigma/types";
 import type { Attributes } from "graphology-types";
-import { findRoots, type HelvegGraph, type HelvegNodeAttributes } from "./graph";
+import { findRoots, toggleNode, type HelvegGraph, type HelvegNodeAttributes } from "./graph";
 import { bfs } from "./traversal";
 import { wheellOfFortune } from "layout/circular";
 
@@ -68,6 +68,8 @@ export interface AbstractStructuralDiagram {
     set canDragNodes(value: boolean);
 
     get draggedNodeId(): string | null;
+    
+    get nodeClicked(): HelvegEvent<string>;
 
     resetLayout(): Promise<void>;
     runLayout(inBackground: boolean): Promise<void>;
@@ -77,6 +79,7 @@ export interface AbstractStructuralDiagram {
     isolate(searchText: string | null, searchMode: SearchMode): void;
     refresh(): Promise<void>;
     cut(nodeId: string): void;
+    toggleNode(nodeId: string): void;
 }
 
 /**
@@ -108,6 +111,8 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
     private _iconAtlas: IconAtlas;
     private _glyphProgramOptions: GlyphProgramOptions;
     private _glyphProgram: NodeProgramConstructor;
+    
+    private _nodeClicked = new HelvegEvent<string>("helveg.StructuralDiagram.nodeClicked");
 
     constructor(private _instance: HelvegInstance) {
         this._iconAtlas = new IconAtlas(this._instance.icons);
@@ -330,6 +335,15 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
         this._instance.logger.info(`Cut ${reachable.size} nodes.`);
     }
 
+    toggleNode(nodeId: string): void {
+        if (!this._graph) {
+            DEBUG && console.warn("Cannot toggle nodes since the graph is not initialized.");
+            return;
+        }
+
+        toggleNode(this._graph, nodeId);
+    }
+
     get element(): HTMLElement | null {
         return this._element;
     }
@@ -451,6 +465,10 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
     get draggedNodeId(): string | null {
         return this._draggedNodeId;
     }
+    
+    get nodeClicked(): HelvegEvent<string> {
+        return this._nodeClicked;
+    }
 
     private refreshSigma(): void {
         if (!this._element || !this._graph) {
@@ -533,6 +551,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
 
     private onNodeClick(event: SigmaNodeEventPayload): void {
         this.selectedNodeId = event.node;
+        this._nodeClicked.trigger(event.node);
     }
 
     private onSupervisorProgress(message: ForceAtlas2Progress) {
