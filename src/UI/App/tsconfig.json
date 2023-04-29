@@ -12,7 +12,9 @@
     "strict": true,
     "skipLibCheck": true,
     "allowJs": true,
-    "noImplicitAny": false
+    "noImplicitAny": false,
+    "isolatedModules": true,
+    "noEmit": true
   },
   "exclude": [
     "node_modules/**",

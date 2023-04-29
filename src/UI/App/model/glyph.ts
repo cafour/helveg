@@ -94,12 +94,12 @@ export class StaticGlyphStyle implements GlyphStyle {
     }
 }
 
-export const FALLBACK_ICON_NAME = "base:PolarChart";
+export const FALLBACK_GLYPH_ICON = "base:PolarChart";
 
 export const FALLBACK_STYLE = new StaticGlyphStyle({
     size: 5,
     color: "#202020",
-    icon: FALLBACK_ICON_NAME,
+    icon: FALLBACK_GLYPH_ICON,
     outlines: [],
     fire: FireStatus.None
 });

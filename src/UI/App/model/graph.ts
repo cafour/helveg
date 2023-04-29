@@ -4,7 +4,7 @@ import type { EdgeDisplayData, NodeDisplayData } from "sigma/types";
 import type { EdgeEntry } from "graphology-types";
 export type { Coordinates } from "sigma/types";
 
-export interface HelvegNodeAttributes extends NodeDisplayData {
+export interface HelvegNodeAttributes extends Partial<NodeDisplayData> {
     style?: string;
     icon?: string;
     iconSize?: number;
@@ -14,7 +14,7 @@ export interface HelvegNodeAttributes extends NodeDisplayData {
     collapsed?: boolean;
 }
 
-export interface HelvegEdgeAttributes extends EdgeDisplayData {
+export interface HelvegEdgeAttributes extends Partial<EdgeDisplayData> {
     relation?: string;
 }
 

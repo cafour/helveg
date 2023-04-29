@@ -2,10 +2,11 @@ import { NodeProgram, type NodeProgramConstructor } from "sigma/rendering/webgl/
 import type { ProgramDefinition } from "sigma/rendering/webgl/programs/common/program";
 import type { RenderParams } from "sigma/types";
 import type Sigma from "sigma";
-import { StructuralDiagramMode, type HelvegNodeAttributes } from "model/structural";
+import { StructuralDiagramMode } from "model/structural";
 import vertexShaderSource from "./node.fire.vert";
 import fragmentShaderSource from "./node.fire.frag";
 import { FireStatus } from "model/glyph";
+import type { HelvegNodeAttributes } from "model/graph";
 
 const { UNSIGNED_BYTE, FLOAT } = WebGLRenderingContext;
 
@@ -69,9 +70,9 @@ export class FireProgram extends NodeProgram<typeof UNIFORMS[number]> {
             : data.fire === FireStatus.Flame ? 1
                 : 0;
 
-        array[i++] = data.x;
-        array[i++] = data.y;
-        array[i++] = data.size;
+        array[i++] = data.x ?? 0;
+        array[i++] = data.y ?? 0;
+        array[i++] = data.size ?? 2;
         array[i++] = useIntensity ? intensity : 0;
     }
 

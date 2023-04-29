@@ -18,7 +18,6 @@ export const EMPTY_MODEL: VisualizationModel = {
     },
     multigraph: {
         id: "empty",
-        label: "Empty",
         nodes: {},
         relations: {}
     }

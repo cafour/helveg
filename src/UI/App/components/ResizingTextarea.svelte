@@ -1,6 +1,4 @@
 <script lang="ts">
-    import { onMount } from "svelte";
-
     export let value: string;
     let additionalClass: string = "";
     export { additionalClass as class };

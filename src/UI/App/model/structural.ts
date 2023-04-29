@@ -229,7 +229,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
         DEBUG && console.log("Saving the diagram.");
 
         options = { ...DEFAULT_EXPORT_OPTIONS, ...options };
-        options.fileName ??= `${this._model.multigraph.label}-export.png`;
+        options.fileName ??= `${this._model.documentInfo.name}-export.png`;
         if (this._sigma) {
             exportDiagram(this._sigma, options);
         }
@@ -498,7 +498,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
             return;
         }
 
-        DEBUG && console.log(`Refreshing the graph to match the '${this._model.multigraph.label}' model.`);
+        DEBUG && console.log(`Refreshing the graph to match the '${this._model.documentInfo.name}' model.`);
 
         this._graph = initializeGraph(this._model, this._dataOptions);
         for (let plugin of this._instance.plugins.getAll()) {
@@ -603,7 +603,7 @@ function initializeGraph(
     for (const nodeId in model.multigraph.nodes) {
         const node = model.multigraph.nodes[nodeId];
         graph.addNode(nodeId, {
-            label: node.label || nodeId,
+            label: node.properties.Label ?? nodeId,
             x: 0,
             y: 0
         });

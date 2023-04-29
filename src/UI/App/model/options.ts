@@ -1,5 +1,5 @@
 import { Colors } from "./const";
-import { StaticGlyphStyle, type GlyphStyle, FALLBACK_ICON_NAME as DEFAULT_GLYPH_ICON_NAME, FireStatus } from "./glyph";
+import { StaticGlyphStyle, type GlyphStyle, FALLBACK_GLYPH_ICON as DEFAULT_GLYPH_ICON_NAME, FireStatus } from "./glyph";
 
 export enum SearchMode {
     Contains = "contains",
@@ -12,7 +12,8 @@ export interface DataOptions {
 }
 
 export const DEFAULT_DATA_OPTIONS: DataOptions = {
-    selectedRelations: []
+    selectedRelations: [],
+    csharp: null!
 }
 
 export interface ToolOptions {

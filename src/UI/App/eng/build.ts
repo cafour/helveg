@@ -51,7 +51,7 @@ const context = await esbuild.context({
     bundle: true,
     platform: "browser",
     minify: isRelease,
-    tsconfig: "./tsconfig.json.wtf",
+    tsconfig: "./tsconfig.json",
     plugins: [
         inlineBundlePlugin(),
         esbuildSvelte({

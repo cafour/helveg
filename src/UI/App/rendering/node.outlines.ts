@@ -1,12 +1,13 @@
 import { NodeProgram, type NodeProgramConstructor } from "sigma/rendering/webgl/programs/common/node";
 import type { ProgramDefinition } from "sigma/rendering/webgl/programs/common/program";
-import type { NodeDisplayData, RenderParams } from "sigma/types";
+import type { RenderParams } from "sigma/types";
 import type Sigma from "sigma";
 import vertexShaderSource from "./node.outlines.vert";
 import fragmentShaderSource from "./node.outlines.frag";
 import { floatColor } from "sigma/utils";
-import { floatOutlineStyles, floatOutlineWidths, type Outlines } from "model/glyph";
-import { StructuralDiagramMode, type HelvegNodeAttributes } from "model/structural";
+import { FALLBACK_STYLE, floatOutlineStyles, floatOutlineWidths} from "model/glyph";
+import { StructuralDiagramMode } from "model/structural";
+import type { HelvegNodeAttributes } from "model/graph";
 
 const { UNSIGNED_BYTE, FLOAT } = WebGLRenderingContext;
 
@@ -64,12 +65,12 @@ export class OutlinesProgram extends NodeProgram<typeof UNIFORMS[number]> {
         const useColor = this.options.diagramMode === StructuralDiagramMode.Normal
             || data.highlighted === true;
         
-        array[i++] = data.x;
-        array[i++] = data.y;
-        array[i++] = data.size;
+        array[i++] = data.x ?? 0;
+        array[i++] = data.y ?? 0;
+        array[i++] = data.size ?? 2;
         array[i++] = floatColor(useColor ? data.color || "#000000" : "#aaaaaa");
-        array[i++] = floatOutlineWidths(data.outlines);
-        array[i++] = floatOutlineStyles(data.outlines);
+        array[i++] = floatOutlineWidths(data.outlines ?? FALLBACK_STYLE.style.outlines);
+        array[i++] = floatOutlineStyles(data.outlines ?? FALLBACK_STYLE.style.outlines);
     }
 
     draw(params: RenderParams): void {

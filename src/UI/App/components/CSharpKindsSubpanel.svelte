@@ -3,7 +3,7 @@
     import { dataOptions, model } from "./App.svelte";
     import Subpanel from "./Subpanel.svelte";
     import Icon from "./Icon.svelte";
-    import { FALLBACK_ICON_NAME } from "model/glyph";
+    import { FALLBACK_GLYPH_ICON } from "model/glyph";
 
     $: kinds = !$model?.isEmpty
         ? Object.values($model.multigraph.nodes)
@@ -27,7 +27,7 @@
                 <div class="space-nowrap flex-grow-1">
                     <Icon
                         name={DefaultEntityKindIcons[kind] ??
-                            FALLBACK_ICON_NAME}
+                            FALLBACK_GLYPH_ICON}
                     />
                     {kind}
                 </div>

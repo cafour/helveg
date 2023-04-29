@@ -9,7 +9,6 @@
     export let node: Node | null = null;
     $: nodeItems =
         [
-            ["Label", node?.label ?? null],
             ...Object.entries(node?.properties ?? {}).filter(([k, v]) => k !== "Diagnostics")
         ].map((p) => ({
             key: p[0]!,
