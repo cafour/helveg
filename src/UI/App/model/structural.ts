@@ -698,7 +698,6 @@ function stylizeGraph(
         
         attributes.color = style.color;
         attributes.size = style.width;
-        attributes.label = style.showLabel ? attributes.relation : undefined;
     });
 }
 

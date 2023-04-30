@@ -19,7 +19,20 @@
     <Authors>Adam Štěpánek</Authors>
     <RepositoryUrl>https://gitlab.com/helveg/helveg</RepositoryUrl>
     <PackageLicenseExpression>BSD-3-Clause</PackageLicenseExpression>
+    <PackageIcon>helveg.png</PackageIcon>
+    <PackageProjectUrl>https://helveg.net</PackageProjectUrl>
   </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- NB: Don't generate symbol packages. Symbols and sources are packed into the dlls. -->
+    <IncludeSymbols>false</IncludeSymbols>
+    <DebugType>embedded</DebugType>
+    <EmbedAllSources>true</EmbedAllSources>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)helveg.png" Pack="true" PackagePath="/" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="GitVersion.MsBuild" Version="5.12.0">
