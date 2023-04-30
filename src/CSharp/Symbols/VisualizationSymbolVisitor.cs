@@ -20,7 +20,8 @@ public class VisualizationSymbolVisitor : SymbolVisitor
     {
         var node = builder.GetNode(symbol.Token, symbol.Name)
             .SetProperty(CSProperties.Kind, CSConst.KindOf(symbol.GetType()))
-            .SetProperty(Const.DiagnosticsProperty, symbol.Diagnostics);
+            .SetProperty(Const.DiagnosticsProperty, symbol.Diagnostics)
+            .SetProperty(Const.StyleProperty, CSConst.NodeStyle);
 
         if (symbol is IMemberDefinition member)
         {
@@ -48,13 +49,19 @@ public class VisualizationSymbolVisitor : SymbolVisitor
             .SetProperty(nameof(AssemblyId.PublicKeyToken), assembly.Identity.PublicKeyToken)
             .SetProperty(nameof(AssemblyId.TargetFramework), assembly.Identity.TargetFramework);
 
-        builder.AddEdges(CSRelations.Declares, assembly.Modules.Select(m => new Edge(assembly.Token, m.Token)));
+        builder.AddEdges(
+            CSRelations.Declares,
+            assembly.Modules.Select(m => new Edge(assembly.Token, m.Token)),
+            CSConst.RelationStyle);
     }
 
     public override void VisitModule(ModuleDefinition module)
     {
         base.VisitModule(module);
-        builder.AddEdge(CSRelations.Declares, new Edge(module.Token, module.GlobalNamespace.Token));
+        builder.AddEdge(
+            CSRelations.Declares,
+            new Edge(module.Token, module.GlobalNamespace.Token),
+            CSConst.RelationStyle);
     }
 
     public override void VisitNamespace(NamespaceDefinition @namespace)
@@ -73,8 +80,14 @@ public class VisualizationSymbolVisitor : SymbolVisitor
                 .SetProperty(Const.LabelProperty, CSConst.GlobalNamespaceName);
         }
 
-        builder.AddEdges(CSRelations.Declares, @namespace.Namespaces.Select(n => new Edge(@namespace.Token, n.Token)));
-        builder.AddEdges(CSRelations.Declares, @namespace.Types.Select(t => new Edge(@namespace.Token, t.Token)));
+        builder.AddEdges(
+            CSRelations.Declares,
+            @namespace.Namespaces.Select(n => new Edge(@namespace.Token, n.Token)),
+            CSConst.RelationStyle);
+        builder.AddEdges(
+            CSRelations.Declares,
+            @namespace.Types.Select(t => new Edge(@namespace.Token, t.Token)),
+            CSConst.RelationStyle);
     }
 
     public override void VisitType(TypeDefinition type)
@@ -98,17 +111,42 @@ public class VisualizationSymbolVisitor : SymbolVisitor
         node.SetProperty(CSProperties.InstanceMemberCount, instanceCount)
             .SetProperty(CSProperties.StaticMemberCount, staticCount);
 
-        builder.AddEdges(CSRelations.Declares, type.Fields.Select(f => new Edge(type.Token, f.Token)));
-        builder.AddEdges(CSRelations.Declares, type.Events.Select(e => new Edge(type.Token, e.Token)));
-        builder.AddEdges(CSRelations.Declares, type.Properties.Select(p => new Edge(type.Token, p.Token)));
-        builder.AddEdges(CSRelations.Declares, type.Methods.Select(m => new Edge(type.Token, m.Token)));
-        builder.AddEdges(CSRelations.Declares, type.TypeParameters.Select(t => new Edge(type.Token, t.Token)));
-        builder.AddEdges(CSRelations.Declares, type.NestedTypes.Select(t => new Edge(type.Token, t.Token)));
+        builder.AddEdges(
+            CSRelations.Declares,
+            type.Fields.Select(f => new Edge(type.Token, f.Token)),
+            CSConst.RelationStyle);
+        builder.AddEdges(
+            CSRelations.Declares,
+            type.Events.Select(e => new Edge(type.Token, e.Token)),
+            CSConst.RelationStyle);
+        builder.AddEdges(
+            CSRelations.Declares,
+            type.Properties.Select(p => new Edge(type.Token, p.Token)),
+            CSConst.RelationStyle);
+        builder.AddEdges(
+            CSRelations.Declares,
+            type.Methods.Select(m => new Edge(type.Token, m.Token)),
+            CSConst.RelationStyle);
+        builder.AddEdges(
+            CSRelations.Declares,
+            type.TypeParameters.Select(t => new Edge(type.Token, t.Token)),
+            CSConst.RelationStyle);
+        builder.AddEdges(
+            CSRelations.Declares,
+            type.NestedTypes.Select(t => new Edge(type.Token, t.Token)),
+            CSConst.RelationStyle);
 
-        builder.AddEdges(CSRelations.InheritsFrom, type.Interfaces.Select(i => new Edge(type.Token, i.Token)));
+        builder.AddEdges(
+            CSRelations.InheritsFrom,
+            type.Interfaces.Select(i => new Edge(type.Token, i.Token)),
+            CSConst.RelationStyle);
+
         if (type.BaseType?.Token.HasValue == true)
         {
-            builder.AddEdge(CSRelations.InheritsFrom, new Edge(type.Token, type.BaseType.Token));
+            builder.AddEdge(
+                CSRelations.InheritsFrom,
+                new Edge(type.Token, type.BaseType.Token),
+                CSConst.RelationStyle);
         }
     }
 
@@ -127,17 +165,24 @@ public class VisualizationSymbolVisitor : SymbolVisitor
         if (field.FieldType?.Token.HasValue == true)
         {
             builder.AddEdges(CSRelations.TypeOf, GetReferencedTypes(field.FieldType)
-                .Select(t => new Edge(field.Token, t)));
+                .Select(t => new Edge(field.Token, t)),
+                CSConst.RelationStyle);
         }
 
         if (field.AssociatedEvent?.Token.HasValue == true)
         {
-            builder.AddEdge(CSRelations.AssociatedWith, new Edge(field.Token, field.AssociatedEvent.Token));
+            builder.AddEdge(
+                CSRelations.AssociatedWith,
+                new Edge(field.Token, field.AssociatedEvent.Token),
+                CSConst.RelationStyle);
         }
 
         if (field.AssociatedProperty?.Token.HasValue == true)
         {
-            builder.AddEdge(CSRelations.AssociatedWith, new Edge(field.Token, field.AssociatedProperty.Token));
+            builder.AddEdge(
+                CSRelations.AssociatedWith,
+                new Edge(field.Token, field.AssociatedProperty.Token),
+                CSConst.RelationStyle);
         }
     }
 
@@ -158,7 +203,8 @@ public class VisualizationSymbolVisitor : SymbolVisitor
         if (parameter.ParameterType?.Token.HasValue == true)
         {
             builder.AddEdges(CSRelations.TypeOf, GetReferencedTypes(parameter.ParameterType)
-                .Select(t => new Edge(parameter.Token, t)));
+                .Select(t => new Edge(parameter.Token, t)),
+                CSConst.RelationStyle);
         }
     }
 
@@ -172,22 +218,32 @@ public class VisualizationSymbolVisitor : SymbolVisitor
         if (@event.EventType?.Token.HasValue == true)
         {
             builder.AddEdges(CSRelations.TypeOf, GetReferencedTypes(@event.EventType)
-                .Select(t => new Edge(@event.Token, t)));
+                .Select(t => new Edge(@event.Token, t)),
+                CSConst.RelationStyle);
         }
 
         if (@event.AddMethod?.Token.HasValue == true)
         {
-            builder.AddEdge(CSRelations.AssociatedWith, new Edge(@event.Token, @event.AddMethod.Token));
+            builder.AddEdge(
+                CSRelations.AssociatedWith,
+                new Edge(@event.Token, @event.AddMethod.Token),
+                CSConst.RelationStyle);
         }
 
         if (@event.RemoveMethod?.Token.HasValue == true)
         {
-            builder.AddEdge(CSRelations.AssociatedWith, new Edge(@event.Token, @event.RemoveMethod.Token));
+            builder.AddEdge(
+                CSRelations.AssociatedWith,
+                 new Edge(@event.Token, @event.RemoveMethod.Token),
+                 CSConst.RelationStyle);
         }
 
         if (@event.RaiseMethod?.Token.HasValue == true)
         {
-            builder.AddEdge(CSRelations.AssociatedWith, new Edge(@event.Token, @event.RaiseMethod.Token));
+            builder.AddEdge(
+                CSRelations.AssociatedWith,
+                new Edge(@event.Token, @event.RaiseMethod.Token),
+                CSConst.RelationStyle);
         }
     }
 
@@ -204,27 +260,40 @@ public class VisualizationSymbolVisitor : SymbolVisitor
             .SetProperty(nameof(PropertyDefinition.RefKind), property.RefKind)
             .SetProperty(CSProperties.ParameterCount, property.Parameters.Length);
 
-        builder.AddEdges(CSRelations.Declares, property.Parameters.Select(p => new Edge(property.Token, p.Token)));
+        builder.AddEdges(
+            CSRelations.Declares,
+            property.Parameters.Select(p => new Edge(property.Token, p.Token)),
+            CSConst.RelationStyle);
 
         if (property.PropertyType?.Token.HasValue == true)
         {
             builder.AddEdges(CSRelations.TypeOf, GetReferencedTypes(property.PropertyType)
-                .Select(t => new Edge(property.Token, t)));
+                .Select(t => new Edge(property.Token, t)),
+                CSConst.RelationStyle);
         }
 
         if (property.OverriddenProperty?.Token.HasValue == true)
         {
-            builder.AddEdge(CSRelations.Overrides, new Edge(property.Token, property.OverriddenProperty.Token));
+            builder.AddEdge(
+                CSRelations.Overrides,
+                new Edge(property.Token, property.OverriddenProperty.Token),
+                CSConst.RelationStyle);
         }
 
         if (property.GetMethod?.Token.HasValue == true)
         {
-            builder.AddEdge(CSRelations.AssociatedWith, new Edge(property.Token, property.GetMethod.Token));
+            builder.AddEdge(
+                CSRelations.AssociatedWith,
+                new Edge(property.Token, property.GetMethod.Token),
+                CSConst.RelationStyle);
         }
 
         if (property.SetMethod?.Token.HasValue == true)
         {
-            builder.AddEdge(CSRelations.AssociatedWith, new Edge(property.Token, property.SetMethod.Token));
+            builder.AddEdge(
+                CSRelations.AssociatedWith,
+                new Edge(property.Token, property.SetMethod.Token),
+                CSConst.RelationStyle);
         }
     }
 
@@ -244,28 +313,44 @@ public class VisualizationSymbolVisitor : SymbolVisitor
             .SetProperty(nameof(MethodDefinition.IsReadOnly), method.IsReadOnly)
             .SetProperty(nameof(MethodDefinition.IsInitOnly), method.IsInitOnly);
 
-        builder.AddEdges(CSRelations.Declares, method.Parameters.Select(p => new Edge(method.Token, p.Token)));
-        builder.AddEdges(CSRelations.Declares, method.TypeParameters.Select(t => new Edge(method.Token, t.Token)));
+        builder.AddEdges(
+            CSRelations.Declares,
+            method.Parameters.Select(p => new Edge(method.Token, p.Token)),
+            CSConst.RelationStyle);
+        builder.AddEdges(
+            CSRelations.Declares,
+            method.TypeParameters.Select(t => new Edge(method.Token, t.Token)),
+            CSConst.RelationStyle);
 
         if (!method.ReturnsVoid && method.ReturnType?.Token.HasValue == true)
         {
             builder.AddEdges(CSRelations.Returns, GetReferencedTypes(method.ReturnType)
-                .Select(t => new Edge(method.Token, t)));
+                .Select(t => new Edge(method.Token, t)),
+                CSConst.RelationStyle);
         }
 
         if (method.OverridenMethod?.Token.HasValue == true)
         {
-            builder.AddEdge(CSRelations.Overrides, new Edge(method.Token, method.OverridenMethod.Token));
+            builder.AddEdge(
+                CSRelations.Overrides,
+                new Edge(method.Token, method.OverridenMethod.Token),
+                CSConst.RelationStyle);
         }
 
         if (method.AssociatedEvent?.Token.HasValue == true)
         {
-            builder.AddEdge(CSRelations.AssociatedWith, new Edge(method.Token, method.AssociatedEvent.Token));
+            builder.AddEdge(
+                CSRelations.AssociatedWith,
+                new Edge(method.Token, method.AssociatedEvent.Token),
+                CSConst.RelationStyle);
         }
 
         if (method.AssociatedProperty?.Token.HasValue == true)
         {
-            builder.AddEdge(CSRelations.AssociatedWith, new Edge(method.Token, method.AssociatedProperty.Token));
+            builder.AddEdge(
+                CSRelations.AssociatedWith,
+                new Edge(method.Token, method.AssociatedProperty.Token),
+                CSConst.RelationStyle);
         }
     }
 

@@ -1,12 +1,13 @@
-import type { GlyphStyle, GlyphStyleRegistry } from "./glyph";
 import type { HelvegGraph } from "./graph";
 import type { Icon, IconRegistry, IconSet } from "./icons";
+import type { NodeStyleGenerator, NodeStyleRegistry, EdgeStyleGenerator, EdgeStyleRegistry } from "./style";
 import type { VisualizationModel } from "./visualization";
 
 export interface HelvegPlugin {
     name: string;
     icons?: Map<string, Icon>;
-    glyphStyles?: GlyphStyle[];
+    nodeStyles?: Map<string, NodeStyleGenerator>;
+    edgeStyles?: Map<string, EdgeStyleGenerator>;
     onVisualize?(model: Readonly<VisualizationModel>, graph: HelvegGraph): void;
 }
 
@@ -14,7 +15,10 @@ export class HelvegPluginRegistry {
     private names: Set<string> = new Set();
     private data: HelvegPlugin[] = [];
 
-    constructor(private iconRegistry: IconRegistry, private styleRegistry: GlyphStyleRegistry) {
+    constructor(
+        private iconRegistry: IconRegistry,
+        private nodeStyles: NodeStyleRegistry,
+        private edgeStyles: EdgeStyleRegistry) {
     }
 
     register(plugin: HelvegPlugin) {
@@ -32,9 +36,15 @@ export class HelvegPluginRegistry {
             this.iconRegistry.register(iconSet);
         }
 
-        if (plugin.glyphStyles) {
-            for (let style of plugin.glyphStyles) {
-                this.styleRegistry.register(plugin.name, style);
+        if (plugin.nodeStyles) {
+            for (let [key, value] of plugin.nodeStyles) {
+                this.nodeStyles.register(`${plugin.name}:${key}`, value);
+            }
+        }
+        
+        if (plugin.edgeStyles) {
+            for (let [key, value] of plugin.edgeStyles) {
+                this.edgeStyles.register(`${plugin.name}:${key}`, value);
             }
         }
     }

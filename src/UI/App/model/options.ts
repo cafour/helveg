@@ -1,5 +1,5 @@
 import { Colors } from "./const";
-import { StaticGlyphStyle, type GlyphStyle, FALLBACK_GLYPH_ICON as DEFAULT_GLYPH_ICON_NAME, FireStatus } from "./glyph";
+import { FireStatus, type NodeStyle } from "./style";
 
 export enum SearchMode {
     Contains = "contains",
@@ -29,8 +29,6 @@ export const DEFAULT_TOOL_OPTIONS: ToolOptions = {
 }
 
 export interface GlyphOptions {
-    styles: Record<string, GlyphStyle>;
-    fallbackStyle: GlyphStyle;
     showIcons: boolean;
     showOutlines: boolean;
     showLabels: boolean;
@@ -39,14 +37,6 @@ export interface GlyphOptions {
 }
 
 export const DEFAULT_GLYPH_OPTIONS: GlyphOptions = {
-    styles: {},
-    fallbackStyle: new StaticGlyphStyle({
-        size: 5,
-        color: Colors.DarkGray,
-        icon: DEFAULT_GLYPH_ICON_NAME,
-        outlines: [],
-        fire: FireStatus.None
-    }),
     showIcons: true,
     showOutlines: true,
     showLabels: true,

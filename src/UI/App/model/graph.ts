@@ -1,7 +1,7 @@
 import type Graph from "graphology";
-import type { FireStatus, Outlines } from "./glyph";
 import type { EdgeDisplayData, NodeDisplayData } from "sigma/types";
 import type { EdgeEntry } from "graphology-types";
+import type { FireStatus, Outlines } from "./style";
 export type { Coordinates } from "sigma/types";
 
 export interface HelvegNodeAttributes extends Partial<NodeDisplayData> {
@@ -16,6 +16,7 @@ export interface HelvegNodeAttributes extends Partial<NodeDisplayData> {
 
 export interface HelvegEdgeAttributes extends Partial<EdgeDisplayData> {
     relation?: string;
+    style?: string;
 }
 
 export type HelvegGraph = Graph<HelvegNodeAttributes, HelvegEdgeAttributes>;

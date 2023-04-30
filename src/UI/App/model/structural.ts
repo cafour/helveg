@@ -5,7 +5,6 @@ import { Sigma } from "sigma";
 import { ForceAtlas2Supervisor, type ForceAtlas2Progress } from "layout/forceAltas2Supervisor";
 import { IconAtlas } from "rendering/iconAtlas";
 import { HelvegEvent } from "common/event";
-import { OutlineStyle, getOutlinesTotalWidth, type Outlines, type GlyphStyle, GlyphStyleRegistry, FireStatus } from "./glyph";
 import type { SigmaNodeEventPayload } from "sigma/sigma";
 import { createGlyphProgram, type GlyphProgramOptions } from "rendering/node.glyph";
 import forceAtlas2 from "graphology-layout-forceatlas2";
@@ -19,6 +18,7 @@ import type { Attributes } from "graphology-types";
 import { findRoots, toggleNode, type HelvegGraph, type HelvegNodeAttributes } from "./graph";
 import { bfs } from "./traversal";
 import { wheellOfFortune } from "layout/circular";
+import { OutlineStyle, type NodeStyleRegistry, type Outlines, getOutlinesTotalWidth, EdgeStyleRegistry } from "./style";
 
 export enum StructuralStatus {
     Stopped,
@@ -68,7 +68,7 @@ export interface AbstractStructuralDiagram {
     set canDragNodes(value: boolean);
 
     get draggedNodeId(): string | null;
-    
+
     get nodeClicked(): HelvegEvent<string>;
 
     resetLayout(): Promise<void>;
@@ -111,7 +111,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
     private _iconAtlas: IconAtlas;
     private _glyphProgramOptions: GlyphProgramOptions;
     private _glyphProgram: NodeProgramConstructor;
-    
+
     private _nodeClicked = new HelvegEvent<string>("helveg.StructuralDiagram.nodeClicked");
 
     constructor(private _instance: HelvegInstance) {
@@ -465,7 +465,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
     get draggedNodeId(): string | null {
         return this._draggedNodeId;
     }
-    
+
     get nodeClicked(): HelvegEvent<string> {
         return this._nodeClicked;
     }
@@ -506,7 +506,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
                 plugin.onVisualize(this._model, this._graph);
             }
         }
-        stylizeGraph(this._graph, this._model, this._instance.styles);
+        stylizeGraph(this._graph, this._model, this._instance.nodeStyles, this._instance.edgeStyles);
 
         this.refreshSupervisor(false, () => this._graph && this._sigma?.setGraph(this._graph));
 
@@ -605,7 +605,8 @@ function initializeGraph(
         graph.addNode(nodeId, {
             label: node.properties.Label ?? nodeId,
             x: 0,
-            y: 0
+            y: 0,
+            style: node.properties.Style
         });
     }
 
@@ -615,11 +616,12 @@ function initializeGraph(
             continue;
         }
 
-        for (const edge of relation.edges) {
+        for (let [id, edge] of Object.entries(relation.edges)) {
             try {
-                graph.addDirectedEdgeWithKey(`${relationId};${edge.src};${edge.dst}`, edge.src, edge.dst, {
+                graph.addDirectedEdgeWithKey(id, edge.src, edge.dst, {
                     relation: relationId,
-                    type: "arrow"
+                    type: "arrow",
+                    style: edge.properties.Style
                 });
             } catch (error) {
                 DEBUG && console.warn(`Failed to add an edge. edge=${edge}, error=${error}`);
@@ -630,7 +632,12 @@ function initializeGraph(
     return graph;
 }
 
-function stylizeGraph(graph: HelvegGraph, model: VisualizationModel, styleRepository: GlyphStyleRegistry) {
+function stylizeGraph(
+    graph: HelvegGraph,
+    model: VisualizationModel,
+    nodeStyles: NodeStyleRegistry,
+    edgeStyles: EdgeStyleRegistry) {
+
     graph.forEachNode((node, attributes) => {
         if (!attributes.style) {
             DEBUG && console.log(`Node '${node}' is missing a style attribute.`);
@@ -642,15 +649,15 @@ function stylizeGraph(graph: HelvegGraph, model: VisualizationModel, styleReposi
             return;
         }
 
-        const glyphStyle = styleRepository.get(attributes.style);
-        if (!glyphStyle) {
-            DEBUG && console.log(`Glyph style '${attributes.style}' could not be found.`);
+        const nodeStyleGenerator = nodeStyles.get(attributes.style);
+        if (!nodeStyleGenerator) {
+            DEBUG && console.log(`Node style '${attributes.style}' could not be found.`);
             return;
         }
 
-        const nodeStyle = glyphStyle.apply(model.multigraph.nodes[node]);
+        const nodeStyle = nodeStyleGenerator(model.multigraph.nodes[node]);
         if (!nodeStyle) {
-            DEBUG && console.log(`Glyph style '${attributes.style}' could not be applied to node '${node}'.`);
+            DEBUG && console.log(`Node style '${attributes.style}' could not be applied to node '${node}'.`);
             return;
         }
 
@@ -667,6 +674,27 @@ function stylizeGraph(graph: HelvegGraph, model: VisualizationModel, styleReposi
         attributes.icon = nodeStyle.icon;
         attributes.outlines = outlines;
         attributes.fire = nodeStyle.fire;
+    });
+
+    graph.forEachEdge((edge, attributes) => {
+        if (!attributes.style || !attributes.relation) {
+            return;
+        }
+
+        let generator = edgeStyles.get(attributes.style);
+        if (!generator) {
+            DEBUG && console.log(`Edge style '${attributes.style}' could not be found.`);
+            return;
+        }
+
+        const style = generator({
+            relation: attributes.relation,
+            edge: model.multigraph.relations[attributes.relation].edges[edge]
+        });
+        if (!style) {
+            DEBUG && console.log(`Edge style '${attributes.style}' could not be applied to edge '${edge}'.`);
+            return;
+        }
     });
 }
 

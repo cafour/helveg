@@ -7,7 +7,7 @@ import vertexShaderSource from "./node.icon.vert";
 import fragmentShaderSource from "./node.icon.frag";
 import { StructuralDiagramMode } from "model/structural";
 import type { HelvegNodeAttributes } from "model/graph";
-import { FALLBACK_GLYPH_ICON } from "model/glyph";
+import { FALLBACK_NODE_ICON } from "model/style";
 
 const { UNSIGNED_BYTE, FLOAT } = WebGLRenderingContext;
 
@@ -57,7 +57,7 @@ export class IconProgram extends NodeProgram<typeof UNIFORMS[number]> {
 
     processVisibleItem(i: number, data: HelvegNodeAttributes): void {
         const array = this.array;
-        this.options.iconAtlas.tryAddIcon(data.icon ?? FALLBACK_GLYPH_ICON);
+        this.options.iconAtlas.tryAddIcon(data.icon ?? FALLBACK_NODE_ICON);
 
         const isVisible = (this.options.diagramMode === StructuralDiagramMode.Normal
             || data.highlighted === true);
@@ -66,7 +66,7 @@ export class IconProgram extends NodeProgram<typeof UNIFORMS[number]> {
         array[i++] = data.y ?? 0;
         array[i++] = isVisible ? data.iconSize ?? data.size ?? 1 : 0;
 
-        let atlasEntry = this.options.iconAtlas.entries[data.icon ?? FALLBACK_GLYPH_ICON];
+        let atlasEntry = this.options.iconAtlas.entries[data.icon ?? FALLBACK_NODE_ICON];
         if (atlasEntry && atlasEntry.status === IconAtlasEntryStatus.Rendered) {
             array[i++] = atlasEntry.x / this.options.iconAtlas.width;
             array[i++] = atlasEntry.y / this.options.iconAtlas.height;

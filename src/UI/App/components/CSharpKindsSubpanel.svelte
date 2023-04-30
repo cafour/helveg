@@ -3,7 +3,7 @@
     import { dataOptions, model } from "./App.svelte";
     import Subpanel from "./Subpanel.svelte";
     import Icon from "./Icon.svelte";
-    import { FALLBACK_GLYPH_ICON } from "model/glyph";
+    import { FALLBACK_NODE_ICON } from "model/style";
 
     $: kinds = !$model?.isEmpty
         ? Object.values($model.multigraph.nodes)
@@ -23,11 +23,11 @@
             <strong>Auto-expanded</strong>
         </div>
         {#each kinds as kind}
-            <div class="flex flex-row flex-grow-1 gap-4 pl-8 pr-8   ">
+            <div class="flex flex-row flex-grow-1 gap-4 pl-8 pr-8">
                 <div class="space-nowrap flex-grow-1">
                     <Icon
                         name={DefaultEntityKindIcons[kind] ??
-                            FALLBACK_GLYPH_ICON}
+                            FALLBACK_NODE_ICON}
                     />
                     {kind}
                 </div>

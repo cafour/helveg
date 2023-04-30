@@ -13,6 +13,9 @@ namespace Helveg.CSharp;
 public static class CSConst
 {
     public const string CSharpNamespace = "csharp";
+    
+    public const string NodeStyle = "csharp:Entity";
+    public const string RelationStyle = "csharp:Relation";
 
     public const string SolutionFileExtension = ".sln";
     public const string ProjectFileExtension = ".csproj";

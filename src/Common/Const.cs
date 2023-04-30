@@ -13,4 +13,5 @@ public static class Const
     public const string GlobalNamespace = "global";
     public const string DiagnosticsProperty = "Diagnostics";
     public const string LabelProperty = "Label";
+    public const string StyleProperty = "Style";
 }

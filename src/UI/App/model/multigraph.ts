@@ -20,6 +20,7 @@ export interface Diagnostic {
 
 export interface NodeProperties {
     Label?: string,
+    Style?: string,
     Diagnostics?: Diagnostic[]
 }
 
@@ -28,11 +29,12 @@ export interface Node {
 }
 
 export interface Relation {
-    edges: Edge[]
+    edges: Record<string, Edge>
 }
 
 export interface EdgeProperties {
-    Label?: string
+    Label?: string,
+    Style?: string
 }
 
 export interface Edge {

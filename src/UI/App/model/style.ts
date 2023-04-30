@@ -1,4 +1,4 @@
-import type { Node } from "./multigraph";
+import type { Edge, Node, Relation } from "./multigraph";
 
 let INT8 = new Int8Array(4);
 let INT32 = new Int32Array(INT8.buffer);
@@ -78,51 +78,64 @@ export interface NodeStyle {
     fire: FireStatus;
 }
 
-export interface GlyphStyle {
-    name: string;
-    apply(node: Node): NodeStyle;
-}
 
-export class StaticGlyphStyle implements GlyphStyle {
-    name: string = "Fallback";
+export const FALLBACK_NODE_ICON = "base:PolarChart";
 
-    constructor(public style: NodeStyle) {
-    }
-
-    apply(_node: Node) {
-        return this.style;
-    }
-}
-
-export const FALLBACK_GLYPH_ICON = "base:PolarChart";
-
-export const FALLBACK_STYLE = new StaticGlyphStyle({
+export const FALLBACK_NODE_STYLE: NodeStyle = {
     size: 5,
     color: "#202020",
-    icon: FALLBACK_GLYPH_ICON,
+    icon: FALLBACK_NODE_ICON,
     outlines: [],
     fire: FireStatus.None
-});
+};
 
-export class GlyphStyleRegistry {
-    private styles = new Map<string, GlyphStyle>();
+export interface EdgeStyle {
+    color: string;
+    width: number;
+}
 
-    register(namespace: string | null, style: GlyphStyle): void {
-        let name = namespace && !style.name.startsWith(`${namespace}:`) ? `${namespace}:${style.name}` : style.name;
+export const FALLBACK_EDGE_STYLE: EdgeStyle = {
+    color: "#202020",
+    width: 1
+};
+
+export type StyleGenerator<TObject, TStyle> = (object: TObject) => TStyle;
+export type NodeStyleGenerator = StyleGenerator<Node, NodeStyle>;
+export type EdgeStyleGenerator = StyleGenerator<{relation: string, edge: Edge}, EdgeStyle>;
+
+export class StyleRegistry<TObject, TStyle> {
+    private styles = new Map<string, StyleGenerator<TObject, TStyle>>();
+
+    constructor(private fallback: TStyle) {
+    }
+
+    register(name: string, style: StyleGenerator<TObject, TStyle>): void {
         if (this.styles.has(name)) {
-            throw new Error(`The registry already contains a style named '${style.name}'.`);
+            throw new Error(`The registry already contains a style named '${name}'.`);
         }
 
         this.styles[name] = style;
     }
 
-    get(styleName: string): GlyphStyle {
-        let style = this.styles[styleName];
+    get(name: string): StyleGenerator<TObject, TStyle> {
+        let style = this.styles[name];
         if (!style) {
-            DEBUG && console.log(`Could not find the '${styleName}' style.`);
-            return FALLBACK_STYLE;
+            DEBUG && console.log(`Could not find the '${name}' style.`);
+            return () => this.fallback;
         }
 
         return style;
+    }
+}
+
+export class NodeStyleRegistry extends StyleRegistry<Node, NodeStyle> {
+    constructor() {
+        super(FALLBACK_NODE_STYLE);
+    }
+}
+
+export class EdgeStyleRegistry extends StyleRegistry<{relation: string, edge: Edge}, EdgeStyle> {
+    constructor() {
+        super(FALLBACK_EDGE_STYLE);
     }
 }

@@ -5,9 +5,9 @@ import type Sigma from "sigma";
 import vertexShaderSource from "./node.outlines.vert";
 import fragmentShaderSource from "./node.outlines.frag";
 import { floatColor } from "sigma/utils";
-import { FALLBACK_STYLE, floatOutlineStyles, floatOutlineWidths} from "model/glyph";
 import { StructuralDiagramMode } from "model/structural";
 import type { HelvegNodeAttributes } from "model/graph";
+import { FALLBACK_NODE_STYLE, floatOutlineStyles, floatOutlineWidths } from "model/style";
 
 const { UNSIGNED_BYTE, FLOAT } = WebGLRenderingContext;
 
@@ -68,9 +68,9 @@ export class OutlinesProgram extends NodeProgram<typeof UNIFORMS[number]> {
         array[i++] = data.x ?? 0;
         array[i++] = data.y ?? 0;
         array[i++] = data.size ?? 2;
-        array[i++] = floatColor(useColor ? data.color || "#000000" : "#aaaaaa");
-        array[i++] = floatOutlineWidths(data.outlines ?? FALLBACK_STYLE.style.outlines);
-        array[i++] = floatOutlineStyles(data.outlines ?? FALLBACK_STYLE.style.outlines);
+        array[i++] = floatColor(useColor ? data.color ?? FALLBACK_NODE_STYLE.color : "#aaaaaa");
+        array[i++] = floatOutlineWidths(data.outlines ?? FALLBACK_NODE_STYLE.outlines);
+        array[i++] = floatOutlineStyles(data.outlines ?? FALLBACK_NODE_STYLE.outlines);
     }
 
     draw(params: RenderParams): void {

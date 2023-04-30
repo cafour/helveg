@@ -1,11 +1,10 @@
 import type { HelvegOptions } from "model/options";
-import { FireStatus, type GlyphStyle, type NodeStyle, type Outlines } from "./glyph";
-import { OutlineStyle } from "./glyph";
 import { expandNode, findRoots, type HelvegGraph } from "./graph";
-import { DiagnosticSeverity, type Node, type NodeProperties } from "./multigraph";
+import { DiagnosticSeverity, type Edge, type Node, type NodeProperties } from "./multigraph";
 import type { HelvegPlugin } from "./plugin";
 import { bfs } from "./traversal";
 import type { VisualizationModel } from "./visualization";
+import { FireStatus, OutlineStyle, type NodeStyle, type NodeStyleGenerator, type EdgeStyleGenerator, type EdgeStyle, FALLBACK_EDGE_STYLE } from "./style";
 
 export enum EntityKind {
     Solution = "Solution",
@@ -154,32 +153,31 @@ export default function csharp(options: HelvegOptions): CSharpPlugin {
 export class CSharpPlugin implements HelvegPlugin {
     name: string = "csharp";
     csharpDataOptions: CSharpDataOptions = { ...DEFAULT_CSHARP_DATA_OPTIONS };
-    glyphStyles: GlyphStyle[] = [];
+    nodeStyles: Map<string, NodeStyleGenerator> = new Map();
+    edgeStyles: Map<string, EdgeStyleGenerator> = new Map();
 
     constructor(options: HelvegOptions) {
         let plugin = this;
-        this.glyphStyles.push({
-            name: "Entity",
-            apply(node: Node) {
-                let props = node.properties as CSharpNodeProperties;
-                if (!(Object.values(EntityKind).includes(props.Kind))) {
-                    return FALLBACK_STYLE;
-                }
-
-                let base = plugin.resolveBaseStyle(props);
-                let fire = !props.Diagnostics ? FireStatus.None
-                    : props.Diagnostics.filter(d => d.severity === DiagnosticSeverity.Error).length > 0
-                        ? FireStatus.Flame
-                        : props.Diagnostics.filter(d => d.severity === DiagnosticSeverity.Warning).length > 0
-                            ? FireStatus.Smoke
-                            : FireStatus.None;
-                return {
-                    ...FALLBACK_STYLE,
-                    ...base,
-                    fire
-                };
+        this.nodeStyles.set("Entity", (node: Node) => {
+            let props = node.properties as CSharpNodeProperties;
+            if (!(Object.values(EntityKind).includes(props.Kind))) {
+                return FALLBACK_STYLE;
             }
+
+            let base = plugin.resolveNodeStyle(props);
+            let fire = !props.Diagnostics ? FireStatus.None
+                : props.Diagnostics.filter(d => d.severity === DiagnosticSeverity.Error).length > 0
+                    ? FireStatus.Flame
+                    : props.Diagnostics.filter(d => d.severity === DiagnosticSeverity.Warning).length > 0
+                        ? FireStatus.Smoke
+                        : FireStatus.None;
+            return {
+                ...FALLBACK_STYLE,
+                ...base,
+                fire
+            };
         });
+        this.edgeStyles.set("Relation", o => this.resolveEdgeStyle(o));
 
         options.layout.tidyTree.relation ??= Relations.Declares;
         options.tool.cuttingRelation ??= Relations.Declares;
@@ -226,9 +224,6 @@ export class CSharpPlugin implements HelvegPlugin {
 
         // 2. drop nodes that are not included but add transitive "declares" edges to keep the tree connected
         includedNodes.forEach(id => {
-            // 2.0. set style
-            graph.setNodeAttribute(id, "style", "csharp:Entity");
-
             // 2.1. find nodes that are reachable from the current node, stop at included nodes
             let reachableNodes = bfs(graph, id, {
                 relation: Relations.Declares,
@@ -258,16 +253,16 @@ export class CSharpPlugin implements HelvegPlugin {
 
         // 3. drop all remaining unincluded nodes (they should only exist if they were roots to begin with)
         excludedNodes.forEach(id => graph.hasNode(id) && graph.dropNode(id));
-        
+
         // 4. collapse all nodes
         graph.forEachNode((node, attr) => {
             attr.collapsed = true;
             attr.hidden = true;
         });
-        
+
         // 5. expand nodes that are auto-expanded, stop at first non-auto-expanded node
         let roots = findRoots(graph, Relations.Declares);
-        for(let root of roots) {
+        for (let root of roots) {
             graph.setNodeAttribute(root, "hidden", false);
             bfs(graph, root, {
                 relation: Relations.Declares,
@@ -281,7 +276,7 @@ export class CSharpPlugin implements HelvegPlugin {
         }
     }
 
-    private resolveBaseStyle(props: CSharpNodeProperties): Partial<NodeStyle> {
+    private resolveNodeStyle(props: CSharpNodeProperties): Partial<NodeStyle> {
         let base: Partial<NodeStyle> = {};
         switch (props.Kind) {
             case EntityKind.Solution:
@@ -476,4 +471,15 @@ export class CSharpPlugin implements HelvegPlugin {
         return base;
     }
 
+    private resolveEdgeStyle(object: { relation: string, edge: Edge }): EdgeStyle {
+        switch (object.relation) {
+            case Relations.Declares:
+                return {
+                    color: VSColor.DarkGray,
+                    width: 2
+                };
+            default:
+                return FALLBACK_EDGE_STYLE;
+        }
+    }
 }

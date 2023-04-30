@@ -5,8 +5,8 @@ import type Sigma from "sigma";
 import { StructuralDiagramMode } from "model/structural";
 import vertexShaderSource from "./node.fire.vert";
 import fragmentShaderSource from "./node.fire.frag";
-import { FireStatus } from "model/glyph";
 import type { HelvegNodeAttributes } from "model/graph";
+import { FireStatus } from "model/style";
 
 const { UNSIGNED_BYTE, FLOAT } = WebGLRenderingContext;
 

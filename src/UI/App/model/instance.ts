@@ -2,17 +2,18 @@ import { HelvegEvent } from "common/event";
 import { loadJsonScripts } from "./data";
 import type { IconSet } from "./icons";
 import { EMPTY_MODEL, type VisualizationModel } from "./visualization";
-import { GlyphStyleRegistry } from "./glyph";
 import App from "components/App.svelte";
 import { HelvegPluginRegistry } from "./plugin";
 import { IconRegistry } from "./icons";
 import { DEFAULT_HELVEG_OPTIONS, type HelvegOptions } from "./options";
 import { Logger } from "./logger";
+import { NodeStyleRegistry, EdgeStyleRegistry } from "./style";
 
 export interface HelvegInstance {
     model: VisualizationModel;
     loaded: HelvegEvent<VisualizationModel>;
-    styles: GlyphStyleRegistry;
+    nodeStyles: NodeStyleRegistry;
+    edgeStyles: EdgeStyleRegistry;
     icons: IconRegistry;
     app: App | null;
     plugins: HelvegPluginRegistry;
@@ -22,13 +23,15 @@ export interface HelvegInstance {
 
 export function createInstance(): HelvegInstance {
     let iconRegistry = new IconRegistry();
-    let styleRegistry = new GlyphStyleRegistry();
-    let pluginRegistry = new HelvegPluginRegistry(iconRegistry, styleRegistry);
+    let nodeStyleRegistry = new NodeStyleRegistry();
+    let edgeStyleRegistry = new EdgeStyleRegistry();
+    let pluginRegistry = new HelvegPluginRegistry(iconRegistry, nodeStyleRegistry, edgeStyleRegistry);
 
-    return <HelvegInstance>{
+    return {
         model: EMPTY_MODEL,
         loaded: new HelvegEvent<VisualizationModel>("helveg.loaded", true),
-        styles: styleRegistry,
+        nodeStyles: nodeStyleRegistry,
+        edgeStyles: edgeStyleRegistry,
         icons: iconRegistry,
         plugins: pluginRegistry,
         app: null,

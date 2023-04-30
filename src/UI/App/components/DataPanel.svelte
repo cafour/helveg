@@ -27,10 +27,23 @@
     ];
     let selectedSearchMode: SearchMode = SearchMode.Contains;
     let searchText: string = "";
+    let allCheckbox: HTMLInputElement;
 
     $: relations = $model
         ? Object.keys($model.multigraph.relations).sort()
         : [];
+    $: if (allCheckbox) {
+        allCheckbox.indeterminate = $dataOptions.selectedRelations.length > 0
+            && $dataOptions.selectedRelations.length < relations.length;
+    };
+
+    function toggleAllRelations() {
+        if ($dataOptions.selectedRelations.length > 0) {
+            $dataOptions.selectedRelations = [];
+        } else {
+            $dataOptions.selectedRelations = relations;
+        }
+    }
 </script>
 
 <Panel name="Data" indent={false}>
@@ -63,7 +76,7 @@
             />
             <button
                 class="button-stretch mt-8"
-                on:click|preventDefault={() =>
+                on:click|preventDefault|stopPropagation={() =>
                     dispatch("isolate", {
                         searchText: searchText,
                         searchMode: selectedSearchMode,
@@ -74,6 +87,15 @@
         </form>
     </Subpanel>
     <Subpanel name="Relations">
+        <label>
+            <input
+                bind:this={allCheckbox}
+                type="checkbox"
+                on:click={toggleAllRelations}
+                checked={$dataOptions.selectedRelations.length > 0}
+            />
+            all
+        </label>
         {#each relations as relation}
             <label>
                 <input

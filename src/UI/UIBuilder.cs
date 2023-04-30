@@ -114,7 +114,7 @@ public class UIBuilder
             Model.DocumentInfo.Name, 
             Model.Multigraph.Nodes.Count, 
             Model.Multigraph.Relations.Count, 
-            Model.Multigraph.Relations.Sum(r => r.Value.Edges.Length));
+            Model.Multigraph.Relations.Sum(r => r.Value.Edges.Count));
         return this;
     }
 

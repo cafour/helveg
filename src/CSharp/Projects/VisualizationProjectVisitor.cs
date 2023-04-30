@@ -25,9 +25,13 @@ public class VisualizationProjectVisitor : ProjectVisitor
         base.VisitSolution(solution);
 
         builder.GetNode(solution.Token, solution.Name)
+            .SetProperty(Const.StyleProperty, CSConst.NodeStyle)
             .SetProperty(nameof(Solution.Path), solution.Path)
             .SetProperty(CSProperties.Kind, CSConst.KindOf<Solution>());
-        builder.AddEdges(CSRelations.Declares, solution.Projects.Select(p => new Edge(solution.Id, p.Id)));
+        builder.AddEdges(
+            CSRelations.Declares,
+            solution.Projects.Select(p => new Edge(solution.Id, p.Id)),
+            CSConst.RelationStyle);
     }
 
     public override void VisitProject(Project project)
@@ -35,18 +39,23 @@ public class VisualizationProjectVisitor : ProjectVisitor
         base.VisitProject(project);
 
         builder.GetNode(project.Token, project.Name)
+            .SetProperty(Const.StyleProperty, CSConst.NodeStyle)
             .SetProperty(nameof(Solution.Path), project.Path)
             .SetProperty(CSProperties.Kind, CSConst.KindOf<Project>());
 
         builder.AddEdges(CSRelations.DependsOn, project.Dependencies
             .SelectMany(d => d.Value)
             .Where(d => d.Token.HasValue)
-            .Select(d => new Edge(project.Id, d.Token)));
+            .Select(d => new Edge(project.Id, d.Token)),
+            CSConst.RelationStyle);
 
         var assemblies = project.Extensions.OfType<AssemblyExtension>().ToArray();
         if (assemblies.Length > 0)
         {
-            builder.AddEdges(CSRelations.Declares, assemblies.Select(a => new Edge(project.Id, a.Assembly.Token)));
+            builder.AddEdges(
+                CSRelations.Declares,
+                assemblies.Select(a => new Edge(project.Id, a.Assembly.Token)),
+                CSConst.RelationStyle);
         }
     }
 
@@ -55,12 +64,16 @@ public class VisualizationProjectVisitor : ProjectVisitor
         base.VisitFramework(framework);
 
         builder.GetNode(framework.Token, framework.Name)
+            .SetProperty(Const.StyleProperty, CSConst.NodeStyle)
             .SetProperty(nameof(Framework.Version), framework.Version)
             .SetProperty(CSProperties.Kind, CSConst.KindOf<Framework>());
 
         if (framework.Libraries.Length > 0)
         {
-            builder.AddEdges(CSRelations.Declares, framework.Libraries.Select(d => new Edge(framework.Token, d.Token)));
+            builder.AddEdges(
+                CSRelations.Declares,
+                framework.Libraries.Select(d => new Edge(framework.Token, d.Token)),
+                CSConst.RelationStyle);
         }
     }
 
@@ -75,11 +88,13 @@ public class VisualizationProjectVisitor : ProjectVisitor
         }
 
         builder.GetNode(externalDependencySource.Token, externalDependencySource.Name)
+            .SetProperty(Const.StyleProperty, CSConst.NodeStyle)
             .SetProperty(CSProperties.Kind, CSConst.KindOf<ExternalDependencySource>());
         if (externalDependencySource.Libraries.Length > 0)
         {
             builder.AddEdges(CSRelations.Declares, externalDependencySource.Libraries
-                .Select(d => new Edge(externalDependencySource.Token, d.Token)));
+                .Select(d => new Edge(externalDependencySource.Token, d.Token)),
+                CSConst.RelationStyle);
         }
     }
 
@@ -88,11 +103,15 @@ public class VisualizationProjectVisitor : ProjectVisitor
         base.VisitLibrary(library);
 
         builder.GetNode(library.Token, library.Identity.Name)
+            .SetProperty(Const.StyleProperty, CSConst.NodeStyle)
             .SetProperty(CSProperties.Kind, CSConst.KindOf<Library>());
         var assemblies = library.Extensions.OfType<AssemblyExtension>().ToArray();
         if (assemblies.Length > 0)
         {
-            builder.AddEdges(CSRelations.Declares, assemblies.Select(a => new Edge(library.Token, a.Assembly.Token)));
+            builder.AddEdges(
+                CSRelations.Declares,
+                assemblies.Select(a => new Edge(library.Token, a.Assembly.Token)),
+                CSConst.RelationStyle);
         }
     }
 }

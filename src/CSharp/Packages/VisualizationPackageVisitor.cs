@@ -32,9 +32,13 @@ public class VisualizationPackageVisitor : PackageVisitor
         }
 
         builder.GetNode(repository.Token, repository.Name)
+            .SetProperty(Const.StyleProperty, CSConst.NodeStyle)
             .SetProperty(CSProperties.Kind, CSConst.KindOf<PackageRepository>());
 
-        builder.AddEdges(CSRelations.Declares, repository.Packages.Select(p => new Edge(repository.Token, p.Token)));
+        builder.AddEdges(
+            CSRelations.Declares,
+            repository.Packages.Select(p => new Edge(repository.Token, p.Token)),
+            CSConst.RelationStyle);
     }
 
     public override void VisitPackage(Package package)
@@ -42,10 +46,12 @@ public class VisualizationPackageVisitor : PackageVisitor
         base.VisitPackage(package);
 
         builder.GetNode(package.Token, package.Name)
+            .SetProperty(Const.StyleProperty, CSConst.NodeStyle)
             .SetProperty(CSProperties.Kind, CSConst.KindOf<Package>())
             .SetProperty(nameof(package.Versions), package.Versions);
 
         builder.AddEdges(CSRelations.Declares, package.Extensions.OfType<LibraryExtension>()
-            .Select(l => new Edge(package.Token, l.Library.Token)));
+            .Select(l => new Edge(package.Token, l.Library.Token)),
+            CSConst.RelationStyle);
     }
 }
