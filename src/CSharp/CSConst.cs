@@ -14,21 +14,6 @@ public static class CSConst
 {
     public const string CSharpNamespace = "csharp";
 
-    public const string DeclaresId = "declares";
-    public const string DeclaresLabel = "Declares";
-
-    public const string InheritsFromId = "inheritsFrom";
-    public const string InheritsFromLabel = "Inherits from";
-
-    public const string ComposedOfId = "composedOf";
-    public const string ComposedOfLabel = "Composed of";
-
-    public const string TypeOfId = "typeOf";
-    public const string TypeOfLabel = "Type of";
-
-    public const string ReturnsId = "returns";
-    public const string ReturnsLabel = "Returns";
-
     public const string SolutionFileExtension = ".sln";
     public const string ProjectFileExtension = ".csproj";
 

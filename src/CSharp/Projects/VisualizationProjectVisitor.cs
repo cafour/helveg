@@ -27,7 +27,7 @@ public class VisualizationProjectVisitor : ProjectVisitor
         builder.GetNode(solution.Token, solution.Name)
             .SetProperty(nameof(Solution.Path), solution.Path)
             .SetProperty(CSProperties.Kind, CSConst.KindOf<Solution>());
-        builder.AddEdges(CSConst.DeclaresId, solution.Projects.Select(p => new Edge(solution.Id, p.Id)));
+        builder.AddEdges(CSRelations.Declares, solution.Projects.Select(p => new Edge(solution.Id, p.Id)));
     }
 
     public override void VisitProject(Project project)
@@ -38,10 +38,15 @@ public class VisualizationProjectVisitor : ProjectVisitor
             .SetProperty(nameof(Solution.Path), project.Path)
             .SetProperty(CSProperties.Kind, CSConst.KindOf<Project>());
 
+        builder.AddEdges(CSRelations.DependsOn, project.Dependencies
+            .SelectMany(d => d.Value)
+            .Where(d => d.Token.HasValue)
+            .Select(d => new Edge(project.Id, d.Token)));
+
         var assemblies = project.Extensions.OfType<AssemblyExtension>().ToArray();
         if (assemblies.Length > 0)
         {
-            builder.AddEdges(CSConst.DeclaresId, assemblies.Select(a => new Edge(project.Id, a.Assembly.Token)));
+            builder.AddEdges(CSRelations.Declares, assemblies.Select(a => new Edge(project.Id, a.Assembly.Token)));
         }
     }
 
@@ -55,7 +60,7 @@ public class VisualizationProjectVisitor : ProjectVisitor
 
         if (framework.Libraries.Length > 0)
         {
-            builder.AddEdges(CSConst.DeclaresId, framework.Libraries.Select(d => new Edge(framework.Token, d.Token)));
+            builder.AddEdges(CSRelations.Declares, framework.Libraries.Select(d => new Edge(framework.Token, d.Token)));
         }
     }
 
@@ -73,7 +78,7 @@ public class VisualizationProjectVisitor : ProjectVisitor
             .SetProperty(CSProperties.Kind, CSConst.KindOf<ExternalDependencySource>());
         if (externalDependencySource.Libraries.Length > 0)
         {
-            builder.AddEdges(CSConst.DeclaresId, externalDependencySource.Libraries
+            builder.AddEdges(CSRelations.Declares, externalDependencySource.Libraries
                 .Select(d => new Edge(externalDependencySource.Token, d.Token)));
         }
     }
@@ -87,7 +92,7 @@ public class VisualizationProjectVisitor : ProjectVisitor
         var assemblies = library.Extensions.OfType<AssemblyExtension>().ToArray();
         if (assemblies.Length > 0)
         {
-            builder.AddEdges(CSConst.DeclaresId, assemblies.Select(a => new Edge(library.Token, a.Assembly.Token)));
+            builder.AddEdges(CSRelations.Declares, assemblies.Select(a => new Edge(library.Token, a.Assembly.Token)));
         }
     }
 }
