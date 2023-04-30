@@ -32,7 +32,7 @@ export enum DefaultEntityKindIcons {
     Project = "csharp:CSProjectNode",
     ExternalDependencySource = "csharp:ReferenceGroup",
     Framework = "csharp:Framework",
-    NuGet = "csharp:NuGet",
+    PackageRepository = "csharp:NuGet",
     Package = "csharp:Package",
     Library = "csharp:Library",
     Assembly = "csharp:Assembly",
@@ -204,7 +204,6 @@ export class CSharpPlugin implements HelvegPlugin {
         this.csharpDataOptions.autoExpandedKinds.push(
             EntityKind.Solution,
             EntityKind.Project,
-            EntityKind.PackageRepository,
             EntityKind.Namespace
         );
     }
