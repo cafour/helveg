@@ -9,10 +9,7 @@ namespace Helveg.CSharp.Projects;
 
 public record Library : EntityBase
 {
-    public static Framework Invalid { get; } = new Framework
-    {
-        Index = NumericToken.InvalidValue
-    };
+    public static Library Invalid { get; } = new Library();
 
     public AssemblyId Identity { get; set; } = AssemblyId.Invalid;
 

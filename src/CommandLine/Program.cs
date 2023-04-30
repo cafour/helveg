@@ -17,6 +17,7 @@ using Helveg.UI;
 using Helveg.CSharp.Symbols;
 using Helveg.CSharp.Projects;
 using Microsoft.Extensions.Logging.Console;
+using Helveg.CSharp.Packages;
 
 namespace Helveg.CommandLine;
 
@@ -53,25 +54,35 @@ public class Program
                     MSBuildProperties = msbuildProperties,
                     IncludeExternalDependencies = externalAnalysis >= AnalysisScope.WithoutSymbols
                 },
-                logger: logging.CreateLogger<MSBuildMiner>())
-            .AddRoslyn(
-                options: new RoslynMinerOptions
-                {
-                    MSBuildProperties = msbuildProperties,
-                    ProjectSymbolAnalysisScope = ToSymbolAnalysisScope(projectAnalysis),
-                    ExternalSymbolAnalysisScope = ToSymbolAnalysisScope(externalAnalysis)
-                },
-                logger: logging.CreateLogger<RoslynMiner>());
+                logger: logging.CreateLogger<MSBuildMiner>());
+
+        if (externalAnalysis > AnalysisScope.None)
+        {
+            workflow.AddNuGet(
+                logger: logging.CreateLogger<NuGetMiner>());
+        }
+
+        workflow.AddRoslyn(
+            options: new RoslynMinerOptions
+            {
+                MSBuildProperties = msbuildProperties,
+                ProjectSymbolAnalysisScope = ToSymbolAnalysisScope(projectAnalysis),
+                ExternalSymbolAnalysisScope = ToSymbolAnalysisScope(externalAnalysis)
+            },
+            logger: logging.CreateLogger<RoslynMiner>());
 
         var workspace = await workflow.Run(new DataSource(source.FullName, DateTimeOffset.UtcNow));
 
         var multigraphBuilder = new MultigraphBuilder();
 
-        var symbolVisitor = new VisualizationSymbolVisitor(multigraphBuilder);
-        workspace.Accept(symbolVisitor);
-
         var projectVisitor = new VisualizationProjectVisitor(multigraphBuilder);
         workspace.Accept(projectVisitor);
+
+        var packageVisitor = new VisualizationPackageVisitor(multigraphBuilder);
+        workspace.Accept(packageVisitor);
+
+        var symbolVisitor = new VisualizationSymbolVisitor(multigraphBuilder);
+        workspace.Accept(symbolVisitor);
 
         return multigraphBuilder.Build();
     }

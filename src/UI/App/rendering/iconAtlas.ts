@@ -95,7 +95,9 @@ export class IconAtlas {
         image.setAttribute("crossorigin", "");
         image.src = this.iconRegistry.getIconDataUrl(name, {
             width: this.options.iconSize,
-            height: this.options.iconSize });
+            height: this.options.iconSize,
+            overrideExisting: true
+        });
         return true;
     }
 

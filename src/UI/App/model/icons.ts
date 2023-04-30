@@ -23,6 +23,7 @@ export interface IconOptions {
     viewBox?: string;
     removeTitle?: boolean;
     viewBoxOnly?: boolean;
+    overrideExisting?: boolean;
 }
 
 export const DEFAULT_ICON_OPTIONS: IconOptions = {
@@ -109,13 +110,13 @@ function setIconSize(svg: Document, options: IconOptions): string {
         svg.documentElement.removeAttribute("height");
     }
 
-    if (options.width && !svg.documentElement.hasAttribute("width")) {
+    if (options.width && (options.overrideExisting || !svg.documentElement.hasAttribute("width"))) {
         svg.documentElement.setAttribute("width", options.width.toString());
     }
-    if (options.height && !svg.documentElement.hasAttribute("height")) {
+    if (options.height && (options.overrideExisting || !svg.documentElement.hasAttribute("height"))) {
         svg.documentElement.setAttribute("height", options.height.toString());
     }
-    if (options.viewBox && !svg.documentElement.hasAttribute("viewBox")) {
+    if (options.viewBox && (options.overrideExisting || !svg.documentElement.hasAttribute("viewBox"))) {
         svg.documentElement.setAttribute("viewBox", options.viewBox);
     }
     return new XMLSerializer().serializeToString(svg);

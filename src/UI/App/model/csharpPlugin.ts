@@ -12,6 +12,7 @@ export enum EntityKind {
     Project = "Project",
     ExternalDependencySource = "ExternalDependencySource",
     Framework = "Framework",
+    PackageRepository = "PackageRepository",
     Package = "Package",
     Library = "Library",
     Assembly = "Assembly",
@@ -31,6 +32,7 @@ export enum DefaultEntityKindIcons {
     Project = "csharp:CSProjectNode",
     ExternalDependencySource = "csharp:ReferenceGroup",
     Framework = "csharp:Framework",
+    NuGet = "csharp:NuGet",
     Package = "csharp:Package",
     Library = "csharp:Library",
     Assembly = "csharp:Assembly",
@@ -104,7 +106,8 @@ enum VSColor {
     DarkPurple = "#68217a",
     Purple = "#6936aa",
     DarkYellow = "#996f00",
-    Blue = "#005dba"
+    Blue = "#005dba",
+    NuGetBlue = "#004880"
 }
 
 export interface CSharpNodeProperties extends NodeProperties {
@@ -189,8 +192,8 @@ export class CSharpPlugin implements HelvegPlugin {
             EntityKind.Project,
             EntityKind.Framework,
             EntityKind.ExternalDependencySource,
+            EntityKind.PackageRepository,
             EntityKind.Library,
-            EntityKind.Package,
             EntityKind.Namespace,
             EntityKind.Type,
             EntityKind.Field,
@@ -201,7 +204,7 @@ export class CSharpPlugin implements HelvegPlugin {
         this.csharpDataOptions.autoExpandedKinds.push(
             EntityKind.Solution,
             EntityKind.Project,
-            EntityKind.Package,
+            EntityKind.PackageRepository,
             EntityKind.Namespace
         );
     }
@@ -292,7 +295,7 @@ export class CSharpPlugin implements HelvegPlugin {
             case EntityKind.Project:
                 return {
                     icon: "csharp:CSProjectNode",
-                    size: 50,
+                    size: 45,
                     color: VSColor.DarkGray,
                     outlines: []
                 };
@@ -310,17 +313,24 @@ export class CSharpPlugin implements HelvegPlugin {
                     color: VSColor.DarkGray,
                     outlines: []
                 };
+            case EntityKind.PackageRepository:
+                return {
+                    icon: "csharp:NuGet",
+                    size: 50,
+                    color: VSColor.NuGetBlue,
+                    outlines: []
+                };
             case EntityKind.Package:
                 return {
                     icon: "csharp:Package",
-                    size: 50,
+                    size: 45,
                     color: VSColor.DarkGray,
                     outlines: []
                 };
             case EntityKind.Library:
                 return {
                     icon: "csharp:Library",
-                    size: 45,
+                    size: 40,
                     color: VSColor.DarkGray,
                     outlines: []
                 };

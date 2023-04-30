@@ -63,6 +63,12 @@ public class VisualizationProjectVisitor : ProjectVisitor
     {
         base.VisitExternalDependencySource(externalDependencySource);
 
+        if (externalDependencySource.Libraries.Length == 0)
+        {
+            // don't add the node, if it will have been empty
+            return;
+        }
+
         builder.GetNode(externalDependencySource.Token, externalDependencySource.Name)
             .SetProperty(CSProperties.Kind, CSConst.KindOf<ExternalDependencySource>());
         if (externalDependencySource.Libraries.Length > 0)
