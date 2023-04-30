@@ -47,7 +47,23 @@ export enum DefaultEntityKindIcons {
 }
 
 export enum Relations {
-    Declares = "declares"
+    Declares = "declares",
+    InheritsFrom = "inheritsFrom",
+    TypeOf = "typeOf",
+    Returns = "returns",
+    Overrides = "overrides",
+    AssociatedWith = "associatedWith",
+    DependsOn = "dependsOn"
+}
+
+export enum DefaultRelationColors {
+    Declares = "#00000020",
+    InheritsFrom = "#c3e5de",
+    TypeOf = "#dcdcaa",
+    Returns = "#d1c3e5",
+    Overrides = "#e5c3c8",
+    AssociatedWith = "#b7cee5",
+    DependsOn = "#c3a3cc",
 }
 
 enum MemberAccessibility {
@@ -241,7 +257,9 @@ export class CSharpPlugin implements HelvegPlugin {
                     let edgeKey = `declares;${id};${child}`;
                     if (!graph.hasEdge(edgeKey)) {
                         graph.addDirectedEdgeWithKey(edgeKey, id, child, {
-                            relation: Relations.Declares
+                            relation: Relations.Declares,
+                            style: "csharp:Relation",
+                            type: "arrow"
                         });
                     }
                 }
@@ -475,8 +493,33 @@ export class CSharpPlugin implements HelvegPlugin {
         switch (object.relation) {
             case Relations.Declares:
                 return {
-                    color: VSColor.DarkGray,
+                    color: DefaultRelationColors.Declares,
                     width: 2
+                };
+            case Relations.InheritsFrom:
+                return {
+                    color: DefaultRelationColors.InheritsFrom,
+                    width: 4
+                };
+            case Relations.TypeOf:
+                return {
+                    color: DefaultRelationColors.TypeOf,
+                    width: 4
+                };
+            case Relations.Overrides:
+                return {
+                    color: DefaultRelationColors.Overrides,
+                    width: 4
+                };
+            case Relations.Returns:
+                return {
+                    color: DefaultRelationColors.Returns,
+                    width: 4
+                };
+            case Relations.DependsOn:
+                return {
+                    color: DefaultRelationColors.DependsOn,
+                    width: 8
                 };
             default:
                 return FALLBACK_EDGE_STYLE;

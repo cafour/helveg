@@ -649,31 +649,31 @@ function stylizeGraph(
             return;
         }
 
-        const nodeStyleGenerator = nodeStyles.get(attributes.style);
-        if (!nodeStyleGenerator) {
+        const generator = nodeStyles.get(attributes.style);
+        if (!generator) {
             DEBUG && console.log(`Node style '${attributes.style}' could not be found.`);
             return;
         }
 
-        const nodeStyle = nodeStyleGenerator(model.multigraph.nodes[node]);
-        if (!nodeStyle) {
+        const style = generator(model.multigraph.nodes[node]);
+        if (!style) {
             DEBUG && console.log(`Node style '${attributes.style}' could not be applied to node '${node}'.`);
             return;
         }
 
         const outlines = [
-            { width: nodeStyle.size, style: OutlineStyle.Solid },
-            ...nodeStyle.outlines.slice(0, 3),
+            { width: style.size, style: OutlineStyle.Solid },
+            ...style.outlines.slice(0, 3),
         ] as Outlines;
         attributes.size = outlines.length > 0
             ? getOutlinesTotalWidth(outlines)
-            : nodeStyle.size;
-        attributes.iconSize = nodeStyle.size;
-        attributes.color = nodeStyle.color;
+            : style.size;
+        attributes.iconSize = style.size;
+        attributes.color = style.color;
         attributes.type = "glyph";
-        attributes.icon = nodeStyle.icon;
+        attributes.icon = style.icon;
         attributes.outlines = outlines;
-        attributes.fire = nodeStyle.fire;
+        attributes.fire = style.fire;
     });
 
     graph.forEachEdge((edge, attributes) => {
@@ -695,6 +695,10 @@ function stylizeGraph(
             DEBUG && console.log(`Edge style '${attributes.style}' could not be applied to edge '${edge}'.`);
             return;
         }
+        
+        attributes.color = style.color;
+        attributes.size = style.width;
+        attributes.label = style.showLabel ? attributes.relation : undefined;
     });
 }
 
@@ -713,7 +717,9 @@ function initializeSigma(
             glyph: glyphProgram,
         },
         labelFont: "'Cascadia Mono', 'Consolas', monospace",
+        edgeLabelFont: "'Cascadia Mono', 'Consolas', monospace",
         itemSizesReference: "positions",
+        renderEdgeLabels: true
         // zoomToSizeRatioFunction: (cameraRatio) => cameraRatio,
     });
 
