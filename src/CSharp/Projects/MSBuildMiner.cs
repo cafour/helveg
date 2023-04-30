@@ -242,7 +242,7 @@ public class MSBuildMiner : IMiner
 
         logger.LogInformation("Found the '{}' project.", project.Name);
 
-        string[]? targetFrameworks;
+        string[] targetFrameworks = Array.Empty<string>();
 
         var targetFrameworkProp = msbuildProject.GetPropertyValue(CSConst.TargetFrameworkProperty);
         if (!string.IsNullOrEmpty(targetFrameworkProp))
@@ -254,22 +254,31 @@ public class MSBuildMiner : IMiner
             var targetFrameworksProp = msbuildProject.GetPropertyValue(CSConst.TargetFrameworksProperty);
             if (string.IsNullOrEmpty(targetFrameworksProp))
             {
-                logger.LogError("The '{}' project has no target frameworks.", projectName);
-                return project with
-                {
-                    Diagnostics = project.Diagnostics.Add(
-                        Diagnostic.Error("NoTargetFrameworks", "No target frameworks could be resolved."))
-                };
+                logger.LogDebug(
+                    "The '{}' project has no target frameworks, '{}' will be used.",
+                    projectName,
+                    Const.Unknown);
+            }
+            else
+            {
+                targetFrameworks = targetFrameworksProp.Split(';');
             }
 
-            targetFrameworks = targetFrameworksProp.Split(';');
         }
 
         var dependenciesBuilder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<Dependency>>();
-        foreach (var targetFramework in targetFrameworks)
+        if (targetFrameworks.Length == 0)
         {
-            var dependencies = await ResolveDependencies(project, msbuildProject, targetFramework, cancellationToken);
-            dependenciesBuilder.Add(targetFramework, dependencies);
+            var dependencies = await ResolveDependencies(project, msbuildProject, null, cancellationToken);
+            dependenciesBuilder.Add(Const.Unknown, dependencies);
+        }
+        else
+        {
+            foreach (var targetFramework in targetFrameworks)
+            {
+                var dependencies = await ResolveDependencies(project, msbuildProject, targetFramework, cancellationToken);
+                dependenciesBuilder.Add(targetFramework, dependencies);
+            }
         }
 
         return project with
@@ -281,13 +290,14 @@ public class MSBuildMiner : IMiner
     private async Task<ImmutableArray<Dependency>> ResolveDependencies(
         Project project,
         MSB.Evaluation.Project msbuildProject,
-        string targetFramework,
+        string? targetFramework,
         CancellationToken cancellationToken = default)
     {
         var projectName = msbuildProject.GetPropertyValue(CSConst.MSBuildProjectNameProperty);
 
         if (string.IsNullOrEmpty(msbuildProject.GetPropertyValue(CSConst.TargetFrameworkProperty))
-            && !msbuildProject.GlobalProperties.ContainsKey(CSConst.TargetFrameworkProperty))
+            && !msbuildProject.GlobalProperties.ContainsKey(CSConst.TargetFrameworkProperty)
+            && !string.IsNullOrEmpty(targetFramework))
         {
             msbuildProject.SetProperty(CSConst.TargetFrameworkProperty, targetFramework);
         }
