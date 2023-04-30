@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using MSB = Microsoft.Build;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using System.Collections.Generic;
 
 namespace Helveg.CSharp.Projects;
 
@@ -15,7 +16,8 @@ public class MSBuildMiner : IMiner
     private readonly ILogger<MSBuildMiner> logger;
     private int counter = 0;
     private WeakReference<Workspace?> workspaceRef = new(null);
-    private NumericToken edsToken = NumericToken.CreateNone(CSConst.CSharpNamespace, (int)RootKind.ExternalDependencySource);
+    private NumericToken edsToken
+        = NumericToken.CreateNone(CSConst.CSharpNamespace, (int)RootKind.ExternalDependencySource);
 
     public MSBuildMinerOptions Options { get; }
 
@@ -292,10 +294,20 @@ public class MSBuildMiner : IMiner
 
         var instance = msbuildProject.CreateProjectInstance();
 
+        var targets = new List<string>();
+        if (Options.ShouldRestore)
+        {
+            targets.Add(CSConst.RestoreTarget);
+        }
+        targets.Add(CSConst.ResolveReferencesTarget);
+
         var buildRequest = new MSB.Execution.BuildRequestData(
             instance,
-            new[] { CSConst.RestoreTarget, CSConst.ResolveReferencesTarget });
-        logger.LogDebug("Resolving references of '{}' for the '{}' target framework.", projectName, targetFramework);
+            targets.ToArray());
+        logger.LogDebug("Resolving references of '{}' for the '{}' target framework using the '{}' targets.",
+            projectName,
+            targetFramework,
+            string.Join(", ", targets));
         var buildResult = await BuildAsync(MSB.Execution.BuildManager.DefaultBuildManager, buildRequest);
         if (buildResult.OverallResult == MSB.Execution.BuildResultCode.Failure)
         {

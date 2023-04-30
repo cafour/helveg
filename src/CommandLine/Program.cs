@@ -35,7 +35,8 @@ public class Program
         FileSystemInfo source,
         IDictionary<string, string> properties,
         AnalysisScope projectAnalysis,
-        AnalysisScope externalAnalysis)
+        AnalysisScope externalAnalysis,
+        bool noRestore)
     {
         if (!source.Exists)
         {
@@ -52,7 +53,8 @@ public class Program
                 options: new MSBuildMinerOptions
                 {
                     MSBuildProperties = msbuildProperties,
-                    IncludeExternalDependencies = externalAnalysis >= AnalysisScope.WithoutSymbols
+                    IncludeExternalDependencies = externalAnalysis >= AnalysisScope.WithoutSymbols,
+                    ShouldRestore = !noRestore
                 },
                 logger: logging.CreateLogger<MSBuildMiner>());
 
@@ -98,7 +100,8 @@ public class Program
         string? outDir,
         string? styleDir,
         string? scriptDir,
-        string? iconDir)
+        string? iconDir,
+        bool noRestore)
     {
         if (source is null || !source.Exists)
         {
@@ -121,7 +124,7 @@ public class Program
         properties ??= new Dictionary<string, string>();
 
         // code analysis
-        var multigraph = await RunAnalysis(source, properties, projectAnalysis, externalAnalysis);
+        var multigraph = await RunAnalysis(source, properties, projectAnalysis, externalAnalysis, noRestore);
         if (multigraph is null)
         {
             return 1;
@@ -204,14 +207,14 @@ public class Program
         rootCmd.AddOption(new Option<UIMode>(
             aliases: new[] { "-m", "--mode" },
             getDefaultValue: () => UIMode.SingleFile,
-            description: "UI mode to use."));
+            description: "UI mode to use"));
         rootCmd.AddOption(new Option<string?>(
             aliases: new[] { "-n", "--name" },
-            description: "Name of the visualization."));
+            description: "Name of the visualization"));
         rootCmd.AddOption(new Option<string>(
             aliases: new[] { "-o", "--out" },
             getDefaultValue: () => UIBuilder.DefaultEntryPointName,
-            description: "Name of the output HTML file."));
+            description: "Name of the output HTML file"));
         rootCmd.AddOption(new Option<string>(
             aliases: new[] { "--outdir" },
             getDefaultValue: () => Directory.GetCurrentDirectory(),
@@ -228,6 +231,10 @@ public class Program
             aliases: new[] { "--icondir" },
             getDefaultValue: () => "icons",
             description: "Output subdirectory for IconSet files"));
+        rootCmd.AddOption(new Option<bool>(
+            aliases: new[] { "--no-restore" },
+            getDefaultValue: () => false,
+            description: "Disabled the invokation of the Restore target"));
 
         var builder = new CommandLineBuilder(rootCmd)
             .UseHelp()

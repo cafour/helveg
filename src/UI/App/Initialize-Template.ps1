@@ -22,6 +22,7 @@ dotnet run --no-build --project "$cliDir" `
     -pa Explicit `
     -ea WithoutSymbols `
     -m StaticApp `
+    --no-restore `
     --verbose `
     --icondir "." `
     --styledir "." `
