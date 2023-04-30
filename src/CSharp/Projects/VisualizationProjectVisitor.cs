@@ -45,6 +45,7 @@ public class VisualizationProjectVisitor : ProjectVisitor
 
         builder.AddEdges(CSRelations.DependsOn, project.Dependencies
             .SelectMany(d => d.Value)
+            .Distinct()
             .Where(d => d.Token.HasValue)
             .Select(d => new Edge(project.Id, d.Token)),
             CSConst.RelationStyle);

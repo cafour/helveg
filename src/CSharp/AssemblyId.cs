@@ -146,6 +146,12 @@ public sealed record AssemblyId
             return false;
         }
 
+        if (!string.IsNullOrEmpty(TargetFramework) && !string.IsNullOrEmpty(other.TargetFramework))
+        {
+            // this is to distinguish multi-targeting projects
+            return TargetFramework == other.TargetFramework;
+        }
+
         if (!string.IsNullOrEmpty(PublicKeyToken) && !string.IsNullOrEmpty(other.PublicKeyToken)
             && PublicKeyToken != other.PublicKeyToken)
         {

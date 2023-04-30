@@ -16,12 +16,10 @@ public record Relation
     public ImmutableDictionary<string, Edge> Edges { get; init; }
         = ImmutableDictionary<string, Edge>.Empty;
 
-    public Relation(string id, ImmutableArray<Edge> edges = default)
+    public Relation(string id, ImmutableDictionary<string, Edge>? edges = default)
     {
         Id = id;
-        Edges = edges.IsDefault
-            ? ImmutableDictionary<string, Edge>.Empty
-            : edges.ToImmutableDictionary(x => $"{Id};{x.Src};{x.Dst}");
+        Edges = edges ?? ImmutableDictionary<string, Edge>.Empty;
     }
 
     public Relation()

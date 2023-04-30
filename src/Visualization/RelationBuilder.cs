@@ -12,18 +12,18 @@ public class RelationBuilder
 {
     public string Id { get; set; } = Const.Invalid;
 
-    public List<Edge> Edges { get; } = new();
+    public Dictionary<string, Edge> Edges { get; } = new();
 
     public Relation Build()
     {
         return new(
             id: Id,
-            edges: Edges.ToImmutableArray());
+            edges: Edges.ToImmutableDictionary(p => $"{Id};{p.Key}", p => p.Value));
     }
 
     public RelationBuilder AddEdge(Edge edge)
     {
-        Edges.Add(edge);
+        Edges.Add($"{edge.Src};{edge.Dst}", edge);
         return this;
     }
 

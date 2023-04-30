@@ -3,7 +3,7 @@
     "Helveg": {
       "commandName": "Project",
       "workingDirectory": "C:\\dev\\helveg",
-      "commandLineArgs": "--verbose -pa PublicApi -ea WithoutSymbols --outdir artifacts C:\\dev\\unity-microfps\\MicroFPS"
+      "commandLineArgs": "--verbose -pa PublicApi -ea WithoutSymbols --outdir artifacts"
     }
   }
 }
