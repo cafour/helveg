@@ -198,11 +198,11 @@ public class Program
         rootCmd.AddOption(propertyOption);
         rootCmd.AddOption(new Option<AnalysisScope>(
             aliases: new[] { "-pa", "--project-analysis" },
-            getDefaultValue: () => AnalysisScope.All,
+            getDefaultValue: () => AnalysisScope.Explicit,
             description: "Scope of the project analysis"));
         rootCmd.AddOption(new Option<AnalysisScope>(
             aliases: new[] { "-ea", "--external-analysis" },
-            getDefaultValue: () => AnalysisScope.PublicApi,
+            getDefaultValue: () => AnalysisScope.WithoutSymbols,
             description: "Scope of analysis of external dependencies"));
         rootCmd.AddOption(new Option<UIMode>(
             aliases: new[] { "-m", "--mode" },
