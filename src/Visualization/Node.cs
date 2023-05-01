@@ -8,18 +8,14 @@ public record Node
     [JsonIgnore]
     public string Id { get; init; } = Const.Invalid;
 
-    public string? Label { get; init; }
-
-    public ImmutableDictionary<string, string?> Properties { get; init; }
-        = ImmutableDictionary<string, string?>.Empty;
+    public ImmutableDictionary<string, object?> Properties { get; init; }
+        = ImmutableDictionary<string, object?>.Empty;
 
     public Node(
         string id,
-        string? label = null,
-        ImmutableDictionary<string, string?>? properties = null)
+        ImmutableDictionary<string, object?>? properties = null)
     {
         Id = id;
-        Label = label;
 
         if (properties is not null)
         {

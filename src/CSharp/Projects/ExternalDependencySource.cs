@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Helveg.CSharp.Projects;
 
-public record ExternalDependencySource : EntityBase, IDependencySource
+public record ExternalDependencySource : EntityBase, ILibrarySource
 {
     public string Name { get; init; } = Const.Invalid;
 
@@ -19,8 +19,8 @@ public record ExternalDependencySource : EntityBase, IDependencySource
     public NumericToken Token
         => NumericToken.Create(CSConst.CSharpNamespace, (int)RootKind.ExternalDependencySource, Index);
 
-    public ImmutableArray<AssemblyDependency> Assemblies { get; init; }
-        = ImmutableArray<AssemblyDependency>.Empty;
+    public ImmutableArray<Library> Libraries { get; init; }
+        = ImmutableArray<Library>.Empty;
 
     public override string Id
     {
@@ -39,16 +39,16 @@ public record ExternalDependencySource : EntityBase, IDependencySource
             visitor.DefaultVisit(this);
         }
 
-        foreach (var dependency in Assemblies)
+        foreach (var library in Libraries)
         {
-            dependency.Accept(visitor);
+            library.Accept(visitor);
         }
 
         base.Accept(visitor);
     }
 
-    public IDependencySource WithAssemblies(ImmutableArray<AssemblyDependency> assemblies)
+    public ILibrarySource WithLibraries(ImmutableArray<Library> libraries)
     {
-        return this with { Assemblies = assemblies };
+        return this with { Libraries = libraries };
     }
 }

@@ -5,6 +5,9 @@
 
     --font-color-base: #1E1E1E;
     --font-color-dark: #F1F1F1;
+    
+    --icon-dark: #424242;
+    --icon-light: #F6F6F6;
 
     --on-primary: #F1F1F1;
     --on-success: #F1F1F1;
@@ -12,6 +15,7 @@
     --on-error: #F1F1F1;
     --on-surface: #F1F1F1;
 
+    --color-surface-0: #FFFFFF; // L 100
     --color-surface-45: #F8F8F8; // L 97
     --color-surface-50: #F2EEEE; // L 94
     --color-surface-100: #DBCECC; // L 83
@@ -23,6 +27,7 @@
     --color-surface-700: #403E3E; // L 25
     --color-surface-800: #262525; // L 15
     --color-surface-900: #1C1B1B; // L 11
+    --color-surface-1000: #000000; // L 0
 
     --color-primary-50: #f3dcdf;
     --color-primary-100: #eed0d5;

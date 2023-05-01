@@ -3,11 +3,13 @@ import esbuildSvelte from "esbuild-svelte";
 import { sassPlugin } from "esbuild-sass-plugin"
 import sveltePreprocess from "svelte-preprocess";
 // import prerenderPlugin from "./prerender.js";
+import inlineBundlePlugin from "./inlineBundle.js";
 import yargs from "yargs";
 import fs from "fs";
 import path from "path";
-
-console.log(process.cwd());
+import postcss from "postcss";
+import postcssPresetEnv from "postcss-preset-env";
+import autoprefixer from "autoprefixer";
 
 const args = <any>yargs(process.argv).argv;
 const isRelease = args["release"] === true;
@@ -36,22 +38,33 @@ if (useTemplate) {
 
 const context = await esbuild.context({
     entryPoints: ["helveg.ts"],
-    globalName: "helveg",
     format: "iife",
     outdir: outDir,
     mainFields: ["svelte", "browser", "module", "main"],
     sourcemap: isDebug,
+    define: {
+        "DEBUG": isDebug ? "true" : "false"
+    },
     splitting: false,
     write: true,
     logLevel: "info",
     bundle: true,
     platform: "browser",
     minify: isRelease,
+    tsconfig: "./tsconfig.json",
     plugins: [
+        inlineBundlePlugin(),
         esbuildSvelte({
             preprocess: sveltePreprocess()
         }),
         sassPlugin({
+            async transform(source, _, filePath) {
+                const { css } = await postcss([
+                    autoprefixer,
+                    postcssPresetEnv({ stage: 0 })
+                ]).process(source, { from: filePath });
+                return css;
+            },
             loadPaths: [
                 "./node_modules/uniformcss"
             ]
@@ -59,7 +72,9 @@ const context = await esbuild.context({
     ],
     loader: {
         ".svg": "text",
-        ".html": "copy"
+        ".html": "copy",
+        ".vert": "text",
+        ".frag": "text"
     },
     metafile: true
 })

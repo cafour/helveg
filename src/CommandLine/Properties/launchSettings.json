@@ -3,7 +3,7 @@
     "Helveg": {
       "commandName": "Project",
       "workingDirectory": "C:\\dev\\helveg",
-      "commandLineArgs": "--verbose -pa PublicApi -ea AssembliesOnly -p TargetFramework=net6.0 -m StaticApp --outdir helveg"
+      "commandLineArgs": "--verbose -pa PublicApi -ea WithoutSymbols --outdir artifacts"
     }
   }
 }

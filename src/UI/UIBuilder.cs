@@ -20,6 +20,9 @@ public class UIBuilder
     public const string DefaultIconsDirectory = "icons";
     public const string DefaultStylesDirectory = "styles";
     public const string DefaultScriptsDirectory = "scripts";
+    
+    public const string FaviconDataUrl = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAACxAAAAsQHGLUmNAAACgElEQVRYhcVXy23bQBCdBCmAufBq+U4gTAV2B3YA3i1VELsCOhUorsDSnUDkCkRXEAZgATrzpFQQY5C3wmA4s/zYgN9Fu8vdnTf/FU1FlWa3VZpdTj7o4OOMMw0RPVZplrwXAcaCiEr6b5Hla8jMJcAIrqiJaD+XxGsIMNZF1x4w3s+54MPYjdCQNT4qYSsiusG3TdG1qykERlmgSrMcQhsIkijFmONh+aYEoPkvFg5zf1FbOCBzMV9XabZ4MwLQnC98wtyqAYkar8cSiMZAlWb3wsTnEP448u5zEaAuXAvA9N/F0lH5ewiluGvtpWnMBUtl2uCKsbgW+zhGbqcSuFDzXM2PA0QSZE/AzVQCsYbDvt0JIp6v5R0LRcgngDSS5g/aBkEyK36gPlgWCSkbBPeU8iygfc2Xbwwh34joDP62gmyBwhS+9faM7QXBIpJAjnkIrsY4l6uaoOOqT4AfHI42eo2FX2F8cOIgce7yCYClZF3Dz1ulZS18ewAhLxbcjLEI/FExcImiwhXwL/x+LLq2UXu2IBo0rvG7EWs9Ip88Zg5KtNzPzvcggFP0GZkSiF5DuUELDGEpHqXPhnD+fSi69icyZG9U1SiBwQYifB+KEcElDZpWU6XZb6P81mo+m8CFEHrKgKJrgxX2Ruk27+4RKLq2x9KArGg7BGbooK5wqz17MbBz1gOS8OopuvZOZETpCCfL/DECT876CVobNBqz5QLbKQR2A+3WKruxZ9jBc61JAMH0ELtQTtBwYu3bfaq7daDo2nvPb0ZBiVlrFQvsoULE0c2lVEO7wHIJk2Lh1vkTRv0zQuXjJ1Xo+19VL+A9/zBkbTmIuWTHn21E9AKU08qnEZw5hQAAAABJRU5ErkJggg==";
+
 
     private readonly ILogger<UIBuilder> logger;
 
@@ -109,6 +112,12 @@ public class UIBuilder
     public UIBuilder SetVisualizationModel(VisualizationModel visualizationModel)
     {
         Model = visualizationModel;
+        logger.LogDebug(
+            "Using the '{}' visualization model with {} nodes, {} relations, and {} edges in total.",
+            Model.DocumentInfo.Name, 
+            Model.Multigraph.Nodes.Count, 
+            Model.Multigraph.Relations.Count, 
+            Model.Multigraph.Relations.Sum(r => r.Value.Edges.Count));
         return this;
     }
 
@@ -147,7 +156,7 @@ public class UIBuilder
 
     private async Task BuildSingleFile(Func<string, Stream> streamFactory)
     {
-        logger.LogInformation("Building '{}' as a single-file app.", Model);
+        logger.LogInformation("Building '{}' as a single-file app.", Model.DocumentInfo.Name);
 
         using var stream = streamFactory(EntryPointName);
         using var writer = new StreamWriter(stream);
@@ -156,9 +165,10 @@ public class UIBuilder
 @$"<!DOCTYPE html>
 <html lang=""en"">
     <head>
-        <title>{Model.Name} | Helveg</title>
+        <title>{Model.DocumentInfo.Name} | Helveg</title>
         <meta charset=""utf-8"" />
         <meta content=""width=device-width, initial-scale=1.0"" name=""viewport"" />
+        <link rel=""icon"" type=""image/png"" href=""{FaviconDataUrl}"" />
         ");
         foreach (var style in styles)
         {
@@ -212,7 +222,7 @@ public class UIBuilder
 
     private async Task BuildStatic(Func<string, Stream> streamFactory)
     {
-        logger.LogInformation("Building a '{}' static app.", Model.Name);
+        logger.LogInformation("Building a '{}' static app.", Model.DocumentInfo.Name);
 
         async Task WriteFile(string filePath, string contents)
         {
@@ -266,6 +276,7 @@ public class UIBuilder
         <title>{Model.DocumentInfo.Name ?? "Unknown"} | Helveg</title>
         <meta charset=""utf-8"" />
         <meta content=""width=device-width, initial-scale=1.0"" name=""viewport"" />
+        <link rel=""icon"" type=""image/png"" href=""{FaviconDataUrl}"" />
         ");
         foreach (var stylePath in stylePaths)
         {

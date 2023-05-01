@@ -1,5 +1,4 @@
 ﻿using System.CommandLine;
-using System.CommandLine.Invocation;
 using System.IO;
 using System.Linq;
 using Microsoft.Build.Locator;
@@ -10,18 +9,15 @@ using System;
 using System.CommandLine.Builder;
 using System.CommandLine.Parsing;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Numerics;
 using System.CommandLine.NamingConventionBinder;
 using Helveg.Visualization;
 using Helveg.CSharp;
 using System.Collections.Immutable;
-using System.Text.Json;
-using System.Threading;
 using Helveg.UI;
 using Helveg.CSharp.Symbols;
 using Helveg.CSharp.Projects;
 using Microsoft.Extensions.Logging.Console;
+using Helveg.CSharp.Packages;
 
 namespace Helveg.CommandLine;
 
@@ -31,16 +27,17 @@ public class Program
     public const string ForceAlias = "--force";
 
     private ILoggerFactory logging = new NullLoggerFactory();
+    private ILogger logger = new NullLogger<Program>();
+
     private bool isForced = false;
 
     public async Task<Multigraph?> RunAnalysis(
         FileSystemInfo source,
         IDictionary<string, string> properties,
         AnalysisScope projectAnalysis,
-        AnalysisScope externalAnalysis)
+        AnalysisScope externalAnalysis,
+        bool noRestore)
     {
-        var logger = logging.CreateLogger<Program>();
-
         if (!source.Exists)
         {
             logger.LogCritical("Source '{}' does not exist.", source.FullName);
@@ -56,53 +53,78 @@ public class Program
                 options: new MSBuildMinerOptions
                 {
                     MSBuildProperties = msbuildProperties,
-                    IncludeExternalDependencies = externalAnalysis >= AnalysisScope.AssembliesOnly
+                    IncludeExternalDependencies = externalAnalysis >= AnalysisScope.WithoutSymbols,
+                    ShouldRestore = !noRestore
                 },
-                logger: logging.CreateLogger<MSBuildMiner>())
-            .AddRoslyn(
-                options: new RoslynMinerOptions
-                {
-                    MSBuildProperties = msbuildProperties,
-                    ProjectSymbolAnalysisScope = ToSymbolAnalysisScope(projectAnalysis),
-                    ExternalSymbolAnalysisScope = ToSymbolAnalysisScope(externalAnalysis)
-                },
-                logger: logging.CreateLogger<RoslynMiner>());
+                logger: logging.CreateLogger<MSBuildMiner>());
+
+        if (externalAnalysis > AnalysisScope.None)
+        {
+            workflow.AddNuGet(
+                logger: logging.CreateLogger<NuGetMiner>());
+        }
+
+        workflow.AddRoslyn(
+            options: new RoslynMinerOptions
+            {
+                MSBuildProperties = msbuildProperties,
+                ProjectSymbolAnalysisScope = ToSymbolAnalysisScope(projectAnalysis),
+                ExternalSymbolAnalysisScope = ToSymbolAnalysisScope(externalAnalysis)
+            },
+            logger: logging.CreateLogger<RoslynMiner>());
 
         var workspace = await workflow.Run(new DataSource(source.FullName, DateTimeOffset.UtcNow));
 
-        var multigraphBuilder = new MultigraphBuilder
-        {
-            Label = Path.GetFileNameWithoutExtension(workspace.Source.Path)
-        };
-
-        var symbolVisitor = new VisualizationSymbolVisitor(multigraphBuilder);
-        workspace.Accept(symbolVisitor);
+        var multigraphBuilder = new MultigraphBuilder(logger);
 
         var projectVisitor = new VisualizationProjectVisitor(multigraphBuilder);
         workspace.Accept(projectVisitor);
+
+        var packageVisitor = new VisualizationPackageVisitor(multigraphBuilder);
+        workspace.Accept(packageVisitor);
+
+        var symbolVisitor = new VisualizationSymbolVisitor(multigraphBuilder);
+        workspace.Accept(symbolVisitor);
 
         return multigraphBuilder.Build();
     }
 
     public async Task<int> RunPipeline(
-        FileSystemInfo source,
-        Dictionary<string, string> properties,
+        FileSystemInfo? source,
+        Dictionary<string, string>? properties,
         AnalysisScope projectAnalysis,
         AnalysisScope externalAnalysis,
         UIMode mode,
-        string outDir,
-        string styleDir,
-        string scriptDir,
-        string iconDir)
+        string? name,
+        string? @out,
+        string? outDir,
+        string? styleDir,
+        string? scriptDir,
+        string? iconDir,
+        bool noRestore)
     {
-        var outDirInfo = new DirectoryInfo(outDir);
+        if (source is null || !source.Exists)
+        {
+            logger.LogCritical($"'{source}' is not a valid SOURCE argument.");
+            return 1;
+        }
+        
+        if (string.IsNullOrEmpty(outDir))
+        {
+            logger.LogCritical($"'{outDir}' is not a valid valid --outdir value.");
+            return 1;
+        }
+
+        var outDirInfo = new DirectoryInfo(outDir ?? "");
         if (!outDirInfo.Exists)
         {
             outDirInfo.Create();
         }
 
+        properties ??= new Dictionary<string, string>();
+
         // code analysis
-        var multigraph = await RunAnalysis(source, properties, projectAnalysis, externalAnalysis);
+        var multigraph = await RunAnalysis(source, properties, projectAnalysis, externalAnalysis, noRestore);
         if (multigraph is null)
         {
             return 1;
@@ -111,16 +133,18 @@ public class Program
         var uib = await UIBuilder.CreateDefault(logging.CreateLogger<UIBuilder>());
         await uib.UseCSharp();
         uib.Mode = mode;
-        uib.StylesDirectory = styleDir;
-        uib.ScriptsDirectory = scriptDir;
-        uib.IconsDirectory = iconDir;
-        uib.SetVisualizationModel(new() {
-            DocumentInfo = new() {
-                Name = multigraph.Label ?? multigraph.Id,
+        uib.StylesDirectory = !string.IsNullOrEmpty(styleDir) ? styleDir : uib.StylesDirectory;
+        uib.ScriptsDirectory = !string.IsNullOrEmpty(scriptDir) ? scriptDir : uib.ScriptsDirectory;
+        uib.IconsDirectory = !string.IsNullOrEmpty(iconDir) ? iconDir : uib.IconsDirectory;
+        uib.EntryPointName = !string.IsNullOrEmpty(@out) ? @out : uib.EntryPointName;
+        uib.SetVisualizationModel(new()
+        {
+            DocumentInfo = new()
+            {
+                Name = name ?? source.Name ?? multigraph.Id,
                 CreatedOn = DateTimeOffset.UtcNow
             },
-            Multigraph = multigraph,
-            Name = multigraph.Label ?? multigraph.Id
+            Multigraph = multigraph
         });
 
         await uib.Build(path =>
@@ -151,7 +175,10 @@ public class Program
         rootCmd.AddArgument(new Argument<FileSystemInfo>(
             name: "SOURCE",
             description: "Path to a project or a solution",
-            getDefaultValue: () => new DirectoryInfo(Environment.CurrentDirectory)));
+            getDefaultValue: () => new DirectoryInfo(Environment.CurrentDirectory))
+        {
+            Arity = ArgumentArity.ExactlyOne
+        });
         var propertyOption = new Option<Dictionary<string, string>>(
             aliases: new[] { "-p", "--properties" },
             parseArgument: a => a.Tokens
@@ -171,16 +198,23 @@ public class Program
         rootCmd.AddOption(propertyOption);
         rootCmd.AddOption(new Option<AnalysisScope>(
             aliases: new[] { "-pa", "--project-analysis" },
-            getDefaultValue: () => AnalysisScope.All,
+            getDefaultValue: () => AnalysisScope.Explicit,
             description: "Scope of the project analysis"));
         rootCmd.AddOption(new Option<AnalysisScope>(
             aliases: new[] { "-ea", "--external-analysis" },
-            getDefaultValue: () => AnalysisScope.PublicApi,
+            getDefaultValue: () => AnalysisScope.WithoutSymbols,
             description: "Scope of analysis of external dependencies"));
         rootCmd.AddOption(new Option<UIMode>(
             aliases: new[] { "-m", "--mode" },
             getDefaultValue: () => UIMode.SingleFile,
-            description: "UI mode to use."));
+            description: "UI mode to use"));
+        rootCmd.AddOption(new Option<string?>(
+            aliases: new[] { "-n", "--name" },
+            description: "Name of the visualization"));
+        rootCmd.AddOption(new Option<string>(
+            aliases: new[] { "-o", "--out" },
+            getDefaultValue: () => UIBuilder.DefaultEntryPointName,
+            description: "Name of the output HTML file"));
         rootCmd.AddOption(new Option<string>(
             aliases: new[] { "--outdir" },
             getDefaultValue: () => Directory.GetCurrentDirectory(),
@@ -197,23 +231,36 @@ public class Program
             aliases: new[] { "--icondir" },
             getDefaultValue: () => "icons",
             description: "Output subdirectory for IconSet files"));
+        rootCmd.AddOption(new Option<bool>(
+            aliases: new[] { "--no-restore" },
+            getDefaultValue: () => false,
+            description: "Disabled the invokation of the Restore target"));
 
         var builder = new CommandLineBuilder(rootCmd)
             .UseHelp()
             .AddMiddleware(c =>
             {
+                bool isVerbose = c.ParseResult.GetValueForOption(verboseOption);
+                
                 program.isForced = c.ParseResult.GetValueForOption(forceOption);
 
-                LogLevel minimumLevel = c.ParseResult.GetValueForOption(verboseOption)
-                    ? LogLevel.Debug
-                    : LogLevel.Information;
+                LogLevel minimumLevel = isVerbose ? LogLevel.Debug : LogLevel.Information;
                 program.logging = LoggerFactory.Create(b =>
                 {
-                    b.AddConsoleFormatter<BriefConsoleFormatter, ConsoleFormatterOptions>(d => d.TimestampFormat = "HH:mm:ss.fff");
+                    b.AddConsoleFormatter<BriefConsoleFormatter, BriefConsoleFormatterOptions>(d =>
+                    {
+                        d.TimestampFormat = "HH:mm:ss.fff";
+                        d.IncludeStacktraces = isVerbose;
+                    });
                     b.AddConsole(d => d.FormatterName = "brief");
                     b.SetMinimumLevel(minimumLevel);
                 });
+                program.logger = program.logging.CreateLogger("");
             })
+            .UseExceptionHandler((e, c) =>
+            {
+                program.logger.LogCritical(e, e.Message);
+            }, 1)
             .Build(); // Sets ImplicitParser inside the root command. Yes, it's weird, I know.
         var errorCode = await builder.InvokeAsync(args);
         program.logging.Dispose();
@@ -226,9 +273,10 @@ public class Program
         {
             AnalysisScope.None => SymbolAnalysisScope.None,
             AnalysisScope.PublicApi => SymbolAnalysisScope.PublicApi,
+            AnalysisScope.Explicit => SymbolAnalysisScope.Explicit,
             AnalysisScope.All => SymbolAnalysisScope.All,
             _ => SymbolAnalysisScope.None
         };
     }
-    
+
 }

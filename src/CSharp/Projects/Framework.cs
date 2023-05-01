@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Helveg.CSharp.Projects;
 
-public record Framework : EntityBase, IDependencySource
+public record Framework : EntityBase, ILibrarySource
 {
     public static Framework Invalid { get; } = new Framework
     {
@@ -32,8 +32,8 @@ public record Framework : EntityBase, IDependencySource
         init => Index = NumericToken.Parse(value, CSConst.CSharpNamespace, 3, (int)RootKind.Framework).Values[^1];
     }
 
-    public ImmutableArray<AssemblyDependency> Assemblies { get; init; }
-        = ImmutableArray<AssemblyDependency>.Empty;
+    public ImmutableArray<Library> Libraries { get; init; }
+        = ImmutableArray<Library>.Empty;
 
     public override void Accept(IEntityVisitor visitor)
     {
@@ -46,16 +46,16 @@ public record Framework : EntityBase, IDependencySource
             visitor.DefaultVisit(this);
         }
 
-        foreach (var assembly in Assemblies)
+        foreach (var library in Libraries)
         {
-            assembly.Accept(visitor);
+            library.Accept(visitor);
         }
 
         base.Accept(visitor);
     }
 
-    public IDependencySource WithAssemblies(ImmutableArray<AssemblyDependency> assemblies)
+    public ILibrarySource WithLibraries(ImmutableArray<Library> libraries)
     {
-        return this with { Assemblies = assemblies };
+        return this with { Libraries = libraries };
     }
 }

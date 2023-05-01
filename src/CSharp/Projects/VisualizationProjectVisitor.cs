@@ -25,9 +25,13 @@ public class VisualizationProjectVisitor : ProjectVisitor
         base.VisitSolution(solution);
 
         builder.GetNode(solution.Token, solution.Name)
+            .SetProperty(Const.StyleProperty, CSConst.NodeStyle)
             .SetProperty(nameof(Solution.Path), solution.Path)
-            .SetProperty(Const.KindProperty, CSConst.KindOf<Solution>());
-        builder.AddEdges(CSConst.DeclaresId, solution.Projects.Select(p => new Edge(solution.Id, p.Id)));
+            .SetProperty(CSProperties.Kind, CSConst.KindOf<Solution>());
+        builder.AddEdges(
+            CSRelations.Declares,
+            solution.Projects.Select(p => new Edge(solution.Id, p.Id)),
+            CSConst.RelationStyle);
     }
 
     public override void VisitProject(Project project)
@@ -35,13 +39,24 @@ public class VisualizationProjectVisitor : ProjectVisitor
         base.VisitProject(project);
 
         builder.GetNode(project.Token, project.Name)
+            .SetProperty(Const.StyleProperty, CSConst.NodeStyle)
             .SetProperty(nameof(Solution.Path), project.Path)
-            .SetProperty(Const.KindProperty, CSConst.KindOf<Project>());
+            .SetProperty(CSProperties.Kind, CSConst.KindOf<Project>());
+
+        builder.AddEdges(CSRelations.DependsOn, project.Dependencies
+            .SelectMany(d => d.Value)
+            .Distinct()
+            .Where(d => d.Token.HasValue)
+            .Select(d => new Edge(project.Id, d.Token)),
+            CSConst.RelationStyle);
 
         var assemblies = project.Extensions.OfType<AssemblyExtension>().ToArray();
         if (assemblies.Length > 0)
         {
-            builder.AddEdges(CSConst.DeclaresId, assemblies.Select(a => new Edge(project.Id, a.Assembly.Token)));
+            builder.AddEdges(
+                CSRelations.Declares,
+                assemblies.Select(a => new Edge(project.Id, a.Assembly.Token)),
+                CSConst.RelationStyle);
         }
     }
 
@@ -50,12 +65,16 @@ public class VisualizationProjectVisitor : ProjectVisitor
         base.VisitFramework(framework);
 
         builder.GetNode(framework.Token, framework.Name)
+            .SetProperty(Const.StyleProperty, CSConst.NodeStyle)
             .SetProperty(nameof(Framework.Version), framework.Version)
-            .SetProperty(Const.KindProperty, CSConst.KindOf<Framework>());
+            .SetProperty(CSProperties.Kind, CSConst.KindOf<Framework>());
 
-        if (framework.Assemblies.Length > 0)
+        if (framework.Libraries.Length > 0)
         {
-            builder.AddEdges(CSConst.DeclaresId, framework.Assemblies.Select(d => new Edge(framework.Token, d.Token)));
+            builder.AddEdges(
+                CSRelations.Declares,
+                framework.Libraries.Select(d => new Edge(framework.Token, d.Token)),
+                CSConst.RelationStyle);
         }
     }
 
@@ -63,25 +82,37 @@ public class VisualizationProjectVisitor : ProjectVisitor
     {
         base.VisitExternalDependencySource(externalDependencySource);
 
-        builder.GetNode(externalDependencySource.Token, externalDependencySource.Name)
-            .SetProperty(Const.KindProperty, CSConst.KindOf<ExternalDependencySource>());
-        if (externalDependencySource.Assemblies.Length > 0)
+        if (externalDependencySource.Libraries.Length == 0)
         {
-            builder.AddEdges(CSConst.DeclaresId, externalDependencySource.Assemblies
-                .Select(d => new Edge(externalDependencySource.Token, d.Token)));
+            // don't add the node, if it will have been empty
+            return;
+        }
+
+        builder.GetNode(externalDependencySource.Token, externalDependencySource.Name)
+            .SetProperty(Const.StyleProperty, CSConst.NodeStyle)
+            .SetProperty(CSProperties.Kind, CSConst.KindOf<ExternalDependencySource>());
+        if (externalDependencySource.Libraries.Length > 0)
+        {
+            builder.AddEdges(CSRelations.Declares, externalDependencySource.Libraries
+                .Select(d => new Edge(externalDependencySource.Token, d.Token)),
+                CSConst.RelationStyle);
         }
     }
 
-    public override void VisitAssemblyDependency(AssemblyDependency assemblyDependency)
+    public override void VisitLibrary(Library library)
     {
-        base.VisitAssemblyDependency(assemblyDependency);
+        base.VisitLibrary(library);
 
-        builder.GetNode(assemblyDependency.Token, assemblyDependency.Identity.Name)
-            .SetProperty(Const.KindProperty, CSConst.KindOf<AssemblyDependency>());
-        var assemblies = assemblyDependency.Extensions.OfType<AssemblyExtension>().ToArray();
+        builder.GetNode(library.Token, library.Identity.Name)
+            .SetProperty(Const.StyleProperty, CSConst.NodeStyle)
+            .SetProperty(CSProperties.Kind, CSConst.KindOf<Library>());
+        var assemblies = library.Extensions.OfType<AssemblyExtension>().ToArray();
         if (assemblies.Length > 0)
         {
-            builder.AddEdges(CSConst.DeclaresId, assemblies.Select(a => new Edge(assemblyDependency.Token, a.Assembly.Token)));
+            builder.AddEdges(
+                CSRelations.Declares,
+                assemblies.Select(a => new Edge(library.Token, a.Assembly.Token)),
+                CSConst.RelationStyle);
         }
     }
 }

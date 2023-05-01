@@ -37,7 +37,9 @@ public record Workspace
         return true;
     }
 
-    public async Task<ExclusiveEntityHandle<T>> GetRootExclusively<T>(string id, CancellationToken cancellationToken = default)
+    public async Task<ExclusiveEntityHandle<T>> GetRootExclusively<T>(
+        string id,
+        CancellationToken cancellationToken = default)
         where T : IEntity
     {
         var semaphore = rootSemaphores.GetOrAdd(id, _ => new SemaphoreSlim(1, 1));
@@ -46,6 +48,13 @@ public record Workspace
         {
             Entity = (T?)roots.GetValueOrDefault(id)
         };
+    }
+
+    public Task<ExclusiveEntityHandle<IEntity>> GetRootExclusively(
+        string id,
+        CancellationToken cancellationToken = default)
+    {
+        return GetRootExclusively<IEntity>(id, cancellationToken);
     }
 
     public void Accept(IEntityVisitor visitor)

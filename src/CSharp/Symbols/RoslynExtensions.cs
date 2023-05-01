@@ -1,4 +1,4 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using MCA = Microsoft.CodeAnalysis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,134 +9,129 @@ namespace Helveg.CSharp.Symbols;
 
 internal static class RoslynExtensions
 {
-    public static bool IsOriginalDefinition(this ISymbol symbol)
+    public static bool IsOriginalDefinition(this MCA.ISymbol symbol)
     {
-        return SymbolEqualityComparer.Default.Equals(symbol, symbol.OriginalDefinition);
+        return MCA.SymbolEqualityComparer.Default.Equals(symbol, symbol.OriginalDefinition);
     }
 
-    public static bool IsInAnalysisScope(this ISymbol symbol, SymbolAnalysisScope scope)
+    public static bool IsInAnalysisScope(this MCA.ISymbol symbol, SymbolAnalysisScope scope)
     {
+        var isExplicit = !symbol.IsImplicitlyDeclared && (symbol.CanBeReferencedByName
+                || (symbol is MCA.IMethodSymbol method && method.MethodKind == MCA.MethodKind.Constructor));
         return scope switch
         {
             SymbolAnalysisScope.All => true,
-            SymbolAnalysisScope.PublicApi =>
-                !symbol.IsImplicitlyDeclared
-                && symbol.CanBeReferencedByName
-                && (symbol.DeclaredAccessibility == Accessibility.Public
-                || symbol.DeclaredAccessibility == Accessibility.Protected)
+            SymbolAnalysisScope.PublicApi => isExplicit
+                && (symbol.DeclaredAccessibility == MCA.Accessibility.Public
+                    || symbol.DeclaredAccessibility == MCA.Accessibility.Protected)
                 && (symbol.ContainingType is null || symbol.ContainingType.IsInAnalysisScope(scope)),
+            SymbolAnalysisScope.Explicit => isExplicit,
             _ => false
         };
     }
 
-    public static MemberAccessibility ToHelvegAccessibility(this Accessibility value)
+    public static MemberAccessibility ToHelvegAccessibility(this MCA.Accessibility value)
     {
         return value switch
         {
-            Accessibility.Private => MemberAccessibility.Private,
-            Accessibility.ProtectedAndInternal => MemberAccessibility.ProtectedAndInternal,
-            Accessibility.Protected => MemberAccessibility.Protected,
-            Accessibility.Internal => MemberAccessibility.Internal,
-            Accessibility.ProtectedOrInternal => MemberAccessibility.ProtectedOrInternal,
-            Accessibility.Public => MemberAccessibility.Public,
+            MCA.Accessibility.Private => MemberAccessibility.Private,
+            MCA.Accessibility.ProtectedAndInternal => MemberAccessibility.ProtectedAndInternal,
+            MCA.Accessibility.Protected => MemberAccessibility.Protected,
+            MCA.Accessibility.Internal => MemberAccessibility.Internal,
+            MCA.Accessibility.ProtectedOrInternal => MemberAccessibility.ProtectedOrInternal,
+            MCA.Accessibility.Public => MemberAccessibility.Public,
             _ => MemberAccessibility.Invalid
         };
     }
 
-    public static TypeKind ToHelvegTypeKind(this Microsoft.CodeAnalysis.TypeKind value)
+    public static TypeKind ToHelvegTypeKind(this MCA.TypeKind value)
     {
         return value switch
         {
-            Microsoft.CodeAnalysis.TypeKind.Unknown => TypeKind.Unknown,
-            Microsoft.CodeAnalysis.TypeKind.Array => TypeKind.Array,
-            Microsoft.CodeAnalysis.TypeKind.Class => TypeKind.Class,
-            Microsoft.CodeAnalysis.TypeKind.Delegate => TypeKind.Delegate,
-            Microsoft.CodeAnalysis.TypeKind.Dynamic => TypeKind.Dynamic,
-            Microsoft.CodeAnalysis.TypeKind.Enum => TypeKind.Enum,
-            Microsoft.CodeAnalysis.TypeKind.Error => TypeKind.Error,
-            Microsoft.CodeAnalysis.TypeKind.Interface => TypeKind.Interface,
-            Microsoft.CodeAnalysis.TypeKind.Module => TypeKind.Module,
-            Microsoft.CodeAnalysis.TypeKind.Pointer => TypeKind.Pointer,
-            Microsoft.CodeAnalysis.TypeKind.Struct => TypeKind.Struct,
-            Microsoft.CodeAnalysis.TypeKind.TypeParameter => TypeKind.TypeParameter,
-            Microsoft.CodeAnalysis.TypeKind.Submission => TypeKind.Submission,
-            Microsoft.CodeAnalysis.TypeKind.FunctionPointer => TypeKind.FunctionPointer,
+            MCA.TypeKind.Unknown => TypeKind.Unknown,
+            MCA.TypeKind.Array => TypeKind.Array,
+            MCA.TypeKind.Class => TypeKind.Class,
+            MCA.TypeKind.Delegate => TypeKind.Delegate,
+            MCA.TypeKind.Dynamic => TypeKind.Dynamic,
+            MCA.TypeKind.Enum => TypeKind.Enum,
+            MCA.TypeKind.Error => TypeKind.Error,
+            MCA.TypeKind.Interface => TypeKind.Interface,
+            MCA.TypeKind.Module => TypeKind.Module,
+            MCA.TypeKind.Pointer => TypeKind.Pointer,
+            MCA.TypeKind.Struct => TypeKind.Struct,
+            MCA.TypeKind.TypeParameter => TypeKind.TypeParameter,
+            MCA.TypeKind.Submission => TypeKind.Submission,
+            MCA.TypeKind.FunctionPointer => TypeKind.FunctionPointer,
             _ => TypeKind.Unknown
         };
     }
 
-    public static RefKind ToHelvegRefKind(this Microsoft.CodeAnalysis.RefKind value)
+    public static RefKind ToHelvegRefKind(this MCA.RefKind value)
     {
         return value switch
         {
-            Microsoft.CodeAnalysis.RefKind.None => RefKind.None,
-            Microsoft.CodeAnalysis.RefKind.Ref => RefKind.Ref,
-            Microsoft.CodeAnalysis.RefKind.Out => RefKind.Out,
-            Microsoft.CodeAnalysis.RefKind.In => RefKind.In,
+            MCA.RefKind.None => RefKind.None,
+            MCA.RefKind.Ref => RefKind.Ref,
+            MCA.RefKind.Out => RefKind.Out,
+            MCA.RefKind.In => RefKind.In,
             _ => RefKind.None
         };
     }
 
-    public static MethodKind ToHelvegMethodKind(this Microsoft.CodeAnalysis.MethodKind value)
+    public static MethodKind ToHelvegMethodKind(this MCA.MethodKind value)
     {
         return value switch
         {
-            Microsoft.CodeAnalysis.MethodKind.AnonymousFunction => MethodKind.AnonymousFunction,
-            Microsoft.CodeAnalysis.MethodKind.Constructor => MethodKind.Constructor,
-            Microsoft.CodeAnalysis.MethodKind.Conversion => MethodKind.Conversion,
-            Microsoft.CodeAnalysis.MethodKind.DelegateInvoke => MethodKind.DelegateInvoke,
-            Microsoft.CodeAnalysis.MethodKind.Destructor => MethodKind.Destructor,
-            Microsoft.CodeAnalysis.MethodKind.EventAdd => MethodKind.EventAdd,
-            Microsoft.CodeAnalysis.MethodKind.EventRaise => MethodKind.EventRaise,
-            Microsoft.CodeAnalysis.MethodKind.EventRemove => MethodKind.EventRemove,
-            Microsoft.CodeAnalysis.MethodKind.ExplicitInterfaceImplementation => MethodKind.ExplicitInterfaceImplementation,
-            Microsoft.CodeAnalysis.MethodKind.UserDefinedOperator => MethodKind.UserDefinedOperator,
-            Microsoft.CodeAnalysis.MethodKind.Ordinary => MethodKind.Ordinary,
-            Microsoft.CodeAnalysis.MethodKind.PropertyGet => MethodKind.PropertyGet,
-            Microsoft.CodeAnalysis.MethodKind.PropertySet => MethodKind.PropertySet,
-            Microsoft.CodeAnalysis.MethodKind.ReducedExtension => MethodKind.ReducedExtension,
-            Microsoft.CodeAnalysis.MethodKind.StaticConstructor => MethodKind.StaticConstructor,
-            Microsoft.CodeAnalysis.MethodKind.BuiltinOperator => MethodKind.BuiltinOperator,
-            Microsoft.CodeAnalysis.MethodKind.DeclareMethod => MethodKind.DeclareMethod,
-            Microsoft.CodeAnalysis.MethodKind.LocalFunction => MethodKind.LocalFunction,
-            Microsoft.CodeAnalysis.MethodKind.FunctionPointerSignature => MethodKind.FunctionPointerSignature,
+            MCA.MethodKind.AnonymousFunction => MethodKind.AnonymousFunction,
+            MCA.MethodKind.Constructor => MethodKind.Constructor,
+            MCA.MethodKind.Conversion => MethodKind.Conversion,
+            MCA.MethodKind.DelegateInvoke => MethodKind.DelegateInvoke,
+            MCA.MethodKind.Destructor => MethodKind.Destructor,
+            MCA.MethodKind.EventAdd => MethodKind.EventAdd,
+            MCA.MethodKind.EventRaise => MethodKind.EventRaise,
+            MCA.MethodKind.EventRemove => MethodKind.EventRemove,
+            MCA.MethodKind.ExplicitInterfaceImplementation => MethodKind.ExplicitInterfaceImplementation,
+            MCA.MethodKind.UserDefinedOperator => MethodKind.UserDefinedOperator,
+            MCA.MethodKind.Ordinary => MethodKind.Ordinary,
+            MCA.MethodKind.PropertyGet => MethodKind.PropertyGet,
+            MCA.MethodKind.PropertySet => MethodKind.PropertySet,
+            MCA.MethodKind.ReducedExtension => MethodKind.ReducedExtension,
+            MCA.MethodKind.StaticConstructor => MethodKind.StaticConstructor,
+            MCA.MethodKind.BuiltinOperator => MethodKind.BuiltinOperator,
+            MCA.MethodKind.DeclareMethod => MethodKind.DeclareMethod,
+            MCA.MethodKind.LocalFunction => MethodKind.LocalFunction,
+            MCA.MethodKind.FunctionPointerSignature => MethodKind.FunctionPointerSignature,
             _ => MethodKind.Invalid
         };
     }
 
-    public static TypeNullability ToHelvegNullability(this NullableAnnotation value)
+    public static TypeNullability ToHelvegNullability(this MCA.NullableAnnotation value)
     {
         return value switch
         {
-            NullableAnnotation.None => TypeNullability.None,
-            NullableAnnotation.NotAnnotated => TypeNullability.NotAnnotated,
-            NullableAnnotation.Annotated => TypeNullability.Annotated,
+            MCA.NullableAnnotation.None => TypeNullability.None,
+            MCA.NullableAnnotation.NotAnnotated => TypeNullability.NotAnnotated,
+            MCA.NullableAnnotation.Annotated => TypeNullability.Annotated,
             _ => TypeNullability.None
         };
     }
 
-    public static SymbolKind GetHelvegSymbolKind(this ISymbol symbol)
+    public static MCA.IAssemblySymbol? GetReferencedAssembly(this MCA.Compilation compilation, AssemblyId id)
     {
-        return symbol switch
-        {
-            IAssemblySymbol => SymbolKind.Assembly,
-            IModuleSymbol => SymbolKind.Module,
-            INamespaceSymbol => SymbolKind.Namespace,
-            ITypeParameterSymbol => SymbolKind.TypeParameter,
-            IFieldSymbol => SymbolKind.Field,
-            IEventSymbol => SymbolKind.Event,
-            IPropertySymbol => SymbolKind.Property,
-            IMethodSymbol => SymbolKind.Method,
-            INamedTypeSymbol => SymbolKind.Type,
-            IParameterSymbol => SymbolKind.Parameter,
-            _ => SymbolKind.Unknown
-        };
+        return (MCA.IAssemblySymbol?)compilation.References.Select(compilation.GetAssemblyOrModuleSymbol)
+            .Where(a => a is not null && a is MCA.IAssemblySymbol assembly && AssemblyId.Create(assembly) == id)
+            .FirstOrDefault();
     }
 
-    public static IAssemblySymbol? GetReferencedAssembly(this Compilation compilation, AssemblyId id)
+    public static DiagnosticSeverity ToHelvegSeverity(this MCA.DiagnosticSeverity value)
     {
-        return (IAssemblySymbol?)compilation.References.Select(compilation.GetAssemblyOrModuleSymbol)
-            .Where(a => a is not null && a is IAssemblySymbol assembly && AssemblyId.Create(assembly) == id)
-            .FirstOrDefault();
+        return value switch
+        {
+            MCA.DiagnosticSeverity.Hidden => DiagnosticSeverity.Hidden,
+            MCA.DiagnosticSeverity.Info => DiagnosticSeverity.Info,
+            MCA.DiagnosticSeverity.Warning => DiagnosticSeverity.Warning,
+            MCA.DiagnosticSeverity.Error => DiagnosticSeverity.Error,
+            _ => DiagnosticSeverity.Unknown
+        };
     }
 }

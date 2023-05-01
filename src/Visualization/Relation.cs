@@ -13,16 +13,13 @@ public record Relation
     [JsonIgnore]
     public string Id { get; init; } = Const.Invalid;
 
-    public string? Label { get; init; }
+    public ImmutableDictionary<string, Edge> Edges { get; init; }
+        = ImmutableDictionary<string, Edge>.Empty;
 
-    public ImmutableArray<Edge> Edges { get; init; }
-        = ImmutableArray<Edge>.Empty;
-
-    public Relation(string id, string? label = null, ImmutableArray<Edge> edges = default)
+    public Relation(string id, ImmutableDictionary<string, Edge>? edges = default)
     {
         Id = id;
-        Label = label;
-        Edges = edges.IsDefault ? ImmutableArray<Edge>.Empty : edges;
+        Edges = edges ?? ImmutableDictionary<string, Edge>.Empty;
     }
 
     public Relation()

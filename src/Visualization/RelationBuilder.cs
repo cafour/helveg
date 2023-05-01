@@ -12,30 +12,38 @@ public class RelationBuilder
 {
     public string Id { get; set; } = Const.Invalid;
 
-    public string? Label { get; set; }
-
-    public List<Edge> Edges { get; } = new();
+    public Dictionary<string, Edge> Edges { get; } = new();
 
     public Relation Build()
     {
         return new(
             id: Id,
-            label: Label,
-            edges: Edges.ToImmutableArray());
+            edges: Edges.ToImmutableDictionary());
     }
 
-    public RelationBuilder AddEdge(Edge edge)
+    public bool TryAddEdge(Edge edge)
     {
-        Edges.Add(edge);
-        return this;
+        var id = $"{edge.Src};{edge.Dst}";
+
+        if (Edges.ContainsKey(id))
+        {
+            return false;
+        }
+
+        Edges.Add(id, edge);
+        return true;
     }
 
-    public RelationBuilder AddEdges(IEnumerable<Edge> edges)
+    public int TryAddEdges(IEnumerable<Edge> edges)
     {
+        var count = 0;
         foreach(var edge in edges)
         {
-            AddEdge(edge);
+            if (TryAddEdge(edge))
+            {
+                count++;
+            }
         }
-        return this;
+        return count;
     }
 }

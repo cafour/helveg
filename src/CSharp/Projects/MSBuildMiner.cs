@@ -7,12 +7,7 @@ using System.Threading.Tasks;
 using MSB = Microsoft.Build;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using System.Xml;
-using NuGet.ProjectModel;
 using System.Collections.Generic;
-using NuGet.Frameworks;
-using System.Collections.Concurrent;
-using Helveg.CSharp.Packages;
 
 namespace Helveg.CSharp.Projects;
 
@@ -21,7 +16,8 @@ public class MSBuildMiner : IMiner
     private readonly ILogger<MSBuildMiner> logger;
     private int counter = 0;
     private WeakReference<Workspace?> workspaceRef = new(null);
-    private NumericToken edsToken = NumericToken.CreateNone(CSConst.CSharpNamespace, (int)RootKind.ExternalDependencySource);
+    private NumericToken edsToken
+        = NumericToken.CreateNone(CSConst.CSharpNamespace, (int)RootKind.ExternalDependencySource);
 
     public MSBuildMinerOptions Options { get; }
 
@@ -37,21 +33,25 @@ public class MSBuildMiner : IMiner
     {
         workspaceRef = new(workspace);
 
-        var eds = new ExternalDependencySource
+        if (Options.IncludeExternalDependencies)
         {
-            Index = Interlocked.Increment(ref counter),
-            Name = "External Dependencies"
-        };
-        if (!workspace.TryAddRoot(eds))
-        {
-            logger.LogError("Failed to add an external dependency source root to the workspace.");
-        }
-        else
-        {
-            edsToken = eds.Token;
+            var eds = new ExternalDependencySource
+            {
+                Index = Interlocked.Increment(ref counter),
+                Name = "External Dependencies"
+            };
+            if (!workspace.TryAddRoot(eds))
+            {
+                logger.LogError("Failed to add an external dependency source root to the workspace.");
+            }
+            else
+            {
+                edsToken = eds.Token;
+            }
         }
 
-        var solution = await GetSolution(workspace.Source.Path, cancellationToken);
+        // 1. Find a solution file and discover projects in it.
+        var solution = GetSolution(workspace.Source.Path, cancellationToken);
         if (solution is null)
         {
             return;
@@ -62,11 +62,14 @@ public class MSBuildMiner : IMiner
             logger.LogError("Failed to add the '{}' root to the mining workspace.", solution.Id);
         }
 
+        // 2. Mine the projects in the solution.
+        // NB: All projects in the solution need to exist so that they can be referenced by each other.
+        await MineSolutionProjects(solution.Token, cancellationToken);
 
         return;
     }
 
-    private async Task<Solution?> GetSolution(string path, CancellationToken cancellationToken = default)
+    private Solution? GetSolution(string path, CancellationToken cancellationToken = default)
     {
         if (Directory.Exists(path))
         {
@@ -127,6 +130,55 @@ public class MSBuildMiner : IMiner
             Name = Path.GetFileNameWithoutExtension(path)
         };
 
+        // the solution is synthetic and contains only one project
+        if (fileExtension == CSConst.ProjectFileExtension)
+        {
+            return solution with
+            {
+                Projects = ImmutableArray.Create(
+                    new Project
+                    {
+                        Index = Interlocked.Increment(ref counter),
+                        ContainingSolution = solution.Token,
+                        Path = path,
+                        Name = Path.GetFileNameWithoutExtension(path)
+                    })
+            };
+        }
+
+        // the solution is real, so we have to parse the projects out of it
+
+        var msbuildSolution = MSB.Construction.SolutionFile.Parse(path);
+        logger.LogInformation("Found the '{}' solution.", solution.Name);
+
+        solution = solution with
+        {
+            Projects = msbuildSolution.ProjectsInOrder
+                .Where(p => p.ProjectType != MSB.Construction.SolutionProjectType.SolutionFolder)
+                .Select(p => new Project
+                {
+                    Index = Interlocked.Increment(ref counter),
+                    ContainingSolution = solution.Token,
+                    Path = p.AbsolutePath,
+                    Name = p.ProjectName
+                })
+                .ToImmutableArray()
+        };
+
+        return solution;
+    }
+
+    private async Task MineSolutionProjects(NumericToken solutionToken, CancellationToken cancellationToken = default)
+    {
+        var workspace = GetWorkspace();
+        using var solutionHandle = await workspace.GetRootExclusively<Solution>(solutionToken, cancellationToken);
+        if (solutionHandle.Entity is null)
+        {
+            logger.LogError("Cannot mine projects inside the '{}' solution because it has been deleted. " +
+                "This is likely because of a race condition.", solutionToken);
+            return;
+        }
+
         try
         {
             var projectCollection = new MSB.Evaluation.ProjectCollection(Options.MSBuildProperties);
@@ -141,58 +193,30 @@ public class MSBuildMiner : IMiner
                 }
             };
             MSB.Execution.BuildManager.DefaultBuildManager.BeginBuild(buildParams);
-            if (fileExtension == CSConst.ProjectFileExtension)
+
+            var projects = await Task.WhenAll(solutionHandle.Entity.Projects
+                .Select(async p => await MineProject(p, projectCollection, cancellationToken)));
+            solutionHandle.Entity = solutionHandle.Entity with
             {
-                var project = await GetProject(path, projectCollection);
-                if (!project.IsValid)
-                {
-                    return solution;
-                }
-
-                return solution with
-                {
-                    Projects = ImmutableArray.Create(project with
-                    {
-                        ContainingSolution = solution.Token
-                    })
-                };
-            }
-
-            var msbuildSolution = MSB.Construction.SolutionFile.Parse(path);
-            logger.LogInformation("Found the '{}' solution.", solution.Name);
-            var projectPaths = msbuildSolution.ProjectsInOrder
-                .Where(p => p.ProjectType != MSB.Construction.SolutionProjectType.SolutionFolder)
-                .Select(p => p.AbsolutePath);
-
-
-            var projects = await Task.WhenAll(projectPaths
-                .Select(async p => await GetProject(p, projectCollection)));
-            return solution with
-            {
-                Projects = solution.Projects.AddRange(
-                    projects
-                    .Where(p => p.IsValid)
-                    .Select(p => p with
-                    {
-                        ContainingSolution = solution.Token
-                    })
-                    .ToImmutableArray())
+                Projects = projects.ToImmutableArray()
             };
         }
         finally
         {
             MSB.Execution.BuildManager.DefaultBuildManager.EndBuild();
         }
+
     }
 
-    private async Task<Project> GetProject(
-        string path,
-        MSB.Evaluation.ProjectCollection collection)
+    private async Task<Project> MineProject(
+        Project project,
+        MSB.Evaluation.ProjectCollection collection,
+        CancellationToken cancellationToken = default)
     {
         MSB.Evaluation.Project? msbuildProject;
         try
         {
-            msbuildProject = MSB.Evaluation.Project.FromFile(path, new MSB.Definition.ProjectOptions
+            msbuildProject = MSB.Evaluation.Project.FromFile(project.Path, new MSB.Definition.ProjectOptions
             {
                 ProjectCollection = collection
             });
@@ -202,22 +226,23 @@ public class MSBuildMiner : IMiner
             logger.LogError(
                 exception: e,
                 message: "Could not load project at '{}' because of an MSBuild error. Ignoring project.",
-                path);
-            return Project.Invalid;
+                project.Path);
+            return project with
+            {
+                Diagnostics = project.Diagnostics.Add(Diagnostic.Error("InvalidProjectFile", e.Message))
+            };
         }
 
         var projectName = msbuildProject.GetPropertyValue(CSConst.MSBuildProjectNameProperty);
 
-        var project = new Project
+        project = project with
         {
-            Index = Interlocked.Increment(ref counter),
-            Path = path,
             Name = projectName
         };
 
         logger.LogInformation("Found the '{}' project.", project.Name);
 
-        string[]? targetFrameworks;
+        string[] targetFrameworks = Array.Empty<string>();
 
         var targetFrameworkProp = msbuildProject.GetPropertyValue(CSConst.TargetFrameworkProperty);
         if (!string.IsNullOrEmpty(targetFrameworkProp))
@@ -229,22 +254,31 @@ public class MSBuildMiner : IMiner
             var targetFrameworksProp = msbuildProject.GetPropertyValue(CSConst.TargetFrameworksProperty);
             if (string.IsNullOrEmpty(targetFrameworksProp))
             {
-                logger.LogError("The '{}' project has no target frameworks.", projectName);
-                return project with
-                {
-                    Diagnostics = project.Diagnostics.Add(
-                        Diagnostic.Error("NoTargetFrameworks", "No target frameworks could be resolved."))
-                };
+                logger.LogDebug(
+                    "The '{}' project has no target frameworks, '{}' will be used.",
+                    projectName,
+                    Const.Unknown);
+            }
+            else
+            {
+                targetFrameworks = targetFrameworksProp.Split(';');
             }
 
-            targetFrameworks = targetFrameworksProp.Split(';');
         }
 
-        var dependenciesBuilder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<NumericToken>>();
-        foreach (var targetFramework in targetFrameworks)
+        var dependenciesBuilder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<Dependency>>();
+        if (targetFrameworks.Length == 0)
         {
-            var dependencies = await ResolveDependencies(msbuildProject, targetFramework);
-            dependenciesBuilder.Add(targetFramework, dependencies);
+            var dependencies = await ResolveDependencies(project, msbuildProject, null, cancellationToken);
+            dependenciesBuilder.Add(Const.Unknown, dependencies);
+        }
+        else
+        {
+            foreach (var targetFramework in targetFrameworks)
+            {
+                var dependencies = await ResolveDependencies(project, msbuildProject, targetFramework, cancellationToken);
+                dependenciesBuilder.Add(targetFramework, dependencies);
+            }
         }
 
         return project with
@@ -253,100 +287,176 @@ public class MSBuildMiner : IMiner
         };
     }
 
-    private async Task<ImmutableArray<NumericToken>> ResolveDependencies(
+    private async Task<ImmutableArray<Dependency>> ResolveDependencies(
+        Project project,
         MSB.Evaluation.Project msbuildProject,
-        string targetFramework)
+        string? targetFramework,
+        CancellationToken cancellationToken = default)
     {
         var projectName = msbuildProject.GetPropertyValue(CSConst.MSBuildProjectNameProperty);
 
         if (string.IsNullOrEmpty(msbuildProject.GetPropertyValue(CSConst.TargetFrameworkProperty))
-            && !msbuildProject.GlobalProperties.ContainsKey(CSConst.TargetFrameworkProperty))
+            && !msbuildProject.GlobalProperties.ContainsKey(CSConst.TargetFrameworkProperty)
+            && !string.IsNullOrEmpty(targetFramework))
         {
             msbuildProject.SetProperty(CSConst.TargetFrameworkProperty, targetFramework);
         }
 
         var instance = msbuildProject.CreateProjectInstance();
 
+        var targets = new List<string>();
+        if (Options.ShouldRestore)
+        {
+            targets.Add(CSConst.RestoreTarget);
+        }
+        targets.Add(CSConst.ResolveReferencesTarget);
+
         var buildRequest = new MSB.Execution.BuildRequestData(
             instance,
-            new[] { CSConst.RestoreTarget, CSConst.ResolveReferencesTarget });
-        logger.LogDebug("Resolving references of '{}' for the '{}' target framework.", projectName, targetFramework);
+            targets.ToArray());
+        logger.LogDebug("Resolving references of '{}' for the '{}' target framework using the '{}' targets.",
+            projectName,
+            targetFramework,
+            string.Join(", ", targets));
         var buildResult = await BuildAsync(MSB.Execution.BuildManager.DefaultBuildManager, buildRequest);
         if (buildResult.OverallResult == MSB.Execution.BuildResultCode.Failure)
         {
-            return ImmutableArray<NumericToken>.Empty;
+            return ImmutableArray<Dependency>.Empty;
         }
 
         if (!buildResult.ResultsByTarget.TryGetValue(CSConst.ResolveReferencesTarget, out var targetResult))
         {
-            return ImmutableArray<NumericToken>.Empty;
+            return ImmutableArray<Dependency>.Empty;
         }
 
-        var builder = ImmutableArray.CreateBuilder<NumericToken>();
+        var builder = ImmutableArray.CreateBuilder<Dependency>();
         foreach (var item in targetResult.Items)
         {
-            var dependency = new AssemblyDependency
-            {
-                Identity = AssemblyId.Create(item),
-                PackageId = NullIfEmpty(item.GetMetadata("NuGetPackageId")),
-                PackageVersion = NullIfEmpty(item.GetMetadata("NuGetPackageVersion"))
-            };
+            builder.Add(await ResolveDependency(project, item, cancellationToken));
+        }
+        return builder.ToImmutable();
+    }
 
-            var frameworkName = NullIfEmpty(item.GetMetadata("FrameworkReferenceName"));
-            var frameworkVersion = NullIfEmpty(item.GetMetadata("FrameworkReferenceVersion"));
-            using var framework = frameworkName is not null
-                ? await GetFramework(frameworkName, frameworkVersion)
-                : null;
-            if (framework is not null && framework.Entity is not null)
+    private async Task<Dependency> ResolveDependency(
+        Project project,
+        MSB.Framework.ITaskItem item,
+        CancellationToken cancellationToken = default)
+    {
+        var workspace = GetWorkspace();
+
+        var dependency = new Dependency
+        {
+            Identity = AssemblyId.Create(item)
+        };
+
+        var packageId = NullIfEmpty(item.GetMetadata("NuGetPackageId"));
+        var packageVersion = NullIfEmpty(item.GetMetadata("NuGetPackageVersion"));
+
+        var projectReferencePath = NullIfEmpty(item.GetMetadata("OriginalProjectReferenceItemSpec"))
+            ?? NullIfEmpty(item.GetMetadata("ProjectReferenceOriginalItemSpec"));
+
+        // 1. See if it is a part of framework.
+        var frameworkName = NullIfEmpty(item.GetMetadata("FrameworkReferenceName"));
+        var frameworkVersion = NullIfEmpty(item.GetMetadata("FrameworkReferenceVersion"));
+
+        if (Options.IncludeExternalDependencies && !string.IsNullOrEmpty(frameworkName))
+        {
+            using var frameworkHandle = await GetOrAddFramework(frameworkName, frameworkVersion, cancellationToken);
+            if (frameworkHandle.Entity is not null)
             {
-                var existing = framework.Entity.Assemblies
-                    .FirstOrDefault(a => a.Identity == dependency.Identity);
+                var existing = frameworkHandle.Entity.Libraries.FirstOrDefault(l => l.Identity == dependency.Identity);
                 if (existing is not null)
                 {
-                    builder.Add(existing.Token);
-                    continue;
+                    return dependency with
+                    {
+                        Token = existing.Token,
+                    };
                 }
 
-                // framework doesn't know about the assembly yet, so add it there
-                dependency = dependency with
-                {
-                    Token = framework.Entity.Token.Derive(Interlocked.Increment(ref counter))
-                };
-                builder.Add(dependency.Token);
-                framework.Entity = framework.Entity with
-                {
-                    Assemblies = framework.Entity.Assemblies.Add(dependency)
-                };
-            }
-            else
-            {
-                using var eds = await GetExternalDependencySource();
-                if (eds.Entity is null)
-                {
-                    logger.LogError("The global external dependency source doesn't exist. This is likely a bug.");
-                    continue;
-                }
+                var frameworkLibraryToken = frameworkHandle.Entity.Token.Derive(Interlocked.Increment(ref counter));
 
-                var existing = eds.Entity.Assemblies
-                    .FirstOrDefault(a => a.Identity == dependency.Identity);
-                if (existing is not null)
+                frameworkHandle.Entity = frameworkHandle.Entity with
                 {
-                    builder.Add(existing.Token);
-                    continue;
-                }
-
-                dependency = dependency with
-                {
-                    Token = edsToken.Derive(Interlocked.Increment(ref counter))
+                    Libraries = frameworkHandle.Entity.Libraries.Add(new Library
+                    {
+                        Token = frameworkLibraryToken,
+                        Identity = dependency.Identity,
+                        PackageId = packageId,
+                        PackageVersion = packageVersion,
+                        ContainingEntity = frameworkHandle.Entity.Token
+                    })
                 };
-                builder.Add(dependency.Token);
-                eds.Entity = eds.Entity with
+
+                return dependency with
                 {
-                    Assemblies = eds.Entity.Assemblies.Add(dependency)
+                    Token = frameworkLibraryToken
                 };
             }
         }
-        return builder.ToImmutable();
+
+        if (!string.IsNullOrEmpty(projectReferencePath))
+        {
+            projectReferencePath = new FileInfo(Path.Combine(Path.GetDirectoryName(project.Path) ?? "", projectReferencePath)).FullName;
+
+            var solution = workspace.Roots.Values.OfType<Solution>().First();
+
+            var referencedProject = solution?.Projects
+                .Where(p => p.Path == projectReferencePath)
+                .FirstOrDefault();
+            if (referencedProject is null)
+            {
+                logger.LogError("Could not resolve a project reference to '{}'.", projectReferencePath);
+                return dependency with
+                {
+                    Token = solution?.Token.Derive(NumericToken.NoneValue)
+                        ?? CSConst.NoneToken
+                };
+            }
+
+            return dependency with
+            {
+                Token = referencedProject.Token
+            };
+        }
+
+        using var eds = await GetExternalDependencySource();
+        if (Options.IncludeExternalDependencies && eds.Entity is not null)
+        {
+
+            var existingLibrary = eds.Entity.Libraries
+                .FirstOrDefault(a => a.Identity == dependency.Identity);
+            if (existingLibrary is not null)
+            {
+                return dependency with
+                {
+                    Token = existingLibrary.Token
+                };
+            }
+
+            var libraryToken = edsToken.Derive(Interlocked.Increment(ref counter));
+
+            eds.Entity = eds.Entity with
+            {
+                Libraries = eds.Entity.Libraries.Add(new Library
+                {
+                    Token = libraryToken,
+                    ContainingEntity = eds.Entity.Token,
+                    Identity = dependency.Identity,
+                    PackageId = packageId,
+                    PackageVersion = packageVersion
+                })
+            };
+
+            return dependency with
+            {
+                Token = libraryToken
+            };
+        }
+
+        return dependency with
+        {
+            Token = CSConst.NoneToken
+        };
     }
 
     // NB: Based on Roslyn's ProjectBuildManager.
@@ -381,17 +491,25 @@ public class MSBuildMiner : IMiner
         return taskSource.Task;
     }
 
-    private Task<ExclusiveEntityHandle<Framework>> GetFramework(string name, string? version)
+    private async Task<ExclusiveEntityHandle<Framework>> GetOrAddFramework(
+        string name,
+        string? version,
+        CancellationToken cancellationToken = default)
     {
         var workspace = GetWorkspace();
+
+        // TODO: Currently the method gets an exclusive handle even though sometimes no writing operation occurs.
+        //       It simplifies error handling because it prevents race conditions but it also probably causes a
+        //       performance hit. Investigate this further.
 
         var existing = workspace.Roots.Values
             .OfType<Framework>()
             .Where(f => f.Name == name && f.Version == version)
             .FirstOrDefault();
+
         if (existing is not null)
         {
-            return workspace.GetRootExclusively<Framework>(existing.Id);
+            return await workspace.GetRootExclusively<Framework>(existing.Token, cancellationToken);
         }
 
         var framework = new Framework
@@ -401,13 +519,9 @@ public class MSBuildMiner : IMiner
             Version = version
         };
 
-        if (!workspace.TryAddRoot(framework))
-        {
-            // NB: This should never happen.
-            throw new InvalidOperationException("An id collection occured. This is likely a bug.");
-        }
-
-        return workspace.GetRootExclusively<Framework>(framework.Id);
+        var handle = await workspace.GetRootExclusively<Framework>(framework.Token, cancellationToken);
+        handle.Entity = framework;
+        return handle;
     }
 
     private Task<ExclusiveEntityHandle<ExternalDependencySource>> GetExternalDependencySource()

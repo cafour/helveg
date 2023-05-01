@@ -5,6 +5,8 @@ import type { Coordinates, Dimensions, NodeDisplayData, RenderParams } from "sig
 import { floatColor } from "sigma/utils";
 import { NodeProgram, type NodeProgramConstructor } from "sigma/rendering/webgl/programs/common/node";
 import type Sigma from "sigma";
+import vertexShaderSource from "./node.pictogram.vert";
+import fragmentShaderSource from "./node.pictogram.frag";
 
 interface NodeDisplayDataWithPictogramInfo extends NodeDisplayData {
   pictogram: string;
@@ -24,74 +26,8 @@ interface CreateNodePictogramProgramOptions {
 const DEFAULT_CREATE_NODE_PICTOGRAM_OPTIONS: CreateNodePictogramProgramOptions = {
   correctCentering: false,
   forcedSvgSize: undefined,
-  keepWithinCircle: true,
+  keepWithinCircle: false,
 };
-
-const VERTEX_SHADER_SOURCE = /*glsl*/ `
-attribute vec2 a_position;
-attribute float a_size;
-// attribute vec4 a_color;
-attribute vec4 a_texture;
-
-uniform float u_sizeRatio;
-uniform float u_pixelRatio;
-uniform mat3 u_matrix;
-
-// varying vec4 v_color;
-varying float v_border;
-varying vec4 v_texture;
-
-const float bias = 255.0 / 254.0;
-
-void main() {
-  gl_Position = vec4(
-    (u_matrix * vec3(a_position, 1)).xy,
-    0,
-    1
-  );
-
-  // Multiply the point size twice:
-  //  - x SCALING_RATIO to correct the canvas scaling
-  //  - x 2 to correct the formulae
-  gl_PointSize = a_size / u_sizeRatio * u_pixelRatio * 2.0;
-
-  v_border = (0.5 / a_size) * u_sizeRatio;
-
-  // Extract the color:
-  // v_color = a_color;
-  // v_color.a *= bias;
-
-  // Pass the texture coordinates:
-  // NOTE: multiply a_texture by a constant and you get a pattern
-  v_texture = a_texture;
-}
-`;
-
-const FRAGMENT_SHADER_SOURCE = /*glsl*/ `
-precision mediump float;
-
-// varying vec4 v_color;
-varying float v_border;
-varying vec4 v_texture;
-
-uniform sampler2D u_atlas;
-uniform float u_keepWithinCircle;
-
-const float radius = 0.5;
-
-void main(void) {
-  vec4 texel = texture2D(u_atlas, v_texture.xy + gl_PointCoord * v_texture.zw, -1.0);
-  // vec4 color = mix(gl_FragColor, v_color, texel.a - 1.0);
-  vec4 color = texel;
-
-  vec2 m = gl_PointCoord - vec2(0.5, 0.5);
-  float dist = length(m) * u_keepWithinCircle;
-
-  if (dist < radius - v_border) {
-    gl_FragColor = color;
-  }
-}
-`;
 
 // maximum size of single texture in atlas
 const MAX_TEXTURE_SIZE = Infinity;
@@ -422,14 +358,14 @@ export default function createNodePictogramProgram(
     getDefinition() {
       return {
         VERTICES: 1,
-        ARRAY_ITEMS_PER_VERTEX: 7,
-        VERTEX_SHADER_SOURCE,
-        FRAGMENT_SHADER_SOURCE,
+        ARRAY_ITEMS_PER_VERTEX: 8,
+        VERTEX_SHADER_SOURCE: vertexShaderSource,
+        FRAGMENT_SHADER_SOURCE: fragmentShaderSource,
         UNIFORMS,
         ATTRIBUTES: [
           { name: "a_position", size: 2, type: FLOAT },
           { name: "a_size", size: 1, type: FLOAT },
-          // { name: "a_color", size: 4, type: UNSIGNED_BYTE, normalized: true },
+          { name: "a_color", size: 4, type: UNSIGNED_BYTE, normalized: true },
           { name: "a_texture", size: 4, type: FLOAT },
         ],
       };
@@ -478,7 +414,7 @@ export default function createNodePictogramProgram(
       array[i++] = data.x;
       array[i++] = data.y;
       array[i++] = data.size;
-      // array[i++] = floatColor(data.pictogramColor || "black");
+      array[i++] = floatColor(data.pictogramColor || "black");
 
       // Reference texture:
       if (imageState && imageState.status === "ready") {

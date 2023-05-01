@@ -14,20 +14,16 @@ public record Edge
 
     public string Dst { get; init; } = Const.Invalid;
 
-    public string? Label { get; init; }
-
-    public ImmutableDictionary<string, string> Properties { get; init; }
-        = ImmutableDictionary<string, string>.Empty;
+    public ImmutableDictionary<string, object?> Properties { get; init; }
+        = ImmutableDictionary<string, object?>.Empty;
 
     public Edge(
         string src,
         string dst,
-        string? label = null,
-        ImmutableDictionary<string, string>? properties = null)
+        ImmutableDictionary<string, object?>? properties = null)
     {
         Src = src;
         Dst = dst;
-        Label = label;
 
         if (properties is not null)
         {

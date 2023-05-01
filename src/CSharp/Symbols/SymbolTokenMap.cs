@@ -1,5 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -12,40 +14,45 @@ namespace Helveg.CSharp.Symbols;
 
 internal class SymbolTokenMap
 {
-    private int assemblyCounter = 0;
+    private readonly ConcurrentDictionary<AssemblyId, (Compilation, SymbolTokenGenerator)> assemblyMap = new();
+    private readonly ILogger logger;
 
-    private readonly ConcurrentDictionary<AssemblyId, (Compilation, SymbolTokenGenerator)> assemblyMap
-        = new();
+    private int assemblyCounter = 0;
 
     public IEnumerable<AssemblyId> TrackedAssemblies => assemblyMap.Keys;
 
     public ConcurrentDictionary<ISymbol, NumericToken> Tokens { get; }
         = new(SymbolEqualityComparer.Default);
 
-    //public void Track(Compilation compilation)
-    //{
-    //    assemblyMap.GetOrAdd(
-    //        compilation.Assembly.GetHelvegAssemblyId(),
-    //        _ => (compilation, new SymbolTokenGenerator(Interlocked.Increment(ref assemblyCounter).ToString())));
-
-    //    foreach (var reference in compilation.References)
-    //    {
-    //        var referencedSymbol = compilation.GetAssemblyOrModuleSymbol(reference);
-    //        if (referencedSymbol is not null && referencedSymbol is IAssemblySymbol referencedAssembly)
-    //        {
-    //            assemblyMap.GetOrAdd(
-    //                referencedAssembly.GetHelvegAssemblyId(),
-    //                _ => (compilation, new SymbolTokenGenerator(Interlocked.Increment(ref assemblyCounter).ToString())));
-    //        }
-    //    }
-    //}
-
-    public void Track(AssemblyId assemblyId, NumericToken parentToken, Compilation relatedCompilation)
+    public SymbolTokenMap(ILogger? logger = null)
     {
-        assemblyMap.GetOrAdd(assemblyId, _ => (
-            relatedCompilation,
-            new SymbolTokenGenerator(parentToken.Derive(Interlocked.Increment(ref assemblyCounter)))
-        ));
+        this.logger = logger ?? NullLogger.Instance;
+    }
+
+    public void TrackAndVisit(IAssemblySymbol assemblySymbol, NumericToken parentToken, Compilation relatedCompilation)
+    {
+        var id = AssemblyId.Create(assemblySymbol);
+        if (Track(id, parentToken, relatedCompilation))
+        {
+            new ActionSymbolVisitor(s => GetOrAdd(s)).Visit(assemblySymbol);
+        }
+    }
+
+    public void TrackAndVisit(PortableExecutableReference reference, NumericToken parentToken, Compilation relatedCompilation)
+    {
+        var symbol = relatedCompilation.GetAssemblyOrModuleSymbol(reference);
+        if (symbol is not IAssemblySymbol assemblySymbol)
+        {
+            logger.LogError("Reference '{}' cannot be tracked since no corresponding assembly " +
+                "symbol could be obtained from the provided Compilation.", reference.Display);
+            return;
+        }
+
+        var id = AssemblyId.Create(assemblySymbol, reference);
+        if (Track(id, parentToken, relatedCompilation))
+        {
+            new ActionSymbolVisitor(s => GetOrAdd(s)).Visit(assemblySymbol);
+        }
     }
 
     public NumericToken GetOrAdd(ISymbol symbol)
@@ -91,5 +98,20 @@ internal class SymbolTokenMap
     public Compilation? GetCompilation(AssemblyId assemblyId)
     {
         return assemblyMap.GetValueOrDefault(assemblyId).Item1;
+
+    }
+
+    private bool Track(AssemblyId assemblyId, NumericToken parentToken, Compilation relatedCompilation)
+    {
+        var hasAdded = false;
+        assemblyMap.GetOrAdd(assemblyId, _ => {
+            hasAdded = true;
+            logger.LogDebug("Tracking '{}'.", assemblyId.ToDisplayString());
+            return (
+                relatedCompilation,
+                new SymbolTokenGenerator(parentToken.Derive(Interlocked.Increment(ref assemblyCounter)))
+            );
+        });
+        return hasAdded;
     }
 }

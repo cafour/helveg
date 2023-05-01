@@ -1,3 +1,5 @@
+<img src="./helveg.png" width="128px" />
+
 # Helveg
 
 <a href="https://nuget.org">

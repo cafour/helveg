@@ -1,168 +1,528 @@
-import { LineStyle, Outline, StaticGlyphStyle } from "./glyph";
-import type { VisualizationPlugin, VisualizationPluginContext } from "./plugin";
+import type { HelvegOptions } from "model/options";
+import { expandNode, findRoots, type HelvegGraph } from "./graph";
+import { DiagnosticSeverity, type Edge, type Node, type NodeProperties } from "./multigraph";
+import type { HelvegPlugin } from "./plugin";
+import { bfs } from "./traversal";
+import type { VisualizationModel } from "./visualization";
+import { FireStatus, OutlineStyle, type NodeStyle, type NodeStyleGenerator, type EdgeStyleGenerator, type EdgeStyle, FALLBACK_EDGE_STYLE } from "./style";
 
-export default class CSharpPlugin implements VisualizationPlugin {
+export enum EntityKind {
+    Solution = "Solution",
+    Project = "Project",
+    ExternalDependencySource = "ExternalDependencySource",
+    Framework = "Framework",
+    PackageRepository = "PackageRepository",
+    Package = "Package",
+    Library = "Library",
+    Assembly = "Assembly",
+    Module = "Module",
+    Namespace = "Namespace",
+    Type = "Type",
+    Field = "Field",
+    Property = "Property",
+    Event = "Event",
+    Method = "Method",
+    TypeParameter = "TypeParameter",
+    Parameter = "Parameter"
+}
+
+export enum DefaultEntityKindIcons {
+    Solution = "csharp:Solution",
+    Project = "csharp:CSProjectNode",
+    ExternalDependencySource = "csharp:ReferenceGroup",
+    Framework = "csharp:Framework",
+    PackageRepository = "csharp:NuGet",
+    Package = "csharp:Package",
+    Library = "csharp:Library",
+    Assembly = "csharp:Assembly",
+    Module = "csharp:Module",
+    Namespace = "csharp:Namespace",
+    Type = "csharp:Class",
+    TypeParameter = "csharp:Type",
+    Field = "csharp:Field",
+    Method = "csharp:Method",
+    Property = "csharp:Property",
+    Event = "csharp:Event",
+    Parameter = "csharp:LocalVariable",
+}
+
+export enum Relations {
+    Declares = "declares",
+    InheritsFrom = "inheritsFrom",
+    TypeOf = "typeOf",
+    Returns = "returns",
+    Overrides = "overrides",
+    AssociatedWith = "associatedWith",
+    DependsOn = "dependsOn"
+}
+
+export enum DefaultRelationColors {
+    Declares = "#dfdfdf",
+    InheritsFrom = "#c3e5de",
+    TypeOf = "#dcdcaa",
+    Returns = "#d1c3e5",
+    Overrides = "#e5c3c8",
+    AssociatedWith = "#e5ccb7",
+    DependsOn = "#c3d6e5",
+}
+
+enum MemberAccessibility {
+    Invalid = "Invalid",
+    Private = "Private",
+    ProtectedAndInternal = "ProtectedAndInternal",
+    Protected = "Protected",
+    Internal = "Internal",
+    ProtectedOrInternal = "ProtectedOrInternal",
+    Public = "Public"
+}
+
+enum TypeKind {
+    Unknown = "Unknown",
+    Array = "Array",
+    Class = "Class",
+    Delegate = "Delegate",
+    Dynamic = "Dynamic",
+    Enum = "Enum",
+    Error = "Error",
+    Interface = "Interface",
+    Module = "Module",
+    Pointer = "Pointer",
+    Struct = "Struct",
+    TypeParameter = "TypeParameter",
+    Submission = "Submission",
+    FunctionPointer = "FunctionPointer"
+}
+
+enum MethodKind {
+    Invalid = "Invalid",
+    AnonymousFunction = "AnonymousFunction",
+    Constructor = "Constructor",
+    Conversion = "Conversion",
+    DelegateInvoke = "DelegateInvoke",
+    Destructor = "Destructor",
+    EventAdd = "EventAdd",
+    EventRaise = "EventRaise",
+    EventRemove = "EventRemove",
+    ExplicitInterfaceImplementation = "ExplicitInterfaceImplementation",
+    UserDefinedOperator = "UserDefinedOperator",
+    Ordinary = "Ordinary",
+    PropertyGet = "PropertyGet",
+    PropertySet = "PropertySet",
+    ReducedExtension = "ReducedExtension",
+    StaticConstructor = "StaticConstructor",
+    BuiltinOperator = "BuiltinOperator",
+    DeclareMethod = "DeclareMethod",
+    LocalFunction = "LocalFunction",
+    FunctionPointerSignature = "FunctionPointerSignature"
+}
+
+enum VSColor {
+    DarkGray = "#212121",
+    DarkPurple = "#68217a",
+    Purple = "#6936aa",
+    DarkYellow = "#996f00",
+    Blue = "#005dba",
+    NuGetBlue = "#004880"
+}
+
+export interface CSharpNodeProperties extends NodeProperties {
+    Kind: EntityKind,
+    TypeKind?: TypeKind,
+    Accessibility?: MemberAccessibility,
+    MethodKind?: MethodKind,
+    IsConst?: boolean,
+    IsEnumItem?: boolean,
+    DeclaringKind?: EntityKind,
+    InstanceMemberCount?: number,
+    StaticMemberCount?: number,
+    IsStatic?: boolean
+}
+
+const FALLBACK_STYLE: NodeStyle = {
+    icon: "csharp:ExplodedDoughnutChart",
+    color: VSColor.DarkGray,
+    size: 5,
+    outlines: [],
+    fire: FireStatus.None
+};
+
+export interface CSharpDataOptions {
+    includedKinds: string[];
+    autoExpandedKinds: string[];
+}
+
+const DEFAULT_CSHARP_DATA_OPTIONS: CSharpDataOptions = {
+    includedKinds: [],
+    autoExpandedKinds: []
+}
+
+declare module "model/options" {
+    export interface DataOptions {
+        csharp: CSharpDataOptions;
+    }
+}
+
+export default function csharp(options: HelvegOptions): CSharpPlugin {
+    return new CSharpPlugin(options);
+}
+
+export class CSharpPlugin implements HelvegPlugin {
     name: string = "csharp";
+    csharpDataOptions: CSharpDataOptions = { ...DEFAULT_CSHARP_DATA_OPTIONS };
+    nodeStyles: Map<string, NodeStyleGenerator> = new Map();
+    edgeStyles: Map<string, EdgeStyleGenerator> = new Map();
 
-    setup(context: VisualizationPluginContext): void {
-        context.glyphOptions.styles["csharp:Solution"] = new StaticGlyphStyle({
-            icon: "csharp:Solution",
-            size: 9,
-            color: "#ac162c",
-            outlines: [new Outline(LineStyle.Solid, "#ac162c", 1)]
-        });
-        context.dataOptions.defaultIcons["csharp:Solution"] = "csharp:Solution";
-        context.dataOptions.kinds.push("csharp:Solution");
+    constructor(options: HelvegOptions) {
+        let plugin = this;
+        this.nodeStyles.set("Entity", (node: Node) => {
+            let props = node.properties as CSharpNodeProperties;
+            if (!(Object.values(EntityKind).includes(props.Kind))) {
+                return FALLBACK_STYLE;
+            }
 
-        context.glyphOptions.styles["csharp:Project"] = new StaticGlyphStyle({
-            icon: "csharp:CSProjectNode",
-            size: 8,
-            color: "#57a64a",
-            outlines: [new Outline(LineStyle.Solid, "#57a64a", 1)]
+            let base = plugin.resolveNodeStyle(props);
+            let fire = !props.Diagnostics ? FireStatus.None
+                : props.Diagnostics.filter(d => d.severity === DiagnosticSeverity.Error).length > 0
+                    ? FireStatus.Flame
+                    : props.Diagnostics.filter(d => d.severity === DiagnosticSeverity.Warning).length > 0
+                        ? FireStatus.Smoke
+                        : FireStatus.None;
+            return {
+                ...FALLBACK_STYLE,
+                ...base,
+                fire
+            };
         });
-        context.dataOptions.defaultIcons["csharp:Project"] = "csharp:CSProjectNode";
-        context.dataOptions.kinds.push("csharp:Project");
+        this.edgeStyles.set("Relation", o => this.resolveEdgeStyle(o));
 
-        context.glyphOptions.styles["csharp:ExternalDependencySource"] = new StaticGlyphStyle({
-            icon: "csharp:ReferenceGroup",
-            size: 8,
-            color: "#002440",
-            outlines: [new Outline(LineStyle.Solid, "#002440", 1)]
-        });
-        context.dataOptions.defaultIcons["csharp:ExternalDependencySource"] = "csharp:ReferenceGroup";
-        context.dataOptions.kinds.push("csharp:ExternalDependencySource");
+        options.layout.tidyTree.relation ??= Relations.Declares;
+        options.tool.cuttingRelation ??= Relations.Declares;
+        options.tool.collapsingRelation ??= Relations.Declares;
+        options.data.selectedRelations.push(Relations.Declares);
+        options.data.csharp = this.csharpDataOptions;
 
-        context.glyphOptions.styles["csharp:Framework"] = new StaticGlyphStyle({
-            icon: "csharp:Framework",
-            size: 8,
-            color: "#002440",
-            outlines: [new Outline(LineStyle.Solid, "#002440", 1)]
-        });
-        context.dataOptions.defaultIcons["csharp:Framework"] = "csharp:Framework";
-        context.dataOptions.kinds.push("csharp:Framework");
+        this.csharpDataOptions.includedKinds.push(
+            EntityKind.Solution,
+            EntityKind.Project,
+            EntityKind.Framework,
+            EntityKind.ExternalDependencySource,
+            EntityKind.PackageRepository,
+            EntityKind.Library,
+            EntityKind.Namespace,
+            EntityKind.Type,
+            EntityKind.Field,
+            EntityKind.Method,
+            EntityKind.Property,
+            EntityKind.Event);
 
-        context.glyphOptions.styles["csharp:Package"] = new StaticGlyphStyle({
-            icon: "csharp:Package",
-            size: 7,
-            color: "#002440",
-            outlines: [new Outline(LineStyle.Solid, "#002440", 1)]
-        });
-        context.dataOptions.defaultIcons["csharp:Package"] = "csharp:Package";
-        context.dataOptions.kinds.push("csharp:Package");
-
-        context.glyphOptions.styles["csharp:AssemblyDependency"] = new StaticGlyphStyle({
-            icon: "csharp:Reference",
-            size: 7,
-            color: "#002440",
-            outlines: [new Outline(LineStyle.Solid, "#002440", 1)]
-        });
-        context.dataOptions.defaultIcons["csharp:AssemblyDependency"] = "csharp:Reference";
-        context.dataOptions.kinds.push("csharp:AssemblyDependency");
-        
-        context.glyphOptions.styles["csharp:AssemblyDefinition"] = new StaticGlyphStyle({
-            icon: "csharp:Assembly",
-            size: 6,
-            color: "#002440",
-            outlines: [new Outline(LineStyle.Solid, "#002440", 1)]
-        });
-        context.dataOptions.defaultIcons["csharp:AssemblyDefinition"] = "csharp:Assembly";
-        context.dataOptions.kinds.push("csharp:AssemblyDefinition");
-
-        context.glyphOptions.styles["csharp:ModuleDefinition"] = new StaticGlyphStyle({
-            icon: "csharp:Module",
-            size: 6,
-            color: "#57a64a",
-            outlines: [new Outline(LineStyle.Solid, "#57a64a", 1)]
-        });
-        context.dataOptions.defaultIcons["csharp:ModuleDefinition"] = "csharp:Module";
-        context.dataOptions.kinds.push("csharp:ModuleDefinition");
-
-        context.glyphOptions.styles["csharp:NamespaceDefinition"] = new StaticGlyphStyle({
-            icon: "csharp:Namespace",
-            size: 5,
-            color: "#dcdcdc",
-            outlines: [new Outline(LineStyle.Solid, "#dcdcdc", 1)]
-        });
-        context.dataOptions.defaultIcons["csharp:NamespaceDefinition"] = "csharp:Namespace";
-        context.dataOptions.kinds.push("csharp:NamespaceDefinition");
-
-        context.glyphOptions.styles["csharp:TypeDefinition"] = new StaticGlyphStyle({
-            icon: "csharp:Class",
-            size: 4,
-            color: "#4ec9b0",
-            outlines: [new Outline(LineStyle.Solid, "#4ec9b0", 1)]
-        });
-        context.dataOptions.defaultIcons["csharp:TypeDefinition"] = "csharp:Class";
-        context.dataOptions.kinds.push("csharp:TypeDefinition");
-
-        context.glyphOptions.styles["csharp:TypeParameterDefinition"] = new StaticGlyphStyle({
-            icon: "csharp:Type",
-            size: 2,
-            color: "#4ec9b0",
-            outlines: [new Outline(LineStyle.Solid, "#4ec9b0", 1)]
-        });
-        context.dataOptions.defaultIcons["csharp:TypeParameterDefinition"] = "csharp:Type";
-        context.dataOptions.kinds.push("csharp:TypeParameterDefinition");
-
-        context.glyphOptions.styles["csharp:FieldDefinition"] = new StaticGlyphStyle({
-            icon: "csharp:Field",
-            size: 3,
-            color: "#dcdcaa",
-            outlines: [new Outline(LineStyle.Solid, "#dcdcaa", 1)]
-        });
-        context.dataOptions.defaultIcons["csharp:FieldDefinition"] = "csharp:Field";
-        context.dataOptions.kinds.push("csharp:FieldDefinition");
-
-        context.glyphOptions.styles["csharp:MethodDefinition"] = new StaticGlyphStyle({
-            icon: "csharp:Method",
-            size: 3,
-            color: "#dcdcaa",
-            outlines: [new Outline(LineStyle.Solid, "#dcdcaa", 1)]
-        });
-        context.dataOptions.defaultIcons["csharp:MethodDefinition"] = "csharp:Method";
-        context.dataOptions.kinds.push("csharp:MethodDefinition");
-
-        context.glyphOptions.styles["csharp:PropertyDefinition"] = new StaticGlyphStyle({
-            icon: "csharp:Property",
-            size: 3,
-            color: "#dcdcaa",
-            outlines: [new Outline(LineStyle.Solid, "#dcdcaa", 1)]
-        });
-        context.dataOptions.defaultIcons["csharp:PropertyDefinition"] = "csharp:Property";
-        context.dataOptions.kinds.push("csharp:PropertyDefinition");
-
-        context.glyphOptions.styles["csharp:EventDefinition"] = new StaticGlyphStyle({
-            icon: "csharp:Event",
-            size: 3,
-            color: "#dcdcaa",
-            outlines: [new Outline(LineStyle.Solid, "#dcdcaa", 1)]
-        });
-        context.dataOptions.defaultIcons["csharp:EventDefinition"] = "csharp:Event";
-        context.dataOptions.kinds.push("csharp:EventDefinition");
-
-        context.glyphOptions.styles["csharp:ParameterDefinition"] = new StaticGlyphStyle({
-            icon: "csharp:LocalVariable",
-            size: 2,
-            color: "#9cdcfe",
-            outlines: [new Outline(LineStyle.Solid, "#9cdcfe", 1)]
-        });
-        context.dataOptions.defaultIcons["csharp:ParameterDefinition"] = "csharp:LocalVariable";
-        context.dataOptions.kinds.push("csharp:ParameterDefinition");
-        
-        context.dataOptions.selectedKinds.push(
-            "csharp:Solution",
-            "csharp:Project",
-            "csharp:Framework",
-            "csharp:ExternalDependencySource",
-            "csharp:Package",
-            "csharp:AssemblyDependency",
-            "csharp:NamespaceDefinition",
-            "csharp:TypeDefinition",
-            "csharp:TypeParameterDefinition",
-            "csharp:FieldDefinition",
-            "csharp:MethodDefinition",
-            "csharp:PropertyDefinition",
-            "csharp:EventDefinition");
+        this.csharpDataOptions.autoExpandedKinds.push(
+            EntityKind.Solution,
+            EntityKind.Project,
+            EntityKind.Namespace
+        );
     }
 
+    onVisualize(model: Readonly<VisualizationModel>, graph: HelvegGraph): void {
+
+        let includedNodes = new Set<string>();
+        let excludedNodes = new Set<string>();
+
+        // 1. split nodes into included and excluded
+        Object.entries(model.multigraph.nodes)
+            .forEach(([id, node]) => {
+                if (this.csharpDataOptions.includedKinds.includes(node.properties.Kind)) {
+                    includedNodes.add(id);
+                }
+                else {
+                    excludedNodes.add(id);
+                }
+            });
+
+        // 2. drop nodes that are not included but add transitive "declares" edges to keep the tree connected
+        includedNodes.forEach(id => {
+            // 2.1. find nodes that are reachable from the current node, stop at included nodes
+            let reachableNodes = bfs(graph, id, {
+                relation: Relations.Declares,
+                callback: n => n === id || !includedNodes.has(n)
+            });
+
+            // 2.2 add the transitive edges and remove the unincluded nodes
+            reachableNodes.forEach(child => {
+                if (child === id) {
+                    // obviously, the node doesn't declare itself
+                    return;
+                }
+
+                if (includedNodes.has(child)) {
+                    let edgeKey = `declares;${id};${child}`;
+                    if (!graph.hasEdge(edgeKey)) {
+                        graph.addDirectedEdgeWithKey(edgeKey, id, child, {
+                            relation: Relations.Declares,
+                            style: "csharp:Relation",
+                            type: "arrow"
+                        });
+                    }
+                }
+                else {
+                    graph.dropNode(child);
+                }
+            });
+        });
+
+        // 3. drop all remaining unincluded nodes (they should only exist if they were roots to begin with)
+        excludedNodes.forEach(id => graph.hasNode(id) && graph.dropNode(id));
+
+        // 4. collapse all nodes
+        graph.forEachNode((node, attr) => {
+            attr.collapsed = true;
+            attr.hidden = true;
+        });
+
+        // 5. expand nodes that are auto-expanded, stop at first non-auto-expanded node
+        let roots = findRoots(graph, Relations.Declares);
+        for (let root of roots) {
+            graph.setNodeAttribute(root, "hidden", false);
+            bfs(graph, root, {
+                relation: Relations.Declares,
+                callback: n => {
+                    let kind = model.multigraph.nodes[n].properties.Kind;
+                    if (this.csharpDataOptions.autoExpandedKinds.includes(kind)) {
+                        expandNode(graph, n, false, Relations.Declares);
+                    }
+                }
+            })
+        }
+    }
+
+    private resolveNodeStyle(props: CSharpNodeProperties): Partial<NodeStyle> {
+        let base: Partial<NodeStyle> = {};
+        switch (props.Kind) {
+            case EntityKind.Solution:
+                return {
+                    icon: "csharp:Solution",
+                    size: 55,
+                    color: VSColor.DarkPurple,
+                    outlines: []
+                };
+            case EntityKind.Project:
+                return {
+                    icon: "csharp:CSProjectNode",
+                    size: 45,
+                    color: VSColor.DarkGray,
+                    outlines: []
+                };
+            case EntityKind.Framework:
+                return {
+                    icon: "csharp:Framework",
+                    size: 50,
+                    color: VSColor.DarkGray,
+                    outlines: []
+                };
+            case EntityKind.ExternalDependencySource:
+                return {
+                    icon: "csharp:ReferenceGroup",
+                    size: 50,
+                    color: VSColor.DarkGray,
+                    outlines: []
+                };
+            case EntityKind.PackageRepository:
+                return {
+                    icon: "csharp:NuGet",
+                    size: 50,
+                    color: VSColor.NuGetBlue,
+                    outlines: []
+                };
+            case EntityKind.Package:
+                return {
+                    icon: "csharp:Package",
+                    size: 45,
+                    color: VSColor.DarkGray,
+                    outlines: []
+                };
+            case EntityKind.Library:
+                return {
+                    icon: "csharp:Library",
+                    size: 40,
+                    color: VSColor.DarkGray,
+                    outlines: []
+                };
+            case EntityKind.Assembly:
+                return {
+                    icon: "csharp:Assembly",
+                    size: 40,
+                    color: VSColor.DarkGray,
+                    outlines: []
+                };
+            case EntityKind.Module:
+                return {
+                    icon: "csharp:Module",
+                    size: 35,
+                    color: VSColor.Purple,
+                    outlines: []
+                };
+            case EntityKind.Namespace:
+                return {
+                    icon: "csharp:Namespace",
+                    size: 30,
+                    color: VSColor.DarkGray,
+                    outlines: []
+                };
+            case EntityKind.Type:
+                base.size = 15;
+                base.fire = FireStatus.Flame;
+                switch (props.TypeKind) {
+                    case TypeKind.Class:
+                        base.icon = "csharp:Class";
+                        base.color = VSColor.DarkYellow;
+                        break;
+                    case TypeKind.Interface:
+                        base.icon = "csharp:Interface";
+                        base.color = VSColor.Blue;
+                        break;
+                    case TypeKind.Enum:
+                        base.icon = "csharp:Enumeration";
+                        base.color = VSColor.DarkYellow;
+                        break;
+                    case TypeKind.Struct:
+                        base.icon = "csharp:Structure";
+                        base.color = VSColor.Blue;
+                        break;
+                    case TypeKind.Delegate:
+                        base.icon = "csharp:Delegate";
+                        base.color = VSColor.Purple;
+                        break;
+                    default:
+                        base.icon = "csharp:Type";
+                        base.color = VSColor.Blue;
+                        break;
+                }
+                let instanceCount = props.InstanceMemberCount ?? 0;
+                let staticCount = props.StaticMemberCount ?? 0;
+                base.outlines = [
+                    { style: props.IsStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 2 },
+                    { style: OutlineStyle.Solid, width: instanceCount },
+                    { style: OutlineStyle.Dashed, width: staticCount }
+                ];
+                break;
+            case EntityKind.TypeParameter:
+                return {
+                    icon: "csharp:Type",
+                    size: props.DeclaringKind === EntityKind.Method ? 5 : 10,
+                    color: VSColor.Blue,
+                    outlines: []
+                };
+            case EntityKind.Field:
+                if (props.IsEnumItem) {
+                    return {
+                        icon: "csharp:EnumerationItem",
+                        size: 10,
+                        color: VSColor.Blue
+                    }
+                }
+
+                base.outlines = [{ style: props.IsStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 2 }];
+                base.size = 10;
+                if (props.IsConst) {
+                    base.icon = "csharp:Constant";
+                    base.color = VSColor.DarkGray;
+                } else {
+                    base.icon = "csharp:Field";
+                    base.color = VSColor.Blue;
+                }
+                break;
+            case EntityKind.Method:
+                if (props.MethodKind === MethodKind.BuiltinOperator
+                    || props.MethodKind === MethodKind.UserDefinedOperator) {
+                    base.icon = "csharp:Operator";
+                    base.color = VSColor.Blue;
+                }
+                else {
+                    base.icon = "csharp:Method";
+                    base.color = VSColor.Purple;
+                }
+
+                base.size = 10;
+                base.outlines = [{ style: props.IsStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 2 }];
+                base.fire = FireStatus.Smoke;
+                break;
+            case EntityKind.Property:
+                base.icon = "csharp:Property";
+                base.size = 10;
+                base.color = VSColor.DarkGray;
+                base.outlines = [{ style: props.IsStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 2 }];
+                break;
+            case EntityKind.Event:
+                base.icon = "csharp:Event";
+                base.size = 10;
+                base.color = VSColor.DarkYellow;
+                base.outlines = [{ style: props.IsStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 2 }];
+                break;
+            case EntityKind.Parameter:
+                return {
+                    icon: "csharp:LocalVariable",
+                    color: VSColor.Blue,
+                    size: 5,
+                    outlines: []
+                };
+            default:
+                return {
+                    icon: "csharp:ExplodedDoughnutChart",
+                    size: 5,
+                    color: VSColor.DarkGray,
+                    outlines: []
+                };
+        }
+
+        switch (props.Accessibility) {
+            case MemberAccessibility.Internal:
+                base.icon += "Internal";
+                break;
+            case MemberAccessibility.Private:
+                base.icon += "Private";
+                break;
+            case MemberAccessibility.Protected:
+            case MemberAccessibility.ProtectedAndInternal:
+            case MemberAccessibility.ProtectedOrInternal:
+                base.icon += "Protected";
+                break;
+        }
+        return base;
+    }
+
+    private resolveEdgeStyle(object: { relation: string, edge: Edge }): EdgeStyle {
+        switch (object.relation) {
+            case Relations.Declares:
+                return {
+                    color: DefaultRelationColors.Declares,
+                    width: 2
+                };
+            case Relations.InheritsFrom:
+                return {
+                    color: DefaultRelationColors.InheritsFrom,
+                    width: 4
+                };
+            case Relations.TypeOf:
+                return {
+                    color: DefaultRelationColors.TypeOf,
+                    width: 4
+                };
+            case Relations.Overrides:
+                return {
+                    color: DefaultRelationColors.Overrides,
+                    width: 4
+                };
+            case Relations.Returns:
+                return {
+                    color: DefaultRelationColors.Returns,
+                    width: 4
+                };
+            case Relations.DependsOn:
+                return {
+                    color: DefaultRelationColors.DependsOn,
+                    width: 6
+                };
+            default:
+                return FALLBACK_EDGE_STYLE;
+        }
+    }
 }

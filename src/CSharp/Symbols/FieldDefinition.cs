@@ -24,6 +24,8 @@ public record FieldDefinition : MemberDefinition
 
     public bool IsRequired { get; init; }
 
+    public bool IsEnumItem { get; init; }
+
     public RefKind RefKind { get; init; }
 
     public FieldReference Reference => new() { Token = Token, Hint = Name };

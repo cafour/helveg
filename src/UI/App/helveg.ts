@@ -1,9 +1,5 @@
-import "./styles/helveg.scss";
-import App from "./components/App.svelte";
+import csharp from "model/csharpPlugin";
+import { initializeGlobal } from "model/global";
+import "styles/helveg.scss";
 
-const app = new App({
-    target: document.getElementById("app")!,
-    hydrate: false
-});
-
-export default app;
+initializeGlobal([csharp]);

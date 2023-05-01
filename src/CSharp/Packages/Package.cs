@@ -1,10 +1,16 @@
 using System;
 using System.Collections.Immutable;
+using System.Text.Json.Serialization;
 
 namespace Helveg.CSharp.Packages;
 
 public record Package : EntityBase
 {
+    [JsonIgnore]
+    public NumericToken Token { get; init; }
+
+    public override string Id { get => Token; init => Token = NumericToken.Parse(value); }
+
     public string Name { get; init; } = Const.Invalid;
 
     public ImmutableArray<string> Versions { get; init; }
@@ -25,11 +31,4 @@ public record Package : EntityBase
 
         base.Accept(visitor);
     }
-}
-
-public record PackageReference
-{
-    public string Id { get; init; } = Const.Invalid;
-
-    public string? Version { get; init; }
 }

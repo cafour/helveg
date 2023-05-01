@@ -13,11 +13,16 @@ using System.Diagnostics;
 
 namespace Helveg;
 
+public class BriefConsoleFormatterOptions : ConsoleFormatterOptions
+{
+    public bool IncludeStacktraces { get; set; }
+}
+
 public class BriefConsoleFormatter : ConsoleFormatter
 {
-    private readonly IOptionsMonitor<ConsoleFormatterOptions> options;
+    private readonly IOptionsMonitor<BriefConsoleFormatterOptions> options;
 
-    public BriefConsoleFormatter(IOptionsMonitor<ConsoleFormatterOptions> options) : base("brief")
+    public BriefConsoleFormatter(IOptionsMonitor<BriefConsoleFormatterOptions> options) : base("brief")
     {
         this.options = options;
     }
@@ -48,17 +53,32 @@ public class BriefConsoleFormatter : ConsoleFormatter
             _ => ""
         };
 
-        string? time = null;
+        var sb = new StringBuilder();
         if (options.CurrentValue.TimestampFormat is not null)
         {
-            time = $"[{(options.CurrentValue.UseUtcTimestamp ? DateTimeOffset.UtcNow : DateTimeOffset.Now)
+            var time = $"[{(options.CurrentValue.UseUtcTimestamp ? DateTimeOffset.UtcNow : DateTimeOffset.Now)
                 .ToString(options.CurrentValue.TimestampFormat)}] ";
+            sb.Append(time);
         }
+
+        sb.Append($"{levelColor}{logLevelName}{Ansi.Color.Background.Default}{Ansi.Color.Foreground.Default}: ");
+
+        if (!string.IsNullOrEmpty(category))
+        {
+            sb.Append($"{Ansi.Color.Foreground.DarkGray}{category}{Ansi.Color.Foreground.Default}: ");
+        }
+
         var message = logEntry.Formatter?.Invoke(logEntry.State, logEntry.Exception);
-        textWriter.WriteLine(
-            $"{time}{levelColor}{logLevelName}{Ansi.Color.Background.Default}{Ansi.Color.Foreground.Default}: " +
-            $"{Ansi.Color.Foreground.DarkGray}{category}{Ansi.Color.Foreground.Default}: {message}");
-        if (logEntry.Exception is not null)
+        if (string.IsNullOrEmpty(message) && logEntry.Exception is not null)
+        {
+            message = logEntry.Exception.Message;
+        }
+
+        sb.Append(message);
+
+        textWriter.WriteLine(sb.ToString());
+
+        if (logEntry.Exception is not null && options.CurrentValue.IncludeStacktraces)
         {
             textWriter.WriteLine($"{Ansi.Color.Foreground.DarkGray}{logEntry.Exception.Demystify()}{Ansi.Color.Foreground.Default}");
         }

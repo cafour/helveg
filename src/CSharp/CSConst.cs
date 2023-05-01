@@ -13,21 +13,9 @@ namespace Helveg.CSharp;
 public static class CSConst
 {
     public const string CSharpNamespace = "csharp";
-
-    public const string DeclaresId = "declares";
-    public const string DeclaresLabel = "Declares";
-
-    public const string InheritsFromId = "inheritsFrom";
-    public const string InheritsFromLabel = "Inherits from";
-
-    public const string ComposedOfId = "composedOf";
-    public const string ComposedOfLabel = "Composed of";
-
-    public const string TypeOfId = "typeOf";
-    public const string TypeOfLabel = "Type of";
-
-    public const string ReturnsId = "returns";
-    public const string ReturnsLabel = "Returns";
+    
+    public const string NodeStyle = "csharp:Entity";
+    public const string RelationStyle = "csharp:Relation";
 
     public const string SolutionFileExtension = ".sln";
     public const string ProjectFileExtension = ".csproj";
@@ -37,6 +25,10 @@ public static class CSConst
     public const string TargetFrameworksProperty = "TargetFrameworks";
     public const string RestoreTarget = "Restore";
     public const string ResolveReferencesTarget = "ResolveReferences";
+
+    public const string GlobalNamespaceName = "global";
+
+    public const string DefinitionSuffix = "Definition";
 
     public static readonly NumericToken InvalidToken = NumericToken.CreateInvalid(CSharpNamespace);
     public static readonly NumericToken NoneToken = NumericToken.CreateNone(CSharpNamespace);
@@ -49,6 +41,11 @@ public static class CSConst
 
     internal static string KindOf(Type type)
     {
-        return $"{CSharpNamespace}:{type.Name}";
+        var kind = type.Name;
+        if (kind.Length > DefinitionSuffix.Length && kind.EndsWith(DefinitionSuffix, StringComparison.Ordinal))
+        {
+            kind = kind[0..^(DefinitionSuffix.Length)];
+        }
+        return kind;
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace Helveg.CSharp.Packages;
@@ -12,7 +13,19 @@ public record PackageRepository : EntityBase
     public string? Name { get; init; }
 
     public ImmutableArray<Package> Packages { get; init; }
-        = new ImmutableArray<Package>();
+        = ImmutableArray<Package>.Empty;
+
+    [JsonIgnore]
+    public int Index { get; init; } = -1;
+
+    [JsonIgnore]
+    public NumericToken Token => NumericToken.Create(CSConst.CSharpNamespace, (int)RootKind.PackageRepository, Index);
+
+    public override string Id
+    {
+        get => Token;
+        init => Index = NumericToken.Parse(value, CSConst.CSharpNamespace, 3, (int)RootKind.PackageRepository).Values[^1];
+    }
 
     public override void Accept(IEntityVisitor visitor)
     {

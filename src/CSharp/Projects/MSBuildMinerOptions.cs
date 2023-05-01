@@ -8,4 +8,6 @@ public record MSBuildMinerOptions : MinerOptions
         = ImmutableDictionary<string, string>.Empty;
 
     public bool IncludeExternalDependencies { get; init; } = true;
+
+    public bool ShouldRestore { get; init; } = true;
 }

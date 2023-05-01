@@ -9,7 +9,8 @@ namespace Helveg.CommandLine;
 public enum AnalysisScope
 {
     None,
-    AssembliesOnly,
+    WithoutSymbols,
     PublicApi,
+    Explicit,
     All
 }
