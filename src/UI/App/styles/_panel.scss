@@ -136,4 +136,21 @@
             padding-right: 0.5rem;
         }
     }
+    
+    p:not(:last-of-type) {
+        margin-bottom: 0.25rem;
+    }
+    
+    ul {
+        list-style: outside;
+        list-style-position: inside;
+        
+        &:not(:last-child) {
+            margin-bottom: 0.5rem;
+        }
+        
+        li:not(:last-of-type) {
+            margin-bottom: 0.25rem;
+        }
+    }
 }

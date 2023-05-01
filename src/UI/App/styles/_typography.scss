@@ -11,7 +11,10 @@ select,
 td,
 th,
 span,
-strong {
+strong,
+p,
+ul,
+li {
     font-family: 'Segoe UI', sans-serif;
     line-height: 1.5;
     color: var(--font-color-base);

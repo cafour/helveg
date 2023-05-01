@@ -102,8 +102,8 @@ export class SigmaEffectsExtension {
 
         this.canvas.setAttribute("width", width * pixelRatio + "px");
         this.canvas.setAttribute("height", height * pixelRatio + "px");
-        this.canvas.style.width = width * pixelRatio + "px";
-        this.canvas.style.height = height * pixelRatio + "px";
+        this.canvas.style.width = width + "px";
+        this.canvas.style.height = height + "px";
         this.gl.viewport(0, 0, width * pixelRatio, height * pixelRatio);
     }
 
