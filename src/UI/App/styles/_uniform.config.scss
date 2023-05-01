@@ -7,11 +7,15 @@
       root,
       reset,
       margin,
+      margin-x,
+      margin-y,
       margin-top,
       margin-right,
       margin-bottom,
       margin-left,
       padding,
+      padding-x,
+      padding-y,
       padding-top,
       padding-right,
       padding-bottom,
@@ -45,6 +49,9 @@
       border-right-width,
       border-bottom-width,
       border-left-width,
+      grid,
+      grid-template-columns,
+      text-size
     )
   )
 );

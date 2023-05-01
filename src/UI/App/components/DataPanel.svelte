@@ -8,6 +8,7 @@
     import ResizingTextarea from "./ResizingTextarea.svelte";
     import { dataOptions, model } from "./App.svelte";
     import CSharpKindsSubpanel from "./CSharpKindsSubpanel.svelte";
+    import ToggleAllCheckbox from "./ToggleAllCheckbox.svelte";
 
     let dispatch = createEventDispatcher();
 
@@ -27,23 +28,10 @@
     ];
     let selectedSearchMode: SearchMode = SearchMode.Contains;
     let searchText: string = "";
-    let allCheckbox: HTMLInputElement;
 
     $: relations = $model
         ? Object.keys($model.multigraph.relations).sort()
         : [];
-    $: if (allCheckbox) {
-        allCheckbox.indeterminate = $dataOptions.selectedRelations.length > 0
-            && $dataOptions.selectedRelations.length < relations.length;
-    };
-
-    function toggleAllRelations() {
-        if ($dataOptions.selectedRelations.length > 0) {
-            $dataOptions.selectedRelations = [];
-        } else {
-            $dataOptions.selectedRelations = relations;
-        }
-    }
 </script>
 
 <Panel name="Data" indent={false}>
@@ -87,14 +75,13 @@
         </form>
     </Subpanel>
     <Subpanel name="Relations">
+        <!-- svelte-ignore a11y-label-has-associated-control -->
         <label>
-            <input
-                bind:this={allCheckbox}
-                type="checkbox"
-                on:click={toggleAllRelations}
-                checked={$dataOptions.selectedRelations.length > 0}
+            <ToggleAllCheckbox
+                bind:selected={$dataOptions.selectedRelations}
+                all={relations}
             />
-            all
+            <span>all</span>
         </label>
         {#each relations as relation}
             <label>
@@ -103,7 +90,7 @@
                     bind:group={$dataOptions.selectedRelations}
                     value={relation}
                 />
-                {relation}
+                <span>{relation}</span>
             </label>
         {/each}
     </Subpanel>

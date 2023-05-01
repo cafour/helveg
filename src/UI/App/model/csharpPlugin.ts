@@ -63,7 +63,7 @@ export enum DefaultRelationColors {
     Returns = "#d1c3e5",
     Overrides = "#e5c3c8",
     AssociatedWith = "#b7cee5",
-    DependsOn = "#c3a3cc",
+    DependsOn = "#c3d6e5",
 }
 
 enum MemberAccessibility {
@@ -519,7 +519,7 @@ export class CSharpPlugin implements HelvegPlugin {
             case Relations.DependsOn:
                 return {
                     color: DefaultRelationColors.DependsOn,
-                    width: 8
+                    width: 6
                 };
             default:
                 return FALLBACK_EDGE_STYLE;
