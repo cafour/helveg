@@ -138,7 +138,9 @@ public class VisualizationSymbolVisitor : SymbolVisitor
 
         builder.AddEdges(
             CSRelations.InheritsFrom,
-            type.Interfaces.Select(i => new Edge(type.Token, i.Token)),
+            type.Interfaces
+                .Where(i => i.Token.HasValue)
+                .Select(i => new Edge(type.Token, i.Token)),
             CSConst.RelationStyle);
 
         if (type.BaseType?.Token.HasValue == true)

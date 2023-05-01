@@ -21,18 +21,21 @@ public class RelationBuilder
             edges: Edges.ToImmutableDictionary(p => $"{Id};{p.Key}", p => p.Value));
     }
 
-    public RelationBuilder AddEdge(Edge edge)
+    public bool TryAddEdge(Edge edge)
     {
-        Edges.Add($"{edge.Src};{edge.Dst}", edge);
-        return this;
+        return Edges.TryAdd($"{edge.Src};{edge.Dst}", edge);
     }
 
-    public RelationBuilder AddEdges(IEnumerable<Edge> edges)
+    public int TryAddEdges(IEnumerable<Edge> edges)
     {
+        var count = 0;
         foreach(var edge in edges)
         {
-            AddEdge(edge);
+            if (TryAddEdge(edge))
+            {
+                count++;
+            }
         }
-        return this;
+        return count;
     }
 }

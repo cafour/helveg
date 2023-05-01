@@ -1,5 +1,6 @@
 param(
-    [string]$source=$null
+    [string]$source=$null,
+    [string]$framework="net6.0"
 )
 
 $appDir = "$PSScriptRoot"
@@ -27,4 +28,4 @@ dotnet run --no-build --project "$cliDir" `
     --icondir "." `
     --styledir "." `
     --scriptdir "." `
-    -p "TargetFramework=net6.0"
+    -p "TargetFramework=$framework"

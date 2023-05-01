@@ -2,11 +2,22 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Helveg.Visualization;
 
 public class MultigraphBuilder
 {
+    private readonly ILogger logger;
+    private readonly bool shouldThrow;
+
+    public MultigraphBuilder(ILogger? logger = null, bool shouldThrow = false)
+    {
+        this.logger = logger ?? NullLogger.Instance;
+        this.shouldThrow = shouldThrow;
+    }
+
     public string Id { get; set; } = Const.Unknown;
 
     public ConcurrentDictionary<string, NodeBuilder> Nodes { get; } = new();
@@ -53,7 +64,7 @@ public class MultigraphBuilder
         {
             existing = existing.SetProperty(Const.LabelProperty, label);
         }
-        
+
         return existing;
     }
 
@@ -72,7 +83,19 @@ public class MultigraphBuilder
             };
         }
 
-        GetRelation(relationId).AddEdge(edge);
+        if (!GetRelation(relationId).TryAddEdge(edge))
+        {
+            if (shouldThrow)
+            {
+                throw new ArgumentException($"Relation '{relationId}' already contains edge "
+                    + $"'{edge.Src}' -> '{edge.Dst}'.");
+            }
+            else
+            {
+                logger.LogError("Relation '{}' already contains edge '{} -> {}'.",
+                    relationId, edge.Src, edge.Dst);
+            }
+        }
 
         return this;
     }

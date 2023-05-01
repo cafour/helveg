@@ -75,7 +75,7 @@ public class Program
 
         var workspace = await workflow.Run(new DataSource(source.FullName, DateTimeOffset.UtcNow));
 
-        var multigraphBuilder = new MultigraphBuilder();
+        var multigraphBuilder = new MultigraphBuilder(logger);
 
         var projectVisitor = new VisualizationProjectVisitor(multigraphBuilder);
         workspace.Accept(projectVisitor);
