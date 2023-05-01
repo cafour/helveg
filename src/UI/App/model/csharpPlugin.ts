@@ -57,12 +57,12 @@ export enum Relations {
 }
 
 export enum DefaultRelationColors {
-    Declares = "#00000020",
+    Declares = "#dfdfdf",
     InheritsFrom = "#c3e5de",
     TypeOf = "#dcdcaa",
     Returns = "#d1c3e5",
     Overrides = "#e5c3c8",
-    AssociatedWith = "#b7cee5",
+    AssociatedWith = "#e5ccb7",
     DependsOn = "#c3d6e5",
 }
 
