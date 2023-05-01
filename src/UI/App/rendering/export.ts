@@ -52,6 +52,11 @@ export function exportDiagram(sigma: Sigma, options?: ExportOptions) {
         if (options.includeLabels) {
             layers.push("labels");
         }
+        
+        if (options.includeHighlights) {
+            layers.push("hovers");
+            layers.push("hoverNodes");
+        }
 
         if (options.includeEffects) {
             let effectCanvases = tmpRenderer.getContainer().getElementsByClassName("helveg-effects");

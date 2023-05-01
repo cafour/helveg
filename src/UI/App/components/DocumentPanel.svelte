@@ -59,6 +59,14 @@
             IncludeEffects
         </label>
         
+        <label>
+            <input
+                type="checkbox"
+                bind:checked={$exportOptions.includeHighlights}
+            />
+            IncludeHighlights
+        </label>
+        
         <label class="flex flex-row gap-8 align-items-center">
             Scale
             <input
