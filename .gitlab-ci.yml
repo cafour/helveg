@@ -7,6 +7,10 @@ build:
     paths:
       - .nuget/
       - src/UI/App/.pnpm-store/
+  artifacts:
+    paths:
+      - artifacts/*.nupkg
+    expire_in: 42s
   script:
     - apk update && apk add nodejs-current npm
     - corepack enable && corepack prepare pnpm@latest --activate
@@ -19,3 +23,13 @@ build:
       --password $CI_JOB_TOKEN
       --store-password-in-clear-text
     - dotnet nuget push "artifacts/*.nupkg" --source ci
+
+publish:
+  stage: deploy
+  image: mcr.microsoft.com/dotnet/sdk:7.0-alpine
+  script:
+    - dotnet nuget push "artifacts/*.nupkg"
+  rules:
+    - if: $CI_COMMIT_TAG" =~ /^v[0-9]+\.[0-9]+\.[0-9]+(-.*)?$/ && "$CI_COMMIT_REF_NAME" == "main"
+      when: always
+  
