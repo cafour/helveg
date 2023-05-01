@@ -18,12 +18,20 @@ public class RelationBuilder
     {
         return new(
             id: Id,
-            edges: Edges.ToImmutableDictionary(p => $"{Id};{p.Key}", p => p.Value));
+            edges: Edges.ToImmutableDictionary());
     }
 
     public bool TryAddEdge(Edge edge)
     {
-        return Edges.TryAdd($"{edge.Src};{edge.Dst}", edge);
+        var id = $"{edge.Src};{edge.Dst}";
+
+        if (Edges.ContainsKey(id))
+        {
+            return false;
+        }
+
+        Edges.Add(id, edge);
+        return true;
     }
 
     public int TryAddEdges(IEnumerable<Edge> edges)

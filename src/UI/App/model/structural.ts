@@ -618,7 +618,7 @@ function initializeGraph(
 
         for (let [id, edge] of Object.entries(relation.edges)) {
             try {
-                graph.addDirectedEdgeWithKey(id, edge.src, edge.dst, {
+                graph.addDirectedEdgeWithKey(`${relationId};${id}`, edge.src, edge.dst, {
                     relation: relationId,
                     type: "arrow",
                     style: edge.properties.Style
