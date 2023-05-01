@@ -399,9 +399,9 @@ export class CSharpPlugin implements HelvegPlugin {
                 let instanceCount = props.InstanceMemberCount ?? 0;
                 let staticCount = props.StaticMemberCount ?? 0;
                 base.outlines = [
-                    { style: props.IsStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 1 },
-                    { style: OutlineStyle.Solid, width: Math.max(1, instanceCount) },
-                    { style: OutlineStyle.Dashed, width: Math.max(1, staticCount) }
+                    { style: props.IsStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 2 },
+                    { style: OutlineStyle.Solid, width: instanceCount },
+                    { style: OutlineStyle.Dashed, width: staticCount }
                 ];
                 break;
             case EntityKind.TypeParameter:
@@ -420,7 +420,7 @@ export class CSharpPlugin implements HelvegPlugin {
                     }
                 }
 
-                base.outlines = [{ style: props.IsStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 1 }];
+                base.outlines = [{ style: props.IsStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 2 }];
                 base.size = 10;
                 if (props.IsConst) {
                     base.icon = "csharp:Constant";
@@ -442,20 +442,20 @@ export class CSharpPlugin implements HelvegPlugin {
                 }
 
                 base.size = 10;
-                base.outlines = [{ style: props.IsStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 1 }];
+                base.outlines = [{ style: props.IsStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 2 }];
                 base.fire = FireStatus.Smoke;
                 break;
             case EntityKind.Property:
                 base.icon = "csharp:Property";
                 base.size = 10;
                 base.color = VSColor.DarkGray;
-                base.outlines = [{ style: props.IsStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 1 }];
+                base.outlines = [{ style: props.IsStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 2 }];
                 break;
             case EntityKind.Event:
                 base.icon = "csharp:Event";
                 base.size = 10;
                 base.color = VSColor.DarkYellow;
-                base.outlines = [{ style: props.IsStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 1 }];
+                base.outlines = [{ style: props.IsStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 2 }];
                 break;
             case EntityKind.Parameter:
                 return {
