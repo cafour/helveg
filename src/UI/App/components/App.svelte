@@ -63,9 +63,6 @@
                 });
                 dock.setTab(AppPanels.Properties);
                 break;
-            case AppTools.Cut:
-                diagram.cut(nodeId);
-                break;
         }
     }
 
@@ -73,6 +70,9 @@
         switch (selectedTool) {
             case AppTools.Toggle:
                 diagram.toggleNode(nodeId);
+                break;
+            case AppTools.Cut:
+                diagram.cut(nodeId);
                 break;
         }
     }

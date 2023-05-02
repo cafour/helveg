@@ -70,10 +70,6 @@ export class ForceAtlas2Supervisor {
     }
 
     async start(inBackground: boolean): Promise<void> {
-        if (!this.worker) {
-            this.worker = this.spawnWorker();
-        }
-
         if (this.running && this.inBackground === inBackground) {
             return;
         }
@@ -86,6 +82,11 @@ export class ForceAtlas2Supervisor {
         this.running = true;
         this.lastPerformanceTime = performance.now();
         this.started.trigger(inBackground);
+        
+        if (!this.worker) {
+            this.worker = this.spawnWorker();
+        }
+        
         this.worker.postMessage({
             kind: MessageKind.Start,
             isSingleIteration: !inBackground,

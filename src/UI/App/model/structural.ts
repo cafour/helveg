@@ -185,9 +185,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
 
         this._supervisor.start(inBackground);
 
-        this.status = inBackground
-            ? StructuralStatus.RunningInBackground
-            : StructuralStatus.Running;
+        this.refreshStatus();
 
         if (inBackground) {
             this._sigma?.kill();
@@ -207,7 +205,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
 
         if (this._supervisor?.isRunning) {
             await this._supervisor.stop();
-            this.status = StructuralStatus.Stopped;
+            this.refreshStatus();
 
             if (!this._sigma) {
                 this.refreshSigma();
@@ -528,7 +526,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
             this._supervisor = null;
         }
 
-        this.status = StructuralStatus.Stopped;
+        this.refreshStatus();
 
         try {
             if (modify) {
@@ -544,9 +542,17 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
             if (shouldLayoutContinue
                 && (lastStatus === StructuralStatus.Running || lastStatus === StructuralStatus.RunningInBackground)) {
                 this._supervisor.start(lastStatus === StructuralStatus.RunningInBackground);
-                this.status = lastStatus;
+                this.refreshStatus();
             }
         }
+    }
+    
+    private refreshStatus() {
+        this.status = this._supervisor?.isRunning === true && this._supervisor?.isInBackground === true
+            ? StructuralStatus.RunningInBackground
+            : this._supervisor?.isRunning === true
+                ? StructuralStatus.Running
+                : StructuralStatus.Stopped;
     }
 
     private onNodeClick(event: SigmaNodeEventPayload): void {
