@@ -104,16 +104,22 @@ export class ForceAtlas2Supervisor {
 
         let promise = new Promise<void>((resolve, reject) => {
             this.updated.subscribeOnce(() => {
+                this.running = false;
+                this.stopped.trigger();
                 resolve();
             });
-            setTimeout(() => reject(new Error("Timeout while waiting for the worker to stop.")), 1000);
+            setTimeout(() => {
+                this.kill();
+                DEBUG && console.warn("Timed out while waiting for the worker to stop.");
+                this.running = false;
+                this.stopped.trigger();
+                resolve();
+            }, 1000);
         });
 
         this.worker.postMessage({
             kind: MessageKind.Stop
         });
-        this.running = false;
-        this.stopped.trigger();
 
         return promise;
     }
