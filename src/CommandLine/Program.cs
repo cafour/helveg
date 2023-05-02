@@ -156,6 +156,7 @@ public class Program
                 Directory.CreateDirectory(dirName);
             }
 
+            logger.LogDebug("Writing file '{}'.", fullPath);
             return new FileStream(fullPath, FileMode.Create, FileAccess.ReadWrite);
         });
         return 0;

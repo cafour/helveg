@@ -6,9 +6,9 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/src/bin/Debug/net7.0/helveg.dll",
-            "args": [],
-            "cwd": "${workspaceFolder}/src",
+            "program": "${workspaceFolder}/src/CommandLine/bin/Debug/net6.0/helveg.dll",
+            "args": ["-pa", "PublicApi", "--verbose"],
+            "cwd": "C:\\dev\\fi\\kafe",
             "console": "internalConsole",
             "stopAtEntry": false
         },

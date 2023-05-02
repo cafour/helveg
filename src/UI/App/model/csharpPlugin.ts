@@ -204,10 +204,6 @@ export class CSharpPlugin implements HelvegPlugin {
         this.csharpDataOptions.includedKinds.push(
             EntityKind.Solution,
             EntityKind.Project,
-            EntityKind.Framework,
-            EntityKind.ExternalDependencySource,
-            EntityKind.PackageRepository,
-            EntityKind.Library,
             EntityKind.Namespace,
             EntityKind.Type,
             EntityKind.Field,
