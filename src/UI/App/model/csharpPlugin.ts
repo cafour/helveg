@@ -196,8 +196,8 @@ export class CSharpPlugin implements HelvegPlugin {
         this.edgeStyles.set("Relation", o => this.resolveEdgeStyle(o));
 
         options.layout.tidyTree.relation ??= Relations.Declares;
-        options.tool.cuttingRelation ??= Relations.Declares;
-        options.tool.collapsingRelation ??= Relations.Declares;
+        options.tool.cut.relation ??= Relations.Declares;
+        options.tool.toggle.relation ??= Relations.Declares;
         options.data.selectedRelations.push(Relations.Declares);
         options.data.csharp = this.csharpDataOptions;
 

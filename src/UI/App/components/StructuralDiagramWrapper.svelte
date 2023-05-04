@@ -98,6 +98,10 @@
     export function toggleNode(nodeId: string) {
         diagram.toggleNode(nodeId);
     }
+    
+    export function highlightNode(nodeId: string, includeSubtree: boolean, includeNeighbors: boolean) {
+        diagram.highlightNode(nodeId, includeSubtree, includeNeighbors);
+    }
 
     let dispatch = createEventDispatcher();
 

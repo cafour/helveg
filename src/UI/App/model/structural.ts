@@ -5,7 +5,7 @@ import { Sigma } from "sigma";
 import { ForceAtlas2Supervisor, type ForceAtlas2Progress } from "layout/forceAltas2Supervisor";
 import { IconAtlas } from "rendering/iconAtlas";
 import { HelvegEvent } from "common/event";
-import type { SigmaNodeEventPayload } from "sigma/sigma";
+import type { SigmaNodeEventPayload, SigmaStageEventPayload } from "sigma/sigma";
 import { createGlyphProgram, type GlyphProgramOptions } from "rendering/node.glyph";
 import forceAtlas2 from "graphology-layout-forceatlas2";
 import type { NodeProgramConstructor } from "sigma/rendering/webgl/programs/common/node";
@@ -76,6 +76,7 @@ export interface AbstractStructuralDiagram {
     stopLayout(): Promise<void>;
     save(options?: ExportOptions): void;
     highlight(searchText: string | null, searchMode: SearchMode): void;
+    highlightNode(nodeId: string | null, includeSubtree: boolean, includeNeighbors: boolean);
     isolate(searchText: string | null, searchMode: SearchMode): void;
     refresh(): Promise<void>;
     cut(nodeId: string): void;
@@ -111,6 +112,8 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
     private _iconAtlas: IconAtlas;
     private _glyphProgramOptions: GlyphProgramOptions;
     private _glyphProgram: NodeProgramConstructor;
+    private _isCaptorDown = false;
+    private _hasPanned = false;
 
     private _nodeClicked = new HelvegEvent<string>("helveg.StructuralDiagram.nodeClicked");
 
@@ -269,6 +272,41 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
             attributes.highlighted ? count + 1 : count, 0)} nodes.`);
     }
 
+    highlightNode(nodeId: string | null, includeSubtree: boolean, includeNeighbors: boolean) {
+        if (nodeId === null) {
+            DEBUG && console.log("Clearing node highlights.");
+            this._graph?.forEachNode((_, a) => a.highlighted = undefined);
+            this._sigma?.refresh();
+            this._glyphProgramOptions.diagramMode = StructuralDiagramMode.Normal;
+            return;
+        }
+
+        if (!this._graph?.hasNode(nodeId)) {
+            return;
+        }
+
+        this._graph.forEachNode((n) => this._graph?.setNodeAttribute(n, "highlighted", false));
+        this._graph.setNodeAttribute(nodeId, "highlighted", true);
+
+        if (includeSubtree) {
+            bfs(this._graph, nodeId, {
+                relation: this.layoutOptions.tidyTree.relation,
+                callback: (_, attr) => {
+                    attr.highlighted = true;
+                }
+            });
+        }
+        
+        if (includeNeighbors) {
+            for (let neighbor of this._graph.neighbors(nodeId)) {
+                this._graph.setNodeAttribute(neighbor, "highlighted", true);
+            }
+        }
+        
+        this._glyphProgramOptions.diagramMode = StructuralDiagramMode.Highlighting;
+        this._sigma?.refresh();
+    }
+
     isolate(searchText: string | null, searchMode: SearchMode): void {
         if (!this._graph) {
             DEBUG && console.warn("Cannot isolate nodes since the graph is not initialized.");
@@ -319,12 +357,12 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
             throw new Error(`Cannot cut node '${nodeId}' since it does not exist in the graph.`);
         }
 
-        if (!this._toolOptions.isCuttingTransitive) {
+        if (!this._toolOptions.cut.isTransitive) {
             this._graph.dropNode(nodeId);
             return;
         }
 
-        let reachable = bfs(this._graph, nodeId, { relation: this._toolOptions.cuttingRelation });
+        let reachable = bfs(this._graph, nodeId, { relation: this._toolOptions.cut.relation });
 
         this.refreshSupervisor(true, () => {
             reachable.forEach(id => this._graph?.dropNode(id));
@@ -485,6 +523,8 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
             this._glyphProgram,
             this.onNodeClick.bind(this),
             this.onNodeDown.bind(this),
+            undefined,
+            this.onDown.bind(this),
             this.onUp.bind(this),
             this.onMove.bind(this)
         );
@@ -546,7 +586,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
             }
         }
     }
-    
+
     private refreshStatus() {
         this.status = this._supervisor?.isRunning === true && this._supervisor?.isInBackground === true
             ? StructuralStatus.RunningInBackground
@@ -574,6 +614,11 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
             this._graph?.setNodeAttribute(event.node, "fixed", true);
         }
     }
+    
+    private onDown(event: Coordinates): void {
+        this._isCaptorDown = true;
+        this._hasPanned = false;
+    }
 
     private onUp(coords: Coordinates): void {
         if (this._draggedNodeId) {
@@ -581,12 +626,25 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
             this._graph?.setNodeAttribute(this._draggedNodeId, "fixed", false);
             this._draggedNodeId = null;
         }
+        
+        if (!this._hasPanned) {
+            // deselect the node and possibly unhighlight nodes
+            this.selectedNodeId = null;
+        }
+
+        this._hasPanned = false;
+        this._isCaptorDown = false;
     }
 
     private onMove(coords: Coordinates): boolean {
+        if (this._isCaptorDown) {
+            this._hasPanned = true;
+        }
+
         if (!this._draggedNodeId || !this._sigma || !this._graph) {
             return true;
         }
+        
 
         const pos = this._sigma.viewportToGraph(coords)
 
@@ -701,7 +759,7 @@ function stylizeGraph(
             DEBUG && console.log(`Edge style '${attributes.style}' could not be applied to edge '${edge}'.`);
             return;
         }
-        
+
         attributes.color = style.color;
         attributes.size = style.width;
     });
@@ -713,6 +771,8 @@ function initializeSigma(
     glyphProgram: NodeProgramConstructor,
     onClick?: (payload: SigmaNodeEventPayload) => void,
     onNodeDown?: (payload: SigmaNodeEventPayload) => void,
+    onStageDown?: (payload: SigmaStageEventPayload) => void,
+    onDown?: (coords: Coordinates) => void,
     onUp?: (coords: Coordinates) => void,
     onMove?: (coords: Coordinates) => boolean | void
 ): Sigma {
@@ -736,6 +796,15 @@ function initializeSigma(
         sigma.on("downNode", onNodeDown);
     }
 
+    if (onStageDown) {
+        sigma.on("downStage", onStageDown);
+    }
+
+    if (onDown) {
+        sigma.getMouseCaptor().on("mousedown", e => onDown(e));
+        sigma.getTouchCaptor().on("touchdown", e => onDown(e.touches[0]));
+    }
+    
     if (onUp) {
         sigma.getMouseCaptor().on("mouseup", onUp);
         sigma.getTouchCaptor().on("touchup", e => onUp(e.touches[0]));

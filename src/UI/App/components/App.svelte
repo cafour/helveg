@@ -1,5 +1,5 @@
 <script lang="ts" context="module">
-    import type { Readable, Writable } from "svelte/store";
+    import { get, type Readable, type Writable } from "svelte/store";
     import type * as opts from "model/options";
     import type { VisualizationModel } from "model/visualization";
 
@@ -62,6 +62,10 @@
                     node: instance.model.multigraph.nodes[nodeId] ?? null,
                 });
                 dock.setTab(AppPanels.Properties);
+                diagram.highlightNode(
+                    nodeId,
+                    get(toolOptions).showProperties.shouldHighlightSubtree,
+                    get(toolOptions).showProperties.shouldHighlightNeighbors);
                 break;
         }
     }

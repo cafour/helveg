@@ -122,8 +122,9 @@ export class SigmaEffectsExtension {
 
     private onSigmaRender(params: RenderParams): void {
         this.renderParams = params;
+        this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+
         if (this.options.showFire) {
-            this.gl.clear(this.gl.COLOR_BUFFER_BIT);
             this.fireProgram.render(this.renderParams);
             this.requestRender();
         }

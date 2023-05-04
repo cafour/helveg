@@ -16,16 +16,44 @@ export const DEFAULT_DATA_OPTIONS: DataOptions = {
     csharp: null!
 }
 
+export interface CutToolOptions {
+    isTransitive: boolean;
+    relation: string | null;
+}
+
+export const DEFAULT_CUT_TOOL_OPTIONS: CutToolOptions = {
+    isTransitive: true,
+    relation: null
+};
+
+export interface ToggleToolOptions {
+    relation: string | null;
+}
+
+export const DEFAULT_TOGGLE_TOOL_OPTIONS: ToggleToolOptions = {
+    relation: null
+};
+
+export interface ShowPropertiesToolOptions {
+    shouldHighlightSubtree: boolean;
+    shouldHighlightNeighbors: boolean;
+}
+
+export const DEFAULT_SHOW_PROPERTIES_TOOL_OPTIONS: ShowPropertiesToolOptions = {
+    shouldHighlightSubtree: false,
+    shouldHighlightNeighbors: false
+};
+
 export interface ToolOptions {
-    isCuttingTransitive: boolean;
-    cuttingRelation: string | null;
-    collapsingRelation: string | null;
+    cut: CutToolOptions;
+    toggle: ToggleToolOptions;
+    showProperties: ShowPropertiesToolOptions;
 }
 
 export const DEFAULT_TOOL_OPTIONS: ToolOptions = {
-    isCuttingTransitive: true,
-    cuttingRelation: null,
-    collapsingRelation: null
+    cut: DEFAULT_CUT_TOOL_OPTIONS,
+    toggle: DEFAULT_TOGGLE_TOOL_OPTIONS,
+    showProperties: DEFAULT_SHOW_PROPERTIES_TOOL_OPTIONS
 }
 
 export interface GlyphOptions {

@@ -50,12 +50,13 @@ export function createGlyphProgram(options: GlyphProgramOptions): NodeProgramCon
             if (options.showOutlines) {
                 this.outlinesProgram.render(params);
             }
+
             if (options.showIcons) {
                 this.iconProgram.render(params);
             }
-            if (options.showFire) {
-                this.effectsProgram.render(params);
-            }
+
+            // let the effects extension handle this on its own since it manages its own canvas
+            this.effectsProgram.render(params);
         }
     };
 }
