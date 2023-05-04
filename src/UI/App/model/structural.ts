@@ -58,6 +58,9 @@ export interface AbstractStructuralDiagram {
     get status(): StructuralStatus;
     get statusChanged(): HelvegEvent<StructuralStatus>;
 
+    get mode(): StructuralDiagramMode;
+    get modeChanged(): HelvegEvent<StructuralDiagramMode>;
+
     get stats(): StructuralDiagramStats;
     get statsChanged(): HelvegEvent<StructuralDiagramStats>;
 
@@ -96,6 +99,8 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
     private _toolOptions: ToolOptions = DEFAULT_TOOL_OPTIONS;
     private _status: StructuralStatus = StructuralStatus.Stopped;
     private _statusChanged = new HelvegEvent<StructuralStatus>("helveg.StructuralDiagram.statusChanged");
+    private _mode: StructuralDiagramMode = StructuralDiagramMode.Normal;
+    private _modeChanged = new HelvegEvent<StructuralDiagramMode>("helveg.StructuralDiagram.modeChanged");
     private _stats: StructuralDiagramStats = {
         iterationCount: 0,
         speed: 0
@@ -245,13 +250,13 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
         try {
             let filter = buildNodeFilter(searchText, searchMode, this._nodeKeys);
             if (filter === null) {
-                this._glyphProgramOptions.diagramMode = StructuralDiagramMode.Normal;
+                this.mode = StructuralDiagramMode.Normal;
                 this._graph.forEachNode((_, a) => a.highlighted = undefined);
                 this._sigma?.refresh();
                 return;
             }
 
-            this._glyphProgramOptions.diagramMode = StructuralDiagramMode.Highlighting;
+            this.mode = StructuralDiagramMode.Highlighting;
 
             Object.entries(this._model.multigraph.nodes).forEach(([id, node]) => {
                 if (this._graph?.hasNode(id)) {
@@ -277,7 +282,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
             DEBUG && console.log("Clearing node highlights.");
             this._graph?.forEachNode((_, a) => a.highlighted = undefined);
             this._sigma?.refresh();
-            this._glyphProgramOptions.diagramMode = StructuralDiagramMode.Normal;
+            this.mode = StructuralDiagramMode.Normal;
             return;
         }
 
@@ -296,14 +301,14 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
                 }
             });
         }
-        
+
         if (includeNeighbors) {
             for (let neighbor of this._graph.neighbors(nodeId)) {
                 this._graph.setNodeAttribute(neighbor, "highlighted", true);
             }
         }
-        
-        this._glyphProgramOptions.diagramMode = StructuralDiagramMode.Highlighting;
+
+        this.mode = StructuralDiagramMode.Highlighting;
         this._sigma?.refresh();
     }
 
@@ -420,7 +425,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
     set glyphOptions(value: GlyphOptions) {
         this._glyphOptions = value;
         if (this._sigma) {
-            configureSigma(this._sigma, this._glyphOptions);
+            this.reconfigureSigma();
         }
 
         this._glyphProgramOptions.showIcons = this._glyphOptions.showIcons;
@@ -450,15 +455,32 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
         return this._status;
     }
 
-    get statusChanged(): HelvegEvent<StructuralStatus> {
-        return this._statusChanged;
-    }
-
     private set status(value: StructuralStatus) {
         if (this._status !== value) {
             this._status = value;
             this._statusChanged.trigger(value);
         }
+    }
+
+    get statusChanged(): HelvegEvent<StructuralStatus> {
+        return this._statusChanged;
+    }
+
+    get mode(): StructuralDiagramMode {
+        return this._mode;
+    }
+
+    private set mode(value: StructuralDiagramMode) {
+        if (this._mode !== value) {
+            this._mode = value;
+            this._glyphProgramOptions.diagramMode = value;
+            this.reconfigureSigma();
+            this._modeChanged.trigger(value);
+        }
+    }
+
+    get modeChanged(): HelvegEvent<StructuralDiagramMode> {
+        return this._modeChanged;
     }
 
     get stats(): StructuralDiagramStats {
@@ -528,7 +550,20 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
             this.onUp.bind(this),
             this.onMove.bind(this)
         );
-        configureSigma(this._sigma, this._glyphOptions);
+        this.reconfigureSigma();
+    }
+
+    private reconfigureSigma(): void {
+        if (!this._sigma) {
+            return;
+        }
+
+        let tmpGlyphOptions = {
+            ...this._glyphOptions,
+            showLabels: this._glyphOptions.showLabels && this.mode == StructuralDiagramMode.Normal
+        };
+
+        configureSigma(this._sigma, tmpGlyphOptions);
     }
 
     private refreshGraph(): void {
@@ -550,7 +585,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
 
         this._supervisor = initializeSupervisor(this._graph, this.onSupervisorProgress.bind(this));
 
-        this._glyphProgramOptions.diagramMode = StructuralDiagramMode.Normal;
+        this.mode = StructuralDiagramMode.Normal;
     }
 
     /**
@@ -614,7 +649,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
             this._graph?.setNodeAttribute(event.node, "fixed", true);
         }
     }
-    
+
     private onDown(event: Coordinates): void {
         this._isCaptorDown = true;
         this._hasPanned = false;
@@ -626,7 +661,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
             this._graph?.setNodeAttribute(this._draggedNodeId, "fixed", false);
             this._draggedNodeId = null;
         }
-        
+
         if (!this._hasPanned) {
             // deselect the node and possibly unhighlight nodes
             this.selectedNodeId = null;
@@ -644,7 +679,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
         if (!this._draggedNodeId || !this._sigma || !this._graph) {
             return true;
         }
-        
+
 
         const pos = this._sigma.viewportToGraph(coords)
 
@@ -804,7 +839,7 @@ function initializeSigma(
         sigma.getMouseCaptor().on("mousedown", e => onDown(e));
         sigma.getTouchCaptor().on("touchdown", e => onDown(e.touches[0]));
     }
-    
+
     if (onUp) {
         sigma.getMouseCaptor().on("mouseup", onUp);
         sigma.getTouchCaptor().on("touchup", e => onUp(e.touches[0]));
