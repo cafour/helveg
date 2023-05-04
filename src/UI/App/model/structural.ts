@@ -424,14 +424,14 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
 
     set glyphOptions(value: GlyphOptions) {
         this._glyphOptions = value;
-        if (this._sigma) {
-            this.reconfigureSigma();
-        }
 
         this._glyphProgramOptions.showIcons = this._glyphOptions.showIcons;
         this._glyphProgramOptions.showOutlines = this._glyphOptions.showOutlines;
         this._glyphProgramOptions.showFire = this._glyphOptions.showFire;
         this._glyphProgramOptions.isFireAnimated = this._glyphOptions.isFireAnimated;
+        
+        this.reconfigureSigma();
+        this.restylizeGraph();
     }
 
     get layoutOptions(): LayoutOptions {
@@ -579,13 +579,26 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
                 plugin.onVisualize(this._model, this._graph);
             }
         }
-        stylizeGraph(this._graph, this._model, this._instance.nodeStyles, this._instance.edgeStyles);
+        this.restylizeGraph();
 
         this.refreshSupervisor(false, () => this._graph && this._sigma?.setGraph(this._graph));
 
         this._supervisor = initializeSupervisor(this._graph, this.onSupervisorProgress.bind(this));
 
         this.mode = StructuralDiagramMode.Normal;
+    }
+    
+    private restylizeGraph(): void {
+        if (!this._graph || !this._model || this._model.isEmpty) {
+            return;
+        }
+
+        stylizeGraph(
+            this._graph,
+            this._model,
+            this._glyphOptions,
+            this._instance.nodeStyles,
+            this._instance.edgeStyles);
     }
 
     /**
@@ -734,6 +747,7 @@ function initializeGraph(
 function stylizeGraph(
     graph: HelvegGraph,
     model: VisualizationModel,
+    glyphOptions: GlyphOptions,
     nodeStyles: NodeStyleRegistry,
     edgeStyles: EdgeStyleRegistry) {
 
@@ -764,7 +778,7 @@ function stylizeGraph(
             { width: style.size, style: OutlineStyle.Solid },
             ...style.outlines.slice(0, 3),
         ] as Outlines;
-        attributes.size = outlines.length > 0
+        attributes.size = glyphOptions.showOutlines && outlines.length > 0
             ? getOutlinesTotalWidth(outlines)
             : style.size;
         attributes.iconSize = style.size;
