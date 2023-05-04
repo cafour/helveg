@@ -12,8 +12,7 @@ export interface DataOptions {
 }
 
 export const DEFAULT_DATA_OPTIONS: DataOptions = {
-    selectedRelations: [],
-    csharp: null!
+    selectedRelations: []
 }
 
 export interface CutToolOptions {

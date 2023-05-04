@@ -431,7 +431,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
         this._glyphProgramOptions.isFireAnimated = this._glyphOptions.isFireAnimated;
         
         this.reconfigureSigma();
-        this.restylizeGraph();
+        this.restyleGraph();
     }
 
     get layoutOptions(): LayoutOptions {
@@ -579,7 +579,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
                 plugin.onVisualize(this._model, this._graph);
             }
         }
-        this.restylizeGraph();
+        this.restyleGraph();
 
         this.refreshSupervisor(false, () => this._graph && this._sigma?.setGraph(this._graph));
 
@@ -588,12 +588,14 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
         this.mode = StructuralDiagramMode.Normal;
     }
     
-    private restylizeGraph(): void {
+    private restyleGraph(): void {
         if (!this._graph || !this._model || this._model.isEmpty) {
             return;
         }
 
-        stylizeGraph(
+        DEBUG && console.log(`Restyling the graph.`);
+
+        styleGraph(
             this._graph,
             this._model,
             this._glyphOptions,
@@ -744,7 +746,7 @@ function initializeGraph(
     return graph;
 }
 
-function stylizeGraph(
+function styleGraph(
     graph: HelvegGraph,
     model: VisualizationModel,
     glyphOptions: GlyphOptions,

@@ -2,6 +2,7 @@
     import Panel from "./Panel.svelte";
     import Subpanel from "./Subpanel.svelte";
     import { glyphOptions } from "./App.svelte";
+    import CSharpGlyphsSubpanel from "./CSharpGlyphsSubpanel.svelte";
 </script>
 
 <Panel name="Appearance" indent={false}>
@@ -27,4 +28,5 @@
             IsFireAnimated
         </label>
     </Subpanel>
+    <CSharpGlyphsSubpanel />
 </Panel>
