@@ -8,27 +8,43 @@
 </script>
 
 <Panel name="Tools" indent={false}>
-    <Subpanel name="Cut" icon={AppIcons.CutTool}>
+    <Subpanel name="ShowProperties" icon={AppIcons.ShowPropertiesTool}>
         <label>
             <input
                 type="checkbox"
-                bind:checked={$toolOptions.isCuttingTransitive}
+                bind:checked={$toolOptions.showProperties.shouldHighlightSubtree}
             />
-            IsCuttingTransitive
+            ShouldHighlightSubtree
         </label>
+        <label>
+            <input
+                type="checkbox"
+                bind:checked={$toolOptions.showProperties.shouldHighlightNeighbors}
+            />
+            ShouldHighlightNeighbors
+        </label>
+    </Subpanel>
+    <Subpanel name="Toggle" icon={AppIcons.ToggleTool}>
         <label class="flex flex-row gap-8 align-items-center">
-            CuttingRelation
-            <select bind:value={$toolOptions.cuttingRelation}>
+            Relation
+            <select bind:value={$toolOptions.toggle.relation}>
                 {#each relations as relation}
                     <option value={relation}>{relation}</option>
                 {/each}
             </select>
         </label>
     </Subpanel>
-    <Subpanel name="Collapse" icon={AppIcons.ToggleTool}>
+    <Subpanel name="Cut" icon={AppIcons.CutTool}>
+        <label>
+            <input
+                type="checkbox"
+                bind:checked={$toolOptions.cut.isTransitive}
+            />
+            IsTransitive
+        </label>
         <label class="flex flex-row gap-8 align-items-center">
-            CollapsingRelation
-            <select bind:value={$toolOptions.collapsingRelation}>
+            Relation
+            <select bind:value={$toolOptions.cut.relation}>
                 {#each relations as relation}
                     <option value={relation}>{relation}</option>
                 {/each}

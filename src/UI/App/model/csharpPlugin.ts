@@ -152,13 +152,44 @@ export interface CSharpDataOptions {
 }
 
 const DEFAULT_CSHARP_DATA_OPTIONS: CSharpDataOptions = {
-    includedKinds: [],
-    autoExpandedKinds: []
+    includedKinds: [
+        EntityKind.Solution,
+        EntityKind.Project,
+        EntityKind.Namespace,
+        EntityKind.Type,
+        EntityKind.Field,
+        EntityKind.Method,
+        EntityKind.Property,
+        EntityKind.Event
+    ],
+    autoExpandedKinds: [
+        EntityKind.Solution,
+        EntityKind.Project,
+        EntityKind.Namespace
+    ]
 }
+
+export enum CSharpGlyphSizingMode {
+    Linear = "linear",
+    Sqrt = "sqrt",
+    Log = "log"
+}
+
+export interface CSharpGlyphOptions {
+    sizingMode: CSharpGlyphSizingMode;
+}
+
+const DEFAULT_CSHARP_GLYPH_OPTIONS: CSharpGlyphOptions = {
+    sizingMode: CSharpGlyphSizingMode.Linear
+};
 
 declare module "model/options" {
     export interface DataOptions {
-        csharp: CSharpDataOptions;
+        csharp?: CSharpDataOptions;
+    }
+    
+    export interface GlyphOptions {
+        csharp?: CSharpGlyphOptions;
     }
 }
 
@@ -169,6 +200,7 @@ export default function csharp(options: HelvegOptions): CSharpPlugin {
 export class CSharpPlugin implements HelvegPlugin {
     name: string = "csharp";
     csharpDataOptions: CSharpDataOptions = { ...DEFAULT_CSHARP_DATA_OPTIONS };
+    csharpGlyphOptions: CSharpGlyphOptions = { ...DEFAULT_CSHARP_GLYPH_OPTIONS };
     nodeStyles: Map<string, NodeStyleGenerator> = new Map();
     edgeStyles: Map<string, EdgeStyleGenerator> = new Map();
 
@@ -180,7 +212,7 @@ export class CSharpPlugin implements HelvegPlugin {
                 return FALLBACK_STYLE;
             }
 
-            let base = plugin.resolveNodeStyle(props);
+            let base = plugin.resolveNodeStyle(props, this.csharpGlyphOptions);
             let fire = !props.Diagnostics ? FireStatus.None
                 : props.Diagnostics.filter(d => d.severity === DiagnosticSeverity.Error).length > 0
                     ? FireStatus.Flame
@@ -196,26 +228,11 @@ export class CSharpPlugin implements HelvegPlugin {
         this.edgeStyles.set("Relation", o => this.resolveEdgeStyle(o));
 
         options.layout.tidyTree.relation ??= Relations.Declares;
-        options.tool.cuttingRelation ??= Relations.Declares;
-        options.tool.collapsingRelation ??= Relations.Declares;
+        options.tool.cut.relation ??= Relations.Declares;
+        options.tool.toggle.relation ??= Relations.Declares;
         options.data.selectedRelations.push(Relations.Declares);
         options.data.csharp = this.csharpDataOptions;
-
-        this.csharpDataOptions.includedKinds.push(
-            EntityKind.Solution,
-            EntityKind.Project,
-            EntityKind.Namespace,
-            EntityKind.Type,
-            EntityKind.Field,
-            EntityKind.Method,
-            EntityKind.Property,
-            EntityKind.Event);
-
-        this.csharpDataOptions.autoExpandedKinds.push(
-            EntityKind.Solution,
-            EntityKind.Project,
-            EntityKind.Namespace
-        );
+        options.glyph.csharp = this.csharpGlyphOptions;
     }
 
     onVisualize(model: Readonly<VisualizationModel>, graph: HelvegGraph): void {
@@ -290,7 +307,12 @@ export class CSharpPlugin implements HelvegPlugin {
         }
     }
 
-    private resolveNodeStyle(props: CSharpNodeProperties): Partial<NodeStyle> {
+    private resolveNodeStyle(
+        props: CSharpNodeProperties,
+        csharpGlyphOptions: CSharpGlyphOptions): Partial<NodeStyle> {
+
+        let getSize = this.getSizingFunc(csharpGlyphOptions.sizingMode);
+            
         let base: Partial<NodeStyle> = {};
         switch (props.Kind) {
             case EntityKind.Solution:
@@ -396,8 +418,8 @@ export class CSharpPlugin implements HelvegPlugin {
                 let staticCount = props.StaticMemberCount ?? 0;
                 base.outlines = [
                     { style: props.IsStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 2 },
-                    { style: OutlineStyle.Solid, width: instanceCount },
-                    { style: OutlineStyle.Dashed, width: staticCount }
+                    { style: OutlineStyle.Solid, width: getSize(instanceCount) },
+                    { style: OutlineStyle.Dashed, width: getSize(staticCount) }
                 ];
                 break;
             case EntityKind.TypeParameter:
@@ -485,6 +507,19 @@ export class CSharpPlugin implements HelvegPlugin {
         return base;
     }
 
+    private getSizingFunc(mode: CSharpGlyphSizingMode): (value: number) => number {
+        switch (mode) {
+            case CSharpGlyphSizingMode.Linear:
+                return (value: number) => value;
+            case CSharpGlyphSizingMode.Log:
+                return (value: number) => Math.log(Math.max(1, value));
+            case CSharpGlyphSizingMode.Sqrt:
+                return (value: number) => Math.sqrt(value);
+            default:
+                return (_: number) => 1;
+        }
+    }
+    
     private resolveEdgeStyle(object: { relation: string, edge: Edge }): EdgeStyle {
         switch (object.relation) {
             case Relations.Declares:

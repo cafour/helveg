@@ -14,6 +14,12 @@
               )
               .sort()
         : [];
+
+    let includedKinds = $dataOptions.csharp?.includedKinds ?? [];
+    $: $dataOptions.csharp!.includedKinds = includedKinds;
+
+    let autoExpandedKinds = $dataOptions.csharp?.autoExpandedKinds ?? [];
+    $: $dataOptions.csharp!.autoExpandedKinds = autoExpandedKinds;
 </script>
 
 <Subpanel name="CSharpKinds" indent={false} class="pb-8">
@@ -29,12 +35,12 @@
             </div>
             <ToggleAllCheckbox
                 class="w-48 h-16"
-                bind:selected={$dataOptions.csharp.includedKinds}
+                bind:selected={includedKinds}
                 all={kinds}
             />
             <ToggleAllCheckbox
                 class="w-48 h-16"
-                bind:selected={$dataOptions.csharp.autoExpandedKinds}
+                bind:selected={autoExpandedKinds}
                 all={kinds}
             />
         </div>
@@ -50,13 +56,13 @@
                 <input
                     class="w-48 h-16"
                     type="checkbox"
-                    bind:group={$dataOptions.csharp.includedKinds}
+                    bind:group={includedKinds}
                     value={kind}
                 />
                 <input
                     class="w-48 h-16"
                     type="checkbox"
-                    bind:group={$dataOptions.csharp.autoExpandedKinds}
+                    bind:group={autoExpandedKinds}
                     value={kind}
                 />
             </div>
