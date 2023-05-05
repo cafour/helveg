@@ -99,7 +99,7 @@
         diagram.toggleNode(nodeId);
     }
     
-    export function highlightNode(nodeId: string, includeSubtree: boolean, includeNeighbors: boolean) {
+    export function highlightNode(nodeId: string | null, includeSubtree: boolean, includeNeighbors: boolean) {
         diagram.highlightNode(nodeId, includeSubtree, includeNeighbors);
     }
 
