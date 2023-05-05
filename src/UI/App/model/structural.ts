@@ -79,11 +79,11 @@ export interface AbstractStructuralDiagram {
     stopLayout(): Promise<void>;
     save(options?: ExportOptions): void;
     highlight(searchText: string | null, searchMode: SearchMode): void;
-    highlightNode(nodeId: string | null, includeSubtree: boolean, includeNeighbors: boolean);
-    isolate(searchText: string | null, searchMode: SearchMode): void;
+    highlightNode(nodeId: string | null, includeSubtree: boolean, includeNeighbors: boolean) : void;
+    isolate(searchText: string | null, searchMode: SearchMode): Promise<void>;
     refresh(): Promise<void>;
-    cut(nodeId: string): void;
-    toggleNode(nodeId: string): void;
+    cut(nodeId: string): Promise<void>;
+    toggleNode(nodeId: string): Promise<void>;
 }
 
 /**
@@ -154,7 +154,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
             await this.stopLayout();
         }
 
-        this.refreshSupervisor();
+        await this.refreshSupervisor();
 
         let roots = findRoots(this._graph, this.layoutOptions.tidyTree.relation ?? undefined);
         let i = 0;
@@ -191,7 +191,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
 
         DEBUG && console.log("Running the layout.");
 
-        this._supervisor.start(inBackground);
+        await this._supervisor.start(inBackground);
 
         this.refreshStatus();
 
@@ -312,7 +312,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
         this._sigma?.refresh();
     }
 
-    isolate(searchText: string | null, searchMode: SearchMode): void {
+    async isolate(searchText: string | null, searchMode: SearchMode): Promise<void> {
         if (!this._graph) {
             DEBUG && console.warn("Cannot isolate nodes since the graph is not initialized.");
             return;
@@ -324,7 +324,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
                 return;
             }
 
-            this.refreshSupervisor(true, () => {
+            await this.refreshSupervisor(true, () => {
                 if (!this._graph) {
                     return;
                 }
@@ -348,11 +348,11 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
     }
 
     async refresh(): Promise<void> {
-        this.refreshGraph();
+        await this.refreshGraph();
         await this.resetLayout();
     }
 
-    cut(nodeId: string): void {
+    async cut(nodeId: string): Promise<void> {
         if (!this._graph) {
             DEBUG && console.warn("Cannot cut nodes since the graph is not initialized.");
             return;
@@ -369,20 +369,20 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
 
         let reachable = bfs(this._graph, nodeId, { relation: this._toolOptions.cut.relation });
 
-        this.refreshSupervisor(true, () => {
+        await this.refreshSupervisor(true, () => {
             reachable.forEach(id => this._graph?.dropNode(id));
         })
 
         this._instance.logger.info(`Cut ${reachable.size} nodes.`);
     }
 
-    toggleNode(nodeId: string): void {
+    async toggleNode(nodeId: string): Promise<void> {
         if (!this._graph) {
             DEBUG && console.warn("Cannot toggle nodes since the graph is not initialized.");
             return;
         }
 
-        this.refreshSupervisor(true, () => toggleNode(this._graph!, nodeId));
+        await this.refreshSupervisor(true, () => toggleNode(this._graph!, nodeId));
     }
 
     get element(): HTMLElement | null {
@@ -401,6 +401,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
     set model(value: VisualizationModel) {
         this._model = value;
 
+        // NB: Runs without awaiting.
         this.refreshGraph();
         this.refreshSigma();
 
@@ -566,7 +567,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
         configureSigma(this._sigma, tmpGlyphOptions);
     }
 
-    private refreshGraph(): void {
+    private async refreshGraph(): Promise<void> {
         if (!this._model || this._model.isEmpty) {
             return;
         }
@@ -581,7 +582,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
         }
         this.restyleGraph();
 
-        this.refreshSupervisor(false, () => this._graph && this._sigma?.setGraph(this._graph));
+        await this.refreshSupervisor(false, () => this._graph && this._sigma?.setGraph(this._graph));
 
         this._supervisor = initializeSupervisor(this._graph, this.onSupervisorProgress.bind(this));
 
@@ -608,7 +609,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
      * is running. If `shouldLayoutContinue` is true, the newly spawned supervisor will be started if the original one
      * was running.
      */
-    private refreshSupervisor(shouldLayoutContinue: boolean = false, modify?: () => void) {
+    private async refreshSupervisor(shouldLayoutContinue: boolean = false, modify?: () => void): Promise<void> {
         let lastStatus = this.status;
 
         if (this._supervisor) {
@@ -631,7 +632,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
             this._supervisor = initializeSupervisor(this._graph, this.onSupervisorProgress.bind(this));
             if (shouldLayoutContinue
                 && (lastStatus === StructuralStatus.Running || lastStatus === StructuralStatus.RunningInBackground)) {
-                this._supervisor.start(lastStatus === StructuralStatus.RunningInBackground);
+                await this._supervisor.start(lastStatus === StructuralStatus.RunningInBackground);
                 this.refreshStatus();
             }
         }

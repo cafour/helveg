@@ -55,7 +55,15 @@
     let stats: StructuralDiagramStats;
     let selectedTool: string;
 
-    function onNodeSelected(nodeId: string) {
+    function onNodeSelected(nodeId: string | null) {
+        if (nodeId === null) {
+            propertiesPanel.$set({
+                node: null,
+            });
+            diagram.highlightNode(null, false, false);
+            return;
+        }
+        
         switch (selectedTool) {
             case AppTools.ShowProperties:
                 propertiesPanel.$set({

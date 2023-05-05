@@ -84,22 +84,22 @@
     }
 
     export function isolate(searchText: string | null, searchMode: SearchMode) {
-        diagram.isolate(searchText, searchMode);
+        return diagram.isolate(searchText, searchMode);
     }
 
     export function refresh() {
-        diagram.refresh();
+        return diagram.refresh();
     }
 
     export function cut(nodeId: string) {
-        diagram.cut(nodeId);
+        return diagram.cut(nodeId);
     }
     
     export function toggleNode(nodeId: string) {
-        diagram.toggleNode(nodeId);
+        return diagram.toggleNode(nodeId);
     }
     
-    export function highlightNode(nodeId: string, includeSubtree: boolean, includeNeighbors: boolean) {
+    export function highlightNode(nodeId: string | null, includeSubtree: boolean, includeNeighbors: boolean) {
         diagram.highlightNode(nodeId, includeSubtree, includeNeighbors);
     }
 

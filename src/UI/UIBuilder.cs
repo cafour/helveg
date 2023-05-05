@@ -156,7 +156,7 @@ public class UIBuilder
 
     private async Task BuildSingleFile(Func<string, Stream> streamFactory)
     {
-        logger.LogInformation("Building '{}' as a single-file app.", Model.DocumentInfo.Name);
+        logger.LogInformation("Building '{}' as a single-file app at '{}'.", Model.DocumentInfo.Name, EntryPointName);
 
         using var stream = streamFactory(EntryPointName);
         using var writer = new StreamWriter(stream);
@@ -222,7 +222,7 @@ public class UIBuilder
 
     private async Task BuildStatic(Func<string, Stream> streamFactory)
     {
-        logger.LogInformation("Building a '{}' static app.", Model.DocumentInfo.Name);
+        logger.LogInformation("Building a '{}' static app at '{}'.", Model.DocumentInfo.Name, EntryPointName);
 
         async Task WriteFile(string filePath, string contents)
         {

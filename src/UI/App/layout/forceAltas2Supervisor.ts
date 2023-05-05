@@ -74,19 +74,17 @@ export class ForceAtlas2Supervisor {
             return;
         }
 
-        if (this.running) {
-            await this.stop();
-        }
+        await this.stop();
 
         this.inBackground = inBackground;
         this.running = true;
         this.lastPerformanceTime = performance.now();
         this.started.trigger(inBackground);
-        
+
         if (!this.worker) {
             this.worker = this.spawnWorker();
         }
-        
+
         this.worker.postMessage({
             kind: MessageKind.Start,
             isSingleIteration: !inBackground,
@@ -100,24 +98,29 @@ export class ForceAtlas2Supervisor {
 
     stop(): Promise<void> {
         if (!this.worker || !this.running) {
+            DEBUG && console.log("Worker is not running, nothing to stop.");
             return Promise.resolve();
         }
 
         let promise = new Promise<void>((resolve, reject) => {
-            this.updated.subscribeOnce(() => {
-                this.running = false;
-                this.stopped.trigger();
-                resolve();
-            });
-            setTimeout(() => {
+            // NB: running = false needs to be set to prevent `update` from asking for more iterations.
+            this.running = false;
+            let killTimeout = setTimeout(() => {
                 this.kill();
                 DEBUG && console.warn("Timed out while waiting for the worker to stop.");
-                this.running = false;
                 this.stopped.trigger();
                 resolve();
             }, 1000);
+            this.updated.subscribeOnce(() => {
+                clearTimeout(killTimeout);
+                this.stopped.trigger();
+
+                DEBUG && console.log("Worker stopped.");
+                resolve();
+            });
         });
 
+        DEBUG && console.log("Stopping the worker.");
         this.worker.postMessage({
             kind: MessageKind.Stop
         });
@@ -297,7 +300,7 @@ function assignLayoutChanges(
         if (attr.hidden === true) {
             return attr;
         }
-        
+
         if (!attr.fixed) {
             attr.x = nodeMatrix[i];
             attr.y = nodeMatrix[i + 1];
