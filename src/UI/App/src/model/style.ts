@@ -1,4 +1,4 @@
-import type { Edge, Node, Relation } from "./multigraph";
+import type { MultigraphEdge, MultigraphNode, MultigraphRelation } from "./multigraph";
 
 let INT8 = new Int8Array(4);
 let INT32 = new Int32Array(INT8.buffer);
@@ -100,8 +100,8 @@ export const FALLBACK_EDGE_STYLE: EdgeStyle = {
 };
 
 export type StyleGenerator<TObject, TStyle> = (object: TObject) => TStyle;
-export type NodeStyleGenerator = StyleGenerator<Node, NodeStyle>;
-export type EdgeStyleGenerator = StyleGenerator<{relation: string, edge: Edge}, EdgeStyle>;
+export type NodeStyleGenerator = StyleGenerator<MultigraphNode, NodeStyle>;
+export type EdgeStyleGenerator = StyleGenerator<{relation: string, edge: MultigraphEdge}, EdgeStyle>;
 
 export class StyleRegistry<TObject, TStyle> {
     private styles = new Map<string, StyleGenerator<TObject, TStyle>>();
@@ -128,13 +128,13 @@ export class StyleRegistry<TObject, TStyle> {
     }
 }
 
-export class NodeStyleRegistry extends StyleRegistry<Node, NodeStyle> {
+export class NodeStyleRegistry extends StyleRegistry<MultigraphNode, NodeStyle> {
     constructor() {
         super(FALLBACK_NODE_STYLE);
     }
 }
 
-export class EdgeStyleRegistry extends StyleRegistry<{relation: string, edge: Edge}, EdgeStyle> {
+export class EdgeStyleRegistry extends StyleRegistry<{relation: string, edge: MultigraphEdge}, EdgeStyle> {
     constructor() {
         super(FALLBACK_EDGE_STYLE);
     }

@@ -1,194 +1,9 @@
-import type { HelvegOptions } from "helveg";
-import helveg from "helveg";
+import { AppPanels,FALLBACK_EDGE_STYLE, FireStatus, OutlineStyle, bfs, expandNode, findRoots, type HelvegOptions, type HelvegPlugin, type EdgeStyle, type EdgeStyleGenerator, type HelvegGraph, type NodeStyle, type NodeStyleGenerator, type UIExtension, type VisualizationModel, type MultigraphNode, MultigraphDiagnosticSeverity, type MultigraphEdge } from "helveg";
+
 import CSharpGlyphsSubpanel from "components/CSharpGlyphsSubpanel.svelte";
 import CSharpKindsSubpanel from "components/CSharpKindsSubpanel.svelte";
 
-export enum EntityKind {
-    Solution = "Solution",
-    Project = "Project",
-    ExternalDependencySource = "ExternalDependencySource",
-    Framework = "Framework",
-    PackageRepository = "PackageRepository",
-    Package = "Package",
-    Library = "Library",
-    Assembly = "Assembly",
-    Module = "Module",
-    Namespace = "Namespace",
-    Type = "Type",
-    Field = "Field",
-    Property = "Property",
-    Event = "Event",
-    Method = "Method",
-    TypeParameter = "TypeParameter",
-    Parameter = "Parameter"
-}
-
-export enum DefaultEntityKindIcons {
-    Solution = "csharp:Solution",
-    Project = "csharp:CSProjectNode",
-    ExternalDependencySource = "csharp:ReferenceGroup",
-    Framework = "csharp:Framework",
-    PackageRepository = "csharp:NuGet",
-    Package = "csharp:Package",
-    Library = "csharp:Library",
-    Assembly = "csharp:Assembly",
-    Module = "csharp:Module",
-    Namespace = "csharp:Namespace",
-    Type = "csharp:Class",
-    TypeParameter = "csharp:Type",
-    Field = "csharp:Field",
-    Method = "csharp:Method",
-    Property = "csharp:Property",
-    Event = "csharp:Event",
-    Parameter = "csharp:LocalVariable",
-}
-
-export enum Relations {
-    Declares = "declares",
-    InheritsFrom = "inheritsFrom",
-    TypeOf = "typeOf",
-    Returns = "returns",
-    Overrides = "overrides",
-    AssociatedWith = "associatedWith",
-    DependsOn = "dependsOn"
-}
-
-export enum DefaultRelationColors {
-    Declares = "#dfdfdf",
-    InheritsFrom = "#c3e5de",
-    TypeOf = "#dcdcaa",
-    Returns = "#d1c3e5",
-    Overrides = "#e5c3c8",
-    AssociatedWith = "#e5ccb7",
-    DependsOn = "#c3d6e5",
-}
-
-enum MemberAccessibility {
-    Invalid = "Invalid",
-    Private = "Private",
-    ProtectedAndInternal = "ProtectedAndInternal",
-    Protected = "Protected",
-    Internal = "Internal",
-    ProtectedOrInternal = "ProtectedOrInternal",
-    Public = "Public"
-}
-
-enum TypeKind {
-    Unknown = "Unknown",
-    Array = "Array",
-    Class = "Class",
-    Delegate = "Delegate",
-    Dynamic = "Dynamic",
-    Enum = "Enum",
-    Error = "Error",
-    Interface = "Interface",
-    Module = "Module",
-    Pointer = "Pointer",
-    Struct = "Struct",
-    TypeParameter = "TypeParameter",
-    Submission = "Submission",
-    FunctionPointer = "FunctionPointer"
-}
-
-enum MethodKind {
-    Invalid = "Invalid",
-    AnonymousFunction = "AnonymousFunction",
-    Constructor = "Constructor",
-    Conversion = "Conversion",
-    DelegateInvoke = "DelegateInvoke",
-    Destructor = "Destructor",
-    EventAdd = "EventAdd",
-    EventRaise = "EventRaise",
-    EventRemove = "EventRemove",
-    ExplicitInterfaceImplementation = "ExplicitInterfaceImplementation",
-    UserDefinedOperator = "UserDefinedOperator",
-    Ordinary = "Ordinary",
-    PropertyGet = "PropertyGet",
-    PropertySet = "PropertySet",
-    ReducedExtension = "ReducedExtension",
-    StaticConstructor = "StaticConstructor",
-    BuiltinOperator = "BuiltinOperator",
-    DeclareMethod = "DeclareMethod",
-    LocalFunction = "LocalFunction",
-    FunctionPointerSignature = "FunctionPointerSignature"
-}
-
-enum VSColor {
-    DarkGray = "#212121",
-    DarkPurple = "#68217a",
-    Purple = "#6936aa",
-    DarkYellow = "#996f00",
-    Blue = "#005dba",
-    NuGetBlue = "#004880"
-}
-
-export interface CSharpNodeProperties extends NodeProperties {
-    Kind: EntityKind,
-    TypeKind?: TypeKind,
-    Accessibility?: MemberAccessibility,
-    MethodKind?: MethodKind,
-    IsConst?: boolean,
-    IsEnumItem?: boolean,
-    DeclaringKind?: EntityKind,
-    InstanceMemberCount?: number,
-    StaticMemberCount?: number,
-    IsStatic?: boolean
-}
-
-const FALLBACK_STYLE: NodeStyle = {
-    icon: "csharp:ExplodedDoughnutChart",
-    color: VSColor.DarkGray,
-    size: 5,
-    outlines: [],
-    fire: FireStatus.None
-};
-
-export interface CSharpDataOptions {
-    includedKinds: string[];
-    autoExpandedKinds: string[];
-}
-
-const DEFAULT_CSHARP_DATA_OPTIONS: CSharpDataOptions = {
-    includedKinds: [
-        EntityKind.Solution,
-        EntityKind.Project,
-        EntityKind.Namespace,
-        EntityKind.Type,
-        EntityKind.Field,
-        EntityKind.Method,
-        EntityKind.Property,
-        EntityKind.Event
-    ],
-    autoExpandedKinds: [
-        EntityKind.Solution,
-        EntityKind.Project,
-        EntityKind.Namespace
-    ]
-}
-
-export enum CSharpGlyphSizingMode {
-    Linear = "linear",
-    Sqrt = "sqrt",
-    Log = "log"
-}
-
-export interface CSharpGlyphOptions {
-    sizingMode: CSharpGlyphSizingMode;
-}
-
-const DEFAULT_CSHARP_GLYPH_OPTIONS: CSharpGlyphOptions = {
-    sizingMode: CSharpGlyphSizingMode.Linear
-};
-
-declare module "model/options" {
-    export interface DataOptions {
-        csharp?: CSharpDataOptions;
-    }
-    
-    export interface GlyphOptions {
-        csharp?: CSharpGlyphOptions;
-    }
-}
+import { type CSharpDataOptions, DEFAULT_CSHARP_DATA_OPTIONS, type CSharpGlyphOptions, type CSharpNodeProperties, EntityKind, FALLBACK_STYLE, Relations, VSColor, TypeKind, MethodKind, MemberAccessibility, CSharpGlyphSizingMode, DefaultRelationColors, DEFAULT_CSHARP_GLYPH_OPTIONS } from "model";
 
 export default function csharp(options: HelvegOptions): CSharpPlugin {
     return new CSharpPlugin(options);
@@ -204,7 +19,7 @@ export class CSharpPlugin implements HelvegPlugin {
 
     constructor(options: HelvegOptions) {
         let plugin = this;
-        this.nodeStyles.set("Entity", (node: Node) => {
+        this.nodeStyles.set("Entity", (node: MultigraphNode) => {
             let props = node.properties as CSharpNodeProperties;
             if (!(Object.values(EntityKind).includes(props.Kind))) {
                 return FALLBACK_STYLE;
@@ -212,9 +27,9 @@ export class CSharpPlugin implements HelvegPlugin {
 
             let base = plugin.resolveNodeStyle(props, this.csharpGlyphOptions);
             let fire = !props.Diagnostics ? FireStatus.None
-                : props.Diagnostics.filter(d => d.severity === DiagnosticSeverity.Error).length > 0
+                : props.Diagnostics.filter(d => d.severity === MultigraphDiagnosticSeverity.Error).length > 0
                     ? FireStatus.Flame
-                    : props.Diagnostics.filter(d => d.severity === DiagnosticSeverity.Warning).length > 0
+                    : props.Diagnostics.filter(d => d.severity === MultigraphDiagnosticSeverity.Warning).length > 0
                         ? FireStatus.Smoke
                         : FireStatus.None;
             return {
@@ -527,7 +342,7 @@ export class CSharpPlugin implements HelvegPlugin {
         }
     }
     
-    private resolveEdgeStyle(object: { relation: string, edge: Edge }): EdgeStyle {
+    private resolveEdgeStyle(object: { relation: string, edge: MultigraphEdge }): EdgeStyle {
         switch (object.relation) {
             case Relations.Declares:
                 return {

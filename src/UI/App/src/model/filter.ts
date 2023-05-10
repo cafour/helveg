@@ -1,7 +1,7 @@
-import type { Node, Multigraph } from "./multigraph";
+import type { MultigraphNode, Multigraph } from "./multigraph";
 import { SearchMode } from "./options";
 
-export type NodeFilter = (node: Node) => boolean;
+export type NodeFilter = (node: MultigraphNode) => boolean;
 
 export function buildNodeFilter(
     searchText: string | null,
@@ -14,13 +14,13 @@ export function buildNodeFilter(
 
     if (mode === SearchMode.Contains) {
         let lowerCaseText = searchText.toLowerCase();
-        return (node: Node) => node.properties.Label != null
+        return (node: MultigraphNode) => node.properties.Label != null
             && node.properties.Label.toLowerCase().includes(lowerCaseText);
     }
 
     if (mode === SearchMode.Regex) {
         let regex = new RegExp(searchText, "i");
-        return (node: Node) => node.properties.Label != null && regex.test(node.properties.Label);
+        return (node: MultigraphNode) => node.properties.Label != null && regex.test(node.properties.Label);
     }
 
     if (mode === SearchMode.JavaScript) {
@@ -29,7 +29,7 @@ export function buildNodeFilter(
         }
 
         let fn = new Function("n", `let { ${variableNames.join(', ')} } = n.properties; return !!(${searchText});`);
-        return fn as (node: Node) => boolean;
+        return fn as (node: MultigraphNode) => boolean;
     }
 
     throw new Error(`'${mode}' is an unknown search mode.`)

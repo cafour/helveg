@@ -1,10 +1,10 @@
 export interface Multigraph {
     id: string,
-    nodes: Record<string, Node>
-    relations: Record<string, Relation>
+    nodes: Record<string, MultigraphNode>
+    relations: Record<string, MultigraphRelation>
 }
 
-export enum DiagnosticSeverity {
+export enum MultigraphDiagnosticSeverity {
     Unknown = "Unknown",
     Hidden = "Hidden",
     Info = "Info",
@@ -12,33 +12,33 @@ export enum DiagnosticSeverity {
     Error = "Error"
 }
 
-export interface Diagnostic {
+export interface MultigraphDiagnostic {
     id: string,
     message: string,
-    severity: DiagnosticSeverity,
+    severity: MultigraphDiagnosticSeverity,
 }
 
-export interface NodeProperties {
+export interface MultigraphNodeProperties {
     Label?: string,
     Style?: string,
-    Diagnostics?: Diagnostic[]
+    Diagnostics?: MultigraphDiagnostic[]
 }
 
-export interface Node {
-    properties: NodeProperties & Record<string, any>
+export interface MultigraphNode {
+    properties: MultigraphNodeProperties & Record<string, any>
 }
 
-export interface Relation {
-    edges: Record<string, Edge>
+export interface MultigraphRelation {
+    edges: Record<string, MultigraphEdge>
 }
 
-export interface EdgeProperties {
+export interface MultigraphEdgeProperties {
     Label?: string,
     Style?: string
 }
 
-export interface Edge {
+export interface MultigraphEdge {
     src: string,
     dst: string,
-    properties: EdgeProperties & Record<string, any>
+    properties: MultigraphEdgeProperties & Record<string, any>
 }

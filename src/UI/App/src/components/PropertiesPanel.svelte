@@ -1,12 +1,12 @@
 <script lang="ts">
-    import { DiagnosticSeverity, type Diagnostic, type Node } from "model/multigraph";
+    import { MultigraphDiagnosticSeverity, type MultigraphDiagnostic, type MultigraphNode } from "model/multigraph";
     import KeyValueList from "./KeyValueList.svelte";
     import Panel from "./Panel.svelte";
     import Subpanel from "./Subpanel.svelte";
     import { AppIcons, AppPanels } from "model/const";
     import Icon from "./Icon.svelte";
 
-    export let node: Node | null = null;
+    export let node: MultigraphNode | null = null;
     $: nodeItems =
         [
             ...Object.entries(node?.properties ?? {}).filter(([k, v]) => k !== "Diagnostics")
@@ -16,15 +16,15 @@
         })) ?? [];
     $: diagnostics = node?.properties?.Diagnostics ?? [];
     
-    function getDiagnosticIcon(diagnostic: Diagnostic) {
+    function getDiagnosticIcon(diagnostic: MultigraphDiagnostic) {
         switch (diagnostic.severity) {
-            case DiagnosticSeverity.Hidden:
+            case MultigraphDiagnosticSeverity.Hidden:
                 return AppIcons.HiddenDiagnostic;
-            case DiagnosticSeverity.Info:
+            case MultigraphDiagnosticSeverity.Info:
                 return AppIcons.InfoDiagnostic;
-            case DiagnosticSeverity.Warning:
+            case MultigraphDiagnosticSeverity.Warning:
                 return AppIcons.WarningDiagnostic
-            case DiagnosticSeverity.Error:
+            case MultigraphDiagnosticSeverity.Error:
                 return AppIcons.ErrorDiagnostic;
             default:
                 return AppIcons.UnknownDiagnostic;

@@ -1,7 +1,9 @@
 {
-  "name": "helveg",
+  "name": "@cafour/helveg",
   "type": "module",
   "description": "An extensible software visualization tool.",
+  "types": "./dist/helveg.d.ts",
+  "version": "0.0.1",
   "private": false,
   "scripts": {
     "raw": "tsc --noEmit -p ./tsconfig.json && ts-node --project ./eng/tsconfig.json ./eng/build.ts",
@@ -9,8 +11,17 @@
     "build:Release": "npm run raw -- --release",
     "build": "npm run build:Debug",
     "watch": "npm run raw -- --watch",
-    "types": "svelte-package -i ./src -o ./dist -t && tsc -p ./tsconfig.declarations.json",
+    "types": "svelte-package -i ./src -o ./dist -t && del-cli dist/**/*.js && del-cli dist/**/*.svelte && api-extractor run -l",
     "serve": "concurrently \"npm run watch -- --useTemplate\" \"browser-sync start -w -s ../obj/esbuild --host 0.0.0.0\""
+  },
+  "dependencies": {
+    "svelte": "^3.58.0",
+    "graphology": "^0.25.1",
+    "graphology-layout": "^0.6.1",
+    "graphology-layout-forceatlas2": "^0.10.1",
+    "graphology-types": "^0.24.7",
+    "graphology-utils": "^2.5.2",
+    "sigma": "3.0.0-alpha3"
   },
   "devDependencies": {
     "@microsoft/api-extractor": "^7.34.8",
@@ -30,23 +41,17 @@
     "esbuild-sass-plugin": "^2.8.0",
     "esbuild-svelte": "^0.7.3",
     "file-saver": "^2.0.5",
-    "graphology": "^0.25.1",
-    "graphology-layout": "^0.6.1",
-    "graphology-layout-forceatlas2": "^0.10.1",
-    "graphology-types": "^0.24.7",
-    "graphology-utils": "^2.5.2",
     "jsdom": "^21.1.1",
     "postcss": "^8.4.23",
     "postcss-preset-env": "^8.3.2",
     "resolve": "^1.22.2",
     "sass": "^1.62.0",
-    "sigma": "3.0.0-alpha3",
-    "svelte": "^3.58.0",
     "svelte-check": "^3.2.0",
     "svelte-preprocess": "^5.0.3",
     "ts-node": "^10.9.1",
     "typescript": "^4.9.5",
     "uniformcss": "^1.5.4",
-    "yargs": "^17.7.1"
+    "yargs": "^17.7.1",
+    "del-cli": "^5.0.0"
   }
 }
