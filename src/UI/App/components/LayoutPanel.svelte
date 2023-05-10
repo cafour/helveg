@@ -6,6 +6,7 @@
     import Subpanel from "./Subpanel.svelte";
     import KeyValueList from "./KeyValueList.svelte";
     import { layoutOptions, model } from "./App.svelte";
+    import { AppPanels } from "model/const";
 
     export let status: StructuralStatus;
     export let stats: StructuralDiagramStats;
@@ -20,7 +21,7 @@
     let dispatch = createEventDispatcher();
 </script>
 
-<Panel name="Layout" indent={false}>
+<Panel name="Layout" indent={false} id={AppPanels.Layout}>
     <Subpanel name="TidyTree">
         <div class="flex flex-row justify-content-center">
             <button

@@ -1,6 +1,7 @@
 import type { HelvegGraph } from "./graph";
 import type { Icon, IconRegistry, IconSet } from "./icons";
 import type { NodeStyleGenerator, NodeStyleRegistry, EdgeStyleGenerator, EdgeStyleRegistry } from "./style";
+import type { UIExtension, UIExtensionRegistry } from "./uiExtensions";
 import type { VisualizationModel } from "./visualization";
 
 export interface HelvegPlugin {
@@ -8,6 +9,7 @@ export interface HelvegPlugin {
     icons?: Map<string, Icon>;
     nodeStyles?: Map<string, NodeStyleGenerator>;
     edgeStyles?: Map<string, EdgeStyleGenerator>;
+    uiExtensions?: Map<string, UIExtension>;
     onVisualize?(model: Readonly<VisualizationModel>, graph: HelvegGraph): void;
 }
 
@@ -18,7 +20,8 @@ export class HelvegPluginRegistry {
     constructor(
         private iconRegistry: IconRegistry,
         private nodeStyles: NodeStyleRegistry,
-        private edgeStyles: EdgeStyleRegistry) {
+        private edgeStyles: EdgeStyleRegistry,
+        private uiExtensions: UIExtensionRegistry) {
     }
 
     register(plugin: HelvegPlugin) {
@@ -45,6 +48,12 @@ export class HelvegPluginRegistry {
         if (plugin.edgeStyles) {
             for (let [key, value] of plugin.edgeStyles) {
                 this.edgeStyles.register(`${plugin.name}:${key}`, value);
+            }
+        }
+        
+        if (plugin.uiExtensions) {
+            for (let [key, value] of plugin.uiExtensions) {
+                this.uiExtensions.register(`${plugin.name}:${key}`, value);
             }
         }
     }

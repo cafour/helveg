@@ -1,13 +1,13 @@
 <script lang="ts">
     import Panel from "./Panel.svelte";
     import Subpanel from "./Subpanel.svelte";
-    import { AppIcons } from "model/const";
+    import { AppIcons, AppPanels } from "model/const";
     import { model, toolOptions } from "./App.svelte";
 
     $: relations = $model ? Object.keys($model.multigraph.relations).sort() : [];
 </script>
 
-<Panel name="Tools" indent={false}>
+<Panel name="Tools" indent={false} id={AppPanels.Tools}>
     <Subpanel name="ShowProperties" icon={AppIcons.ShowPropertiesTool}>
         <label>
             <input

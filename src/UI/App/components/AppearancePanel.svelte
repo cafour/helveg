@@ -2,10 +2,10 @@
     import Panel from "./Panel.svelte";
     import Subpanel from "./Subpanel.svelte";
     import { glyphOptions } from "./App.svelte";
-    import CSharpGlyphsSubpanel from "./CSharpGlyphsSubpanel.svelte";
+    import { AppPanels } from "model/const";
 </script>
 
-<Panel name="Appearance" indent={false}>
+<Panel name="Appearance" indent={false} id={AppPanels.Appearance}>
     <Subpanel name="Glyphs">
         <label>
             <input type="checkbox" bind:checked={$glyphOptions.showIcons} />
@@ -28,5 +28,4 @@
             IsFireAnimated
         </label>
     </Subpanel>
-    <CSharpGlyphsSubpanel />
 </Panel>

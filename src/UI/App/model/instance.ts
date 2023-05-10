@@ -8,6 +8,7 @@ import { IconRegistry } from "./icons";
 import { DEFAULT_HELVEG_OPTIONS, type HelvegOptions } from "./options";
 import { Logger } from "./logger";
 import { NodeStyleRegistry, EdgeStyleRegistry } from "./style";
+import { UIExtensionRegistry } from "./uiExtensions";
 
 export interface HelvegInstance {
     model: VisualizationModel;
@@ -15,8 +16,9 @@ export interface HelvegInstance {
     nodeStyles: NodeStyleRegistry;
     edgeStyles: EdgeStyleRegistry;
     icons: IconRegistry;
-    app: App | null;
+    uiExtensions: UIExtensionRegistry;
     plugins: HelvegPluginRegistry;
+    app: App | null;
     options: HelvegOptions;
     logger: Logger;
 };
@@ -25,7 +27,12 @@ export function createInstance(): HelvegInstance {
     let iconRegistry = new IconRegistry();
     let nodeStyleRegistry = new NodeStyleRegistry();
     let edgeStyleRegistry = new EdgeStyleRegistry();
-    let pluginRegistry = new HelvegPluginRegistry(iconRegistry, nodeStyleRegistry, edgeStyleRegistry);
+    let uiExtensionRegistry = new UIExtensionRegistry();
+    let pluginRegistry = new HelvegPluginRegistry(
+        iconRegistry,
+        nodeStyleRegistry,
+        edgeStyleRegistry,
+        uiExtensionRegistry);
 
     return {
         model: EMPTY_MODEL,
@@ -33,6 +40,7 @@ export function createInstance(): HelvegInstance {
         nodeStyles: nodeStyleRegistry,
         edgeStyles: edgeStyleRegistry,
         icons: iconRegistry,
+        uiExtensions: uiExtensionRegistry,
         plugins: pluginRegistry,
         app: null,
         options: DEFAULT_HELVEG_OPTIONS,

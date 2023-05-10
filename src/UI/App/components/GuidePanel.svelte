@@ -1,10 +1,10 @@
 <script lang="ts">
-    import { AppIcons } from "model/const";
+    import { AppIcons, AppPanels } from "model/const";
     import Icon from "./Icon.svelte";
     import Panel from "./Panel.svelte";
 </script>
 
-<Panel name="Guide">
+<Panel name="Guide" id={AppPanels.Guide}>
     <a href="https://helveg.net/docs/" class="button-stretch" target="_blank"
         >Documentation</a
     >

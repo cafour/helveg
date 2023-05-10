@@ -114,11 +114,11 @@ export class StyleRegistry<TObject, TStyle> {
             throw new Error(`The registry already contains a style named '${name}'.`);
         }
 
-        this.styles[name] = style;
+        this.styles.set(name, style);
     }
 
     get(name: string): StyleGenerator<TObject, TStyle> {
-        let style = this.styles[name];
+        let style = this.styles.get(name);
         if (!style) {
             DEBUG && console.log(`Could not find the '${name}' style.`);
             return () => this.fallback;

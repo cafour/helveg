@@ -1,13 +1,12 @@
 <script lang="ts">
-    import { createEventDispatcher } from "svelte/internal";
+    import { createEventDispatcher, getContext } from "svelte/internal";
     import Panel from "./Panel.svelte";
     import RadioGroup from "./RadioGroup.svelte";
     import Subpanel from "./Subpanel.svelte";
     import { SearchMode } from "model/options";
-    import { AppIcons } from "model/const";
+    import { AppIcons, AppPanels } from "model/const";
     import ResizingTextarea from "./ResizingTextarea.svelte";
     import { dataOptions, model } from "./App.svelte";
-    import CSharpKindsSubpanel from "./CSharpKindsSubpanel.svelte";
     import ToggleAllCheckbox from "./ToggleAllCheckbox.svelte";
 
     let dispatch = createEventDispatcher();
@@ -34,7 +33,7 @@
         : [];
 </script>
 
-<Panel name="Data" indent={false}>
+<Panel name="Data" indent={false} id={AppPanels.Data}>
     <Subpanel>
         <button on:click={() => dispatch("refresh")} class="button-stretch">
             Refresh
@@ -94,5 +93,4 @@
             </label>
         {/each}
     </Subpanel>
-    <CSharpKindsSubpanel />
 </Panel>

@@ -5,6 +5,10 @@ import type { HelvegPlugin } from "./plugin";
 import { bfs } from "./traversal";
 import type { VisualizationModel } from "./visualization";
 import { FireStatus, OutlineStyle, type NodeStyle, type NodeStyleGenerator, type EdgeStyleGenerator, type EdgeStyle, FALLBACK_EDGE_STYLE } from "./style";
+import type { UIExtension } from "./uiExtensions";
+import { AppPanels } from "./const";
+import CSharpGlyphsSubpanel from "components/CSharpGlyphsSubpanel.svelte";
+import CSharpKindsSubpanel from "components/CSharpKindsSubpanel.svelte";
 
 export enum EntityKind {
     Solution = "Solution",
@@ -203,6 +207,7 @@ export class CSharpPlugin implements HelvegPlugin {
     csharpGlyphOptions: CSharpGlyphOptions = { ...DEFAULT_CSHARP_GLYPH_OPTIONS };
     nodeStyles: Map<string, NodeStyleGenerator> = new Map();
     edgeStyles: Map<string, EdgeStyleGenerator> = new Map();
+    uiExtensions: Map<string, UIExtension> = new Map();
 
     constructor(options: HelvegOptions) {
         let plugin = this;
@@ -226,6 +231,15 @@ export class CSharpPlugin implements HelvegPlugin {
             };
         });
         this.edgeStyles.set("Relation", o => this.resolveEdgeStyle(o));
+        
+        this.uiExtensions.set("Glyphs", {
+            targetPanel: AppPanels.Appearance,
+            component: CSharpGlyphsSubpanel
+        });
+        this.uiExtensions.set("Kinds", {
+            targetPanel: AppPanels.Data,
+            component: CSharpKindsSubpanel
+        });
 
         options.layout.tidyTree.relation ??= Relations.Declares;
         options.tool.cut.relation ??= Relations.Declares;

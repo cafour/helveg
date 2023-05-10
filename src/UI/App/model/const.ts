@@ -31,6 +31,7 @@ export enum AppIcons {
 }
 
 export enum AppPanels {
+    Unknown = "unknown-panel",
     Data = "data-panel",
     Layout = "layout-panel",
     Appearance = "appearance-panel",

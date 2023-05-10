@@ -4,6 +4,7 @@
     import Subpanel from "./Subpanel.svelte";
     import { createEventDispatcher } from "svelte";
     import { exportOptions, model } from "./App.svelte";
+    import { AppPanels } from "model/const";
 
     $: metadataItems = [
         { key: "Name", value: $model.documentInfo.name },
@@ -22,7 +23,7 @@
     let dispatch = createEventDispatcher();
 </script>
 
-<Panel name="Document" indent={false}>
+<Panel name="Document" indent={false} id={AppPanels.Document}>
     <Subpanel name="Metadata">
         <KeyValueList items={metadataItems} />
     </Subpanel>

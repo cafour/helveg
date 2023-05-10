@@ -3,7 +3,7 @@
     import KeyValueList from "./KeyValueList.svelte";
     import Panel from "./Panel.svelte";
     import Subpanel from "./Subpanel.svelte";
-    import { AppIcons } from "model/const";
+    import { AppIcons, AppPanels } from "model/const";
     import Icon from "./Icon.svelte";
 
     export let node: Node | null = null;
@@ -32,7 +32,7 @@
     }
 </script>
 
-<Panel name="Properties" indent={false}>
+<Panel name="Properties" indent={false} id={AppPanels.Properties}>
     {#if node == null}
         <span class="indent">Click on a node with the <Icon name={AppIcons.ShowPropertiesTool} /> tool to view its properties.</span>
     {:else}
