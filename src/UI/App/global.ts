@@ -1,6 +1,7 @@
 import type { HelvegOptions } from "model/options";
-import { createInstance, initializeInstance, type HelvegInstance } from "./instance";
-import type { HelvegPlugin } from "./plugin";
+import { createInstance, initializeInstance, type HelvegInstance } from "model/instance";
+import type { HelvegPlugin } from "model/plugin";
+import * as types from "types";
 
 /**
  * An interface allowing anyone to extend the global helveg instance.
@@ -10,14 +11,14 @@ export interface HelvegExtensions {
 
 declare global {
     interface Window {
-        helveg: HelvegInstance & HelvegExtensions;
+        helveg: HelvegInstance & HelvegExtensions & typeof types;
     }
 
-    const helveg: HelvegInstance & HelvegExtensions;
+    const helveg: HelvegInstance & HelvegExtensions & typeof types;
 }
 
 export function initializeGlobal(pluginFuncs?: ((options: HelvegOptions) => HelvegPlugin)[]) {
-    window.helveg = createInstance();
+    window.helveg = {...types, ...createInstance()};
     pluginFuncs?.forEach(plugin => window.helveg.plugins.register(plugin(window.helveg.options)));
 
     initializeInstance(window.helveg)

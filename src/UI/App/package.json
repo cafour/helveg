@@ -1,16 +1,20 @@
 {
   "name": "helveg",
   "type": "module",
-  "private": true,
+  "description": "An extensible software visualization tool.",
+  "private": false,
   "scripts": {
     "raw": "tsc --noEmit && ts-node --project ./eng/tsconfig.json ./eng/build.ts",
     "build:Debug": "npm run raw -- --debug",
     "build:Release": "npm run raw -- --release",
     "build": "npm run build:Debug",
     "watch": "npm run raw -- --watch",
+    "types": "svelte-package -i components -o dist/components -t && tsc -p tsconfig.declarations.json",
     "serve": "concurrently \"npm run watch -- --useTemplate\" \"browser-sync start -w -s ../obj/esbuild --host 0.0.0.0\""
   },
   "devDependencies": {
+    "@microsoft/api-extractor": "^7.34.8",
+    "@sveltejs/package": "^2.0.2",
     "@tsconfig/node16": "^1.0.3",
     "@tsconfig/svelte": "^3.0.0",
     "@types/d3-hierarchy": "^3.1.2",

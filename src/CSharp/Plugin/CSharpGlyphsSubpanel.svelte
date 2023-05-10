@@ -1,7 +1,7 @@
 <script lang="ts">
     import { CSharpGlyphSizingMode } from "model/csharpPlugin";
-    import Subpanel from "./Subpanel.svelte";
-    import { glyphOptions } from "./App.svelte";
+    import Subpanel from "helveg";
+    import { glyphOptions } from "../../UI/App/components/App.svelte";
 
     let sizingModes = Object.values(CSharpGlyphSizingMode)
 

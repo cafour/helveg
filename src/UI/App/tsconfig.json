@@ -14,6 +14,7 @@
     "allowJs": true,
     "noImplicitAny": false,
     "isolatedModules": true,
+    "declaration": false,
     "noEmit": true
   },
   "exclude": [

@@ -1,12 +1,5 @@
-import type { HelvegOptions } from "model/options";
-import { expandNode, findRoots, type HelvegGraph } from "./graph";
-import { DiagnosticSeverity, type Edge, type Node, type NodeProperties } from "./multigraph";
-import type { HelvegPlugin } from "./plugin";
-import { bfs } from "./traversal";
-import type { VisualizationModel } from "./visualization";
-import { FireStatus, OutlineStyle, type NodeStyle, type NodeStyleGenerator, type EdgeStyleGenerator, type EdgeStyle, FALLBACK_EDGE_STYLE } from "./style";
-import type { UIExtension } from "./uiExtensions";
-import { AppPanels } from "./const";
+import type { HelvegOptions } from "helveg";
+import helveg from "helveg";
 import CSharpGlyphsSubpanel from "components/CSharpGlyphsSubpanel.svelte";
 import CSharpKindsSubpanel from "components/CSharpKindsSubpanel.svelte";
 

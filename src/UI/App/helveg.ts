@@ -1,5 +1,2 @@
-import csharp from "model/csharpPlugin";
-import { initializeGlobal } from "model/global";
+export * from "global";
 import "styles/helveg.scss";
-
-initializeGlobal([csharp]);

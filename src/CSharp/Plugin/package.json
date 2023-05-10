@@ -1,0 +1,11 @@
+{
+  "name": "helveg-csharp",
+  "description": "A C# plugin for Helveg, a software visualization tool.",
+  "private": true,
+  "scripts": {
+    "raw": "tsc --noEmit && ts-node --project ./eng/tsconfig.json ./eng/build.ts",
+    "build:Debug": "npm run raw -- --debug",
+    "build:Release": "npm run raw -- --release",
+    "build": "npm run build:Debug"
+  }
+}

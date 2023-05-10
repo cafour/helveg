@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "isolatedModules": false,
+    "declaration": true,
+    "noEmit": false,
+    "emitDeclarationOnly": true,
+    "declarationDir": "./dist"
+  }
+}
