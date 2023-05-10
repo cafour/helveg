@@ -4,12 +4,12 @@
   "description": "An extensible software visualization tool.",
   "private": false,
   "scripts": {
-    "raw": "tsc --noEmit && ts-node --project ./eng/tsconfig.json ./eng/build.ts",
+    "raw": "tsc --noEmit -p ./tsconfig.json && ts-node --project ./eng/tsconfig.json ./eng/build.ts",
     "build:Debug": "npm run raw -- --debug",
     "build:Release": "npm run raw -- --release",
     "build": "npm run build:Debug",
     "watch": "npm run raw -- --watch",
-    "types": "svelte-package -i components -o dist/components -t && tsc -p tsconfig.declarations.json",
+    "types": "svelte-package -i ./src -o ./dist -t && tsc -p ./tsconfig.declarations.json",
     "serve": "concurrently \"npm run watch -- --useTemplate\" \"browser-sync start -w -s ../obj/esbuild --host 0.0.0.0\""
   },
   "devDependencies": {

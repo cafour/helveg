@@ -3,7 +3,7 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "ES2022",
-    "baseUrl": "./",
+    "baseUrl": "./src",
     "types": [
       "svelte"
     ],
@@ -22,5 +22,8 @@
     "eng/**",
     "dist/**",
     "template/**"
+  ],
+  "include": [
+    "src/**/*"
   ]
 }
