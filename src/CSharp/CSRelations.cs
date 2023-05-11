@@ -10,4 +10,5 @@ public static class CSRelations
     public const string Overrides = "overrides";
     public const string AssociatedWith = "associatedWith";
     public const string DependsOn = "dependsOn";
+    public const string References = "references";
 }

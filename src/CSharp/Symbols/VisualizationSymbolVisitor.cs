@@ -62,6 +62,13 @@ public class VisualizationSymbolVisitor : SymbolVisitor
             CSRelations.Declares,
             new Edge(module.Token, module.GlobalNamespace.Token),
             CSConst.RelationStyle);
+
+        builder.AddEdges(
+            CSRelations.References,
+            module.ReferencedAssemblies
+                .Where(a => a.Token.HasValue)
+                .Select(a => new Edge(module.Token, a.Token)),
+            CSConst.RelationStyle);
     }
 
     public override void VisitNamespace(NamespaceDefinition @namespace)
