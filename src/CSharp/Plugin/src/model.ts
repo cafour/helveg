@@ -47,7 +47,8 @@ export enum Relations {
     Returns = "returns",
     Overrides = "overrides",
     AssociatedWith = "associatedWith",
-    DependsOn = "dependsOn"
+    DependsOn = "dependsOn",
+    References = "references",
 }
 
 export enum DefaultRelationColors {

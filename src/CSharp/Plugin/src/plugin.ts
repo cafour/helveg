@@ -374,6 +374,11 @@ export class CSharpPlugin implements HelvegPlugin {
                     color: DefaultRelationColors.DependsOn,
                     width: 6
                 };
+            case Relations.References:
+                return {
+                    color: DefaultRelationColors.DependsOn,
+                    width: 4
+                };
             default:
                 return FALLBACK_EDGE_STYLE;
         }
