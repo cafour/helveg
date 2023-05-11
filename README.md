@@ -17,4 +17,20 @@ An extensible software visualization framework and a tool for the visualization 
 * **[Docs](https://helveg.net/docs/)**
 * **[Samples](https://helveg.net/samples/)**
 
+## Dependencies
 
+This software uses a number of the dependencies, of which these are the most significant:
+
+**Back-end**
+
+* MSBuild
+* Roslyn
+* NuGet
+
+**Front-end**
+
+* Sigma.js
+* Graphology
+* Svelte
+* Visual Studio Image Library
+    > Please note that a different license applies to icons from this image library.
