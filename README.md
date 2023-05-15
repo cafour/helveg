@@ -12,14 +12,14 @@
 
 <img src="https://img.shields.io/gitlab/license/helveg/helveg?style=flat-square&label=License" />
 
-An extensible software visualization framework and a tool for the visualization of C# codebases.
+An tool and an extensible API for the visualization of C# codebases.
 
 * **[Docs](https://helveg.net/docs/)**
 * **[Samples](https://helveg.net/samples/)**
 
 ## Dependencies
 
-This software uses a number of the dependencies, of which these are the most significant:
+This software has many dependencies. These are the most significant:
 
 **Back-end**
 
@@ -29,8 +29,8 @@ This software uses a number of the dependencies, of which these are the most sig
 
 **Front-end**
 
-* Sigma.js
-* Graphology
+* [Sigma.js](https://github.com/jacomyal/sigma.js)
+* [Graphology](https://github.com/graphology/graphology)
 * Svelte
 * Visual Studio Image Library
     > Please note that a different license applies to icons from this image library.

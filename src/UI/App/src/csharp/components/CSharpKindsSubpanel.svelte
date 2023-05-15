@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { DefaultEntityKindIcons } from "model";
+    import { DefaultEntityKindIcons } from "../model";
     import { type DataOptions, type VisualizationModel, Subpanel, ToggleAllCheckbox, Icon } from "helveg";
     import { FALLBACK_NODE_ICON } from "helveg";
     import { getContext } from "svelte";

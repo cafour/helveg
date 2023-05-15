@@ -6,6 +6,9 @@ import type { HelvegPlugin } from "model/plugin";
 export * from "types";
 import * as types from "types";
 
+// TODO: Move to Helveg.CSharp
+export * from "csharp/plugin";
+
 /**
  * An interface allowing anyone to extend the global helveg instance.
  */

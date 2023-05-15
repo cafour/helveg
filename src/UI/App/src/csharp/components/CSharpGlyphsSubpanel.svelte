@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { CSharpGlyphSizingMode } from "model";
+    import { CSharpGlyphSizingMode } from "../model";
     import { Subpanel, type GlyphOptions } from "helveg";
     import type { Writable } from "svelte/store";
     import { getContext } from "svelte";

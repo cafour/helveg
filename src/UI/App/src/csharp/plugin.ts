@@ -1,9 +1,9 @@
 import { AppPanels,FALLBACK_EDGE_STYLE, FireStatus, OutlineStyle, bfs, expandNode, findRoots, type HelvegOptions, type HelvegPlugin, type EdgeStyle, type EdgeStyleGenerator, type HelvegGraph, type NodeStyle, type NodeStyleGenerator, type UIExtension, type VisualizationModel, type MultigraphNode, MultigraphDiagnosticSeverity, type MultigraphEdge } from "helveg";
 
-import CSharpGlyphsSubpanel from "components/CSharpGlyphsSubpanel.svelte";
-import CSharpKindsSubpanel from "components/CSharpKindsSubpanel.svelte";
+import CSharpGlyphsSubpanel from "./components/CSharpGlyphsSubpanel.svelte";
+import CSharpKindsSubpanel from "./components/CSharpKindsSubpanel.svelte";
 
-import { type CSharpDataOptions, DEFAULT_CSHARP_DATA_OPTIONS, type CSharpGlyphOptions, type CSharpNodeProperties, EntityKind, FALLBACK_STYLE, Relations, VSColor, TypeKind, MethodKind, MemberAccessibility, CSharpGlyphSizingMode, DefaultRelationColors, DEFAULT_CSHARP_GLYPH_OPTIONS } from "model";
+import { type CSharpDataOptions, DEFAULT_CSHARP_DATA_OPTIONS, type CSharpGlyphOptions, type CSharpNodeProperties, EntityKind, FALLBACK_STYLE, Relations, VSColor, TypeKind, MethodKind, MemberAccessibility, CSharpGlyphSizingMode, DefaultRelationColors, DEFAULT_CSHARP_GLYPH_OPTIONS } from "./model";
 
 export default function helvegCSharp(options: HelvegOptions): CSharpPlugin {
     return new CSharpPlugin(options);
