@@ -1,12 +1,14 @@
 <script lang="ts">
     import Panel from "./Panel.svelte";
     import { StructuralStatus, type StructuralDiagramStats } from "model/structural";
-    import { createEventDispatcher } from "svelte";
+    import { createEventDispatcher, getContext } from "svelte";
     import Icon from "./Icon.svelte";
     import Subpanel from "./Subpanel.svelte";
     import KeyValueList from "./KeyValueList.svelte";
-    import { layoutOptions, model } from "./App.svelte";
     import { AppPanels } from "model/const";
+    import type { Readable, Writable } from "svelte/store";
+    import type { VisualizationModel } from "model/visualization";
+    import type { LayoutOptions } from "model/options";
 
     export let status: StructuralStatus;
     export let stats: StructuralDiagramStats;
@@ -19,6 +21,10 @@
     $: relations = $model ? Object.keys($model.multigraph.relations).sort() : [];
 
     let dispatch = createEventDispatcher();
+
+    let model = getContext<Readable<VisualizationModel>>("model");
+    let layoutOptions = getContext<Writable<LayoutOptions>>("layoutOptions");
+
 </script>
 
 <Panel name="Layout" indent={false} id={AppPanels.Layout}>

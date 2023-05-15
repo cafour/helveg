@@ -1,18 +1,5 @@
-<script lang="ts" context="module">
-    import { get, type Readable, type Writable } from "svelte/store";
-    import type * as opts from "model/options";
-    import type { VisualizationModel } from "model/visualization";
-
-    export let dataOptions: Writable<opts.DataOptions> = null!;
-    export let layoutOptions: Writable<opts.LayoutOptions> = null!;
-    export let glyphOptions: Writable<opts.GlyphOptions> = null!;
-    export let exportOptions: Writable<opts.ExportOptions> = null!;
-    export let toolOptions: Writable<opts.ToolOptions> = null!;
-    export let model: Readable<VisualizationModel> = null!;
-</script>
-
 <script lang="ts">
-    import { writable, readable } from "svelte/store";
+    import { writable, readable, get } from "svelte/store";
     import StructuralDiagramWrapper from "./StructuralDiagramWrapper.svelte";
     import Dock from "./Dock.svelte";
     import DocumentPanel from "./DocumentPanel.svelte";
@@ -36,16 +23,27 @@
     export let instance: HelvegInstance;
     setContext("helveg", instance);
 
-    dataOptions = writable(instance.options.data);
-    layoutOptions = writable(instance.options.layout);
-    glyphOptions = writable(instance.options.glyph);
-    exportOptions = writable(instance.options.export);
-    toolOptions = writable(instance.options.tool);
-    model = readable(instance.model, (set) => {
+    let dataOptions = writable(instance.options.data);
+    setContext("dataOptions", dataOptions);
+
+    let layoutOptions = writable(instance.options.layout);
+    setContext("layoutOptions", layoutOptions);
+
+    let glyphOptions = writable(instance.options.glyph);
+    setContext("glyphOptions", glyphOptions);
+
+    let exportOptions = writable(instance.options.export);
+    setContext("exportOptions", exportOptions);
+
+    let toolOptions = writable(instance.options.tool);
+    setContext("toolOptions", toolOptions);
+
+    let model = readable(instance.model, (set) => {
         instance.loaded.subscribe((model) => {
             set(model);
         });
     });
+    setContext("model", model);
 
     let diagram: StructuralDiagramWrapper;
     let dock: Dock;

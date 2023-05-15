@@ -2,9 +2,11 @@
     import KeyValueList from "./KeyValueList.svelte";
     import Panel from "./Panel.svelte";
     import Subpanel from "./Subpanel.svelte";
-    import { createEventDispatcher } from "svelte";
-    import { exportOptions, model } from "./App.svelte";
+    import { createEventDispatcher, getContext } from "svelte";
     import { AppPanels } from "model/const";
+    import type { Readable, Writable } from "svelte/store";
+    import type { VisualizationModel } from "model/visualization";
+    import type { ExportOptions } from "model/options";
 
     $: metadataItems = [
         { key: "Name", value: $model.documentInfo.name },
@@ -21,6 +23,9 @@
     ];
 
     let dispatch = createEventDispatcher();
+    
+    let model = getContext<Readable<VisualizationModel>>("model");
+    let exportOptions = getContext<Writable<ExportOptions>>("exportOptions");
 </script>
 
 <Panel name="Document" indent={false} id={AppPanels.Document}>

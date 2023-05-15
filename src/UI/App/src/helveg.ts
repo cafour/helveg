@@ -1,7 +1,7 @@
 import "styles/helveg.scss";
 
 import type { HelvegOptions } from "model/options";
-import { createInstance, initializeInstance, type HelvegInstance } from "model/instance";
+import { createHelvegInstance, initializeHelvegInstance, type HelvegInstance } from "model/instance";
 import type { HelvegPlugin } from "model/plugin";
 export * from "types";
 import * as types from "types";
@@ -20,10 +20,10 @@ declare global {
     const helveg: HelvegInstance & HelvegExtensions & typeof types;
 }
 
-export function initializeGlobal(pluginFuncs?: ((options: HelvegOptions) => HelvegPlugin)[]) {
-    window.helveg = {...types, ...createInstance()};
+export function initializeHelvegGlobal(pluginFuncs?: ((options: HelvegOptions) => HelvegPlugin)[]) {
+    window.helveg = {...window.helveg, ...types, ...createHelvegInstance()};
     pluginFuncs?.forEach(plugin => window.helveg.plugins.register(plugin(window.helveg.options)));
 
-    initializeInstance(window.helveg)
+    initializeHelvegInstance(window.helveg)
         .catch(console.error);
 }

@@ -7,20 +7,25 @@
     } from "model/structural";
     import Icon from "./Icon.svelte";
     import type {
+    DataOptions,
         ExportOptions,
+        GlyphOptions,
+        LayoutOptions,
         SearchMode,
+        ToolOptions,
     } from "model/options";
     import { createEventDispatcher, getContext } from "svelte";
     import type { HelvegInstance } from "model/instance";
-    import {
-        dataOptions,
-        glyphOptions,
-        layoutOptions,
-        model,
-        toolOptions,
-    } from "./App.svelte";
+    import type { Readable, Writable } from "svelte/store";
+    import type { VisualizationModel } from "model/visualization";
 
     let instance = getContext<HelvegInstance>("helveg");
+    let model = getContext<Readable<VisualizationModel>>("model");
+    let layoutOptions = getContext<Writable<LayoutOptions>>("layoutOptions");
+    let toolOptions = getContext<Writable<ToolOptions>>("toolOptions");
+    let dataOptions = getContext<Writable<DataOptions>>("dataOptions");
+    let glyphOptions = getContext<Writable<GlyphOptions>>("glyphOptions");
+
     let diagram: AbstractStructuralDiagram = new StructuralDiagram(instance);
 
     export let status: StructuralStatus = StructuralStatus.Stopped;

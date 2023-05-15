@@ -1,8 +1,12 @@
 <script lang="ts">
     import Panel from "./Panel.svelte";
     import Subpanel from "./Subpanel.svelte";
-    import { glyphOptions } from "./App.svelte";
     import { AppPanels } from "model/const";
+    import { getContext } from "svelte";
+    import type { Writable } from "svelte/store";
+    import type { GlyphOptions } from "model/options";
+
+    let glyphOptions = getContext<Writable<GlyphOptions>>("glyphOptions");
 </script>
 
 <Panel name="Appearance" indent={false} id={AppPanels.Appearance}>

@@ -16,6 +16,9 @@ export * from "model/traversal";
 export * from "model/uiExtensions";
 export * from "model/visualization";
 
-export * from "components/App.svelte";
-export * from "components/Panel.svelte";
-export * from "components/Subpanel.svelte";
+import App from "components/App.svelte";
+import Panel from "components/Panel.svelte";
+import Subpanel from "components/Subpanel.svelte";
+import Icon from "components/Icon.svelte";
+import ToggleAllCheckbox from "components/ToggleAllCheckbox.svelte";
+export { App, Panel, Subpanel, Icon, ToggleAllCheckbox };

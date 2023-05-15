@@ -5,9 +5,16 @@ import CSharpKindsSubpanel from "components/CSharpKindsSubpanel.svelte";
 
 import { type CSharpDataOptions, DEFAULT_CSHARP_DATA_OPTIONS, type CSharpGlyphOptions, type CSharpNodeProperties, EntityKind, FALLBACK_STYLE, Relations, VSColor, TypeKind, MethodKind, MemberAccessibility, CSharpGlyphSizingMode, DefaultRelationColors, DEFAULT_CSHARP_GLYPH_OPTIONS } from "model";
 
-export default function csharp(options: HelvegOptions): CSharpPlugin {
+export default function helvegCSharp(options: HelvegOptions): CSharpPlugin {
     return new CSharpPlugin(options);
 }
+
+declare global {
+    interface Window {
+        helvegCSharp: (options: HelvegOptions) => CSharpPlugin;
+    }
+}
+window.helvegCSharp = helvegCSharp;
 
 export class CSharpPlugin implements HelvegPlugin {
     name: string = "csharp";

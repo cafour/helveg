@@ -2,8 +2,7 @@ import esbuild from "esbuild";
 import esbuildSvelte from "esbuild-svelte";
 import sveltePreprocess from "svelte-preprocess";
 import yargs from "yargs";
-import fs from "fs";
-import path from "path";
+import globalsPlugin from "esbuild-plugin-globals";
 
 const args = <any>yargs(process.argv).argv;
 const isRelease = args["release"] === true;
@@ -18,6 +17,19 @@ if (isRelease && isDebug) {
 if (!isRelease && !isDebug) {
     isDebug = true;
 }
+
+// const helvegPlugin: esbuild.Plugin = {
+//     name: "helveg-global",
+//     setup(build) {
+//         build.onResolve({ filter: /^helveg$/ }, _ => {
+//             return { path: "helveg", namespace: "helveg" };
+//         });
+//         build.onLoad({ filter: /^helveg$/, namespace: "helveg" }, args => {
+//             return { contents: `export default window.helveg[${JSON.stringify(args.)}];` };
+//         });
+//         build.
+//     }
+// };
 
 const context = await esbuild.context({
     entryPoints: ["src/plugin.ts"],
@@ -36,6 +48,9 @@ const context = await esbuild.context({
     minify: isRelease,
     tsconfig: "./tsconfig.json",
     plugins: [
+        globalsPlugin({
+            helveg: "window.helveg"
+        }),
         esbuildSvelte({
             preprocess: sveltePreprocess()
         })

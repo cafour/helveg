@@ -1,7 +1,12 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project>
 
+  <Sdk Name="Microsoft.NET.Sdk" />
+  <Sdk Name="Cafour.MSBuild.JS" Version="0.1.1" />
+  
   <PropertyGroup>
+    <JSBuildCommand>run build:$(Configuration)</JSBuildCommand>
     <TargetFrameworks>$(DefaultLibraryFrameworks)</TargetFrameworks>
+    <JSWorkingDirectory>$(MSBuildProjectDirectory)/Pllugin</JSWorkingDirectory>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
   </PropertyGroup>
@@ -28,7 +33,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <JSBuildInput Include="$(JSWorkingDirectory)/**/*.svelte" />
+    <JSBuildInput Remove="$(JSWorkingDirectory)/.pnpm-store/**/*" />
+    <JSBuildInput Remove="$(JSWorkingDirectory)/node_modules/**/*" />
+  </ItemGroup>
+
+  <ItemGroup>
     <EmbeddedResource Include="Icons/**/*.svg" LogicalName="Icons.%(filename)%(extension)" />
+    <EmbeddedResource Include="$(BaseIntermediateOutputPath)/esbuild/plugin.js" LogicalName="helveg-csharp.js" />
   </ItemGroup>
 
 </Project>

@@ -2,8 +2,14 @@
     import Panel from "./Panel.svelte";
     import Subpanel from "./Subpanel.svelte";
     import { AppIcons, AppPanels } from "model/const";
-    import { model, toolOptions } from "./App.svelte";
+    import type { Readable, Writable } from "svelte/store";
+    import { getContext } from "svelte";
+    import type { VisualizationModel } from "model/visualization";
+    import type { ToolOptions } from "model/options";
 
+    let model = getContext<Readable<VisualizationModel>>("model");
+    let toolOptions = getContext<Writable<ToolOptions>>("toolOptions");
+    
     $: relations = $model ? Object.keys($model.multigraph.relations).sort() : [];
 </script>
 

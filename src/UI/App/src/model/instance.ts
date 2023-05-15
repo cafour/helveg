@@ -23,7 +23,7 @@ export interface HelvegInstance {
     logger: Logger;
 };
 
-export function createInstance(): HelvegInstance {
+export function createHelvegInstance(): HelvegInstance {
     let iconRegistry = new IconRegistry();
     let nodeStyleRegistry = new NodeStyleRegistry();
     let edgeStyleRegistry = new EdgeStyleRegistry();
@@ -48,7 +48,7 @@ export function createInstance(): HelvegInstance {
     };
 }
 
-export async function initializeInstance(instance: HelvegInstance): Promise<void> {
+export async function initializeHelvegInstance(instance: HelvegInstance): Promise<void> {
     instance.app = new App({
         target: document.getElementById("app")!,
         props: {

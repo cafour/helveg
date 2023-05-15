@@ -1,10 +1,12 @@
 <script lang="ts">
-    import { DefaultEntityKindIcons } from "model/csharpPlugin";
-    import { dataOptions, model } from "./App.svelte";
-    import Subpanel from "./Subpanel.svelte";
-    import Icon from "./Icon.svelte";
-    import { FALLBACK_NODE_ICON } from "model/style";
-    import ToggleAllCheckbox from "./ToggleAllCheckbox.svelte";
+    import { DefaultEntityKindIcons } from "model";
+    import { type DataOptions, type VisualizationModel, Subpanel, ToggleAllCheckbox, Icon } from "helveg";
+    import { FALLBACK_NODE_ICON } from "helveg";
+    import { getContext } from "svelte";
+    import type { Readable, Writable } from "svelte/store";
+    
+    let model = getContext<Readable<VisualizationModel>>("model");
+    let dataOptions = getContext<Writable<DataOptions>>("dataOptions");
 
     $: kinds = !$model?.isEmpty
         ? Object.values($model.multigraph.nodes)

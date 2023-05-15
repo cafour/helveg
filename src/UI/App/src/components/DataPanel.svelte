@@ -3,11 +3,12 @@
     import Panel from "./Panel.svelte";
     import RadioGroup from "./RadioGroup.svelte";
     import Subpanel from "./Subpanel.svelte";
-    import { SearchMode } from "model/options";
+    import { SearchMode, type DataOptions } from "model/options";
     import { AppIcons, AppPanels } from "model/const";
     import ResizingTextarea from "./ResizingTextarea.svelte";
-    import { dataOptions, model } from "./App.svelte";
     import ToggleAllCheckbox from "./ToggleAllCheckbox.svelte";
+    import type { VisualizationModel } from "model/visualization";
+    import type { Readable, Writable } from "svelte/store";
 
     let dispatch = createEventDispatcher();
 
@@ -28,6 +29,9 @@
     let selectedSearchMode: SearchMode = SearchMode.Contains;
     let searchText: string = "";
 
+    let model = getContext<Readable<VisualizationModel>>("model");
+    let dataOptions = getContext<Writable<DataOptions>>("dataOptions");
+    
     $: relations = $model
         ? Object.keys($model.multigraph.relations).sort()
         : [];

@@ -39,6 +39,7 @@ if (useTemplate) {
 const context = await esbuild.context({
     entryPoints: ["src/helveg.ts"],
     format: "iife",
+    globalName: "helveg",
     outdir: outDir,
     mainFields: ["svelte", "browser", "module", "main"],
     sourcemap: isDebug,

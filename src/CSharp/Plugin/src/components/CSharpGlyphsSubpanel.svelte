@@ -1,11 +1,15 @@
 <script lang="ts">
-    import { CSharpGlyphSizingMode } from "model/csharpPlugin";
-    import Subpanel from "helveg";
-    import { glyphOptions } from "../../UI";
+    import { CSharpGlyphSizingMode } from "model";
+    import { Subpanel, type GlyphOptions } from "helveg";
+    import type { Writable } from "svelte/store";
+    import { getContext } from "svelte";
 
-    let sizingModes = Object.values(CSharpGlyphSizingMode)
+    let glyphOptions = getContext<Writable<GlyphOptions>>("glyphOptions");
 
-    let sizingMode = $glyphOptions.csharp?.sizingMode ?? CSharpGlyphSizingMode.Linear;
+    let sizingModes = Object.values(CSharpGlyphSizingMode);
+
+    let sizingMode =
+        $glyphOptions.csharp?.sizingMode ?? CSharpGlyphSizingMode.Linear;
     $: $glyphOptions.csharp!.sizingMode = sizingMode;
 </script>
 

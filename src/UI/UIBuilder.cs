@@ -32,6 +32,7 @@ public class UIBuilder
     private readonly List<(string fileName, string contents)> styles = new();
     private readonly List<(string fileName, string contents)> scripts = new();
     private readonly List<IconSet> iconSets = new();
+    private readonly List<string> pluginExpressions = new();
 
     public VisualizationModel Model { get; set; } = VisualizationModel.Invalid;
     public string EntryPointName { get; set; } = DefaultEntryPointName;
@@ -132,6 +133,12 @@ public class UIBuilder
         Mode = mode;
         return this;
     }
+    
+    public UIBuilder AddPlugin(string expression)
+    {
+        pluginExpressions.Add(expression);
+        return this;
+    }
 
     public async Task Build(Func<string, Stream> streamFactory)
     {
@@ -213,6 +220,8 @@ public class UIBuilder
         </script>
 ");
         }
+
+        writer.Write(GetInitializer());
 
         writer.Write(
 @"    </body>
@@ -311,10 +320,20 @@ public class UIBuilder
 ");
         }
 
+        entryPointWriter.Write(GetInitializer());
+
         entryPointWriter.Write(
 @"    </body>
 </html>
 ");
+    }
+
+    private string GetInitializer()
+    {
+        return
+@$"<script type=""text/javascript"">
+    helveg.initializeHelvegGlobal([{string.Join(", ", pluginExpressions)}]);
+</script>";
     }
 
     private static string GetIconSetFileName(string @namespace)
