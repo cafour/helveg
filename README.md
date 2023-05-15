@@ -12,7 +12,7 @@
 
 <img src="https://img.shields.io/gitlab/license/helveg/helveg?style=flat-square&label=License" />
 
-An tool and an extensible API for the visualization of C# codebases.
+A tool and an extensible API for the visualization of C# codebases.
 
 * **[Docs](https://helveg.net/docs/)**
 * **[Samples](https://helveg.net/samples/)**
