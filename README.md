@@ -23,14 +23,14 @@ This software has many dependencies. These are the most significant:
 
 **Back-end**
 
-* MSBuild
-* Roslyn
-* NuGet
+* [MSBuild](https://github.com/dotnet/msbuild)
+* [Roslyn](https://github.com/dotnet/roslyn/)
+* [NuGet](https://nuget.org/)
 
 **Front-end**
 
 * [Sigma.js](https://github.com/jacomyal/sigma.js)
 * [Graphology](https://github.com/graphology/graphology)
-* Svelte
-* Visual Studio Image Library
+* [Svelte](https://svelte.dev/)
+* [Visual Studio Image Library](https://www.microsoft.com/en-us/download/details.aspx?id=35825)
     > Please note that a different license applies to icons from this image library.
