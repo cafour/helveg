@@ -19,7 +19,7 @@ export interface FireProgramOptions {
     isFireAnimated: boolean;
 }
 
-export const DEFAULT_OUTLINES_PROGRAM_OPTIONS: FireProgramOptions = {
+export const DEFAULT_FIRE_PROGRAM_OPTIONS: FireProgramOptions = {
     diagramMode: StructuralDiagramMode.Normal,
     particleCount: 32,
     showFire: true,
@@ -28,9 +28,9 @@ export const DEFAULT_OUTLINES_PROGRAM_OPTIONS: FireProgramOptions = {
 
 export default function createFireProgram(options?: Partial<FireProgramOptions>): NodeProgramConstructor {
     if (options === undefined) {
-        options = DEFAULT_OUTLINES_PROGRAM_OPTIONS;
+        options = DEFAULT_FIRE_PROGRAM_OPTIONS;
     } else {
-        Object.assign(options, DEFAULT_OUTLINES_PROGRAM_OPTIONS);
+        Object.assign(options, DEFAULT_FIRE_PROGRAM_OPTIONS);
     }
 
     return class extends FireProgram {

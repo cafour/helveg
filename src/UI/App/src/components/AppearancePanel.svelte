@@ -31,5 +31,9 @@
             <input type="checkbox" bind:checked={$glyphOptions.isFireAnimated} />
             IsFireAnimated
         </label>
+        <label>
+            <input type="checkbox" bind:checked={$glyphOptions.codePizza} />
+            CodePizza
+        </label>
     </Subpanel>
 </Panel>

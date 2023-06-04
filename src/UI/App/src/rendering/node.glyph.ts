@@ -5,9 +5,11 @@ import type { Sigma } from "sigma";
 import { OutlinesProgram, type OutlinesProgramOptions } from "./node.outlines";
 import type { FireProgramOptions } from "./node.fire";
 import { SigmaEffectsExtension } from "./effects";
+import type { PizzaProgramOptions } from "./pizza";
+import createPizzaProgram from "./node.pizzaDough";
 
 export interface GlyphProgramOptions
-    extends IconProgramOptions, OutlinesProgramOptions, FireProgramOptions {
+    extends IconProgramOptions, OutlinesProgramOptions, FireProgramOptions, PizzaProgramOptions {
 
     showIcons: boolean;
     showOutlines: boolean;
@@ -20,6 +22,7 @@ export function createGlyphProgram(options: GlyphProgramOptions): NodeProgramCon
         private iconProgram: IconProgram;
         private outlinesProgram: OutlinesProgram;
         private effectsProgram: AbstractNodeProgram;
+        private pizzaProgram: AbstractNodeProgram;
 
         constructor(gl: WebGLRenderingContext, renderer: Sigma) {
             super(gl, renderer);
@@ -32,21 +35,28 @@ export function createGlyphProgram(options: GlyphProgramOptions): NodeProgramCon
             this.iconProgram = new IconProgram(gl, renderer, options);
             this.outlinesProgram = new OutlinesProgram(gl, renderer, options);
             this.effectsProgram = new this.effects.program(gl, renderer);
+            this.pizzaProgram = new (createPizzaProgram(options))(gl, renderer);
         }
 
         process(offset: number, data: NodeDisplayData): void {
             this.outlinesProgram.process(offset, data);
             this.iconProgram.process(offset, data);
             this.effectsProgram.process(offset, data);
+            this.pizzaProgram.process(offset, data);
         }
 
         reallocate(capacity: number): void {
             this.outlinesProgram.reallocate(capacity);
             this.iconProgram.reallocate(capacity);
             this.effectsProgram.reallocate(capacity);
+            this.pizzaProgram.reallocate(capacity);
         }
 
         render(params: RenderParams): void {
+            if (options.isPizzaEnabled) {
+                this.pizzaProgram.render(params);
+            }
+            
             if (options.showOutlines) {
                 this.outlinesProgram.render(params);
             }

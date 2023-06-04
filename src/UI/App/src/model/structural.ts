@@ -19,6 +19,7 @@ import { findRoots, toggleNode, type HelvegGraph, type HelvegNodeAttributes } fr
 import { bfs } from "./traversal";
 import { wheellOfFortune } from "layout/circular";
 import { OutlineStyle, type NodeStyleRegistry, type Outlines, getOutlinesTotalWidth, EdgeStyleRegistry } from "./style";
+import { DEFAULT_PIZZA_PROGRAM_OPTIONS } from "rendering/pizza";
 
 export enum StructuralStatus {
     Stopped,
@@ -133,6 +134,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
             isFireAnimated: true,
             particleCount: 32,
             diagramMode: StructuralDiagramMode.Normal,
+            ...DEFAULT_PIZZA_PROGRAM_OPTIONS
         };
         this._glyphProgram = createGlyphProgram(this._glyphProgramOptions);
     }
@@ -430,7 +432,8 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
         this._glyphProgramOptions.showOutlines = this._glyphOptions.showOutlines;
         this._glyphProgramOptions.showFire = this._glyphOptions.showFire;
         this._glyphProgramOptions.isFireAnimated = this._glyphOptions.isFireAnimated;
-        
+        this._glyphProgramOptions.isPizzaEnabled = this._glyphOptions.codePizza;
+
         this.reconfigureSigma();
         this.restyleGraph();
     }
@@ -888,6 +891,10 @@ function configureSigma(
     glyphOptions: GlyphOptions
 ) {
     sigma.setSetting("renderLabels", glyphOptions.showLabels);
+    if (glyphOptions.codePizza) {
+        sigma.setSetting("zoomToSizeRatioFunction", (cameraRatio) => cameraRatio);
+        sigma.setSetting("hoverRenderer", () => {});
+    }
 }
 
 function initializeSupervisor(
