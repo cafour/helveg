@@ -19,23 +19,29 @@
     import Toast from "./Toast.svelte";
     import ToolBox from "./ToolBox.svelte";
     import ToolsPanel from "./ToolsPanel.svelte";
+    import { type DataOptions, saveOptions, type LayoutOptions, type GlyphOptions, type ExportOptions, type ToolOptions } from "types";
 
     export let instance: HelvegInstance;
     setContext("helveg", instance);
 
     let dataOptions = writable(instance.options.data);
+    dataOptions.subscribe(o => saveOptions<DataOptions>("data", o));
     setContext("dataOptions", dataOptions);
 
     let layoutOptions = writable(instance.options.layout);
+    layoutOptions.subscribe(o => saveOptions<LayoutOptions>("layout", o));
     setContext("layoutOptions", layoutOptions);
 
     let glyphOptions = writable(instance.options.glyph);
+    glyphOptions.subscribe(o => saveOptions<GlyphOptions>("glyph", o));
     setContext("glyphOptions", glyphOptions);
 
     let exportOptions = writable(instance.options.export);
+    exportOptions.subscribe(o => saveOptions<ExportOptions>("export", o));
     setContext("exportOptions", exportOptions);
 
     let toolOptions = writable(instance.options.tool);
+    toolOptions.subscribe(o => saveOptions<ToolOptions>("tool", o));
     setContext("toolOptions", toolOptions);
 
     let model = readable(instance.model, (set) => {

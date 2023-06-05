@@ -1,8 +1,8 @@
 import { AbstractNodeProgram, type NodeProgramConstructor } from "sigma/rendering/webgl/programs/common/node";
 import type { NodeDisplayData, RenderParams } from "sigma/types";
-import { IconProgram, type IconProgramOptions } from "./node.icon";
+import createIconProgram, { type IconProgramOptions } from "./node.icon";
 import type { Sigma } from "sigma";
-import { OutlinesProgram, type OutlinesProgramOptions } from "./node.outlines";
+import createOutlinesProgram, { type OutlinesProgramOptions } from "./node.outlines";
 import type { FireProgramOptions } from "./node.fire";
 import { SigmaEffectsExtension } from "./effects";
 import type { PizzaProgramOptions } from "./pizza";
@@ -19,8 +19,8 @@ export interface GlyphProgramOptions
 export function createGlyphProgram(options: GlyphProgramOptions): NodeProgramConstructor {
     return class extends AbstractNodeProgram {
         private effects: SigmaEffectsExtension;
-        private iconProgram: IconProgram;
-        private outlinesProgram: OutlinesProgram;
+        private iconProgram: AbstractNodeProgram;
+        private outlinesProgram: AbstractNodeProgram;
         private effectsProgram: AbstractNodeProgram;
         private pizzaProgram: AbstractNodeProgram;
 
@@ -32,8 +32,8 @@ export function createGlyphProgram(options: GlyphProgramOptions): NodeProgramCon
             //     and one for "hovered" nodes. A separate effects canvas must exist for each kind.
             this.effects = new SigmaEffectsExtension(options);
             
-            this.iconProgram = new IconProgram(gl, renderer, options);
-            this.outlinesProgram = new OutlinesProgram(gl, renderer, options);
+            this.iconProgram = new (createIconProgram(options))(gl, renderer);
+            this.outlinesProgram = new (createOutlinesProgram(options))(gl, renderer);
             this.effectsProgram = new this.effects.program(gl, renderer);
             this.pizzaProgram = new (createPizzaProgram(options))(gl, renderer);
         }

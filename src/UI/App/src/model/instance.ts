@@ -5,10 +5,11 @@ import { EMPTY_MODEL, type VisualizationModel } from "./visualization";
 import App from "components/App.svelte";
 import { HelvegPluginRegistry } from "./plugin";
 import { IconRegistry } from "./icons";
-import { DEFAULT_HELVEG_OPTIONS, type HelvegOptions } from "./options";
+import { DEFAULT_HELVEG_OPTIONS, loadOptions, type HelvegOptions, type ExportOptions, type LayoutOptions, type ToolOptions } from "./options";
 import { Logger } from "./logger";
 import { NodeStyleRegistry, EdgeStyleRegistry } from "./style";
 import { UIExtensionRegistry } from "./uiExtensions";
+import type { DataOptions, GlyphOptions } from "helveg";
 
 export interface HelvegInstance {
     model: VisualizationModel;
@@ -33,6 +34,12 @@ export function createHelvegInstance(): HelvegInstance {
         nodeStyleRegistry,
         edgeStyleRegistry,
         uiExtensionRegistry);
+    let options: HelvegOptions = {...DEFAULT_HELVEG_OPTIONS};
+    options.data = loadOptions<DataOptions>("data") ?? options.data;
+    options.export = loadOptions<ExportOptions>("export") ?? options.export;
+    options.glyph = loadOptions<GlyphOptions>("glyph") ?? options.glyph;
+    options.layout = loadOptions<LayoutOptions>("layout") ?? options.layout;
+    options.tool = loadOptions<ToolOptions>("tool") ?? options.tool;
 
     return {
         model: EMPTY_MODEL,
@@ -43,7 +50,7 @@ export function createHelvegInstance(): HelvegInstance {
         uiExtensions: uiExtensionRegistry,
         plugins: pluginRegistry,
         app: null,
-        options: DEFAULT_HELVEG_OPTIONS,
+        options: options,
         logger: new Logger()
     };
 }

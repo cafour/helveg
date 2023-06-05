@@ -136,3 +136,25 @@ export const DEFAULT_HELVEG_OPTIONS: HelvegOptions = {
     export: DEFAULT_EXPORT_OPTIONS,
     tool: DEFAULT_TOOL_OPTIONS
 };
+
+
+export const STORAGE_KEY_PREFIX = "helveg.options.";
+
+export function loadOptions<T>(name: string): T | null {
+    DEBUG && console.log(`Loading the ${name} options`);
+    const options = localStorage.getItem(STORAGE_KEY_PREFIX + name);
+    if (options) {
+        return JSON.parse(options);
+    }
+    return null;
+}
+
+export function saveOptions<T>(name: string, options: T) {
+    DEBUG && console.log(`Saving the ${name} options`);
+    localStorage.setItem(STORAGE_KEY_PREFIX + name, JSON.stringify(options));
+}
+
+export function clearOptions(name: string) {
+    DEBUG && console.log(`Clearing the ${name} options`);
+    localStorage.removeItem(STORAGE_KEY_PREFIX + name);
+}

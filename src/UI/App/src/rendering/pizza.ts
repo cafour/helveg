@@ -47,7 +47,7 @@ export interface PizzaProgramOptions {
     diagramMode: StructuralDiagramMode;
 }
 
-export const DEFAULT_PIZZA_PROGRAM_OPTIONS: Partial<PizzaProgramOptions> = {
+export const DEFAULT_PIZZA_PROGRAM_OPTIONS = {
     isPizzaEnabled: false,
     crustWidth: 20,
     sauceWidth: 40
