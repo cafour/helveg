@@ -13,13 +13,14 @@ import { exportDiagram } from "rendering/export";
 import tidyTree from "layout/tidyTree";
 import type { HelvegInstance } from "./instance";
 import { buildNodeFilter, filterNodes } from "./filter";
-import type { Coordinates, NodeDisplayData } from "sigma/types";
+import type { Coordinates, MouseCoords, NodeDisplayData } from "sigma/types";
 import type { Attributes } from "graphology-types";
 import { findRoots, toggleNode, type HelvegGraph, type HelvegNodeAttributes } from "./graph";
 import { bfs } from "./traversal";
 import { wheellOfFortune } from "layout/circular";
 import { OutlineStyle, type NodeStyleRegistry, type Outlines, getOutlinesTotalWidth, EdgeStyleRegistry } from "./style";
 import { DEFAULT_PIZZA_PROGRAM_OPTIONS } from "rendering/pizza";
+import { DEFAULT_SETTINGS } from "sigma/settings";
 
 export enum StructuralStatus {
     Stopped,
@@ -83,7 +84,7 @@ export interface AbstractStructuralDiagram {
     stopLayout(): Promise<void>;
     save(options?: ExportOptions): void;
     highlight(searchText: string | null, searchMode: SearchMode): void;
-    highlightNode(nodeId: string | null, includeSubtree: boolean, includeNeighbors: boolean) : void;
+    highlightNode(nodeId: string | null, includeSubtree: boolean, includeNeighbors: boolean): void;
     isolate(searchText: string | null, searchMode: SearchMode): Promise<void>;
     refresh(): Promise<void>;
     cut(nodeId: string): Promise<void>;
@@ -142,6 +143,10 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
             sauceWidth: DEFAULT_PIZZA_PROGRAM_OPTIONS.sauceWidth
         };
         this._glyphProgram = createGlyphProgram(this._glyphProgramOptions);
+        this.glyphOptions = _instance.options.glyph;
+        this.layoutOptions = _instance.options.layout;
+        this.toolOptions = _instance.options.tool;
+        this.dataOptions = _instance.options.data;
     }
 
     async resetLayout(): Promise<void> {
@@ -536,7 +541,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
     get nodeClicked(): HelvegEvent<string> {
         return this._nodeClicked;
     }
-    
+
     exportPositions(): Record<string, Coordinates> {
         let result = {};
         if (this._graph) {
@@ -618,7 +623,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
 
         this.mode = StructuralDiagramMode.Normal;
     }
-    
+
     private restyleGraph(): void {
         if (!this._graph || !this._model || this._model.isEmpty) {
             return;
@@ -847,6 +852,9 @@ function styleGraph(
     });
 }
 
+// HACK: Sigma does not allow to disable hovering on nodes, so we have to track it ourselves.
+let isHoverEnabled = true;
+
 function initializeSigma(
     element: HTMLElement,
     graph: Graph,
@@ -865,9 +873,7 @@ function initializeSigma(
         },
         labelFont: "'Cascadia Mono', 'Consolas', monospace",
         edgeLabelFont: "'Cascadia Mono', 'Consolas', monospace",
-        itemSizesReference: "positions",
-        renderEdgeLabels: true
-        // zoomToSizeRatioFunction: (cameraRatio) => cameraRatio,
+        itemSizesReference: "positions"
     });
 
     if (onClick) {
@@ -909,6 +915,12 @@ function initializeSigma(
             }
         });
     }
+    
+    sigma.on("enterNode", e => {
+        if (!isHoverEnabled) {
+            (sigma as any).hoveredNode = null;
+        }
+    })
 
     return sigma;
 }
@@ -920,7 +932,12 @@ function configureSigma(
     sigma.setSetting("renderLabels", glyphOptions.showLabels);
     if (glyphOptions.codePizza) {
         sigma.setSetting("zoomToSizeRatioFunction", (cameraRatio) => cameraRatio);
-        sigma.setSetting("hoverRenderer", () => {});
+        sigma.setSetting("hoverRenderer", () => { });
+        isHoverEnabled = false;
+    } else {
+        sigma.setSetting("zoomToSizeRatioFunction", DEFAULT_SETTINGS.zoomToSizeRatioFunction);
+        sigma.setSetting("hoverRenderer", DEFAULT_SETTINGS.hoverRenderer);
+        isHoverEnabled = true;
     }
 }
 

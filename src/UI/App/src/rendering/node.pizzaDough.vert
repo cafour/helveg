@@ -24,9 +24,11 @@ void main() {
         1
     );
 
-    // Multiply the point size twice:
-    //  - x SCALING_RATIO to correct the canvas scaling
-    //  - x 2 to correct the formulae
+    // HACK: This should never happen. But it does. Sometimes.
+    if (a_size == 0.0) {
+        return;
+    }
+    
     v_totalSize = a_size + 2.0 * u_crustWidth + 2.0 * u_sauceWidth;
     gl_PointSize = v_totalSize / u_sizeRatio * u_pixelRatio * 2.0;
 
