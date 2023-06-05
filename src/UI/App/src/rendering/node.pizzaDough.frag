@@ -90,26 +90,27 @@ uniform float u_sauceWidth;
 
 out vec4 f_color;
 
-const vec3 INNER_COLOR = vec3(231.0, 212.0, 172.0) / 255.0;
-const vec3 MID_COLOR = vec3(200.0, 151.0, 108.0) / 255.0;
-const vec3 OUTER_COLOR = vec3(238.0, 220.0, 210.0) / 255.0;
+// const vec3 DOUGH_COLOR = vec3(200.0, 151.0, 108.0) / 255.0; // #c8976c
+// const vec3 DOUGH_COLOR = vec3(242.0, 179.0, 96.0) / 255.0; // #F2B360
+const vec3 DOUGH_COLOR = vec3(213.0, 169.0, 123.0) / 255.0; // #d5a97b
 
 void main(void) { 
-    vec2 p = (gl_PointCoord - vec2(0.5, 0.5)) * v_totalSize;
-    float dist = length(p);
+    vec2 relative = gl_PointCoord - vec2(0.5, 0.5);
+    vec2 absolute = relative * v_totalSize;
+    float dist = length(absolute);
 
-    float noise = snoise(p * 0.05 * u_sizeRatio + float(v_index));
+    float noise = snoise(relative * 10.0 + float(v_index));
     float outerRaggedness = noise * u_crustWidth * 0.05;
 
     if (dist > v_sauceRadius && dist < v_crustRadius + outerRaggedness) {
-        float crust = snoise(p * 0.5 + float(v_index)) * 0.5 + 0.5;
-        f_color.rgb = mix(
-        mix(
-            INNER_COLOR,
-            MID_COLOR,
-            smoothstep(0.0, 0.3, crust)),
-        OUTER_COLOR,
-        smoothstep(0.3, 1.0, crust));
+        float crust = (snoise(relative * 50.0 + float(v_index)) + 1.0) * 0.5;
+        if (crust < 0.5) {
+            f_color.rgb = DOUGH_COLOR * 0.9;
+        } else if (crust > 0.9) {
+            f_color.rgb = DOUGH_COLOR * 1.1;
+        } else {
+            f_color.rgb = DOUGH_COLOR;
+        }
 
         f_color.a = 1.0;
     } else {

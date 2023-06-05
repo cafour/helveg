@@ -28,7 +28,7 @@ void main() {
     if (a_size == 0.0) {
         return;
     }
-    
+
     v_totalSize = a_size + 2.0 * u_crustWidth + 2.0 * u_sauceWidth;
     gl_PointSize = v_totalSize / u_sizeRatio * u_pixelRatio * 2.0;
 
