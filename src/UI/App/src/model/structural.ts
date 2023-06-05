@@ -138,9 +138,9 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
             isFireAnimated: true,
             particleCount: 32,
             diagramMode: StructuralDiagramMode.Normal,
-            isPizzaEnabled: DEFAULT_PIZZA_PROGRAM_OPTIONS.isPizzaEnabled,
-            crustWidth: DEFAULT_PIZZA_PROGRAM_OPTIONS.crustWidth,
-            sauceWidth: DEFAULT_PIZZA_PROGRAM_OPTIONS.sauceWidth
+            isPizzaEnabled: false,
+            crustWidth: 20,
+            sauceWidth: 40
         };
         this._glyphProgram = createGlyphProgram(this._glyphProgramOptions);
         this.glyphOptions = _instance.options.glyph;

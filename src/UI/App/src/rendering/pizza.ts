@@ -53,12 +53,7 @@ export const DEFAULT_PIZZA_PROGRAM_OPTIONS = {
     sauceWidth: 40
 };
 
-export default function createPizzaProgram(options?: Partial<PizzaProgramOptions>): NodeProgramConstructor {
-    if (options === undefined) {
-        options = DEFAULT_PIZZA_PROGRAM_OPTIONS;
-    } else {
-        Object.assign(options, DEFAULT_PIZZA_PROGRAM_OPTIONS);
-    }
+export default function createPizzaProgram(options: PizzaProgramOptions): NodeProgramConstructor {
 
     return createNodeCompoundProgram([
         class extends PizzaDoughProgram {
