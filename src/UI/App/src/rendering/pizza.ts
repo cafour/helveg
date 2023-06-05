@@ -2,6 +2,9 @@ import { createNodeCompoundProgram, type NodeProgramConstructor } from "sigma/re
 import type Sigma from "sigma";
 import { PizzaDoughProgram } from "./node.pizzaDough";
 import { PizzaSauceProgram } from "./node.pizzaSauce";
+import type { IconAtlas } from "./iconAtlas";
+import type { StructuralDiagramMode } from "types";
+import { PizzaToppingProgram } from "./node.pizzaTopping";
 
 /*
  1 [x] basil
@@ -40,9 +43,11 @@ export interface PizzaProgramOptions {
     isPizzaEnabled: boolean;
     crustWidth: number;
     sauceWidth: number;
+    iconAtlas: IconAtlas;
+    diagramMode: StructuralDiagramMode;
 }
 
-export const DEFAULT_PIZZA_PROGRAM_OPTIONS: PizzaProgramOptions = {
+export const DEFAULT_PIZZA_PROGRAM_OPTIONS: Partial<PizzaProgramOptions> = {
     isPizzaEnabled: false,
     crustWidth: 20,
     sauceWidth: 40
@@ -66,5 +71,10 @@ export default function createPizzaProgram(options?: Partial<PizzaProgramOptions
                 super(gl, renderer, options as PizzaProgramOptions);
             }
         },
+        class extends PizzaToppingProgram {
+            constructor(gl: WebGLRenderingContext, renderer: Sigma) {
+                super(gl, renderer, options as PizzaProgramOptions);
+            }
+        }
     ]);
 }

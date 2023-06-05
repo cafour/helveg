@@ -55,14 +55,14 @@ export function createGlyphProgram(options: GlyphProgramOptions): NodeProgramCon
         render(params: RenderParams): void {
             if (options.isPizzaEnabled) {
                 this.pizzaProgram.render(params);
-            }
-            
-            if (options.showOutlines) {
-                this.outlinesProgram.render(params);
-            }
-
-            if (options.showIcons) {
-                this.iconProgram.render(params);
+            } else {
+                if (options.showOutlines) {
+                    this.outlinesProgram.render(params);
+                }
+    
+                if (options.showIcons) {
+                    this.iconProgram.render(params);
+                }
             }
 
             // let the effects extension handle this on its own since it manages its own canvas

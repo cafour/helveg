@@ -33,3 +33,7 @@
 - https://www.pexels.com/photo/food-plate-healthy-dinner-16461745/
 - https://www.pexels.com/photo/delicious-pizza-with-chicken-near-ripe-tomatoes-4287876/
 - https://www.pexels.com/photo/bunch-of-fresh-different-shapes-chili-peppers-on-pink-background-6157004/
+
+## Known Issues
+
+- When zoomed in, the pizza dough and sauce can shrink. This is a limitation of the `POINTS` rendering mode in WebGL.
