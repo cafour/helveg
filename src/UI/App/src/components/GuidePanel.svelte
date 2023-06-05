@@ -129,4 +129,27 @@
         error is shown in the Properties panel. Similarly, if a node is
         smoldering, there's a warning.
     </p>
+    
+    <h3>About</h3>
+
+    <p>
+        <em>Helveg</em> is the product of my studies at the <a href="https://www.fi.muni.cz/" target="_blank">Faculty of Informatics, Masaryk University</a>.
+    </p>
+    <p>
+        The <em>CodePizza</em> feature has been created as a part of the <em>PV097 Visual Creativity Informatics</em> course in spring 2023.
+    </p>
+    <p>
+        &#169; 2020-2023 Adam Štěpánek and contributors
+    </p>
+    
+    <h3>License</h3>
+    <p>
+        <em>Helveg</em> is licensed under the <a href="https://opensource.org/license/bsd-3-clause/" target="_blank">3-Clause BSD license</a>.
+    </p>
+    <p>
+        Helveg uses Visual Studio Icons by Microsoft. These are licensed under <a href="https://www.microsoft.com/en-us/download/details.aspx?id=35825" target="_blank">Microsoft Software License Terms</a>.
+    </p>
+    <p>
+        Please note that other restrictions might apply to the visualized data itself.
+    </p>
 </Panel>
