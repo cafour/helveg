@@ -87,30 +87,34 @@ flat in int v_index;
 uniform float u_sizeRatio;
 uniform float u_sauceWidth;
 uniform vec2 u_offset;
+uniform vec2 u_resolution;
 
 out vec4 f_color;
 
-const vec3 INNER_COLOR = vec3(214.0, 134.0, 70.0) / 255.0;
-const vec3 MID_COLOR = vec3(165.0, 42.0, 3.0) / 255.0;
-const vec3 OUTER_COLOR = vec3(100.0, 15.0, 4.0) / 255.0;
+// const vec3 SAUCE_COLOR = vec3(184.0, 44.0, 23.0) / 255.0; // #b82c17
+// const vec3 SAUCE_COLOR = vec3(165.0 ,39.0, 20.0) / 255.0; // #a52714
+const vec3 SAUCE_COLOR = vec3(147.0, 35.0, 18.0) / 255.0; // #932312
 
 void main(void) { 
-    vec2 p = (gl_PointCoord - vec2(0.5, 0.5)) * v_totalSize;
-    float dist = length(p);
+    vec2 relative = gl_PointCoord - vec2(0.5, 0.5);
+    vec2 absolute = relative * v_totalSize;
+    float dist = length(absolute);
 
-    float noise = snoise(p * 0.05 * u_sizeRatio + float(v_index));
+    float noise = snoise(relative * 8.0 + float(v_index));
     float outerRaggedness = noise * u_sauceWidth * 0.05;
 
     if (dist < v_sauceRadius + outerRaggedness) {
-        float sauce = snoise(gl_FragCoord.xy * u_sizeRatio * 0.004 + u_offset) * 0.5 + 0.5;
-        f_color.rgb = mix(
-        mix(
-            INNER_COLOR,
-            MID_COLOR,
-            smoothstep(0.0, 0.3, sauce)),
-        OUTER_COLOR,
-        smoothstep(0.3, 1.0, sauce));
-
+        vec2 globalRelative = ((gl_FragCoord.xy - 0.5) / u_resolution - 0.5) + (u_offset / u_resolution - 0.5);
+        // float aspect = u_resolution.x / u_resolution.y;
+        // globalRelative.x *= aspect;
+        float sauce = (snoise(globalRelative * u_sizeRatio * 10.0) + 1.0) * 0.5;
+        if (sauce < 0.5) {
+            f_color.rgb = SAUCE_COLOR * 0.9;
+        } else if (sauce > 0.9) {
+            f_color.rgb = SAUCE_COLOR * 1.05;
+        } else {
+            f_color.rgb = SAUCE_COLOR;
+        }
         f_color.a = 1.0;
     } else {
         discard;
