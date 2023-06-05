@@ -1,5 +1,5 @@
 import Graph from "graphology";
-import { DEFAULT_DATA_OPTIONS, DEFAULT_EXPORT_OPTIONS, DEFAULT_GLYPH_OPTIONS, DEFAULT_LAYOUT_OPTIONS, SearchMode, type DataOptions, type ExportOptions, type GlyphOptions, type LayoutOptions, type ToolOptions, DEFAULT_TOOL_OPTIONS } from "./options";
+import { DEFAULT_DATA_OPTIONS, DEFAULT_EXPORT_OPTIONS, DEFAULT_GLYPH_OPTIONS, DEFAULT_LAYOUT_OPTIONS, SearchMode, type DataOptions, type ExportOptions, type LayoutOptions, type ToolOptions, DEFAULT_TOOL_OPTIONS, type AppearanceOptions, DEFAULT_APPEARANCE_OPTIONS } from "./options";
 import { EMPTY_MODEL, type VisualizationModel } from "./visualization";
 import { Sigma } from "sigma";
 import { ForceAtlas2Supervisor, type ForceAtlas2Progress } from "layout/forceAltas2Supervisor";
@@ -19,7 +19,6 @@ import { findRoots, toggleNode, type HelvegGraph, type HelvegNodeAttributes } fr
 import { bfs } from "./traversal";
 import { wheellOfFortune } from "layout/circular";
 import { OutlineStyle, type NodeStyleRegistry, type Outlines, getOutlinesTotalWidth, EdgeStyleRegistry } from "./style";
-import { DEFAULT_PIZZA_PROGRAM_OPTIONS } from "rendering/pizza";
 import { DEFAULT_SETTINGS } from "sigma/settings";
 
 export enum StructuralStatus {
@@ -48,8 +47,8 @@ export interface AbstractStructuralDiagram {
     get dataOptions(): DataOptions;
     set dataOptions(value: DataOptions);
 
-    get glyphOptions(): GlyphOptions;
-    set glyphOptions(value: GlyphOptions);
+    get appearanceOptions(): AppearanceOptions;
+    set appearanceOptions(value: AppearanceOptions);
 
     get layoutOptions(): LayoutOptions;
     set layoutOptions(value: LayoutOptions);
@@ -99,7 +98,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
     private _model: VisualizationModel = EMPTY_MODEL;
     private _nodeKeys: string[] = [];
     private _dataOptions: DataOptions = DEFAULT_DATA_OPTIONS;
-    private _glyphOptions: GlyphOptions = DEFAULT_GLYPH_OPTIONS
+    private _appearanceOptions: AppearanceOptions = DEFAULT_APPEARANCE_OPTIONS;
     private _layoutOptions: LayoutOptions = DEFAULT_LAYOUT_OPTIONS;
     private _toolOptions: ToolOptions = DEFAULT_TOOL_OPTIONS;
     private _status: StructuralStatus = StructuralStatus.Stopped;
@@ -143,7 +142,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
             sauceWidth: 40
         };
         this._glyphProgram = createGlyphProgram(this._glyphProgramOptions);
-        this.glyphOptions = _instance.options.glyph;
+        this.appearanceOptions = _instance.options.appearance;
         this.layoutOptions = _instance.options.layout;
         this.toolOptions = _instance.options.tool;
         this.dataOptions = _instance.options.data;
@@ -431,18 +430,20 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
         DEBUG && console.log("DataOptions have changed. This has no effect until the next refresh().");
     }
 
-    get glyphOptions(): GlyphOptions {
-        return this._glyphOptions;
+    get appearanceOptions(): AppearanceOptions {
+        return this._appearanceOptions;
     }
 
-    set glyphOptions(value: GlyphOptions) {
-        this._glyphOptions = value;
+    set appearanceOptions(value: AppearanceOptions) {
+        this._appearanceOptions = value;
 
-        this._glyphProgramOptions.showIcons = this._glyphOptions.showIcons;
-        this._glyphProgramOptions.showOutlines = this._glyphOptions.showOutlines;
-        this._glyphProgramOptions.showFire = this._glyphOptions.showFire;
-        this._glyphProgramOptions.isFireAnimated = this._glyphOptions.isFireAnimated;
-        this._glyphProgramOptions.isPizzaEnabled = this._glyphOptions.codePizza;
+        this._glyphProgramOptions.showIcons = this._appearanceOptions.glyph.showIcons;
+        this._glyphProgramOptions.showOutlines = this._appearanceOptions.glyph.showOutlines;
+        this._glyphProgramOptions.showFire = this._appearanceOptions.glyph.showFire;
+        this._glyphProgramOptions.isFireAnimated = this._appearanceOptions.glyph.isFireAnimated;
+        this._glyphProgramOptions.isPizzaEnabled = this._appearanceOptions.codePizza.isEnabled;
+        this._glyphProgramOptions.crustWidth = this._appearanceOptions.codePizza.crustWidth;
+        this._glyphProgramOptions.sauceWidth = this._appearanceOptions.codePizza.sauceWidth;
 
         this.reconfigureSigma();
         this.restyleGraph();
@@ -594,12 +595,12 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
             return;
         }
 
-        let tmpGlyphOptions = {
-            ...this._glyphOptions,
-            showLabels: this._glyphOptions.showLabels && this.mode == StructuralDiagramMode.Normal
+        let tmpAppearanceOptions = {
+            ...this._appearanceOptions,
+            showLabels: this._appearanceOptions.glyph.showLabels && this.mode == StructuralDiagramMode.Normal
         };
 
-        configureSigma(this._sigma, tmpGlyphOptions);
+        configureSigma(this._sigma, tmpAppearanceOptions);
     }
 
     private async refreshGraph(): Promise<void> {
@@ -634,7 +635,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
         styleGraph(
             this._graph,
             this._model,
-            this._glyphOptions,
+            this._appearanceOptions,
             this._instance.nodeStyles,
             this._instance.edgeStyles);
     }
@@ -785,7 +786,7 @@ function initializeGraph(
 function styleGraph(
     graph: HelvegGraph,
     model: VisualizationModel,
-    glyphOptions: GlyphOptions,
+    appearanceOptions: AppearanceOptions,
     nodeStyles: NodeStyleRegistry,
     edgeStyles: EdgeStyleRegistry) {
 
@@ -816,7 +817,7 @@ function styleGraph(
             { width: style.size, style: OutlineStyle.Solid },
             ...style.outlines.slice(0, 3),
         ] as Outlines;
-        attributes.size = glyphOptions.showOutlines && outlines.length > 0
+        attributes.size = appearanceOptions.glyph.showOutlines && outlines.length > 0
             ? getOutlinesTotalWidth(outlines)
             : style.size;
         attributes.iconSize = style.size;
@@ -915,7 +916,7 @@ function initializeSigma(
             }
         });
     }
-    
+
     sigma.on("enterNode", e => {
         if (!isHoverEnabled) {
             (sigma as any).hoveredNode = null;
@@ -927,10 +928,10 @@ function initializeSigma(
 
 function configureSigma(
     sigma: Sigma,
-    glyphOptions: GlyphOptions
+    appearanceOptions: AppearanceOptions
 ) {
-    sigma.setSetting("renderLabels", glyphOptions.showLabels);
-    if (glyphOptions.codePizza) {
+    sigma.setSetting("renderLabels", appearanceOptions.glyph.showLabels);
+    if (appearanceOptions.codePizza.isEnabled) {
         sigma.setSetting("zoomToSizeRatioFunction", (cameraRatio) => cameraRatio);
         sigma.setSetting("hoverRenderer", () => { });
         isHoverEnabled = false;

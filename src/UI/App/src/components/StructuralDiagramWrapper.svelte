@@ -7,9 +7,9 @@
     } from "model/structural";
     import Icon from "./Icon.svelte";
     import type {
-    DataOptions,
+        AppearanceOptions,
+        DataOptions,
         ExportOptions,
-        GlyphOptions,
         LayoutOptions,
         SearchMode,
         ToolOptions,
@@ -24,10 +24,11 @@
     let layoutOptions = getContext<Writable<LayoutOptions>>("layoutOptions");
     let toolOptions = getContext<Writable<ToolOptions>>("toolOptions");
     let dataOptions = getContext<Writable<DataOptions>>("dataOptions");
-    let glyphOptions = getContext<Writable<GlyphOptions>>("glyphOptions");
+    let appearanceOptions =
+        getContext<Writable<AppearanceOptions>>("appearanceOptions");
 
     let diagram: AbstractStructuralDiagram = new StructuralDiagram(instance);
-    
+
     export function getDiagram(): AbstractStructuralDiagram {
         return diagram;
     }
@@ -65,7 +66,7 @@
 
     $: diagram.dataOptions = $dataOptions;
     $: diagram.layoutOptions = $layoutOptions;
-    $: diagram.glyphOptions = $glyphOptions;
+    $: diagram.appearanceOptions = $appearanceOptions;
     $: diagram.toolOptions = $toolOptions;
     $: diagram.canDragNodes = canDragNodes;
 
@@ -103,12 +104,16 @@
     export function cut(nodeId: string) {
         return diagram.cut(nodeId);
     }
-    
+
     export function toggleNode(nodeId: string) {
         return diagram.toggleNode(nodeId);
     }
-    
-    export function highlightNode(nodeId: string | null, includeSubtree: boolean, includeNeighbors: boolean) {
+
+    export function highlightNode(
+        nodeId: string | null,
+        includeSubtree: boolean,
+        includeNeighbors: boolean
+    ) {
         diagram.highlightNode(nodeId, includeSubtree, includeNeighbors);
     }
 

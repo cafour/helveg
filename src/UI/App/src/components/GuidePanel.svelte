@@ -136,7 +136,7 @@
         <em>Helveg</em> is the product of my studies at the <a href="https://www.fi.muni.cz/" target="_blank">Faculty of Informatics, Masaryk University</a>.
     </p>
     <p>
-        The <em>CodePizza</em> feature has been created as a part of the <em>PV097 Visual Creativity Informatics</em> course in spring 2023.
+        The <em>CodePizza</em> feature has been created as a part of the <em>PV097 Visual Creativity Informatics</em> course in spring 2023. <em>CodePizza</em> is dedicated to the now defunct <em>Pizza Nostra</em>, which used to make the weirdest looking pizza I have ever seen.
     </p>
     <p>
         &#169; 2020-2023 Adam Štěpánek and contributors

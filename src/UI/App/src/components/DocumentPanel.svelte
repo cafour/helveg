@@ -121,6 +121,14 @@
         <label>
             <input
                 type="checkbox"
+                bind:checked={$exportOptions.includePizzaDough}
+            />
+            IncludePizzaDough
+        </label>
+        
+        <label>
+            <input
+                type="checkbox"
                 bind:checked={$exportOptions.includeHighlights}
             />
             IncludeHighlights
@@ -143,7 +151,12 @@
             />
         </label>
         
-        <button class="button-stretch" on:click|preventDefault={() => dispatch("export", exportOptions)}>
+        <label class="flex flex-row gap-8 align-items-center">
+            Opacity
+            <input type="range" id="alpha" min="0" max="1" step="0.1" bind:value={$exportOptions.opacity}>
+        </label>
+        
+        <button class="button-stretch" on:click|preventDefault={() => dispatch("export", $exportOptions)}>
             Export
         </button>
     </Subpanel>

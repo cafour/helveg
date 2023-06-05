@@ -4,36 +4,56 @@
     import { AppPanels } from "model/const";
     import { getContext } from "svelte";
     import type { Writable } from "svelte/store";
-    import type { GlyphOptions } from "model/options";
+    import type { AppearanceOptions } from "model/options";
 
-    let glyphOptions = getContext<Writable<GlyphOptions>>("glyphOptions");
+    let appearanceOptions = getContext<Writable<AppearanceOptions>>("appearanceOptions");
 </script>
 
 <Panel name="Appearance" indent={false} id={AppPanels.Appearance}>
     <Subpanel name="Glyphs">
         <label>
-            <input type="checkbox" bind:checked={$glyphOptions.showIcons} />
+            <input type="checkbox" bind:checked={$appearanceOptions.glyph.showIcons} />
             ShowIcons
         </label>
         <label>
-            <input type="checkbox" bind:checked={$glyphOptions.showOutlines} />
+            <input type="checkbox" bind:checked={$appearanceOptions.glyph.showOutlines} />
             ShowOutlines
         </label>
         <label>
-            <input type="checkbox" bind:checked={$glyphOptions.showLabels} />
+            <input type="checkbox" bind:checked={$appearanceOptions.glyph.showLabels} />
             ShowLabels
         </label>
         <label>
-            <input type="checkbox" bind:checked={$glyphOptions.showFire} />
+            <input type="checkbox" bind:checked={$appearanceOptions.glyph.showFire} />
             ShowFire
         </label>
         <label>
-            <input type="checkbox" bind:checked={$glyphOptions.isFireAnimated} />
+            <input type="checkbox" bind:checked={$appearanceOptions.glyph.isFireAnimated} />
             IsFireAnimated
         </label>
+    </Subpanel>
+    <Subpanel name="CodePizza">
         <label>
-            <input type="checkbox" bind:checked={$glyphOptions.codePizza} />
+            <input type="checkbox" bind:checked={$appearanceOptions.codePizza.isEnabled} />
             CodePizza
+        </label>
+
+        <label class="flex flex-row gap-8 align-items-center">
+            CrustWidth
+            <input
+                type="number"
+                min="1"
+                bind:value={$appearanceOptions.codePizza.crustWidth}
+            />
+        </label>
+        
+        <label class="flex flex-row gap-8 align-items-center">
+            SauceWidth
+            <input
+                type="number"
+                min="1"
+                bind:value={$appearanceOptions.codePizza.sauceWidth}
+            />
         </label>
     </Subpanel>
 </Panel>

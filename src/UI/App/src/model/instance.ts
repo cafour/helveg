@@ -5,11 +5,11 @@ import { EMPTY_MODEL, type VisualizationModel } from "./visualization";
 import App from "components/App.svelte";
 import { HelvegPluginRegistry } from "./plugin";
 import { IconRegistry } from "./icons";
-import { DEFAULT_HELVEG_OPTIONS, loadOptions, type HelvegOptions, type ExportOptions, type LayoutOptions, type ToolOptions, clearOptions, saveOptions } from "./options";
+import { DEFAULT_HELVEG_OPTIONS, loadOptions, type HelvegOptions, type ExportOptions, type LayoutOptions, type ToolOptions, clearOptions, saveOptions, type AppearanceOptions } from "./options";
 import { LogSeverity, Logger } from "./logger";
 import { NodeStyleRegistry, EdgeStyleRegistry } from "./style";
 import { UIExtensionRegistry } from "./uiExtensions";
-import type { DataOptions, GlyphOptions } from "helveg";
+import type { DataOptions} from "helveg";
 
 export interface HelvegInstance {
     model: VisualizationModel;
@@ -48,7 +48,7 @@ export function createHelvegInstance(): HelvegInstance {
     let options: HelvegOptions = { ...DEFAULT_HELVEG_OPTIONS };
     options.data = loadOptions<DataOptions>("data") ?? options.data;
     options.export = loadOptions<ExportOptions>("export") ?? options.export;
-    options.glyph = loadOptions<GlyphOptions>("glyph") ?? options.glyph;
+    options.appearance = loadOptions<AppearanceOptions>("appearance") ?? options.appearance;
     options.layout = loadOptions<LayoutOptions>("layout") ?? options.layout;
     options.tool = loadOptions<ToolOptions>("tool") ?? options.tool;
 
@@ -70,7 +70,7 @@ export function createHelvegInstance(): HelvegInstance {
             Object.assign(this.options, { ...DEFAULT_HELVEG_OPTIONS });
             clearOptions("data");
             clearOptions("export");
-            clearOptions("glyph");
+            clearOptions("appearance");
             clearOptions("layout");
             clearOptions("tool");
             this.optionsChanged.trigger(this.options);
@@ -81,7 +81,7 @@ export function createHelvegInstance(): HelvegInstance {
             this.options = state.options;
             saveOptions("data", state.options.data);
             saveOptions("export", state.options.export);
-            saveOptions("glyph", state.options.glyph);
+            saveOptions("appearance", state.options.appearance);
             saveOptions("layout", state.options.layout);
             saveOptions("tool", state.options.tool);
             this.optionsChanged.trigger(this.options);

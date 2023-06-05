@@ -27,14 +27,17 @@ export function createGlyphProgram(options: GlyphProgramOptions): NodeProgramCon
         constructor(gl: WebGLRenderingContext, renderer: Sigma) {
             super(gl, renderer);
             
+            
             // NB: The effects extension's lifetime is as long as of this program.
             //     This is done on purpose since Sigma creates one instance of each program for "regular" nodes
             //     and one for "hovered" nodes. A separate effects canvas must exist for each kind.
             this.effects = new SigmaEffectsExtension(options);
-            
+
             this.iconProgram = new (createIconProgram(options))(gl, renderer);
             this.outlinesProgram = new (createOutlinesProgram(options))(gl, renderer);
             this.effectsProgram = new this.effects.program(gl, renderer);
+            
+            // NB: Pizza needs to be initialized after the effects program so that its canvas is below effects.
             this.pizzaProgram = new (createPizzaProgram(options))(gl, renderer);
         }
 

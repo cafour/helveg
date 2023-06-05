@@ -73,6 +73,28 @@ export const DEFAULT_GLYPH_OPTIONS: GlyphOptions = {
     codePizza: false
 }
 
+export interface CodePizzaOptions {
+    isEnabled: boolean;
+    crustWidth: number;
+    sauceWidth: number;
+}
+
+export const DEFAULT_CODE_PIZZA_OPTIONS: CodePizzaOptions = {
+    isEnabled: false,
+    crustWidth: 20,
+    sauceWidth: 40
+};
+
+export interface AppearanceOptions {
+    glyph: GlyphOptions;
+    codePizza: CodePizzaOptions;
+}
+
+export const DEFAULT_APPEARANCE_OPTIONS: AppearanceOptions = {
+    glyph: DEFAULT_GLYPH_OPTIONS,
+    codePizza: DEFAULT_CODE_PIZZA_OPTIONS
+};
+
 export interface ForceAtlas2Options {
     gravity: number;
 }
@@ -105,8 +127,10 @@ export interface ExportOptions {
     includeNodes: boolean;
     includeLabels: boolean;
     includeEffects: boolean;
+    includePizzaDough: boolean;
     includeHighlights: boolean;
     backgroundColor: string;
+    opacity: number;
     scale: number;
 }
 
@@ -116,15 +140,17 @@ export const DEFAULT_EXPORT_OPTIONS: ExportOptions = {
     includeNodes: true,
     includeLabels: true,
     includeEffects: true,
+    includePizzaDough: true,
     includeHighlights: true,
     backgroundColor: Colors.White,
+    opacity: 0,
     scale: 1
 }
 
 export interface HelvegOptions {
     layout: LayoutOptions;
     data: DataOptions;
-    glyph: GlyphOptions;
+    appearance: AppearanceOptions;
     export: ExportOptions;
     tool: ToolOptions;
 }
@@ -132,7 +158,7 @@ export interface HelvegOptions {
 export const DEFAULT_HELVEG_OPTIONS: HelvegOptions = {
     layout: DEFAULT_LAYOUT_OPTIONS,
     data: DEFAULT_DATA_OPTIONS,
-    glyph: DEFAULT_GLYPH_OPTIONS,
+    appearance: DEFAULT_APPEARANCE_OPTIONS,
     export: DEFAULT_EXPORT_OPTIONS,
     tool: DEFAULT_TOOL_OPTIONS
 };

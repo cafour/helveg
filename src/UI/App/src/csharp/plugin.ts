@@ -32,7 +32,7 @@ export class CSharpPlugin implements HelvegPlugin {
                 return FALLBACK_STYLE;
             }
 
-            let base = options.glyph.codePizza
+            let base = options.appearance.codePizza.isEnabled
                 ? plugin.resolvePizzaStyle(props, this.csharpGlyphOptions)
                 : plugin.resolveNodeStyle(props, this.csharpGlyphOptions);
             let fire = !props.Diagnostics ? FireStatus.None
@@ -66,8 +66,8 @@ export class CSharpPlugin implements HelvegPlugin {
         }
         options.data.csharp ??= this.csharpDataOptions;
         this.csharpDataOptions = options.data.csharp;
-        options.glyph.csharp ??= this.csharpGlyphOptions;
-        this.csharpGlyphOptions = options.glyph.csharp;
+        options.appearance.glyph.csharp ??= this.csharpGlyphOptions;
+        this.csharpGlyphOptions = options.appearance.glyph.csharp;
     }
 
     onVisualize(model: Readonly<VisualizationModel>, graph: HelvegGraph): void {
