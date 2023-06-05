@@ -64,4 +64,15 @@ export enum PizzaIcons {
     Jalapeno = "base:Jalapeno",
     Pineapple = "base:Pineapple",
     Salami = "base:Salami",
+    Olive = "base:Olive",
+    OlomoucCheese = "base:OlomoucCheese",
+    Eidam = "base:Eidam",
+    Shrimp = "base:Shrimp",
+    Chicken = "base:Chicken",
+    Pickle = "base:Pickle",
+    Fries = "base:Fries",
+    Cookie = "base:Cookie",
+    Meatball = "base:Meatball",
+    Chilli = "base:Chilli",
+    Tomato = "base:Tomato"
 }

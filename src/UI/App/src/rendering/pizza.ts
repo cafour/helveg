@@ -4,13 +4,34 @@ import { PizzaDoughProgram } from "./node.pizzaDough";
 import { PizzaSauceProgram } from "./node.pizzaSauce";
 
 /*
-** PIZZA TERMINOLOGY **
-- crust: the outer edge of the pizza
-- toppings: the ingredients on top of the pizza
-- dough: the basic element of pizza structure prior to baking
-- sauce: the base layer on top of the dough
+ 1 [x] basil
+ 2 [x] mozzarella
+ 3 [x] jalapeno
+ 4 [x] cherry tomatoes
+ 5 [x] salami
+ 6 [x] pineapple
+ 7 [x] corn
+ 8 [x] ham
+ 9 [x] egg
+10 [x] bacon
+11 [x] fries
+12 [x] chicken
+13 [ ] spinach
+14 [x] mushrooms
+15 [x] olomoucké syrečky
+16 [ ] dried tomatoes
+17 [ ] onion
+18 [ ] paprika
+19 [x] shrimp
+20 [x] olives
+21 [x] pickle
+22 [ ] tuna
+23 [ ] pepperoni
+24 [ ] gouda
+25 [x] eidam
+26 [x] cookie
+27 [x] meatball
 */
-
 const { UNSIGNED_BYTE, FLOAT } = WebGLRenderingContext;
 
 const UNIFORMS = ["u_sizeRatio", "u_pixelRatio", "u_matrix", "u_crustWidth", "u_sauceWidth"];

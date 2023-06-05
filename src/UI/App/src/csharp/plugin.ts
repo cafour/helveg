@@ -376,12 +376,12 @@ export class CSharpPlugin implements HelvegPlugin {
                 };
             case EntityKind.Library:
                 return {
-                    icon: PizzaIcons.Mozzarella,
+                    icon: PizzaIcons.Egg,
                     size: 40
                 };
             case EntityKind.Assembly:
                 return {
-                    icon: PizzaIcons.Salami,
+                    icon: PizzaIcons.Chicken,
                     size: 40
                 };
             case EntityKind.Module:
@@ -401,54 +401,42 @@ export class CSharpPlugin implements HelvegPlugin {
                 switch (props.TypeKind) {
                     case TypeKind.Class:
                         base.icon = PizzaIcons.Pineapple;
-                        base.color = VSColor.DarkYellow;
                         break;
                     case TypeKind.Interface:
-                        base.icon = PizzaIcons.Basil;
-                        base.color = VSColor.Blue;
+                        base.icon = PizzaIcons.Shrimp;
                         break;
                     case TypeKind.Enum:
-                        base.icon = "csharp:Enumeration";
-                        base.color = VSColor.DarkYellow;
+                        base.icon = PizzaIcons.Olive;
                         break;
                     case TypeKind.Struct:
-                        base.icon = "csharp:Structure";
-                        base.color = VSColor.Blue;
+                        base.icon = PizzaIcons.Eidam;
                         break;
                     case TypeKind.Delegate:
-                        base.icon = "csharp:Delegate";
-                        base.color = VSColor.Purple;
+                        base.icon = PizzaIcons.Tomato;
                         break;
                     default:
-                        base.icon = "csharp:Type";
-                        base.color = VSColor.Blue;
+                        base.icon = PizzaIcons.OlomoucCheese;
                         break;
                 }
                 break;
             case EntityKind.TypeParameter:
                 return {
-                    icon: "csharp:Type",
-                    size: props.DeclaringKind === EntityKind.Method ? 5 : 10,
-                    color: VSColor.Blue,
-                    outlines: []
+                    icon: PizzaIcons.OlomoucCheese,
+                    size: props.DeclaringKind === EntityKind.Method ? 5 : 10
                 };
             case EntityKind.Field:
                 if (props.IsEnumItem) {
                     return {
-                        icon: "csharp:EnumerationItem",
+                        icon: PizzaIcons.Pickle,
                         size: 10,
-                        color: VSColor.Blue
                     }
                 }
 
-                base.outlines = [{ style: props.IsStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 2 }];
                 base.size = 10;
                 if (props.IsConst) {
-                    base.icon = "csharp:Constant";
-                    base.color = VSColor.DarkGray;
+                    base.icon = PizzaIcons.Meatball;
                 } else {
-                    base.icon = "csharp:Field";
-                    base.color = VSColor.Blue;
+                    base.icon = PizzaIcons.Fries;
                 }
                 break;
             case EntityKind.Method:
@@ -460,37 +448,19 @@ export class CSharpPlugin implements HelvegPlugin {
                 base.size = 12;
                 break;
             case EntityKind.Event:
-                base.icon = PizzaIcons.Corn;
+                base.icon = PizzaIcons.Chilli;
                 base.size = 12
                 break;
             case EntityKind.Parameter:
                 return {
-                    icon: "csharp:LocalVariable",
-                    color: VSColor.Blue,
-                    size: 5,
-                    outlines: []
+                    icon: PizzaIcons.Corn,
+                    size: 5
                 };
             default:
                 return {
-                    icon: "csharp:ExplodedDoughnutChart",
-                    size: 5,
-                    color: VSColor.DarkGray,
-                    outlines: []
+                    icon: PizzaIcons.Cookie,
+                    size: 5
                 };
-        }
-
-        switch (props.Accessibility) {
-            case MemberAccessibility.Internal:
-                base.icon += "Internal";
-                break;
-            case MemberAccessibility.Private:
-                base.icon += "Private";
-                break;
-            case MemberAccessibility.Protected:
-            case MemberAccessibility.ProtectedAndInternal:
-            case MemberAccessibility.ProtectedOrInternal:
-                base.icon += "Protected";
-                break;
         }
         return base;
     }

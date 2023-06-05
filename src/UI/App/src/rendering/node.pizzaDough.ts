@@ -7,53 +7,6 @@ import fragmentShaderSource from "./node.pizzaDough.frag";
 import type { HelvegNodeAttributes } from "model/graph";
 import type { PizzaProgramOptions } from "./pizza";
 
-/*
-** PIZZA TERMINOLOGY **
-- crust: the outer edge of the pizza
-- toppings: the ingredients on top of the pizza
-- dough: the basic element of pizza structure prior to baking
-- sauce: the base layer on top of the dough
-*/
-
-/*
-** PIZZA IMAGES**
-- https://www.pexels.com/photo/sliced-pepperoni-pizza-on-white-ceramic-plate-708587/
-- https://www.pexels.com/photo/top-view-photo-of-baked-pizza-2147491/
-- https://www.pexels.com/photo/cooked-food-2471171/
-- https://www.pexels.com/photo/italian-style-pizza-13814644/
-- https://www.pexels.com/photo/italian-style-pizza-13985154/
-- https://www.pexels.com/photo/close-up-view-of-pizza-with-olives-9844834/
-- https://www.pexels.com/photo/pepperoni-pizza-803290/
-- https://www.pexels.com/photo/a-person-holding-a-slice-of-pizza-on-a-wooden-board-14334060/
-- https://www.pexels.com/photo/corn-kernels-on-strainer-1359315/
-- https://www.pexels.com/photo/dill-pickles-in-a-bowl-and-crackers-on-a-white-surface-11622727/
-- https://www.pexels.com/photo/1-piece-sliced-pizza-in-white-ceramic-plate-845808/
-- https://www.pexels.com/photo/photo-of-cooked-bacon-4110377/
-*/
-
-/*
- 1 [x] basil
- 2 [x] mozzarella
- 3 [x] jalapeno
- 4 [x] cherry tomatoes
- 5 [x] salami
- 6 [x] pineapple
- 7 [x] corn
- 8 [x] ham
- 9 [x] egg
-10 [x] bacon
-11 [ ] fries
-12 [ ] chicken
-13 [ ] spinach
-14 [ ] mushrooms
-15 [ ] olomucké syrečky
-16 [ ] dried tomatoes
-17 [ ] onion
-18 [ ] paprika
-19 [ ] shrimp
-20 [ ] olives
-*/
-
 const { UNSIGNED_BYTE, FLOAT } = WebGLRenderingContext;
 
 const UNIFORMS = ["u_sizeRatio", "u_pixelRatio", "u_matrix", "u_crustWidth", "u_sauceWidth"];
