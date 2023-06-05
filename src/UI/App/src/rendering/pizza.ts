@@ -109,6 +109,10 @@ export class PizzaProgram extends AbstractNodeProgram {
 
     render(params: RenderParams): void {
         this.doughContext.clear(this.doughContext.COLOR_BUFFER_BIT);
+        if (!this.options.isPizzaEnabled) {
+            return;
+        }
+
         this.doughProgram.render(params);
         this.sauceProgram.render(params);
         this.toppingProgram.render(params);

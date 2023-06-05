@@ -13,8 +13,7 @@ import { exportDiagram } from "rendering/export";
 import tidyTree from "layout/tidyTree";
 import type { HelvegInstance } from "./instance";
 import { buildNodeFilter, filterNodes } from "./filter";
-import type { Coordinates, MouseCoords, NodeDisplayData } from "sigma/types";
-import type { Attributes } from "graphology-types";
+import type { Coordinates } from "sigma/types";
 import { findRoots, toggleNode, type HelvegGraph, type HelvegNodeAttributes } from "./graph";
 import { bfs } from "./traversal";
 import { wheellOfFortune } from "layout/circular";
@@ -771,7 +770,6 @@ function initializeGraph(
             try {
                 graph.addDirectedEdgeWithKey(`${relationId};${id}`, edge.src, edge.dst, {
                     relation: relationId,
-                    type: "arrow",
                     style: edge.properties.Style
                 });
             } catch (error) {
@@ -848,6 +846,7 @@ function styleGraph(
             return;
         }
 
+        attributes.type = style.type;
         attributes.color = style.color;
         attributes.size = style.width;
     });

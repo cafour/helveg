@@ -33,7 +33,7 @@ export class CSharpPlugin implements HelvegPlugin {
             }
 
             let base = options.appearance.codePizza.isEnabled
-                ? plugin.resolvePizzaStyle(props, this.csharpGlyphOptions)
+                ? plugin.resolvePizzaNodeStyle(props, this.csharpGlyphOptions)
                 : plugin.resolveNodeStyle(props, this.csharpGlyphOptions);
             let fire = !props.Diagnostics ? FireStatus.None
                 : props.Diagnostics.filter(d => d.severity === MultigraphDiagnosticSeverity.Error).length > 0
@@ -47,7 +47,11 @@ export class CSharpPlugin implements HelvegPlugin {
                 fire
             };
         });
-        this.edgeStyles.set("Relation", o => this.resolveEdgeStyle(o));
+        this.edgeStyles.set("Relation", o => {
+            return options.appearance.codePizza.isEnabled
+                ? this.resolvePizzaEdgeStyle(o)
+                : this.resolveEdgeStyle(o);
+        });
         
         this.uiExtensions.set("Glyphs", {
             targetPanel: AppPanels.Appearance,
@@ -342,7 +346,7 @@ export class CSharpPlugin implements HelvegPlugin {
         return base;
     }
     
-    private resolvePizzaStyle(
+    private resolvePizzaNodeStyle(
         props: CSharpNodeProperties,
         csharpGlyphOptions: CSharpGlyphOptions): Partial<NodeStyle> {
 
@@ -489,40 +493,55 @@ export class CSharpPlugin implements HelvegPlugin {
             case Relations.Declares:
                 return {
                     color: DefaultRelationColors.Declares,
-                    width: 2
+                    width: 2,
+                    type: "arrow"
                 };
             case Relations.InheritsFrom:
                 return {
                     color: DefaultRelationColors.InheritsFrom,
-                    width: 4
+                    width: 4,
+                    type: "arrow"
                 };
             case Relations.TypeOf:
                 return {
                     color: DefaultRelationColors.TypeOf,
-                    width: 4
+                    width: 4,
+                    type: "arrow"
                 };
             case Relations.Overrides:
                 return {
                     color: DefaultRelationColors.Overrides,
-                    width: 4
+                    width: 4,
+                    type: "arrow"
                 };
             case Relations.Returns:
                 return {
                     color: DefaultRelationColors.Returns,
-                    width: 4
+                    width: 4,
+                    type: "arrow"
                 };
             case Relations.DependsOn:
                 return {
                     color: DefaultRelationColors.DependsOn,
-                    width: 6
+                    width: 6,
+                    type: "arrow"
                 };
             case Relations.References:
                 return {
                     color: DefaultRelationColors.DependsOn,
-                    width: 4
+                    width: 4,
+                    type: "arrow"
                 };
             default:
                 return FALLBACK_EDGE_STYLE;
         }
+    }
+    
+    private resolvePizzaEdgeStyle(object: { relation: string, edge: MultigraphEdge }): EdgeStyle {
+        return {
+            color: "#8888880f",
+            width: 3,
+            type: "line"
+        };
     }
 }

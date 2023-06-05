@@ -56,20 +56,21 @@ export function createGlyphProgram(options: GlyphProgramOptions): NodeProgramCon
         }
 
         render(params: RenderParams): void {
-            if (options.isPizzaEnabled) {
-                this.pizzaProgram.render(params);
-            } else {
+            // NB: let pizza program handle this on its own since it manages its own canvas
+            this.pizzaProgram.render(params);
+
+            // NB: let the effects extension handle this on its own since it manages its own canvas
+            this.effectsProgram.render(params);
+            if (!options.isPizzaEnabled) {
                 if (options.showOutlines) {
                     this.outlinesProgram.render(params);
                 }
-    
+                
                 if (options.showIcons) {
                     this.iconProgram.render(params);
                 }
             }
 
-            // let the effects extension handle this on its own since it manages its own canvas
-            this.effectsProgram.render(params);
         }
     };
 }
