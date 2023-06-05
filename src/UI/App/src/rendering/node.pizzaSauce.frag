@@ -88,6 +88,7 @@ uniform float u_sizeRatio;
 uniform float u_sauceWidth;
 uniform vec2 u_offset;
 uniform vec2 u_resolution;
+uniform float u_zoomRatio;
 
 out vec4 f_color;
 
@@ -105,9 +106,9 @@ void main(void) {
 
     if (dist < v_sauceRadius + outerRaggedness) {
         vec2 globalRelative = ((gl_FragCoord.xy - 0.5) / u_resolution - 0.5) + (u_offset / u_resolution - 0.5);
-        // float aspect = u_resolution.x / u_resolution.y;
-        // globalRelative.x *= aspect;
-        float sauce = (snoise(globalRelative * u_sizeRatio * 10.0) + 1.0) * 0.5;
+        float aspect = u_resolution.x / u_resolution.y;
+        globalRelative.x *= aspect;
+        float sauce = (snoise(globalRelative * u_zoomRatio * 10.0) + 1.0) * 0.5;
         if (sauce < 0.5) {
             f_color.rgb = SAUCE_COLOR * 0.9;
         } else if (sauce > 0.9) {

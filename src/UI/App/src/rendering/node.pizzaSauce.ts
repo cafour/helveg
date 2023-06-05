@@ -17,7 +17,7 @@ import type { PizzaProgramOptions } from "./pizza";
 
 const { UNSIGNED_BYTE, FLOAT } = WebGLRenderingContext;
 
-const UNIFORMS = ["u_sizeRatio", "u_pixelRatio", "u_matrix", "u_sauceWidth", "u_offset", "u_resolution"];
+const UNIFORMS = ["u_sizeRatio", "u_pixelRatio", "u_matrix", "u_sauceWidth", "u_offset", "u_resolution", "u_zoomRatio"];
 
 export class PizzaSauceProgram extends NodeProgram<typeof UNIFORMS[number]> {
     constructor(gl: WebGLRenderingContext, renderer: Sigma, private options: PizzaProgramOptions) {
@@ -49,17 +49,18 @@ export class PizzaSauceProgram extends NodeProgram<typeof UNIFORMS[number]> {
     draw(params: RenderParams): void {
         const gl = this.gl as WebGL2RenderingContext;
 
-        const { u_sizeRatio, u_pixelRatio, u_matrix, u_sauceWidth, u_offset, u_resolution } = this.uniformLocations;
+        const { u_sizeRatio, u_pixelRatio, u_matrix, u_sauceWidth, u_offset, u_resolution, u_zoomRatio } = this.uniformLocations;
 
         gl.uniform1f(u_sizeRatio, params.sizeRatio);
         gl.uniform1f(u_pixelRatio, params.pixelRatio);
         gl.uniformMatrix3fv(u_matrix, false, params.matrix);
         gl.uniform1f(u_sauceWidth, this.options.sauceWidth);
         let offset = this.renderer.graphToViewport(this.renderer.getCamera());
-        console.log("offset", offset);
         gl.uniform2f(u_offset, -offset.x, offset.y);
-        gl.uniform2f(u_resolution, this.renderer.getDimensions().width, this.renderer.getDimensions().height);
-        console.log("resolution", this.renderer.getDimensions());
+        gl.uniform2f(u_resolution, params.width, params.height);
+        
+        // TODO: Figure out how all these Sigma ratios work together.
+        gl.uniform1f(u_zoomRatio, params.zoomRatio);
 
         gl.drawArrays(gl.POINTS, 0, this.verticesCount);
     }
