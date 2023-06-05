@@ -67,7 +67,7 @@ export function createHelvegInstance(): HelvegInstance {
         logger: new Logger(),
 
         resetOptions() {
-            this.options = { ...DEFAULT_HELVEG_OPTIONS };
+            Object.assign(this.options, { ...DEFAULT_HELVEG_OPTIONS });
             clearOptions("data");
             clearOptions("export");
             clearOptions("glyph");
@@ -85,7 +85,7 @@ export function createHelvegInstance(): HelvegInstance {
             saveOptions("layout", state.options.layout);
             saveOptions("tool", state.options.tool);
             this.optionsChanged.trigger(this.options);
-            
+
             if (!this.app) {
                 console.warn("Cannot import positions: App not initialized.");
             } else {
@@ -96,7 +96,7 @@ export function createHelvegInstance(): HelvegInstance {
 
             this.stateImported.trigger(state);
         },
-        
+
         exportState(): HelvegSerializedState {
             let result: HelvegSerializedState = {
                 options: this.options,
