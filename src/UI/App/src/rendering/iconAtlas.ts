@@ -88,9 +88,9 @@ export class IconAtlas {
                 entry: entry
             });
         })
-        image.addEventListener("error", () => {
+        image.addEventListener("error", e => {
             entry.status = IconAtlasEntryStatus.Failed;
-            console.error(`Failed to load ${image.id}.`);
+            console.error(`Failed to load ${image.id} with: ${e.error}`);
         });
         image.setAttribute("crossorigin", "");
         image.src = this.iconRegistry.getIconDataUrl(name, {
@@ -141,8 +141,8 @@ export class IconAtlas {
                 image.element,
                 0,
                 0,
-                image.element.width,
-                image.element.height,
+                image.element.naturalWidth,
+                image.element.naturalHeight,
                 this.writePositionX,
                 this.writePositionY,
                 this.options.iconSize,

@@ -84,6 +84,7 @@ in float v_crustRadius;
 in float v_totalSize;
 flat in int v_index;
 
+uniform float u_sizeRatio;
 uniform float u_crustWidth;
 uniform float u_sauceWidth;
 
@@ -97,12 +98,11 @@ void main(void) {
     vec2 p = (gl_PointCoord - vec2(0.5, 0.5)) * v_totalSize;
     float dist = length(p);
 
-    vec2 seed = p + float(v_index);
-    float noise = snoise(seed * 0.05);
+    float noise = snoise(p * 0.05 * u_sizeRatio + float(v_index));
     float outerRaggedness = noise * u_crustWidth * 0.05;
 
     if (dist > v_sauceRadius && dist < v_crustRadius + outerRaggedness) {
-        float crust = snoise(seed * 0.5) * 0.5 + 0.5;
+        float crust = snoise(p * 0.5 + float(v_index)) * 0.5 + 0.5;
         f_color.rgb = mix(
         mix(
             INNER_COLOR,

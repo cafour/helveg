@@ -98,7 +98,7 @@ void main(void) {
     vec2 p = (gl_PointCoord - vec2(0.5, 0.5)) * v_totalSize;
     float dist = length(p);
 
-    float noise = snoise(p * 0.02 * u_sizeRatio + float(v_index));
+    float noise = snoise(p * 0.05 * u_sizeRatio + float(v_index));
     float outerRaggedness = noise * u_sauceWidth * 0.05;
 
     if (dist < v_sauceRadius + outerRaggedness) {

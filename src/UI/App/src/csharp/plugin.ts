@@ -1,4 +1,4 @@
-import { AppPanels,FALLBACK_EDGE_STYLE, FireStatus, OutlineStyle, bfs, expandNode, findRoots, type HelvegOptions, type HelvegPlugin, type EdgeStyle, type EdgeStyleGenerator, type HelvegGraph, type NodeStyle, type NodeStyleGenerator, type UIExtension, type VisualizationModel, type MultigraphNode, MultigraphDiagnosticSeverity, type MultigraphEdge } from "helveg";
+import { AppPanels,FALLBACK_EDGE_STYLE, FireStatus, OutlineStyle, bfs, expandNode, findRoots, type HelvegOptions, type HelvegPlugin, type EdgeStyle, type EdgeStyleGenerator, type HelvegGraph, type NodeStyle, type NodeStyleGenerator, type UIExtension, type VisualizationModel, type MultigraphNode, MultigraphDiagnosticSeverity, type MultigraphEdge, PizzaIcons } from "helveg";
 
 import CSharpGlyphsSubpanel from "./components/CSharpGlyphsSubpanel.svelte";
 import CSharpKindsSubpanel from "./components/CSharpKindsSubpanel.svelte";
@@ -24,7 +24,7 @@ export class CSharpPlugin implements HelvegPlugin {
     edgeStyles: Map<string, EdgeStyleGenerator> = new Map();
     uiExtensions: Map<string, UIExtension> = new Map();
 
-    constructor(options: HelvegOptions) {
+    constructor(public options: HelvegOptions) {
         let plugin = this;
         this.nodeStyles.set("Entity", (node: MultigraphNode) => {
             let props = node.properties as CSharpNodeProperties;
@@ -32,7 +32,9 @@ export class CSharpPlugin implements HelvegPlugin {
                 return FALLBACK_STYLE;
             }
 
-            let base = plugin.resolveNodeStyle(props, this.csharpGlyphOptions);
+            let base = options.glyph.codePizza
+                ? plugin.resolvePizzaStyle(props, this.csharpGlyphOptions)
+                : plugin.resolveNodeStyle(props, this.csharpGlyphOptions);
             let fire = !props.Diagnostics ? FireStatus.None
                 : props.Diagnostics.filter(d => d.severity === MultigraphDiagnosticSeverity.Error).length > 0
                     ? FireStatus.Flame
@@ -216,7 +218,6 @@ export class CSharpPlugin implements HelvegPlugin {
                 };
             case EntityKind.Type:
                 base.size = 15;
-                base.fire = FireStatus.Flame;
                 switch (props.TypeKind) {
                     case TypeKind.Class:
                         base.icon = "csharp:Class";
@@ -290,7 +291,6 @@ export class CSharpPlugin implements HelvegPlugin {
 
                 base.size = 10;
                 base.outlines = [{ style: props.IsStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 2 }];
-                base.fire = FireStatus.Smoke;
                 break;
             case EntityKind.Property:
                 base.icon = "csharp:Property";
@@ -303,6 +303,165 @@ export class CSharpPlugin implements HelvegPlugin {
                 base.size = 10;
                 base.color = VSColor.DarkYellow;
                 base.outlines = [{ style: props.IsStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 2 }];
+                break;
+            case EntityKind.Parameter:
+                return {
+                    icon: "csharp:LocalVariable",
+                    color: VSColor.Blue,
+                    size: 5,
+                    outlines: []
+                };
+            default:
+                return {
+                    icon: "csharp:ExplodedDoughnutChart",
+                    size: 5,
+                    color: VSColor.DarkGray,
+                    outlines: []
+                };
+        }
+
+        switch (props.Accessibility) {
+            case MemberAccessibility.Internal:
+                base.icon += "Internal";
+                break;
+            case MemberAccessibility.Private:
+                base.icon += "Private";
+                break;
+            case MemberAccessibility.Protected:
+            case MemberAccessibility.ProtectedAndInternal:
+            case MemberAccessibility.ProtectedOrInternal:
+                base.icon += "Protected";
+                break;
+        }
+        return base;
+    }
+    
+    private resolvePizzaStyle(
+        props: CSharpNodeProperties,
+        csharpGlyphOptions: CSharpGlyphOptions): Partial<NodeStyle> {
+
+        let getSize = this.getSizingFunc(csharpGlyphOptions.sizingMode);
+
+        let base: Partial<NodeStyle> = {};
+        switch (props.Kind) {
+            case EntityKind.Solution:
+                return {
+                    icon: PizzaIcons.Bacon,
+                    size: 55
+                };
+            case EntityKind.Project:
+                return {
+                    icon: PizzaIcons.Mozzarella,
+                    size: 45
+                };
+            case EntityKind.Framework:
+                return {
+                    icon: PizzaIcons.Basil,
+                    size: 50
+                };
+            case EntityKind.ExternalDependencySource:
+                return {
+                    icon: PizzaIcons.Basil,
+                    size: 50
+                };
+            case EntityKind.PackageRepository:
+                return {
+                    icon: PizzaIcons.Basil,
+                    size: 50
+                };
+            case EntityKind.Package:
+                return {
+                    icon: PizzaIcons.Mozzarella,
+                    size: 45
+                };
+            case EntityKind.Library:
+                return {
+                    icon: PizzaIcons.Mozzarella,
+                    size: 40
+                };
+            case EntityKind.Assembly:
+                return {
+                    icon: PizzaIcons.Salami,
+                    size: 40
+                };
+            case EntityKind.Module:
+                return {
+                    icon: PizzaIcons.Ham,
+                    size: 35
+                };
+            case EntityKind.Namespace:
+                return {
+                    icon: PizzaIcons.Salami,
+                    size: 30
+                };
+            case EntityKind.Type:
+                let instanceCount = props.InstanceMemberCount ?? 0;
+                let staticCount = props.StaticMemberCount ?? 0;
+                base.size = 15 + getSize(instanceCount) + getSize(staticCount);
+                switch (props.TypeKind) {
+                    case TypeKind.Class:
+                        base.icon = PizzaIcons.Pineapple;
+                        base.color = VSColor.DarkYellow;
+                        break;
+                    case TypeKind.Interface:
+                        base.icon = PizzaIcons.Basil;
+                        base.color = VSColor.Blue;
+                        break;
+                    case TypeKind.Enum:
+                        base.icon = "csharp:Enumeration";
+                        base.color = VSColor.DarkYellow;
+                        break;
+                    case TypeKind.Struct:
+                        base.icon = "csharp:Structure";
+                        base.color = VSColor.Blue;
+                        break;
+                    case TypeKind.Delegate:
+                        base.icon = "csharp:Delegate";
+                        base.color = VSColor.Purple;
+                        break;
+                    default:
+                        base.icon = "csharp:Type";
+                        base.color = VSColor.Blue;
+                        break;
+                }
+                break;
+            case EntityKind.TypeParameter:
+                return {
+                    icon: "csharp:Type",
+                    size: props.DeclaringKind === EntityKind.Method ? 5 : 10,
+                    color: VSColor.Blue,
+                    outlines: []
+                };
+            case EntityKind.Field:
+                if (props.IsEnumItem) {
+                    return {
+                        icon: "csharp:EnumerationItem",
+                        size: 10,
+                        color: VSColor.Blue
+                    }
+                }
+
+                base.outlines = [{ style: props.IsStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 2 }];
+                base.size = 10;
+                if (props.IsConst) {
+                    base.icon = "csharp:Constant";
+                    base.color = VSColor.DarkGray;
+                } else {
+                    base.icon = "csharp:Field";
+                    base.color = VSColor.Blue;
+                }
+                break;
+            case EntityKind.Method:
+                base.icon = PizzaIcons.CherryTomato;
+                base.size = 12;
+                break;
+            case EntityKind.Property:
+                base.icon = PizzaIcons.Jalapeno;
+                base.size = 12;
+                break;
+            case EntityKind.Event:
+                base.icon = PizzaIcons.Corn;
+                base.size = 12
                 break;
             case EntityKind.Parameter:
                 return {
