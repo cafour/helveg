@@ -6,7 +6,7 @@ import { OutlinesProgram, type OutlinesProgramOptions } from "./node.outlines";
 import type { FireProgramOptions } from "./node.fire";
 import { SigmaEffectsExtension } from "./effects";
 import type { PizzaProgramOptions } from "./pizza";
-import createPizzaProgram from "./node.pizzaDough";
+import createPizzaProgram from "./pizza";
 
 export interface GlyphProgramOptions
     extends IconProgramOptions, OutlinesProgramOptions, FireProgramOptions, PizzaProgramOptions {

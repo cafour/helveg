@@ -78,38 +78,38 @@ float snoise(vec2 v)
 
 // END OF NOISE
 
+in vec2 v_offset;
 in float v_coreRadius;
 in float v_sauceRadius;
-in float v_crustRadius;
 in float v_totalSize;
 flat in int v_index;
 
-uniform float u_crustWidth;
+uniform float u_sizeRatio;
 uniform float u_sauceWidth;
+uniform vec2 u_offset;
 
 out vec4 f_color;
 
-const vec3 INNER_COLOR = vec3(231.0, 212.0, 172.0) / 255.0;
-const vec3 MID_COLOR = vec3(200.0, 151.0, 108.0) / 255.0;
-const vec3 OUTER_COLOR = vec3(238.0, 220.0, 210.0) / 255.0;
+const vec3 INNER_COLOR = vec3(214.0, 134.0, 70.0) / 255.0;
+const vec3 MID_COLOR = vec3(165.0, 42.0, 3.0) / 255.0;
+const vec3 OUTER_COLOR = vec3(100.0, 15.0, 4.0) / 255.0;
 
 void main(void) { 
     vec2 p = (gl_PointCoord - vec2(0.5, 0.5)) * v_totalSize;
     float dist = length(p);
 
-    vec2 seed = p + float(v_index);
-    float noise = snoise(seed * 0.05);
-    float outerRaggedness = noise * u_crustWidth * 0.05;
+    float noise = snoise(p * 0.02 * u_sizeRatio + float(v_index));
+    float outerRaggedness = noise * u_sauceWidth * 0.05;
 
-    if (dist > v_sauceRadius && dist < v_crustRadius + outerRaggedness) {
-        float crust = snoise(seed * 0.5) * 0.5 + 0.5;
+    if (dist < v_sauceRadius + outerRaggedness) {
+        float sauce = snoise(gl_FragCoord.xy * u_sizeRatio * 0.004 + u_offset) * 0.5 + 0.5;
         f_color.rgb = mix(
         mix(
             INNER_COLOR,
             MID_COLOR,
-            smoothstep(0.0, 0.3, crust)),
+            smoothstep(0.0, 0.3, sauce)),
         OUTER_COLOR,
-        smoothstep(0.3, 1.0, crust));
+        smoothstep(0.3, 1.0, sauce));
 
         f_color.a = 1.0;
     } else {

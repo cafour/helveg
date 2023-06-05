@@ -1,6 +1,7 @@
 import { createNodeCompoundProgram, type NodeProgramConstructor } from "sigma/rendering/webgl/programs/common/node";
 import type Sigma from "sigma";
 import { PizzaDoughProgram } from "./node.pizzaDough";
+import { PizzaSauceProgram } from "./node.pizzaSauce";
 
 /*
 ** PIZZA TERMINOLOGY **
@@ -23,7 +24,7 @@ export interface PizzaProgramOptions {
 export const DEFAULT_PIZZA_PROGRAM_OPTIONS: PizzaProgramOptions = {
     isPizzaEnabled: false,
     crustWidth: 20,
-    sauceWidth: 90
+    sauceWidth: 40
 };
 
 export default function createPizzaProgram(options?: Partial<PizzaProgramOptions>): NodeProgramConstructor {
@@ -38,6 +39,11 @@ export default function createPizzaProgram(options?: Partial<PizzaProgramOptions
             constructor(gl: WebGLRenderingContext, renderer: Sigma) {
                 super(gl, renderer, options as PizzaProgramOptions);
             }
-        }
+        },
+        class extends PizzaSauceProgram {
+            constructor(gl: WebGLRenderingContext, renderer: Sigma) {
+                super(gl, renderer, options as PizzaProgramOptions);
+            }
+        },
     ]);
 }

@@ -2,8 +2,8 @@ import { NodeProgram, type NodeProgramConstructor } from "sigma/rendering/webgl/
 import type { ProgramDefinition } from "sigma/rendering/webgl/programs/common/program";
 import type { RenderParams } from "sigma/types";
 import type Sigma from "sigma";
-import vertexShaderSource from "./node.pizzaDough.vert";
-import fragmentShaderSource from "./node.pizzaDough.frag";
+import vertexShaderSource from "./node.pizzaSauce.vert";
+import fragmentShaderSource from "./node.pizzaSauce.frag";
 import type { HelvegNodeAttributes } from "model/graph";
 import type { PizzaProgramOptions } from "./pizza";
 
@@ -17,9 +17,9 @@ import type { PizzaProgramOptions } from "./pizza";
 
 const { UNSIGNED_BYTE, FLOAT } = WebGLRenderingContext;
 
-const UNIFORMS = ["u_sizeRatio", "u_pixelRatio", "u_matrix", "u_crustWidth", "u_sauceWidth"];
+const UNIFORMS = ["u_sizeRatio", "u_pixelRatio", "u_matrix", "u_sauceWidth", "u_offset"];
 
-export class PizzaDoughProgram extends NodeProgram<typeof UNIFORMS[number]> {
+export class PizzaSauceProgram extends NodeProgram<typeof UNIFORMS[number]> {
     constructor(gl: WebGLRenderingContext, renderer: Sigma, private options: PizzaProgramOptions) {
         super(gl, renderer);
     }
@@ -49,13 +49,13 @@ export class PizzaDoughProgram extends NodeProgram<typeof UNIFORMS[number]> {
     draw(params: RenderParams): void {
         const gl = this.gl as WebGL2RenderingContext;
 
-        const { u_sizeRatio, u_pixelRatio, u_matrix, u_crustWidth, u_sauceWidth } = this.uniformLocations;
+        const { u_sizeRatio, u_pixelRatio, u_matrix, u_sauceWidth, u_offset } = this.uniformLocations;
 
         gl.uniform1f(u_sizeRatio, params.sizeRatio);
         gl.uniform1f(u_pixelRatio, params.pixelRatio);
         gl.uniformMatrix3fv(u_matrix, false, params.matrix);
-        gl.uniform1f(u_crustWidth, this.options.crustWidth);
         gl.uniform1f(u_sauceWidth, this.options.sauceWidth);
+        gl.uniform2f(u_offset, this.renderer.getCamera().x, this.renderer.getCamera().y);
 
         gl.drawArrays(gl.POINTS, 0, this.verticesCount);
     }
