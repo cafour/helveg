@@ -64,8 +64,10 @@ export class CSharpPlugin implements HelvegPlugin {
         if (options.data.selectedRelations.length === 0) {
             options.data.selectedRelations.push(Relations.Declares);
         }
+
         options.data.csharp ??= this.csharpDataOptions;
         this.csharpDataOptions = options.data.csharp;
+
         options.appearance.glyph.csharp ??= this.csharpGlyphOptions;
         this.csharpGlyphOptions = options.appearance.glyph.csharp;
     }
@@ -350,52 +352,52 @@ export class CSharpPlugin implements HelvegPlugin {
         switch (props.Kind) {
             case EntityKind.Solution:
                 return {
-                    icon: PizzaIcons.Bacon,
+                    icon: csharpGlyphOptions.pizzaToppings.Solution,
                     size: 55
                 };
             case EntityKind.Project:
                 return {
-                    icon: PizzaIcons.Mozzarella,
+                    icon: csharpGlyphOptions.pizzaToppings.Project,
                     size: 45
                 };
             case EntityKind.Framework:
                 return {
-                    icon: PizzaIcons.Basil,
+                    icon: csharpGlyphOptions.pizzaToppings.Framework,
                     size: 50
                 };
             case EntityKind.ExternalDependencySource:
                 return {
-                    icon: PizzaIcons.Basil,
+                    icon: csharpGlyphOptions.pizzaToppings.ExternalDependencySource,
                     size: 50
                 };
             case EntityKind.PackageRepository:
                 return {
-                    icon: PizzaIcons.Basil,
+                    icon: csharpGlyphOptions.pizzaToppings.PackageRepository,
                     size: 50
                 };
             case EntityKind.Package:
                 return {
-                    icon: PizzaIcons.Mozzarella,
+                    icon: csharpGlyphOptions.pizzaToppings.Package,
                     size: 45
                 };
             case EntityKind.Library:
                 return {
-                    icon: PizzaIcons.Egg,
+                    icon: csharpGlyphOptions.pizzaToppings.Library,
                     size: 40
                 };
             case EntityKind.Assembly:
                 return {
-                    icon: PizzaIcons.Chicken,
+                    icon: csharpGlyphOptions.pizzaToppings.Assembly,
                     size: 40
                 };
             case EntityKind.Module:
                 return {
-                    icon: PizzaIcons.Ham,
+                    icon: csharpGlyphOptions.pizzaToppings.Module,
                     size: 35
                 };
             case EntityKind.Namespace:
                 return {
-                    icon: PizzaIcons.Salami,
+                    icon: csharpGlyphOptions.pizzaToppings.Namespace,
                     size: 30
                 };
             case EntityKind.Type:
@@ -404,65 +406,65 @@ export class CSharpPlugin implements HelvegPlugin {
                 base.size = 15 + getSize(instanceCount) + getSize(staticCount);
                 switch (props.TypeKind) {
                     case TypeKind.Class:
-                        base.icon = PizzaIcons.Pineapple;
+                        base.icon = csharpGlyphOptions.pizzaToppings.Class;
                         break;
                     case TypeKind.Interface:
-                        base.icon = PizzaIcons.Shrimp;
+                        base.icon = csharpGlyphOptions.pizzaToppings.Interface;
                         break;
                     case TypeKind.Enum:
-                        base.icon = PizzaIcons.Olive;
+                        base.icon = csharpGlyphOptions.pizzaToppings.Enum;
                         break;
                     case TypeKind.Struct:
-                        base.icon = PizzaIcons.Eidam;
+                        base.icon = csharpGlyphOptions.pizzaToppings.Struct;
                         break;
                     case TypeKind.Delegate:
-                        base.icon = PizzaIcons.Tomato;
+                        base.icon = csharpGlyphOptions.pizzaToppings.Delegate;
                         break;
                     default:
-                        base.icon = PizzaIcons.OlomoucCheese;
+                        base.icon = csharpGlyphOptions.pizzaToppings.Type;
                         break;
                 }
                 break;
             case EntityKind.TypeParameter:
                 return {
-                    icon: PizzaIcons.OlomoucCheese,
+                    icon: csharpGlyphOptions.pizzaToppings.Type,
                     size: props.DeclaringKind === EntityKind.Method ? 5 : 10
                 };
             case EntityKind.Field:
                 if (props.IsEnumItem) {
                     return {
-                        icon: PizzaIcons.Pickle,
+                        icon: csharpGlyphOptions.pizzaToppings.EnumItem,
                         size: 10,
                     }
                 }
 
                 base.size = 10;
                 if (props.IsConst) {
-                    base.icon = PizzaIcons.Meatball;
+                    base.icon = csharpGlyphOptions.pizzaToppings.Const;
                 } else {
-                    base.icon = PizzaIcons.Fries;
+                    base.icon = csharpGlyphOptions.pizzaToppings.Field;
                 }
                 break;
             case EntityKind.Method:
-                base.icon = PizzaIcons.CherryTomato;
+                base.icon = csharpGlyphOptions.pizzaToppings.Method;
                 base.size = 12;
                 break;
             case EntityKind.Property:
-                base.icon = PizzaIcons.Jalapeno;
+                base.icon = csharpGlyphOptions.pizzaToppings.Property;
                 base.size = 12;
                 break;
             case EntityKind.Event:
-                base.icon = PizzaIcons.Chilli;
+                base.icon = csharpGlyphOptions.pizzaToppings.Event;
                 base.size = 12
                 break;
             case EntityKind.Parameter:
                 return {
-                    icon: PizzaIcons.Corn,
+                    icon: csharpGlyphOptions.pizzaToppings.Parameter,
                     size: 5
                 };
             default:
                 return {
-                    icon: PizzaIcons.Cookie,
+                    icon: csharpGlyphOptions.pizzaToppings.Fallback,
                     size: 5
                 };
         }
