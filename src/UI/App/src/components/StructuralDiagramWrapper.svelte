@@ -27,6 +27,10 @@
     let glyphOptions = getContext<Writable<GlyphOptions>>("glyphOptions");
 
     let diagram: AbstractStructuralDiagram = new StructuralDiagram(instance);
+    
+    export function getDiagram(): AbstractStructuralDiagram {
+        return diagram;
+    }
 
     export let status: StructuralStatus = StructuralStatus.Stopped;
     export let stats: StructuralDiagramStats = {

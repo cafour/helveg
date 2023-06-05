@@ -75,6 +75,9 @@ export interface AbstractStructuralDiagram {
 
     get nodeClicked(): HelvegEvent<string>;
 
+    exportPositions(): Record<string, Coordinates>;
+    importPositions(value: Record<string, Coordinates>);
+
     resetLayout(): Promise<void>;
     runLayout(inBackground: boolean): Promise<void>;
     stopLayout(): Promise<void>;
@@ -532,6 +535,28 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
 
     get nodeClicked(): HelvegEvent<string> {
         return this._nodeClicked;
+    }
+    
+    exportPositions(): Record<string, Coordinates> {
+        let result = {};
+        if (this._graph) {
+            this._graph.forEachNode((node, attributes) => {
+                result[node] = {
+                    x: attributes.x,
+                    y: attributes.y
+                };
+            });
+        }
+        return result;
+    }
+
+    importPositions(value: Record<string, Coordinates>) {
+        this._graph?.forEachNode((node, attributes) => {
+            if (value[node]) {
+                attributes.x = value[node].x;
+                attributes.y = value[node].y;
+            }
+        });
     }
 
     private refreshSigma(): void {

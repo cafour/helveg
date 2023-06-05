@@ -19,28 +19,38 @@
     import Toast from "./Toast.svelte";
     import ToolBox from "./ToolBox.svelte";
     import ToolsPanel from "./ToolsPanel.svelte";
-    import { type DataOptions, saveOptions, type LayoutOptions, type GlyphOptions, type ExportOptions, type ToolOptions } from "types";
+    import { type DataOptions, saveOptions, type LayoutOptions, type GlyphOptions, type ExportOptions, type ToolOptions, type AbstractStructuralDiagram } from "types";
 
     export let instance: HelvegInstance;
     setContext("helveg", instance);
 
-    let dataOptions = writable(instance.options.data);
+    let dataOptions = writable(instance.options.data, set => {
+        instance.optionsChanged.subscribe(o => set(o.data));
+    });
     dataOptions.subscribe(o => saveOptions<DataOptions>("data", o));
     setContext("dataOptions", dataOptions);
 
-    let layoutOptions = writable(instance.options.layout);
+    let layoutOptions = writable(instance.options.layout, set => {
+        instance.optionsChanged.subscribe(o => set(o.layout));
+    });
     layoutOptions.subscribe(o => saveOptions<LayoutOptions>("layout", o));
     setContext("layoutOptions", layoutOptions);
 
-    let glyphOptions = writable(instance.options.glyph);
+    let glyphOptions = writable(instance.options.glyph, set => {
+        instance.optionsChanged.subscribe(o => set(o.glyph));
+    });
     glyphOptions.subscribe(o => saveOptions<GlyphOptions>("glyph", o));
     setContext("glyphOptions", glyphOptions);
 
-    let exportOptions = writable(instance.options.export);
+    let exportOptions = writable(instance.options.export, set => {
+        instance.optionsChanged.subscribe(o => set(o.export));
+    });
     exportOptions.subscribe(o => saveOptions<ExportOptions>("export", o));
     setContext("exportOptions", exportOptions);
 
-    let toolOptions = writable(instance.options.tool);
+    let toolOptions = writable(instance.options.tool, set => {
+        instance.optionsChanged.subscribe(o => set(o.tool));
+    });
     toolOptions.subscribe(o => saveOptions<ToolOptions>("tool", o));
     setContext("toolOptions", toolOptions);
 
@@ -99,6 +109,10 @@
                 dock.setTab(AppPanels.Tools);
                 break;
         }
+    }
+    
+    export function getDiagram(): AbstractStructuralDiagram {
+        return diagram.getDiagram();
     }
 </script>
 

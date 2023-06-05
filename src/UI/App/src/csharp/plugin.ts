@@ -61,9 +61,13 @@ export class CSharpPlugin implements HelvegPlugin {
         options.layout.tidyTree.relation ??= Relations.Declares;
         options.tool.cut.relation ??= Relations.Declares;
         options.tool.toggle.relation ??= Relations.Declares;
-        options.data.selectedRelations.push(Relations.Declares);
-        options.data.csharp = this.csharpDataOptions;
-        options.glyph.csharp = this.csharpGlyphOptions;
+        if (options.data.selectedRelations.length === 0) {
+            options.data.selectedRelations.push(Relations.Declares);
+        }
+        options.data.csharp ??= this.csharpDataOptions;
+        this.csharpDataOptions = options.data.csharp;
+        options.glyph.csharp ??= this.csharpGlyphOptions;
+        this.csharpGlyphOptions = options.glyph.csharp;
     }
 
     onVisualize(model: Readonly<VisualizationModel>, graph: HelvegGraph): void {
