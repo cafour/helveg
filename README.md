@@ -34,3 +34,7 @@ This software has many dependencies. These are the most significant:
 * [Svelte](https://svelte.dev/)
 * [Visual Studio Image Library](https://www.microsoft.com/en-us/download/details.aspx?id=35825)
     > Please note that a different license applies to icons from this image library.
+    
+## Other notes
+
+* The _CodePizza_ feature is possible due to many royalty-free images of pizza ingredients. A complete list can be found in [~/docs/codepizza.md](./docs/codepizza.md).
