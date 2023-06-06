@@ -89,7 +89,7 @@ export class IconRegistry {
             case IconFormat.Svg:
                 return svgToDataURI(icon.data);
             case IconFormat.Png:
-                return `data:image/png,${icon.data}`;
+                return `data:image/png;base64,${icon.data}`;
             default:
                 throw new Error(`IconFormat '${icon.format}' is not supported.`);
         }

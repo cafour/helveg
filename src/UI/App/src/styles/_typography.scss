@@ -27,3 +27,12 @@ h1, h2, h3, h4, h5, h6 {
 .monospace {
     font-family: var(--font-family-monospace);
 }
+
+a, p a {
+    color: var(--font-color-link);
+    text-decoration: none;
+    
+    &:hover {
+        text-decoration: underline;
+    }
+}

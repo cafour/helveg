@@ -1,4 +1,4 @@
-import { AppPanels,FALLBACK_EDGE_STYLE, FireStatus, OutlineStyle, bfs, expandNode, findRoots, type HelvegOptions, type HelvegPlugin, type EdgeStyle, type EdgeStyleGenerator, type HelvegGraph, type NodeStyle, type NodeStyleGenerator, type UIExtension, type VisualizationModel, type MultigraphNode, MultigraphDiagnosticSeverity, type MultigraphEdge } from "helveg";
+import { AppPanels,FALLBACK_EDGE_STYLE, FireStatus, OutlineStyle, bfs, expandNode, findRoots, type HelvegOptions, type HelvegPlugin, type EdgeStyle, type EdgeStyleGenerator, type HelvegGraph, type NodeStyle, type NodeStyleGenerator, type UIExtension, type VisualizationModel, type MultigraphNode, MultigraphDiagnosticSeverity, type MultigraphEdge, PizzaIcons } from "helveg";
 
 import CSharpGlyphsSubpanel from "./components/CSharpGlyphsSubpanel.svelte";
 import CSharpKindsSubpanel from "./components/CSharpKindsSubpanel.svelte";
@@ -24,7 +24,7 @@ export class CSharpPlugin implements HelvegPlugin {
     edgeStyles: Map<string, EdgeStyleGenerator> = new Map();
     uiExtensions: Map<string, UIExtension> = new Map();
 
-    constructor(options: HelvegOptions) {
+    constructor(public options: HelvegOptions) {
         let plugin = this;
         this.nodeStyles.set("Entity", (node: MultigraphNode) => {
             let props = node.properties as CSharpNodeProperties;
@@ -32,7 +32,9 @@ export class CSharpPlugin implements HelvegPlugin {
                 return FALLBACK_STYLE;
             }
 
-            let base = plugin.resolveNodeStyle(props, this.csharpGlyphOptions);
+            let base = options.appearance.codePizza.isEnabled
+                ? plugin.resolvePizzaNodeStyle(props, this.csharpGlyphOptions)
+                : plugin.resolveNodeStyle(props, this.csharpGlyphOptions);
             let fire = !props.Diagnostics ? FireStatus.None
                 : props.Diagnostics.filter(d => d.severity === MultigraphDiagnosticSeverity.Error).length > 0
                     ? FireStatus.Flame
@@ -45,7 +47,11 @@ export class CSharpPlugin implements HelvegPlugin {
                 fire
             };
         });
-        this.edgeStyles.set("Relation", o => this.resolveEdgeStyle(o));
+        this.edgeStyles.set("Relation", o => {
+            return options.appearance.codePizza.isEnabled
+                ? this.resolvePizzaEdgeStyle(o)
+                : this.resolveEdgeStyle(o);
+        });
         
         this.uiExtensions.set("Glyphs", {
             targetPanel: AppPanels.Appearance,
@@ -59,9 +65,15 @@ export class CSharpPlugin implements HelvegPlugin {
         options.layout.tidyTree.relation ??= Relations.Declares;
         options.tool.cut.relation ??= Relations.Declares;
         options.tool.toggle.relation ??= Relations.Declares;
-        options.data.selectedRelations.push(Relations.Declares);
-        options.data.csharp = this.csharpDataOptions;
-        options.glyph.csharp = this.csharpGlyphOptions;
+        if (options.data.selectedRelations.length === 0) {
+            options.data.selectedRelations.push(Relations.Declares);
+        }
+
+        options.data.csharp ??= this.csharpDataOptions;
+        this.csharpDataOptions = options.data.csharp;
+
+        options.appearance.glyph.csharp ??= this.csharpGlyphOptions;
+        this.csharpGlyphOptions = options.appearance.glyph.csharp;
     }
 
     onVisualize(model: Readonly<VisualizationModel>, graph: HelvegGraph): void {
@@ -216,7 +228,6 @@ export class CSharpPlugin implements HelvegPlugin {
                 };
             case EntityKind.Type:
                 base.size = 15;
-                base.fire = FireStatus.Flame;
                 switch (props.TypeKind) {
                     case TypeKind.Class:
                         base.icon = "csharp:Class";
@@ -290,7 +301,6 @@ export class CSharpPlugin implements HelvegPlugin {
 
                 base.size = 10;
                 base.outlines = [{ style: props.IsStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 2 }];
-                base.fire = FireStatus.Smoke;
                 break;
             case EntityKind.Property:
                 base.icon = "csharp:Property";
@@ -335,6 +345,135 @@ export class CSharpPlugin implements HelvegPlugin {
         }
         return base;
     }
+    
+    private resolvePizzaNodeStyle(
+        props: CSharpNodeProperties,
+        csharpGlyphOptions: CSharpGlyphOptions): Partial<NodeStyle> {
+
+        let getSize = this.getSizingFunc(csharpGlyphOptions.sizingMode);
+
+        let base: Partial<NodeStyle> = {};
+        switch (props.Kind) {
+            case EntityKind.Solution:
+                return {
+                    icon: csharpGlyphOptions.pizzaToppings.Solution,
+                    size: 55
+                };
+            case EntityKind.Project:
+                return {
+                    icon: csharpGlyphOptions.pizzaToppings.Project,
+                    size: 45
+                };
+            case EntityKind.Framework:
+                return {
+                    icon: csharpGlyphOptions.pizzaToppings.Framework,
+                    size: 50
+                };
+            case EntityKind.ExternalDependencySource:
+                return {
+                    icon: csharpGlyphOptions.pizzaToppings.ExternalDependencySource,
+                    size: 50
+                };
+            case EntityKind.PackageRepository:
+                return {
+                    icon: csharpGlyphOptions.pizzaToppings.PackageRepository,
+                    size: 50
+                };
+            case EntityKind.Package:
+                return {
+                    icon: csharpGlyphOptions.pizzaToppings.Package,
+                    size: 45
+                };
+            case EntityKind.Library:
+                return {
+                    icon: csharpGlyphOptions.pizzaToppings.Library,
+                    size: 40
+                };
+            case EntityKind.Assembly:
+                return {
+                    icon: csharpGlyphOptions.pizzaToppings.Assembly,
+                    size: 40
+                };
+            case EntityKind.Module:
+                return {
+                    icon: csharpGlyphOptions.pizzaToppings.Module,
+                    size: 35
+                };
+            case EntityKind.Namespace:
+                return {
+                    icon: csharpGlyphOptions.pizzaToppings.Namespace,
+                    size: 30
+                };
+            case EntityKind.Type:
+                let instanceCount = props.InstanceMemberCount ?? 0;
+                let staticCount = props.StaticMemberCount ?? 0;
+                base.size = 15 + getSize(instanceCount) + getSize(staticCount);
+                switch (props.TypeKind) {
+                    case TypeKind.Class:
+                        base.icon = csharpGlyphOptions.pizzaToppings.Class;
+                        break;
+                    case TypeKind.Interface:
+                        base.icon = csharpGlyphOptions.pizzaToppings.Interface;
+                        break;
+                    case TypeKind.Enum:
+                        base.icon = csharpGlyphOptions.pizzaToppings.Enum;
+                        break;
+                    case TypeKind.Struct:
+                        base.icon = csharpGlyphOptions.pizzaToppings.Struct;
+                        break;
+                    case TypeKind.Delegate:
+                        base.icon = csharpGlyphOptions.pizzaToppings.Delegate;
+                        break;
+                    default:
+                        base.icon = csharpGlyphOptions.pizzaToppings.Type;
+                        break;
+                }
+                break;
+            case EntityKind.TypeParameter:
+                return {
+                    icon: csharpGlyphOptions.pizzaToppings.Type,
+                    size: props.DeclaringKind === EntityKind.Method ? 5 : 10
+                };
+            case EntityKind.Field:
+                if (props.IsEnumItem) {
+                    return {
+                        icon: csharpGlyphOptions.pizzaToppings.EnumItem,
+                        size: 10,
+                    }
+                }
+
+                base.size = 10;
+                if (props.IsConst) {
+                    base.icon = csharpGlyphOptions.pizzaToppings.Const;
+                } else {
+                    base.icon = csharpGlyphOptions.pizzaToppings.Field;
+                }
+                break;
+            case EntityKind.Method:
+                base.icon = csharpGlyphOptions.pizzaToppings.Method;
+                base.size = 12;
+                break;
+            case EntityKind.Property:
+                base.icon = csharpGlyphOptions.pizzaToppings.Property;
+                base.size = 12;
+                break;
+            case EntityKind.Event:
+                base.icon = csharpGlyphOptions.pizzaToppings.Event;
+                base.size = 12
+                break;
+            case EntityKind.Parameter:
+                return {
+                    icon: csharpGlyphOptions.pizzaToppings.Parameter,
+                    size: 5
+                };
+            default:
+                return {
+                    icon: csharpGlyphOptions.pizzaToppings.Fallback,
+                    size: 5
+                };
+        }
+        return base;
+    }
 
     private getSizingFunc(mode: CSharpGlyphSizingMode): (value: number) => number {
         switch (mode) {
@@ -354,40 +493,55 @@ export class CSharpPlugin implements HelvegPlugin {
             case Relations.Declares:
                 return {
                     color: DefaultRelationColors.Declares,
-                    width: 2
+                    width: 2,
+                    type: "arrow"
                 };
             case Relations.InheritsFrom:
                 return {
                     color: DefaultRelationColors.InheritsFrom,
-                    width: 4
+                    width: 4,
+                    type: "arrow"
                 };
             case Relations.TypeOf:
                 return {
                     color: DefaultRelationColors.TypeOf,
-                    width: 4
+                    width: 4,
+                    type: "arrow"
                 };
             case Relations.Overrides:
                 return {
                     color: DefaultRelationColors.Overrides,
-                    width: 4
+                    width: 4,
+                    type: "arrow"
                 };
             case Relations.Returns:
                 return {
                     color: DefaultRelationColors.Returns,
-                    width: 4
+                    width: 4,
+                    type: "arrow"
                 };
             case Relations.DependsOn:
                 return {
                     color: DefaultRelationColors.DependsOn,
-                    width: 6
+                    width: 6,
+                    type: "arrow"
                 };
             case Relations.References:
                 return {
                     color: DefaultRelationColors.DependsOn,
-                    width: 4
+                    width: 4,
+                    type: "arrow"
                 };
             default:
                 return FALLBACK_EDGE_STYLE;
         }
+    }
+    
+    private resolvePizzaEdgeStyle(object: { relation: string, edge: MultigraphEdge }): EdgeStyle {
+        return {
+            color: "#8888880f",
+            width: 3,
+            type: "line"
+        };
     }
 }
