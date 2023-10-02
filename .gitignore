@@ -45,6 +45,7 @@
 !*.config
 !.npmrc
 !*.yaml
+!*.lock
 
 # static files
 !*.html
