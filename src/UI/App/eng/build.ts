@@ -1,17 +1,18 @@
-import esbuild from "esbuild";
+import * as esbuild from "esbuild";
 import esbuildSvelte from "esbuild-svelte";
 import { sassPlugin } from "esbuild-sass-plugin"
 import sveltePreprocess from "svelte-preprocess";
 // import prerenderPlugin from "./prerender.js";
-import inlineBundlePlugin from "./inlineBundle.js";
+import inlineBundlePlugin from "./inlineBundle.ts";
 import yargs from "yargs";
-import fs from "fs";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 import postcss from "postcss";
 import postcssPresetEnv from "postcss-preset-env";
 import autoprefixer from "autoprefixer";
+import { argv } from "node:process";
 
-const args = <any>yargs(process.argv).argv;
+const args = <any>yargs(argv).argv;
 const isRelease = args["release"] === true;
 let isDebug = args["debug"] === true;
 const isWatch = args["watch"] === true;

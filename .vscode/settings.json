@@ -6,5 +6,9 @@
         "titleBar.activeBackground": "#450811",
         "titleBar.activeForeground": "#F8FAF8"
     },
-    "workbench.colorTheme": "Default Dark Modern"
+    "workbench.colorTheme": "Default Dark Modern",
+    "deno.enable": true,
+    "deno.lint": true,
+    "deno.unstable": true,
+    "deno.config": "src/UI/App/eng/deno.json"
 }

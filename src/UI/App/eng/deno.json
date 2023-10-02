@@ -1,0 +1,15 @@
+{
+  "tasks": {
+    "build": "cd .. && deno run --unstable -A ./eng/build.ts"
+  },
+  "imports": {
+    "esbuild": "https://deno.land/x/esbuild@v0.19.4/mod.js",
+    "esbuild-svelte": "npm:esbuild-svelte",
+    "esbuild-sass-plugin": "npm:esbuild-sass-plugin",
+    "svelte-preprocess": "npm:svelte-preprocess",
+    "yargs": "npm:yargs",
+    "postcss": "https://deno.land/x/postcss@8.4.16/mod.js",
+    "postcss-preset-env": "npm:postcss-preset-env",
+    "autoprefixer": "npm:autoprefixer"
+  }
+}
