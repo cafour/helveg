@@ -1,4 +1,4 @@
-import "styles/helveg.scss";
+import "./styles/helveg.scss";
 
 import type { HelvegOptions } from "model/options";
 import { createHelvegInstance, initializeHelvegInstance, type HelvegInstance } from "model/instance";
