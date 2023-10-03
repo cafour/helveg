@@ -1,0 +1,17 @@
+{
+  "tasks": {
+    "build": "deno run --unstable -A ./eng/build.ts"
+  },
+  "compilerOptions": {
+    "lib": [
+      "deno.window",
+      "deno.ns",
+      "dom"
+    ]
+  },
+  "importMap": "import_map.json",
+  "exclude": [
+    "src/index.tsx",
+    "src/App.tsx"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+    "imports": {
+        "solid-js": "https://esm.sh/solid-js@1.7.11?target=esnext",
+        "solid-js/web": "https://esm.sh/solid-js@1.7.11/web?target=esnext",
+        "esbuild": "https://deno.land/x/esbuild@v0.19.4/mod.js",
+        "esbuild_deno_loader": "https://deno.land/x/esbuild_deno_loader/mod.ts",
+        "esbuild-plugin-solid": "npm:esbuild-plugin-solid@^0.5.0",
+        "esbuild-plugin-http-imports": "https://deno.land/x/esbuild_plugin_http_imports@v1.3.0/index.ts"
+    }
+}
