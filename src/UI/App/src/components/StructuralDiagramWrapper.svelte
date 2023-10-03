@@ -12,6 +12,7 @@
         ExportOptions,
         LayoutOptions,
         SearchMode,
+        SearchScope,
         ToolOptions,
     } from "model/options";
     import { createEventDispatcher, getContext } from "svelte";
@@ -88,13 +89,14 @@
 
     export function highlight(
         searchText: string | null,
-        searchMode: SearchMode
+        searchMode: SearchMode,
+        searchScope: SearchScope
     ) {
-        diagram.highlight(searchText, searchMode);
+        diagram.highlight(searchText, searchMode, searchScope);
     }
 
-    export function isolate(searchText: string | null, searchMode: SearchMode) {
-        return diagram.isolate(searchText, searchMode);
+    export function isolate(searchText: string | null, searchMode: SearchMode, searchScope: SearchScope) {
+        return diagram.isolate(searchText, searchMode, searchScope);
     }
 
     export function refresh() {

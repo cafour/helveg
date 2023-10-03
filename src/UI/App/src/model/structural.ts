@@ -1,5 +1,5 @@
 import Graph from "graphology";
-import { DEFAULT_DATA_OPTIONS, DEFAULT_EXPORT_OPTIONS, DEFAULT_GLYPH_OPTIONS, DEFAULT_LAYOUT_OPTIONS, SearchMode, type DataOptions, type ExportOptions, type LayoutOptions, type ToolOptions, DEFAULT_TOOL_OPTIONS, type AppearanceOptions, DEFAULT_APPEARANCE_OPTIONS } from "./options";
+import { DEFAULT_DATA_OPTIONS, DEFAULT_EXPORT_OPTIONS, DEFAULT_GLYPH_OPTIONS, DEFAULT_LAYOUT_OPTIONS, SearchMode, type DataOptions, type ExportOptions, type LayoutOptions, type ToolOptions, DEFAULT_TOOL_OPTIONS, type AppearanceOptions, DEFAULT_APPEARANCE_OPTIONS, SearchScope } from "./options";
 import { EMPTY_MODEL, type VisualizationModel } from "./visualization";
 import { Sigma } from "sigma";
 import { ForceAtlas2Supervisor, type ForceAtlas2Progress } from "layout/forceAltas2Supervisor";
@@ -81,9 +81,9 @@ export interface AbstractStructuralDiagram {
     runLayout(inBackground: boolean): Promise<void>;
     stopLayout(): Promise<void>;
     save(options?: ExportOptions): void;
-    highlight(searchText: string | null, searchMode: SearchMode): void;
+    highlight(searchText: string | null, searchMode: SearchMode, searchScope: SearchScope): void;
     highlightNode(nodeId: string | null, includeSubtree: boolean, includeNeighbors: boolean): void;
-    isolate(searchText: string | null, searchMode: SearchMode): Promise<void>;
+    isolate(searchText: string | null, searchMode: SearchMode, searchScope: SearchScope): Promise<void>;
     refresh(): Promise<void>;
     cut(nodeId: string): Promise<void>;
     toggleNode(nodeId: string): Promise<void>;
@@ -251,7 +251,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
         }
     }
 
-    highlight(searchText: string | null, searchMode: SearchMode): void {
+    highlight(searchText: string | null, searchMode: SearchMode, searchScope: SearchScope): void {
         if (!this._graph) {
             DEBUG && console.warn("Cannot highlight nodes since the graph is not initialized.");
             return;
@@ -322,7 +322,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
         this._sigma?.refresh();
     }
 
-    async isolate(searchText: string | null, searchMode: SearchMode): Promise<void> {
+    async isolate(searchText: string | null, searchMode: SearchMode, searchScope: SearchScope): Promise<void> {
         if (!this._graph) {
             DEBUG && console.warn("Cannot isolate nodes since the graph is not initialized.");
             return;

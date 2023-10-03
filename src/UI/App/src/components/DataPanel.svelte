@@ -75,6 +75,10 @@
             >
                 Isolate
             </button>
+            <label>
+                <input type="checkbox" bind:checked={$appearanceOptions.glyph.showLabels} />
+                ShowLabels
+            </label>
         </form>
     </Subpanel>
     <Subpanel name="Relations">

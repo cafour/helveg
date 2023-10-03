@@ -7,6 +7,11 @@ export enum SearchMode {
     JavaScript = "js"
 }
 
+export enum SearchScope {
+    Full = "full",
+    Current = "current"
+}
+
 export interface DataOptions {
     selectedRelations: string[];
 }
