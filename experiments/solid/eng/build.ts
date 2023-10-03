@@ -12,35 +12,33 @@ import { green, bold } from "https://deno.land/std@0.170.0/fmt/colors.ts";
 
 // load(MAP)
 
+const [denoResolver, denoLoader] = denoPlugins({
+    configPath: `${Deno.cwd()}/deno.json`
+});
+
 export async function build_project() {
     const TIME_START = new Date()
 
     await build({
-        entryPoints: [ 
+        entryPoints: [
             "src/index.tsx",
         ],
         bundle: true,
         allowOverwrite: true,
         outfile: "public/index.js",
         platform: "browser",
-        external: ["solid-js/web"],
         format: "esm",
         target: "esnext",
         plugins: [
-            ...denoPlugins({
-                configPath: `${Deno.cwd()}/deno.json`
-            }),
-            solidPlugin({
-                babel: {
-                    presets: ["solid"]
-                }
-            })
+            denoResolver,
+            solidPlugin(),
+            denoLoader,
         ],
         // incremental: WATCH,
         // watch: WATCH
     })
     stop();
-    
+
     // await build({
     //     entryPoints: [ 
     //         "public/index.js",
@@ -57,7 +55,7 @@ export async function build_project() {
     //     // incremental: WATCH,
     //     // watch: WATCH
     // })
-    
+
     // await build({
     //     entryPoints: [ 
     //         "public/index.js",
