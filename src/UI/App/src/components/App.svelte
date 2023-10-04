@@ -134,9 +134,9 @@
             <DataPanel
                 on:refresh={diagram.refresh}
                 on:highlight={(e) =>
-                    diagram.highlight(e.detail.searchText, e.detail.searchMode)}
+                    diagram.highlight(e.detail.searchText, e.detail.searchMode, e.detail.searchScope)}
                 on:isolate={(e) =>
-                    diagram.isolate(e.detail.searchText, e.detail.searchMode)}
+                    diagram.isolate(e.detail.searchText, e.detail.searchMode, e.detail.searchScope)}
             />
         </Tab>
         <Tab name="Layout" value={AppPanels.Layout} icon={AppIcons.LayoutPanel}>
