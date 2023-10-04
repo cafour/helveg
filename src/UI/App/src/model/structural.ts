@@ -81,7 +81,7 @@ export interface AbstractStructuralDiagram {
     runLayout(inBackground: boolean): Promise<void>;
     stopLayout(): Promise<void>;
     save(options?: ExportOptions): void;
-    highlight(searchText: string | null, searchMode: SearchMode, searchScope: SearchScope): void;
+    highlight(searchText: string | null, searchMode: SearchMode, searchScope: SearchScope): Promise<void>;
     highlightNode(nodeId: string | null, includeSubtree: boolean, includeNeighbors: boolean): void;
     isolate(searchText: string | null, searchMode: SearchMode, searchScope: SearchScope): Promise<void>;
     refresh(): Promise<void>;
@@ -251,13 +251,29 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
         }
     }
 
-    highlight(searchText: string | null, searchMode: SearchMode, searchScope: SearchScope): void {
+    async highlight(searchText: string | null, searchMode: SearchMode, searchScope: SearchScope): Promise<void> {
         if (!this._graph) {
             DEBUG && console.warn("Cannot highlight nodes since the graph is not initialized.");
             return;
         }
 
         try {
+            // TODO: This is atrocious. StructuralDiagram should not touch its plugins.
+            if (searchScope === SearchScope.Full && this.dataOptions.csharp) {
+                const allKinds = !this._model?.isEmpty
+                ? Object.values(this._model.multigraph.nodes)
+                      .map((v) => v.properties.Kind)
+                      .filter(
+                          (kind, i, array) => kind != null && array.indexOf(kind) === i
+                      )
+                      .sort()
+                : [];
+                this.dataOptions.csharp.includedKinds = allKinds;
+                this.dataOptions.csharp.autoExpandedKinds = allKinds;
+                await this.refreshGraph();
+                await this.resetLayout();
+            }
+            
             let filter = buildNodeFilter(searchText, searchMode, this._nodeKeys);
             if (filter === null) {
                 this.mode = StructuralDiagramMode.Normal;
@@ -328,6 +344,23 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
             return;
         }
 
+        // TODO: This is atrocious. StructuralDiagram should not touch its plugins.
+        if (searchScope === SearchScope.Full && this.dataOptions.csharp) {
+            const allKinds = !this._model?.isEmpty
+            ? Object.values(this._model.multigraph.nodes)
+                  .map((v) => v.properties.Kind)
+                  .filter(
+                      (kind, i, array) => kind != null && array.indexOf(kind) === i
+                  )
+                  .sort()
+            : [];
+            this.dataOptions.csharp.includedKinds = allKinds;
+            this.dataOptions.csharp.autoExpandedKinds = allKinds;
+            await this.refreshGraph();
+            await this.resetLayout();
+        }
+
+        
         try {
             let filter = buildNodeFilter(searchText, searchMode, this._nodeKeys);
             if (filter === null) {

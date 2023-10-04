@@ -50,6 +50,7 @@
                 dispatch("highlight", {
                     searchText: searchText,
                     searchMode: selectedSearchMode,
+                    searchScope: selectedSearchScope
                 })}
         >
             <div class="flex flex-row gap-4">

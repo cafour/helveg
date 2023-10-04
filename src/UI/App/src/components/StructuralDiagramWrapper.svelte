@@ -92,7 +92,7 @@
         searchMode: SearchMode,
         searchScope: SearchScope
     ) {
-        diagram.highlight(searchText, searchMode, searchScope);
+        return diagram.highlight(searchText, searchMode, searchScope);
     }
 
     export function isolate(searchText: string | null, searchMode: SearchMode, searchScope: SearchScope) {
