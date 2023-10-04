@@ -5,14 +5,17 @@ import { EMPTY_MODEL, type VisualizationModel } from "./visualization";
 import App from "components/App.svelte";
 import { HelvegPluginRegistry } from "./plugin";
 import { IconRegistry } from "./icons";
-import { DEFAULT_HELVEG_OPTIONS, type HelvegOptions } from "./options";
-import { Logger } from "./logger";
+import { DEFAULT_HELVEG_OPTIONS, loadOptions, type HelvegOptions, type ExportOptions, type LayoutOptions, type ToolOptions, clearOptions, saveOptions, type AppearanceOptions } from "./options";
+import { LogSeverity, Logger } from "./logger";
 import { NodeStyleRegistry, EdgeStyleRegistry } from "./style";
 import { UIExtensionRegistry } from "./uiExtensions";
+import type { DataOptions} from "helveg";
 
 export interface HelvegInstance {
     model: VisualizationModel;
     loaded: HelvegEvent<VisualizationModel>;
+    optionsChanged: HelvegEvent<HelvegOptions>;
+    stateImported: HelvegEvent<HelvegSerializedState>;
     nodeStyles: NodeStyleRegistry;
     edgeStyles: EdgeStyleRegistry;
     icons: IconRegistry;
@@ -21,7 +24,16 @@ export interface HelvegInstance {
     app: App | null;
     options: HelvegOptions;
     logger: Logger;
+
+    resetOptions(): void;
+    importState(state: HelvegSerializedState): void;
+    exportState(): HelvegSerializedState;
 };
+
+export interface HelvegSerializedState {
+    options: HelvegOptions;
+    positions: Record<string, { x: number, y: number }>;
+}
 
 export function createHelvegInstance(): HelvegInstance {
     let iconRegistry = new IconRegistry();
@@ -33,18 +45,72 @@ export function createHelvegInstance(): HelvegInstance {
         nodeStyleRegistry,
         edgeStyleRegistry,
         uiExtensionRegistry);
+    let options: HelvegOptions = { ...DEFAULT_HELVEG_OPTIONS };
+    options.data = loadOptions<DataOptions>("data") ?? options.data;
+    options.export = loadOptions<ExportOptions>("export") ?? options.export;
+    options.appearance = loadOptions<AppearanceOptions>("appearance") ?? options.appearance;
+    options.layout = loadOptions<LayoutOptions>("layout") ?? options.layout;
+    options.tool = loadOptions<ToolOptions>("tool") ?? options.tool;
 
     return {
         model: EMPTY_MODEL,
         loaded: new HelvegEvent<VisualizationModel>("helveg.loaded", true),
+        optionsChanged: new HelvegEvent<HelvegOptions>("helveg.optionsChanged", true),
+        stateImported: new HelvegEvent<HelvegSerializedState>("helveg.stateImported", true),
         nodeStyles: nodeStyleRegistry,
         edgeStyles: edgeStyleRegistry,
         icons: iconRegistry,
         uiExtensions: uiExtensionRegistry,
         plugins: pluginRegistry,
         app: null,
-        options: DEFAULT_HELVEG_OPTIONS,
-        logger: new Logger()
+        options: options,
+        logger: new Logger(),
+
+        resetOptions() {
+            Object.assign(this.options, { ...DEFAULT_HELVEG_OPTIONS });
+            clearOptions("data");
+            clearOptions("export");
+            clearOptions("appearance");
+            clearOptions("layout");
+            clearOptions("tool");
+            this.optionsChanged.trigger(this.options);
+            this.logger.info("Options reset.");
+        },
+
+        importState(state: HelvegSerializedState): void {
+            this.options = state.options;
+            saveOptions("data", state.options.data);
+            saveOptions("export", state.options.export);
+            saveOptions("appearance", state.options.appearance);
+            saveOptions("layout", state.options.layout);
+            saveOptions("tool", state.options.tool);
+            this.optionsChanged.trigger(this.options);
+
+            if (!this.app) {
+                console.warn("Cannot import positions: App not initialized.");
+            } else {
+                this.app.getDiagram()?.importPositions(state.positions);
+            }
+
+            this.logger.info("State imported.");
+
+            this.stateImported.trigger(state);
+        },
+
+        exportState(): HelvegSerializedState {
+            let result: HelvegSerializedState = {
+                options: this.options,
+                positions: {}
+            };
+
+            if (!this.app) {
+                console.warn("Cannot export positions: App not initialized.")
+                return result;
+            }
+
+            result.positions = this.app.getDiagram()?.exportPositions() ?? {};
+            return result;
+        }
     };
 }
 

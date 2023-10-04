@@ -137,8 +137,9 @@
         }
     }
     
-    p:not(:last-of-type) {
-        margin-bottom: 0.25rem;
+    p:not(:last-of-type),
+    button:not(:last-of-type) {
+        margin-bottom: 0.5rem;
     }
     
     ul {

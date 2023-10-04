@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { DefaultEntityKindIcons } from "../model";
+    import { DefaultIcons } from "../model";
     import { type DataOptions, type VisualizationModel, Subpanel, ToggleAllCheckbox, Icon } from "helveg";
     import { FALLBACK_NODE_ICON } from "helveg";
     import { getContext } from "svelte";
@@ -24,7 +24,7 @@
     $: $dataOptions.csharp!.autoExpandedKinds = autoExpandedKinds;
 </script>
 
-<Subpanel name="CSharpKinds" indent={false} class="pb-8">
+<Subpanel name="C# Entities" indent={false} class="pb-8">
     <div class="flex flex-col">
         <div class="flex flex-row gap-4 border-b-1 border-surface-100 justify-content-betweeen flex-grow-1 pb-8">
             <strong class=flex-grow-1>&nbsp</strong>
@@ -50,7 +50,7 @@
             <div class="flex flex-row flex-grow-1 gap-4 pl-8 pr-8 align-items-center">
                 <div class="space-nowrap flex-grow-1 ellipsis">
                     <Icon
-                        name={DefaultEntityKindIcons[kind] ??
+                        name={DefaultIcons[kind] ??
                             FALLBACK_NODE_ICON}
                     />
                     <span>{kind}</span>

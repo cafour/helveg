@@ -7,11 +7,12 @@
     } from "model/structural";
     import Icon from "./Icon.svelte";
     import type {
-    DataOptions,
+        AppearanceOptions,
+        DataOptions,
         ExportOptions,
-        GlyphOptions,
         LayoutOptions,
         SearchMode,
+        SearchScope,
         ToolOptions,
     } from "model/options";
     import { createEventDispatcher, getContext } from "svelte";
@@ -24,9 +25,14 @@
     let layoutOptions = getContext<Writable<LayoutOptions>>("layoutOptions");
     let toolOptions = getContext<Writable<ToolOptions>>("toolOptions");
     let dataOptions = getContext<Writable<DataOptions>>("dataOptions");
-    let glyphOptions = getContext<Writable<GlyphOptions>>("glyphOptions");
+    let appearanceOptions =
+        getContext<Writable<AppearanceOptions>>("appearanceOptions");
 
     let diagram: AbstractStructuralDiagram = new StructuralDiagram(instance);
+
+    export function getDiagram(): AbstractStructuralDiagram {
+        return diagram;
+    }
 
     export let status: StructuralStatus = StructuralStatus.Stopped;
     export let stats: StructuralDiagramStats = {
@@ -61,7 +67,7 @@
 
     $: diagram.dataOptions = $dataOptions;
     $: diagram.layoutOptions = $layoutOptions;
-    $: diagram.glyphOptions = $glyphOptions;
+    $: diagram.appearanceOptions = $appearanceOptions;
     $: diagram.toolOptions = $toolOptions;
     $: diagram.canDragNodes = canDragNodes;
 
@@ -83,13 +89,14 @@
 
     export function highlight(
         searchText: string | null,
-        searchMode: SearchMode
+        searchMode: SearchMode,
+        searchScope: SearchScope
     ) {
-        diagram.highlight(searchText, searchMode);
+        return diagram.highlight(searchText, searchMode, searchScope);
     }
 
-    export function isolate(searchText: string | null, searchMode: SearchMode) {
-        return diagram.isolate(searchText, searchMode);
+    export function isolate(searchText: string | null, searchMode: SearchMode, searchScope: SearchScope) {
+        return diagram.isolate(searchText, searchMode, searchScope);
     }
 
     export function refresh() {
@@ -99,12 +106,16 @@
     export function cut(nodeId: string) {
         return diagram.cut(nodeId);
     }
-    
+
     export function toggleNode(nodeId: string) {
         return diagram.toggleNode(nodeId);
     }
-    
-    export function highlightNode(nodeId: string | null, includeSubtree: boolean, includeNeighbors: boolean) {
+
+    export function highlightNode(
+        nodeId: string | null,
+        includeSubtree: boolean,
+        includeNeighbors: boolean
+    ) {
         diagram.highlightNode(nodeId, includeSubtree, includeNeighbors);
     }
 

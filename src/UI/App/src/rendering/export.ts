@@ -37,7 +37,9 @@ export function exportDiagram(sigma: Sigma, options?: ExportOptions) {
 
         // background
         ctx.fillStyle = options.backgroundColor;
+        ctx.globalAlpha = options.opacity;
         ctx.fillRect(0, 0, width * pixelRatio, height * pixelRatio);
+        ctx.globalAlpha = 1;
 
         // resolve layer names
         let layers: string[] = [];
@@ -58,6 +60,26 @@ export function exportDiagram(sigma: Sigma, options?: ExportOptions) {
             layers.push("hoverNodes");
         }
 
+        if (options.includePizzaDough) {
+            let pizzaCanvases = tmpRenderer.getContainer().getElementsByClassName("helveg-codepizza");
+            if (pizzaCanvases.length === 0) {
+                DEBUG && console.warn("Could not find the codepizza canvas.");
+            }
+            for (let pizzaCanvas of pizzaCanvases) {
+                ctx.drawImage(
+                    pizzaCanvas as HTMLCanvasElement,
+                    0,
+                    0,
+                    width * pixelRatio,
+                    height * pixelRatio,
+                    0,
+                    0,
+                    width * pixelRatio,
+                    height * pixelRatio
+                );
+            }
+        }
+        
         if (options.includeEffects) {
             let effectCanvases = tmpRenderer.getContainer().getElementsByClassName("helveg-effects");
             if (effectCanvases.length === 0) {

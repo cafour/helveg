@@ -1,4 +1,4 @@
-import { FireStatus, type MultigraphNodeProperties, type NodeStyle } from "helveg";
+import { FireStatus, PizzaIcons, type MultigraphNodeProperties, type NodeStyle } from "helveg";
 
 export enum EntityKind {
     Solution = "Solution",
@@ -20,7 +20,7 @@ export enum EntityKind {
     Parameter = "Parameter"
 }
 
-export enum DefaultEntityKindIcons {
+export enum DefaultIcons {
     Solution = "csharp:Solution",
     Project = "csharp:CSProjectNode",
     ExternalDependencySource = "csharp:ReferenceGroup",
@@ -38,6 +38,33 @@ export enum DefaultEntityKindIcons {
     Property = "csharp:Property",
     Event = "csharp:Event",
     Parameter = "csharp:LocalVariable",
+}
+
+export enum IconableEntities {
+    Solution = "Solution",
+    Project = "Project",
+    Framework = "Framework",
+    ExternalDependencySource = "ExternalDependencySource",
+    PackageRepository = "PackageRepository",
+    Package = "Package",
+    Library = "Library",
+    Assembly = "Assembly",
+    Module = "Module",
+    Namespace = "Namespace",
+    Type = "Type",
+    Class = "Class",
+    Interface = "Interface",
+    Enum = "Enum",
+    Struct = "Struct",
+    Delegate = "Delegate",
+    Field = "Field",
+    EnumItem = "EnumItem",
+    Const = "Const",
+    Method = "Method",
+    Property = "Property",
+    Event = "Event",
+    Parameter = "Parameter",
+    Fallback = "Fallback"
 }
 
 export enum Relations {
@@ -170,19 +197,48 @@ export enum CSharpGlyphSizingMode {
     Log = "log"
 }
 
+export const DEFAULT_CSHARP_PIZZA_TOPPINGS: Record<keyof typeof IconableEntities, PizzaIcons> = {
+    Solution: PizzaIcons.Bacon,
+    Project: PizzaIcons.Mozzarella,
+    Framework: PizzaIcons.Basil,
+    ExternalDependencySource: PizzaIcons.Basil,
+    PackageRepository: PizzaIcons.Basil,
+    Package: PizzaIcons.Mozzarella,
+    Library: PizzaIcons.Egg,
+    Assembly: PizzaIcons.Chicken,
+    Module: PizzaIcons.Ham,
+    Namespace: PizzaIcons.Salami,
+    Type: PizzaIcons.OlomoucCheese,
+    Class: PizzaIcons.Pineapple,
+    Interface: PizzaIcons.Shrimp,
+    Enum: PizzaIcons.Olive,
+    Struct: PizzaIcons.Eidam,
+    Delegate: PizzaIcons.Tomato,
+    Field: PizzaIcons.Fries,
+    EnumItem: PizzaIcons.Pickle,
+    Const: PizzaIcons.Meatball,
+    Method: PizzaIcons.CherryTomato,
+    Property: PizzaIcons.Jalapeno,
+    Event: PizzaIcons.Chilli,
+    Parameter: PizzaIcons.Corn,
+    Fallback: PizzaIcons.Cookie
+};
+
 export interface CSharpGlyphOptions {
     sizingMode: CSharpGlyphSizingMode;
+    pizzaToppings: Record<keyof typeof IconableEntities, PizzaIcons>
 }
 
 export const DEFAULT_CSHARP_GLYPH_OPTIONS: CSharpGlyphOptions = {
-    sizingMode: CSharpGlyphSizingMode.Linear
+    sizingMode: CSharpGlyphSizingMode.Linear,
+    pizzaToppings: { ...DEFAULT_CSHARP_PIZZA_TOPPINGS }
 };
 
 declare module "helveg" {
     export interface DataOptions {
         csharp?: CSharpDataOptions;
     }
-    
+
     export interface GlyphOptions {
         csharp?: CSharpGlyphOptions;
     }

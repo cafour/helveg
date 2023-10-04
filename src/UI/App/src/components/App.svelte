@@ -19,23 +19,39 @@
     import Toast from "./Toast.svelte";
     import ToolBox from "./ToolBox.svelte";
     import ToolsPanel from "./ToolsPanel.svelte";
+    import { type DataOptions, saveOptions, type LayoutOptions, type ExportOptions, type ToolOptions, type AbstractStructuralDiagram, type AppearanceOptions } from "types";
 
     export let instance: HelvegInstance;
     setContext("helveg", instance);
 
-    let dataOptions = writable(instance.options.data);
+    let dataOptions = writable(instance.options.data, set => {
+        instance.optionsChanged.subscribe(o => set(o.data));
+    });
+    dataOptions.subscribe(o => saveOptions<DataOptions>("data", o));
     setContext("dataOptions", dataOptions);
 
-    let layoutOptions = writable(instance.options.layout);
+    let layoutOptions = writable(instance.options.layout, set => {
+        instance.optionsChanged.subscribe(o => set(o.layout));
+    });
+    layoutOptions.subscribe(o => saveOptions<LayoutOptions>("layout", o));
     setContext("layoutOptions", layoutOptions);
 
-    let glyphOptions = writable(instance.options.glyph);
-    setContext("glyphOptions", glyphOptions);
+    let appearanceOptions = writable(instance.options.appearance, set => {
+        instance.optionsChanged.subscribe(o => set(o.appearance));
+    });
+    appearanceOptions.subscribe(o => saveOptions<AppearanceOptions>("appearance", o));
+    setContext("appearanceOptions", appearanceOptions);
 
-    let exportOptions = writable(instance.options.export);
+    let exportOptions = writable(instance.options.export, set => {
+        instance.optionsChanged.subscribe(o => set(o.export));
+    });
+    exportOptions.subscribe(o => saveOptions<ExportOptions>("export", o));
     setContext("exportOptions", exportOptions);
 
-    let toolOptions = writable(instance.options.tool);
+    let toolOptions = writable(instance.options.tool, set => {
+        instance.optionsChanged.subscribe(o => set(o.tool));
+    });
+    toolOptions.subscribe(o => saveOptions<ToolOptions>("tool", o));
     setContext("toolOptions", toolOptions);
 
     let model = readable(instance.model, (set) => {
@@ -94,6 +110,10 @@
                 break;
         }
     }
+    
+    export function getDiagram(): AbstractStructuralDiagram {
+        return diagram.getDiagram();
+    }
 </script>
 
 <main class="flex flex-row-reverse h-100p relative">
@@ -114,9 +134,9 @@
             <DataPanel
                 on:refresh={diagram.refresh}
                 on:highlight={(e) =>
-                    diagram.highlight(e.detail.searchText, e.detail.searchMode)}
+                    diagram.highlight(e.detail.searchText, e.detail.searchMode, e.detail.searchScope)}
                 on:isolate={(e) =>
-                    diagram.isolate(e.detail.searchText, e.detail.searchMode)}
+                    diagram.isolate(e.detail.searchText, e.detail.searchMode, e.detail.searchScope)}
             />
         </Tab>
         <Tab name="Layout" value={AppPanels.Layout} icon={AppIcons.LayoutPanel}>

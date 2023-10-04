@@ -3,7 +3,7 @@
     import Panel from "./Panel.svelte";
     import RadioGroup from "./RadioGroup.svelte";
     import Subpanel from "./Subpanel.svelte";
-    import { SearchMode, type DataOptions } from "model/options";
+    import { SearchMode, type DataOptions, SearchScope } from "model/options";
     import { AppIcons, AppPanels } from "model/const";
     import ResizingTextarea from "./ResizingTextarea.svelte";
     import ToggleAllCheckbox from "./ToggleAllCheckbox.svelte";
@@ -27,11 +27,12 @@
         },
     ];
     let selectedSearchMode: SearchMode = SearchMode.Contains;
+    let selectedSearchScope: SearchScope = SearchScope.Current;
     let searchText: string = "";
 
     let model = getContext<Readable<VisualizationModel>>("model");
     let dataOptions = getContext<Writable<DataOptions>>("dataOptions");
-    
+
     $: relations = $model
         ? Object.keys($model.multigraph.relations).sort()
         : [];
@@ -49,6 +50,7 @@
                 dispatch("highlight", {
                     searchText: searchText,
                     searchMode: selectedSearchMode,
+                    searchScope: selectedSearchScope
                 })}
         >
             <div class="flex flex-row gap-4">
@@ -71,10 +73,23 @@
                     dispatch("isolate", {
                         searchText: searchText,
                         searchMode: selectedSearchMode,
+                        searchScope: selectedSearchScope
                     })}
             >
                 Isolate
             </button>
+            <label>
+                <input
+                    type="checkbox"
+                    on:click={() =>
+                        (selectedSearchScope =
+                            selectedSearchScope === SearchScope.Current
+                                ? SearchScope.Full
+                                : SearchScope.Current)}
+                    checked={selectedSearchScope === SearchScope.Full}
+                />
+                IsFullSearch
+            </label>
         </form>
     </Subpanel>
     <Subpanel name="Relations">

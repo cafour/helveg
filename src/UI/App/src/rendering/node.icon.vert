@@ -29,8 +29,6 @@ void main() {
   //  - x 2 to correct the formulae
   gl_PointSize = a_iconSize / u_sizeRatio * u_pixelRatio * 2.0;
 
-  v_border = (0.5 / a_iconSize) * u_sizeRatio;
-
   // Pass the texture coordinates:
   // NOTE: multiply a_texture by a constant and you get a pattern
   v_texture = a_texture;

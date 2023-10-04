@@ -92,11 +92,13 @@ export const FALLBACK_NODE_STYLE: NodeStyle = {
 export interface EdgeStyle {
     color: string;
     width: number;
+    type: string;
 }
 
 export const FALLBACK_EDGE_STYLE: EdgeStyle = {
     color: "#202020",
-    width: 1
+    width: 1,
+    type: "line"
 };
 
 export type StyleGenerator<TObject, TStyle> = (object: TObject) => TStyle;
