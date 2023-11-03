@@ -6,5 +6,12 @@
     "esbuild": "https://deno.land/x/esbuild@v0.19.4/mod.js",
     "esbuild_deno_loader": "https://deno.land/x/esbuild_deno_loader@0.8.2/mod.ts",
     "std/": "https://deno.land/std@0.205.0/"
+  },
+  "compilerOptions": {
+    "lib": [
+      "deno.window",
+      "DOM",
+      "DOM.Iterable"
+    ]
   }
 }
