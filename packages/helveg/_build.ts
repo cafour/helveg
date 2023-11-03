@@ -10,7 +10,13 @@ const context = await esbuild.context({
   bundle: true,
   plugins: [
     ...denoPlugins()
-  ]
+  ],
+  loader: {
+    ".svg": "text",
+    ".html": "copy",
+    ".vert": "text",
+    ".frag": "text"
+  },
 });
 
 await context.rebuild();
