@@ -1,5 +1,59 @@
 {
   "version": "3",
+  "packages": {
+    "specifiers": {
+      "npm:graphology-layout-forceatlas2@0.10.1": "npm:graphology-layout-forceatlas2@0.10.1_graphology-types@0.24.7",
+      "npm:graphology@0.25.4": "npm:graphology@0.25.4_graphology-types@0.24.7",
+      "npm:sigma@3.0.0-alpha3": "npm:sigma@3.0.0-alpha3"
+    },
+    "npm": {
+      "@yomguithereal/helpers@1.1.1": {
+        "integrity": "sha512-UYvAq/XCA7xoh1juWDYsq3W0WywOB+pz8cgVnE1b45ZfdMhBvHDrgmSFG3jXeZSr2tMTYLGHFHON+ekG05Jebg==",
+        "dependencies": {}
+      },
+      "events@3.3.0": {
+        "integrity": "sha512-mQw+2fkQbALzQ7V0MY0IqdnXNOeTtP4r0lN9z7AAawCXgqea7bDii20AYrIBrFd/Hx0M2Ocz6S111CaFkUcb0Q==",
+        "dependencies": {}
+      },
+      "graphology-layout-forceatlas2@0.10.1_graphology-types@0.24.7": {
+        "integrity": "sha512-ogzBeF1FvWzjkikrIFwxhlZXvD2+wlY54lqhsrWprcdPjopM2J9HoMweUmIgwaTvY4bUYVimpSsOdvDv1gPRFQ==",
+        "dependencies": {
+          "graphology-types": "graphology-types@0.24.7",
+          "graphology-utils": "graphology-utils@2.5.2_graphology-types@0.24.7"
+        }
+      },
+      "graphology-types@0.24.7": {
+        "integrity": "sha512-tdcqOOpwArNjEr0gNQKCXwaNCWnQJrog14nJNQPeemcLnXQUUGrsCWpWkVKt46zLjcS6/KGoayeJfHHyPDlvwA==",
+        "dependencies": {}
+      },
+      "graphology-utils@2.5.2_graphology-types@0.24.7": {
+        "integrity": "sha512-ckHg8MXrXJkOARk56ZaSCM1g1Wihe2d6iTmz1enGOz4W/l831MBCKSayeFQfowgF8wd+PQ4rlch/56Vs/VZLDQ==",
+        "dependencies": {
+          "graphology-types": "graphology-types@0.24.7"
+        }
+      },
+      "graphology@0.25.4_graphology-types@0.24.7": {
+        "integrity": "sha512-33g0Ol9nkWdD6ulw687viS8YJQBxqG5LWII6FI6nul0pq6iM2t5EKquOTFDbyTblRB3O9I+7KX4xI8u5ffekAQ==",
+        "dependencies": {
+          "events": "events@3.3.0",
+          "graphology-types": "graphology-types@0.24.7",
+          "obliterator": "obliterator@2.0.4"
+        }
+      },
+      "obliterator@2.0.4": {
+        "integrity": "sha512-lgHwxlxV1qIg1Eap7LgIeoBWIMFibOjbrYPIPJZcI1mmGAI2m3lNYpK12Y+GBdPQ0U1hRwSord7GIaawz962qQ==",
+        "dependencies": {}
+      },
+      "sigma@3.0.0-alpha3": {
+        "integrity": "sha512-WpUqM7cleO67/n/kaDL3ZP9yC2+6CgxL3J3GkQNqdt50PwFD30DVmLNldxhv+fFiXo8AX0Er4qVflL8ll/fCcg==",
+        "dependencies": {
+          "@yomguithereal/helpers": "@yomguithereal/helpers@1.1.1",
+          "events": "events@3.3.0",
+          "graphology-utils": "graphology-utils@2.5.2_graphology-types@0.24.7"
+        }
+      }
+    }
+  },
   "remote": {
     "https://deno.land/std@0.140.0/_util/assert.ts": "e94f2eb37cebd7f199952e242c77654e43333c1ac4c5c700e929ea3aa5489f74",
     "https://deno.land/std@0.140.0/_util/os.ts": "3b4c6e27febd119d36a416d7a97bd3b0251b77c88942c8f16ee5953ea13e2e49",
