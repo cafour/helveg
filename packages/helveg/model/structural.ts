@@ -1,24 +1,25 @@
-import Graph from "graphology";
-import { DEFAULT_DATA_OPTIONS, DEFAULT_EXPORT_OPTIONS, DEFAULT_GLYPH_OPTIONS, DEFAULT_LAYOUT_OPTIONS, SearchMode, type DataOptions, type ExportOptions, type LayoutOptions, type ToolOptions, DEFAULT_TOOL_OPTIONS, type AppearanceOptions, DEFAULT_APPEARANCE_OPTIONS } from "./options";
-import { EMPTY_MODEL, type VisualizationModel } from "./visualization";
-import { Sigma } from "sigma";
-import { ForceAtlas2Supervisor, type ForceAtlas2Progress } from "layout/forceAltas2Supervisor";
-import { IconAtlas } from "rendering/iconAtlas";
-import { HelvegEvent } from "common/event";
-import type { SigmaNodeEventPayload, SigmaStageEventPayload } from "sigma/sigma";
-import { createGlyphProgram, type GlyphProgramOptions } from "rendering/node.glyph";
-import forceAtlas2 from "graphology-layout-forceatlas2";
-import type { NodeProgramConstructor } from "sigma/rendering/webgl/programs/common/node";
-import { exportDiagram } from "rendering/export";
-import tidyTree from "layout/tidyTree";
-import type { HelvegInstance } from "./instance";
-import { buildNodeFilter, filterNodes } from "./filter";
-import type { Coordinates } from "sigma/types";
-import { findRoots, toggleNode, type HelvegGraph, type HelvegNodeAttributes } from "./graph";
-import { bfs } from "./traversal";
-import { wheellOfFortune } from "layout/circular";
-import { OutlineStyle, type NodeStyleRegistry, type Outlines, getOutlinesTotalWidth, EdgeStyleRegistry } from "./style";
-import { DEFAULT_SETTINGS } from "sigma/settings";
+import Graph from "../deps/graphology.ts";
+import forceAtlas2 from "../deps/graphology-layout-forceatlas2.ts";
+import { Sigma, type NodeProgramConstructor, type Coordinates, DEFAULT_SETTINGS } from "../deps/sigma.ts";
+
+import { DEFAULT_DATA_OPTIONS, DEFAULT_EXPORT_OPTIONS, DEFAULT_LAYOUT_OPTIONS, SearchMode, type DataOptions, type ExportOptions, type LayoutOptions, type ToolOptions, DEFAULT_TOOL_OPTIONS, type AppearanceOptions, DEFAULT_APPEARANCE_OPTIONS } from "./options.ts";
+
+import { EMPTY_MODEL, type VisualizationModel } from "./visualization.ts";
+import { ForceAtlas2Supervisor, type ForceAtlas2Progress } from "../layout/forceAltas2Supervisor.ts";
+import { IconAtlas } from "../rendering/iconAtlas.ts";
+import { HelvegEvent } from "../common/event.ts";
+import { type SigmaNodeEventPayload, type SigmaStageEventPayload } from "../deps/sigma.ts";
+import { createGlyphProgram, type GlyphProgramOptions } from "../rendering/node.glyph.ts";
+
+import { exportDiagram } from "../rendering/export.ts";
+import tidyTree from "../layout/tidyTree.ts";
+
+import type { HelvegInstance } from "../model/instance.ts";
+import { buildNodeFilter, filterNodes } from "./filter.ts";
+import { findRoots, toggleNode, type HelvegGraph, type HelvegNodeAttributes } from "./graph.ts";
+import { bfs } from "./traversal.ts";
+import { wheellOfFortune } from "../layout/circular.ts";
+import { OutlineStyle, type NodeStyleRegistry, type Outlines, getOutlinesTotalWidth, EdgeStyleRegistry } from "./style.ts";
 
 export enum StructuralStatus {
     Stopped,
@@ -75,7 +76,7 @@ export interface AbstractStructuralDiagram {
     get nodeClicked(): HelvegEvent<string>;
 
     exportPositions(): Record<string, Coordinates>;
-    importPositions(value: Record<string, Coordinates>);
+    importPositions(value: Record<string, Coordinates>): void;
 
     resetLayout(): Promise<void>;
     runLayout(inBackground: boolean): Promise<void>;
