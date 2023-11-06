@@ -116,7 +116,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
     private _draggedNodeId: string | null = null;
 
     private _graph: HelvegGraph | null = null;
-    private _sigma: Sigma | null = null;
+    private _sigma: Sigma<HelvegGraph> | null = null;
     private _supervisor: ForceAtlas2Supervisor | null = null;
     private _iconAtlas: IconAtlas;
     private _glyphProgramOptions: GlyphProgramOptions;
@@ -297,7 +297,7 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
             return;
         }
 
-        if (!this._graph?.hasNode(nodeId)) {
+        if (!this._graph || !this._graph?.hasNode(nodeId)) {
             return;
         }
 
@@ -544,12 +544,12 @@ export class StructuralDiagram implements AbstractStructuralDiagram {
     }
 
     exportPositions(): Record<string, Coordinates> {
-        let result = {};
+        const result: Record<string, Coordinates> = {};
         if (this._graph) {
             this._graph.forEachNode((node, attributes) => {
                 result[node] = {
-                    x: attributes.x,
-                    y: attributes.y
+                    x: attributes.x ?? 0,
+                    y: attributes.y ?? 0
                 };
             });
         }
@@ -944,7 +944,7 @@ function configureSigma(
 
 function initializeSupervisor(
     graph: Graph,
-    onSupervisorProgress: (ForceAtlas2Progress) => void
+    onSupervisorProgress: (progress: ForceAtlas2Progress) => void
 ): ForceAtlas2Supervisor {
 
     let settings = forceAtlas2.inferSettings(graph);

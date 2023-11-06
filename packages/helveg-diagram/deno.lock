@@ -4,6 +4,7 @@
     "specifiers": {
       "npm:@types/d3-hierarchy@3.1.5": "npm:@types/d3-hierarchy@3.1.5",
       "npm:@types/file-saver@2.0.6": "npm:@types/file-saver@2.0.6",
+      "npm:@types/node": "npm:@types/node@18.16.19",
       "npm:d3-hierarchy@3.1.2": "npm:d3-hierarchy@3.1.2",
       "npm:file-saver@2.0.5": "npm:file-saver@2.0.5",
       "npm:graphology-layout-forceatlas2@0.10.1": "npm:graphology-layout-forceatlas2@0.10.1_graphology-types@0.24.7",
@@ -18,6 +19,10 @@
       },
       "@types/file-saver@2.0.6": {
         "integrity": "sha512-Mw671DVqoMHbjw0w4v2iiOro01dlT/WhWp5uwecBa0Wg8c+bcZOjgF1ndBnlaxhtvFCgTRBtsGivSVhrK/vnag==",
+        "dependencies": {}
+      },
+      "@types/node@18.16.19": {
+        "integrity": "sha512-IXl7o+R9iti9eBW4Wg2hx1xQDig183jj7YLn8F7udNceyfkbn1ZxmzZXuak20gR40D7pIkIY1kYGx5VIGbaHKA==",
         "dependencies": {}
       },
       "@yomguithereal/helpers@1.1.1": {
@@ -173,6 +178,16 @@
     "https://deno.land/x/esbuild_deno_loader@0.8.2/src/plugin_deno_resolver.ts": "0449ed23ae93db1ec74d015a46934aefd7ba7a8f719f7a4980b616cb3f5bbee4",
     "https://deno.land/x/esbuild_deno_loader@0.8.2/src/shared.ts": "33052684aeb542ebd24da372816bbbf885cd090a7ab0fde7770801f7f5b49572",
     "https://deno.land/x/importmap@0.2.1/_util.ts": "ada9a9618b537e6c0316c048a898352396c882b9f2de38aba18fd3f2950ede89",
-    "https://deno.land/x/importmap@0.2.1/mod.ts": "ae3d1cd7eabd18c01a4960d57db471126b020f23b37ef14e1359bbb949227ade"
+    "https://deno.land/x/importmap@0.2.1/mod.ts": "ae3d1cd7eabd18c01a4960d57db471126b020f23b37ef14e1359bbb949227ade",
+    "https://esm.sh/graphology-layout-forceatlas2@0.10.1": "5da7ea7711e1f0a7787b5491bcff7b1e51aae17eb3683c04543e423c2a0108ec",
+    "https://esm.sh/graphology-types@0.24.7": "fabf6997a3adf11e45d11e3c4d58d0634ab98f9d72f3116f3694123818ccd457",
+    "https://esm.sh/graphology@0.25.4": "dc546fb085632dd2ca360c7d7cb537e547ad0e88787759ef4075b5c15de6dacc",
+    "https://esm.sh/v128/graphology-layout-forceatlas2@0.10.1/denonext/graphology-layout-forceatlas2.mjs": "2d2ab86c34766c3d3593ff2da5ad071509cc02ca622a0ad3c0fba87059ba4c74",
+    "https://esm.sh/v128/graphology-utils@2.5.2/denonext/getters.js": "35fc986d991dd1a0ec33c82368f64057d891d31e5538ed5b58587d7fa8ab25a8",
+    "https://esm.sh/v128/graphology-utils@2.5.2/denonext/is-graph.js": "6f7c68a29fb39687774c2eb7d2f8862dbad3d4586ad204d274735ecb1dec6222",
+    "https://esm.sh/v133/graphology@0.25.4/denonext/graphology.mjs": "afc676a61dcc971c316547e9d01644187362e1184429c1469b4b20107395438d",
+    "https://esm.sh/v133/obliterator@2.0.4/denonext/chain.js": "9df57d296f35b9cc8cb41776af4dca602d059ed97bddbd279625df475e1fa9b4",
+    "https://esm.sh/v133/obliterator@2.0.4/denonext/iterator.js": "38f58afdf9da8bc005793932ec98fced4fd55d0a6730d2caa1341c2e145e25be",
+    "https://esm.sh/v133/obliterator@2.0.4/denonext/take.js": "97953e73921daaf8d224b093056274cd6765a0da9e4023ca4ef4f8a69a3e7391"
   }
 }

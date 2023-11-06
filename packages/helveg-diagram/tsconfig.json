@@ -1,0 +1,23 @@
+{
+    "compilerOptions": {
+        "target": "esnext",
+        "lib": [
+            "DOM",
+            "DOM.Iterable",
+            "ESNext",
+            "ESNext.AsyncIterable",
+        ],
+        "types": [
+            "./common/debug.d.ts",
+            "./common/shaders.d.ts"
+        ]
+    },
+    "include": [
+        "**/*.ts"
+    ],
+    "exclude": [
+        "eng/",
+        "node_modules/",
+        "dist/",
+    ]
+}
