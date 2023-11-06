@@ -5,7 +5,6 @@ import { HelvegOptions } from "../model/options.ts";
 import { HelvegPlugin } from "../model/plugin.ts";
 import { EdgeStyle, EdgeStyleGenerator, FALLBACK_EDGE_STYLE, FireStatus, NodeStyle, NodeStyleGenerator, OutlineStyle } from "../model/style.ts";
 import { bfs } from "../model/traversal.ts";
-import { UIExtension } from "../model/uiExtensions.ts";
 import { VisualizationModel } from "../model/visualization.ts";
 import { CSharpDataOptions, CSharpGlyphOptions, CSharpGlyphSizingMode, CSharpNodeProperties, DEFAULT_CSHARP_DATA_OPTIONS, DEFAULT_CSHARP_GLYPH_OPTIONS, DefaultRelationColors, EntityKind, FALLBACK_STYLE, MemberAccessibility, MethodKind, Relations, TypeKind, VSColor } from "./model.ts";
 
@@ -26,7 +25,6 @@ export class CSharpPlugin implements HelvegPlugin {
     csharpGlyphOptions: CSharpGlyphOptions = { ...DEFAULT_CSHARP_GLYPH_OPTIONS };
     nodeStyles: Map<string, NodeStyleGenerator> = new Map();
     edgeStyles: Map<string, EdgeStyleGenerator> = new Map();
-    uiExtensions: Map<string, UIExtension> = new Map();
 
     constructor(public options: HelvegOptions) {
         let plugin = this;
@@ -57,14 +55,14 @@ export class CSharpPlugin implements HelvegPlugin {
                 : this.resolveEdgeStyle(o);
         });
         
-        this.uiExtensions.set("Glyphs", {
-            targetPanel: AppPanels.Appearance,
-            component: CSharpGlyphsSubpanel
-        });
-        this.uiExtensions.set("Kinds", {
-            targetPanel: AppPanels.Data,
-            component: CSharpKindsSubpanel
-        });
+        // this.uiExtensions.set("Glyphs", {
+        //     targetPanel: AppPanels.Appearance,
+        //     component: CSharpGlyphsSubpanel
+        // });
+        // this.uiExtensions.set("Kinds", {
+        //     targetPanel: AppPanels.Data,
+        //     component: CSharpKindsSubpanel
+        // });
 
         options.layout.tidyTree.relation ??= Relations.Declares;
         options.tool.cut.relation ??= Relations.Declares;
@@ -73,11 +71,11 @@ export class CSharpPlugin implements HelvegPlugin {
             options.data.selectedRelations.push(Relations.Declares);
         }
 
-        options.data.csharp ??= this.csharpDataOptions;
-        this.csharpDataOptions = options.data.csharp;
+        // options.data.csharp ??= this.csharpDataOptions;
+        // this.csharpDataOptions = options.data.csharp;
 
-        options.appearance.glyph.csharp ??= this.csharpGlyphOptions;
-        this.csharpGlyphOptions = options.appearance.glyph.csharp;
+        // options.appearance.glyph.csharp ??= this.csharpGlyphOptions;
+        // this.csharpGlyphOptions = options.appearance.glyph.csharp;
     }
 
     onVisualize(model: Readonly<VisualizationModel>, graph: HelvegGraph): void {

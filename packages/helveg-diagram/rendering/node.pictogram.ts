@@ -140,56 +140,56 @@ export default function createNodePictogramProgram(
     // Of course this cannot work if said SVG cannot be access through CORS.
     if (forcedSvgSize) {
       throw new Error("Not implemented.");
-      images[imageSource] = { status: "loading" };
+      // images[imageSource] = { status: "loading" };
 
-      fetch(imageSource)
-        .then((r) => r.text())
-        .then((svgString) => {
-          const svg = new DOMParser().parseFromString(svgString, "image/svg+xml");
+      // fetch(imageSource)
+      //   .then((r) => r.text())
+      //   .then((svgString) => {
+      //     const svg = new DOMParser().parseFromString(svgString, "image/svg+xml");
 
-          const root = svg.documentElement;
+      //     const root = svg.documentElement;
 
-          let originalWidth = root.getAttribute("width");
-          let originalHeight = root.getAttribute("height");
+      //     let originalWidth = root.getAttribute("width");
+      //     let originalHeight = root.getAttribute("height");
 
-          if (!originalWidth || !originalHeight)
-            throw new Error(
-              "createNodePictogramProgram.loadImage: cannot use `forcedSvgSize` if target svg has no definite dimensions.",
-            );
+      //     if (!originalWidth || !originalHeight)
+      //       throw new Error(
+      //         "createNodePictogramProgram.loadImage: cannot use `forcedSvgSize` if target svg has no definite dimensions.",
+      //       );
 
-          root.setAttribute("width", "" + forcedSvgSize);
-          root.setAttribute("height", "" + forcedSvgSize);
-          root.setAttribute("viewBox", `0 0 ${originalWidth} ${originalHeight}`);
+      //     root.setAttribute("width", "" + forcedSvgSize);
+      //     root.setAttribute("height", "" + forcedSvgSize);
+      //     root.setAttribute("viewBox", `0 0 ${originalWidth} ${originalHeight}`);
 
-          const correctedSvgString = new XMLSerializer().serializeToString(svg);
+      //     const correctedSvgString = new XMLSerializer().serializeToString(svg);
 
-          const blob = new Blob([correctedSvgString], { type: "image/svg+xml" });
-          const url = URL.createObjectURL(blob);
+      //     const blob = new Blob([correctedSvgString], { type: "image/svg+xml" });
+      //     const url = URL.createObjectURL(blob);
 
-          const svgImage = new Image();
-          svgImage.src = url;
-          svgImage.addEventListener(
-            "load",
-            () => {
-              images[imageSource] = {
-                status: "pending",
-                image: svgImage,
-              };
+      //     const svgImage = new Image();
+      //     svgImage.src = url;
+      //     svgImage.addEventListener(
+      //       "load",
+      //       () => {
+      //         images[imageSource] = {
+      //           status: "pending",
+      //           image: svgImage,
+      //         };
 
-              if (typeof pendingImagesFrameID !== "number") {
-                pendingImagesFrameID = requestAnimationFrame(() => finalizePendingImages());
-              }
+      //         if (typeof pendingImagesFrameID !== "number") {
+      //           pendingImagesFrameID = requestAnimationFrame(() => finalizePendingImages());
+      //         }
 
-              URL.revokeObjectURL(url);
-            },
-            { once: true },
-          );
-        })
-        .catch(() => {
-          images[imageSource] = { status: "error" };
-        });
+      //         URL.revokeObjectURL(url);
+      //       },
+      //       { once: true },
+      //     );
+      //   })
+      //   .catch(() => {
+      //     images[imageSource] = { status: "error" };
+      //   });
 
-      return;
+      // return;
     }
 
     const image = new Image(256, 256);

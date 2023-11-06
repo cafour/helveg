@@ -34,7 +34,7 @@ export class HelvegPluginRegistry {
                 namespace: plugin.name,
                 icons: plugin.icons
             };
-            this.iconRegistry.register(iconSet);
+            // this.iconRegistry.register(iconSet);
         }
 
         if (plugin.nodeStyles) {
@@ -49,15 +49,16 @@ export class HelvegPluginRegistry {
             }
         }
         
-        if (plugin.uiExtensions) {
-            for (let [key, value] of plugin.uiExtensions) {
-                this.uiExtensions.register(`${plugin.name}:${key}`, value);
-            }
-        }
+        // if (plugin.uiExtensions) {
+        //     for (let [key, value] of plugin.uiExtensions) {
+        //         this.uiExtensions.register(`${plugin.name}:${key}`, value);
+        //     }
+        // }
     }
 
     get(name: string): HelvegPlugin | null {
-        return this.data[name] ?? null;
+        // return this.data[name] ?? null;
+        throw new Error("Not implemented!");
     }
 
     getAll(): IterableIterator<HelvegPlugin> {

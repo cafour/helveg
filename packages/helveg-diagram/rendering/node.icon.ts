@@ -3,6 +3,8 @@ import { HelvegNodeAttributes } from "../model/graph.ts";
 import { StructuralDiagramMode } from "../model/structural.ts";
 import { FALLBACK_NODE_ICON } from "../model/style.ts";
 import { IconAtlas, IconAtlasEntryStatus } from "./iconAtlas.ts";
+import vertSrc from "./shaders/node.icon.vert";
+import fragSrc from "./shaders/node.icon.frag";
 
 const { UNSIGNED_BYTE, FLOAT } = WebGLRenderingContext;
 
@@ -39,8 +41,8 @@ export class IconProgram extends NodeProgram<typeof UNIFORMS[number]> {
         return {
             VERTICES: 1,
             ARRAY_ITEMS_PER_VERTEX: 7,
-            VERTEX_SHADER_SOURCE: vertexShaderSource,
-            FRAGMENT_SHADER_SOURCE: fragmentShaderSource,
+            VERTEX_SHADER_SOURCE: vertSrc,
+            FRAGMENT_SHADER_SOURCE: fragSrc,
             UNIFORMS,
             ATTRIBUTES: [
                 { name: "a_position", size: 2, type: FLOAT },

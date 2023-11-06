@@ -1,7 +1,9 @@
 import { HelvegEvent } from "../common/event.ts";
-import { ForceAtlas2Settings } from "../deps/graphology-layout-forceatlas2.ts";
-import { Graph } from "../deps/graphology.ts";
+import { ForceAtlas2Settings, helpers } from "../deps/graphology-layout-forceatlas2.ts";
+import { createEdgeWeightGetter } from "../deps/graphology-utils.ts";
+import Graph, { Attributes, EdgeMapper } from "../deps/graphology.ts";
 import { MessageKind, StartMessage, Message, UpdateMessage, ProgressMessage } from "./forceAtlas2Messages.ts";
+import forceAtlas2WorkerCode from "inline-bundle:./layout/forceAtlas2Worker.ts";
 
 type GraphMatrices = { nodes: Float32Array, edges: Float32Array };
 
@@ -220,8 +222,8 @@ function graphToByteArrays(
 
     let order = graph.order;
     let size = graph.size;
-    let index = {};
-    let j;
+    let index: Record<string, number> = {};
+    let j: number;
 
     // NOTE: float32 could lead to issues if edge array needs to index large
     // number of nodes.

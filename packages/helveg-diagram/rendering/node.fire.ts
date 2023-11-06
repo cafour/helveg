@@ -2,6 +2,8 @@ import { ProgramDefinition, NodeProgramConstructor, Sigma, NodeProgram, RenderPa
 import { HelvegNodeAttributes } from "../model/graph.ts";
 import { StructuralDiagramMode } from "../model/structural.ts";
 import { FireStatus } from "../model/style.ts";
+import vertSrc from "./shaders/node.fire.vert";
+import fragSrc from "./shaders/node.fire.frag";
 
 const { UNSIGNED_BYTE, FLOAT } = WebGLRenderingContext;
 
@@ -44,8 +46,8 @@ export class FireProgram extends NodeProgram<typeof UNIFORMS[number]> {
         return {
             VERTICES: 1,
             ARRAY_ITEMS_PER_VERTEX: 4,
-            VERTEX_SHADER_SOURCE: vertexShaderSource,
-            FRAGMENT_SHADER_SOURCE: fragmentShaderSource,
+            VERTEX_SHADER_SOURCE: vertSrc,
+            FRAGMENT_SHADER_SOURCE: fragSrc,
             UNIFORMS,
             ATTRIBUTES: [
                 { name: "a_position", size: 2, type: FLOAT },

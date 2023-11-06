@@ -1,4 +1,4 @@
-import { NodeDisplayData, RenderParams, AbstractNodeProgram, Sigma, NodeProgramConstructor } from "../deps/sigma.ts";
+import { NodeDisplayData, RenderParams, AbstractNodeProgram, Sigma, NodeProgramConstructor, getPixelRatio } from "../deps/sigma.ts";
 import { FireProgram } from "./node.fire.ts";
 import { GlyphProgramOptions } from "./node.glyph.ts";
 
