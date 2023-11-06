@@ -1,7 +1,9 @@
-import { NodeProgramConstructor, Sigma, NodeProgram, ProgramDefinition, RenderParams } from "../deps/sigma.ts";
+import { NodeProgramConstructor, Sigma, NodeProgram, ProgramDefinition, RenderParams, floatColor } from "../deps/sigma.ts";
 import { HelvegNodeAttributes } from "../model/graph.ts";
 import { StructuralDiagramMode } from "../model/structural.ts";
 import { FALLBACK_NODE_STYLE, floatOutlineWidths, floatOutlineStyles } from "../model/style.ts";
+import vertSrc from "./shaders/node.outlines.vert";
+import fragSrc from "./shaders/node.outlines.frag";
 
 const { UNSIGNED_BYTE, FLOAT } = WebGLRenderingContext;
 
@@ -40,8 +42,8 @@ export class OutlinesProgram extends NodeProgram<typeof UNIFORMS[number]> {
         return {
             VERTICES: 1,
             ARRAY_ITEMS_PER_VERTEX: 6,
-            VERTEX_SHADER_SOURCE: vertexShaderSource,
-            FRAGMENT_SHADER_SOURCE: fragmentShaderSource,
+            VERTEX_SHADER_SOURCE: vertSrc,
+            FRAGMENT_SHADER_SOURCE: fragSrc,
             UNIFORMS,
             ATTRIBUTES: [
                 { name: "a_position", size: 2, type: FLOAT },
@@ -58,7 +60,7 @@ export class OutlinesProgram extends NodeProgram<typeof UNIFORMS[number]> {
 
         const useColor = this.options.diagramMode === StructuralDiagramMode.Normal
             || data.highlighted === true;
-        
+
         array[i++] = data.x ?? 0;
         array[i++] = data.y ?? 0;
         array[i++] = data.size ?? 2;
@@ -70,7 +72,7 @@ export class OutlinesProgram extends NodeProgram<typeof UNIFORMS[number]> {
     draw(params: RenderParams): void {
         const gl = this.gl;
 
-        const { u_sizeRatio, u_pixelRatio, u_matrix, u_gap} = this.uniformLocations;
+        const { u_sizeRatio, u_pixelRatio, u_matrix, u_gap } = this.uniformLocations;
 
         gl.uniform1f(u_sizeRatio, params.sizeRatio);
         gl.uniform1f(u_pixelRatio, params.pixelRatio);
