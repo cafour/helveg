@@ -1,9 +1,9 @@
-import { EdgeEntry } from "../deps/graphology.ts";
+import { Attributes, EdgeEntry } from "../deps/graphology.ts";
 import Graph from "../deps/graphology.ts";
 import { NodeDisplayData, EdgeDisplayData } from "../deps/sigma.ts";
 import { Outlines, FireStatus } from "./style.ts";
 
-export interface HelvegNodeAttributes extends Partial<NodeDisplayData> {
+export interface HelvegNodeAttributes extends Partial<NodeDisplayData>, Attributes {
     style?: string;
     icon?: string;
     iconSize?: number;
@@ -13,7 +13,7 @@ export interface HelvegNodeAttributes extends Partial<NodeDisplayData> {
     collapsed?: boolean;
 }
 
-export interface HelvegEdgeAttributes extends Partial<EdgeDisplayData> {
+export interface HelvegEdgeAttributes extends Partial<EdgeDisplayData>, Attributes {
     relation?: string;
     style?: string;
 }

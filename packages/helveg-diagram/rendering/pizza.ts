@@ -1,4 +1,4 @@
-import { NodeProgramConstructor, Sigma, AbstractNodeProgram, NodeDisplayData, RenderParams } from "../deps/sigma.ts";
+import { NodeProgramConstructor, Sigma, AbstractNodeProgram, NodeDisplayData, RenderParams, getPixelRatio } from "../deps/sigma.ts";
 import { StructuralDiagramMode } from "../model/structural.ts";
 import { IconAtlas } from "./iconAtlas.ts";
 import { PizzaDoughProgram } from "./node.pizzaDough.ts";

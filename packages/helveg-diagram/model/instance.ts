@@ -58,10 +58,8 @@ export function createHelvegInstance(): HelvegInstance {
         nodeStyles: nodeStyleRegistry,
         edgeStyles: edgeStyleRegistry,
         icons: iconRegistry,
-        uiExtensions: uiExtensionRegistry,
         plugins: pluginRegistry,
         diagram: undefined,
-        // app: null,
         options: options,
         logger: new Logger(),
 

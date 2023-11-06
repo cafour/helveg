@@ -1,18 +1,32 @@
 {
+  "$schema": "https://deno.land/x/deno/cli/schemas/config-file.v1.json",
   "tasks": {
     "build": "deno run --unstable -A _build.ts",
-    "check": "deno check --all mod.ts"
+    "check": "deno check mod.ts"
   },
   "imports": {
     "esbuild": "https://deno.land/x/esbuild@v0.19.4/mod.js",
     "esbuild_deno_loader": "https://deno.land/x/esbuild_deno_loader@0.8.2/mod.ts",
-    "std/": "https://deno.land/std@0.205.0/"
+    "std/": "https://deno.land/std@0.205.0/",
+    "shaders/": "./rendering/shaders/"
   },
   "compilerOptions": {
     "lib": [
-      "deno.window",
+      "deno.ns",
+      "deno.unstable",
       "DOM",
-      "DOM.Iterable"
+      "DOM.Iterable",
+      "ESNext.AsyncIterable"
+    ],
+    "types": [
+      "./common/debug.d.ts",
+      "./common/shaders.d.ts"
     ]
-  }
+  },
+  "exclude": [
+    "**/*.ts"
+  ],
+  "include": [
+    "_build.ts"
+  ]
 }

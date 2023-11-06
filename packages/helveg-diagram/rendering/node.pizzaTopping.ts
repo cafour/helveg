@@ -4,6 +4,8 @@ import { StructuralDiagramMode } from "../model/structural.ts";
 import { FALLBACK_NODE_ICON } from "../model/style.ts";
 import { IconAtlasEntryStatus, IconAtlas } from "./iconAtlas.ts";
 import { PizzaProgramOptions } from "./pizza.ts";
+// @ts-expect-error
+import vertexShaderSource from "shaders/node.pizza.vert";
 
 const { UNSIGNED_BYTE, FLOAT } = WebGLRenderingContext;
 
