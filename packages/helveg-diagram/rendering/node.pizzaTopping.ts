@@ -4,8 +4,8 @@ import { StructuralDiagramMode } from "../model/structural.ts";
 import { FALLBACK_NODE_ICON } from "../model/style.ts";
 import { IconAtlasEntryStatus, IconAtlas } from "./iconAtlas.ts";
 import { PizzaProgramOptions } from "./pizza.ts";
-// @ts-expect-error
-import vertexShaderSource from "shaders/node.pizza.vert";
+import vertSrc from "./shaders/node.pizza.vert";
+import fragSrc from "./shaders/node.pizza.frag";
 
 const { UNSIGNED_BYTE, FLOAT } = WebGLRenderingContext;
 
@@ -29,8 +29,8 @@ export class PizzaToppingProgram extends NodeProgram<typeof UNIFORMS[number]> {
         return {
             VERTICES: 1,
             ARRAY_ITEMS_PER_VERTEX: 7,
-            VERTEX_SHADER_SOURCE: vertexShaderSource,
-            FRAGMENT_SHADER_SOURCE: fragmentShaderSource,
+            VERTEX_SHADER_SOURCE: vertSrc,
+            FRAGMENT_SHADER_SOURCE: fragSrc,
             UNIFORMS,
             ATTRIBUTES: [
                 { name: "a_position", size: 2, type: FLOAT },

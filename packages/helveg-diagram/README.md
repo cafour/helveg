@@ -1,3 +1,3 @@
-# `@cafour/helveg`
+# `@cafour/helveg-diagram`
 
-A core client-side package containing the diagram visualization itself.
+A package containing the diagram visualization itself.

@@ -1,8 +1,8 @@
 {
     "compilerOptions": {
         "target": "ESNext",
-        "module": "ESNext",
-        "moduleResolution": "Bundler",
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
         "esModuleInterop": true,
         "forceConsistentCasingInFileNames": true,
         "strict": true,
@@ -20,23 +20,11 @@
         "strictNullChecks": true,
         "allowImportingTsExtensions": true,
         "noEmit": true,
-        "lib": [
-            "DOM",
-            "DOM.Iterable",
-            "ESNext",
-            "ESNext.AsyncIterable",
-        ],
         "types": [
-            "./common/debug.d.ts",
-            "./common/shaders.d.ts"
+            "node"
         ]
     },
     "include": [
         "**/*.ts"
-    ],
-    "exclude": [
-        "eng/",
-        "node_modules/",
-        "dist/",
     ]
 }
