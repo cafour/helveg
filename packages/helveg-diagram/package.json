@@ -1,0 +1,41 @@
+{
+    "name": "@cafour/helveg-diagram",
+    "type": "module",
+    "description": "A node-link diagram component (mainly) for software visualization.",
+    "license": "BSD-3-Clause",
+    "version": "0.0.0-local",
+    "private": false,
+    "repository": {
+        "type": "git",
+        "url": "https://gitlab.com/helveg/helveg"
+    },
+    "homepage": "https://helveg.net",
+    "scripts": {
+        "check": "tsc --noEmit -p ./tsconfig.json",
+        "watch:check": "npm run tsc -- --watch",
+        "bundle": "tsx eng/bundle.ts",
+        "watch:bundle": "npm run bundle -- --watch"
+    },
+    "dependencies": {
+        "@types/d3-hierarchy": "^3.1.2",
+        "@types/file-saver": "^2.0.5",
+        "d3-hierarchy": "^3.1.2",
+        "file-saver": "^2.0.5",
+        "graphology": "^0.25.4",
+        "graphology-layout": "^0.6.1",
+        "graphology-layout-forceatlas2": "^0.10.1",
+        "graphology-types": "^0.24.7",
+        "graphology-utils": "^2.5.2",
+        "sigma": "3.0.0-alpha3"
+    },
+    "devDependencies": {
+        "@types/node": "^20.8.10",
+        "@types/yargs": "^17.0.24",
+        "browser-sync": "^2.29.1",
+        "concurrently": "^7.6.0",
+        "esbuild": "^0.19.5",
+        "tsx": "^3.14.0",
+        "typescript": "^5.2.2",
+        "yargs": "^17.7.1"
+    }
+}
