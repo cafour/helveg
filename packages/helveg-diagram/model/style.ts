@@ -1,4 +1,4 @@
-import type { MultigraphEdge, MultigraphNode, MultigraphRelation } from "./multigraph";
+import { MultigraphNode, MultigraphEdge } from "./multigraph.ts";
 
 let INT8 = new Int8Array(4);
 let INT32 = new Int32Array(INT8.buffer);

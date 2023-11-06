@@ -1,11 +1,6 @@
-import { NodeProgram, type NodeProgramConstructor } from "sigma/rendering/webgl/programs/common/node";
-import type { ProgramDefinition } from "sigma/rendering/webgl/programs/common/program";
-import type { RenderParams } from "sigma/types";
-import type Sigma from "sigma";
-import vertexShaderSource from "./node.pizzaSauce.vert";
-import fragmentShaderSource from "./node.pizzaSauce.frag";
-import type { HelvegNodeAttributes } from "model/graph";
-import type { PizzaProgramOptions } from "./pizza";
+import { NodeProgram, Sigma, ProgramDefinition, RenderParams } from "../deps/sigma.ts";
+import { HelvegNodeAttributes } from "../model/graph.ts";
+import { PizzaProgramOptions } from "./pizza.ts";
 
 /*
 ** PIZZA TERMINOLOGY **

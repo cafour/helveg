@@ -1,12 +1,9 @@
-import { AbstractNodeProgram, createNodeCompoundProgram, type NodeProgramConstructor } from "sigma/rendering/webgl/programs/common/node";
-import type Sigma from "sigma";
-import { PizzaDoughProgram } from "./node.pizzaDough";
-import { PizzaSauceProgram } from "./node.pizzaSauce";
-import type { IconAtlas } from "./iconAtlas";
-import type { StructuralDiagramMode } from "types";
-import { PizzaToppingProgram } from "./node.pizzaTopping";
-import type { NodeDisplayData, RenderParams } from "sigma/types";
-import { getPixelRatio } from "sigma/utils";
+import { NodeProgramConstructor, Sigma, AbstractNodeProgram, NodeDisplayData, RenderParams } from "../deps/sigma.ts";
+import { StructuralDiagramMode } from "../model/structural.ts";
+import { IconAtlas } from "./iconAtlas.ts";
+import { PizzaDoughProgram } from "./node.pizzaDough.ts";
+import { PizzaSauceProgram } from "./node.pizzaSauce.ts";
+import { PizzaToppingProgram } from "./node.pizzaTopping.ts";
 
 /*
  1 [x] basil

@@ -1,12 +1,9 @@
-import { AbstractNodeProgram, type NodeProgramConstructor } from "sigma/rendering/webgl/programs/common/node";
-import type { NodeDisplayData, RenderParams } from "sigma/types";
-import createIconProgram, { type IconProgramOptions } from "./node.icon";
-import type { Sigma } from "sigma";
-import createOutlinesProgram, { type OutlinesProgramOptions } from "./node.outlines";
-import type { FireProgramOptions } from "./node.fire";
-import { SigmaEffectsExtension } from "./effects";
-import type { PizzaProgramOptions } from "./pizza";
-import createPizzaProgram from "./pizza";
+import { NodeProgramConstructor, AbstractNodeProgram, Sigma, NodeDisplayData, RenderParams } from "../deps/sigma.ts";
+import { SigmaEffectsExtension } from "./effects.ts";
+import { FireProgramOptions } from "./node.fire.ts";
+import createIconProgram, { IconProgramOptions } from "./node.icon.ts";
+import createOutlinesProgram, { OutlinesProgramOptions } from "./node.outlines.ts";
+import createPizzaProgram, { PizzaProgramOptions } from "./pizza.ts";
 
 export interface GlyphProgramOptions
     extends IconProgramOptions, OutlinesProgramOptions, FireProgramOptions, PizzaProgramOptions {

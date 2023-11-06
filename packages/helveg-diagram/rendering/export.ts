@@ -1,6 +1,6 @@
-import { DEFAULT_EXPORT_OPTIONS, type ExportOptions } from "model/options";
-import { Sigma } from "sigma";
-import FileSaver from "file-saver";
+import FileSaver from "../deps/file-saver.ts";
+import { Sigma } from "../deps/sigma.ts";
+import { ExportOptions, DEFAULT_EXPORT_OPTIONS } from "../model/options.ts";
 
 /**
  * A function that exports a diagram to a PNG file.

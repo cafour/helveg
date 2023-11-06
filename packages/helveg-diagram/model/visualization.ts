@@ -1,5 +1,5 @@
-import type { Multigraph } from "./multigraph";
-import type { DocumentInfo } from "./document";
+import { DocumentInfo } from "./document.ts";
+import { Multigraph } from "./multigraph.ts";
 
 export interface VisualizationModel
 {

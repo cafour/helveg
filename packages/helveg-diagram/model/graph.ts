@@ -1,8 +1,7 @@
-import type Graph from "graphology";
-import type { EdgeDisplayData, NodeDisplayData } from "sigma/types";
-import type { EdgeEntry } from "graphology-types";
-import type { FireStatus, Outlines } from "./style";
-export type { Coordinates } from "sigma/types";
+import { EdgeEntry } from "../deps/graphology.ts";
+import Graph from "../deps/graphology.ts";
+import { NodeDisplayData, EdgeDisplayData } from "../deps/sigma.ts";
+import { Outlines, FireStatus } from "./style.ts";
 
 export interface HelvegNodeAttributes extends Partial<NodeDisplayData> {
     style?: string;

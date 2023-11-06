@@ -1,10 +1,6 @@
-import type Sigma from "sigma";
-import type { AbstractNodeProgram } from "sigma/rendering/webgl/programs/common/node";
-import type { NodeProgramConstructor } from "sigma/rendering/webgl/programs/common/node";
-import type { NodeDisplayData, RenderParams } from "sigma/types";
-import { getPixelRatio } from "sigma/utils";
-import { FireProgram } from "./node.fire";
-import type { GlyphProgramOptions } from "./node.glyph";
+import { NodeDisplayData, RenderParams, AbstractNodeProgram, Sigma, NodeProgramConstructor } from "../deps/sigma.ts";
+import { FireProgram } from "./node.fire.ts";
+import { GlyphProgramOptions } from "./node.glyph.ts";
 
 interface ProgramCallbacks {
     process(offset: number, data: NodeDisplayData): void;

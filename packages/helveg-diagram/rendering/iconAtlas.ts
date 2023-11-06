@@ -1,8 +1,8 @@
 /// Inspired by Guillame Plique's sigma-experiments
 /// https://github.com/Yomguithereal/sigma-experiments/blob/master/renderers/src/node/node.pictogram.ts
 
-import { HelvegEvent } from "common/event";
-import type { IconRegistry } from "model/icons";
+import { HelvegEvent } from "../common/event.ts";
+import { IconRegistry } from "../model/icons.ts";
 
 export interface IconAtlasOptions {
     iconSize: number;

@@ -2,17 +2,38 @@
   "version": "3",
   "packages": {
     "specifiers": {
+      "npm:@types/d3-hierarchy@3.1.5": "npm:@types/d3-hierarchy@3.1.5",
+      "npm:@types/file-saver@2.0.6": "npm:@types/file-saver@2.0.6",
+      "npm:d3-hierarchy@3.1.2": "npm:d3-hierarchy@3.1.2",
+      "npm:file-saver@2.0.5": "npm:file-saver@2.0.5",
       "npm:graphology-layout-forceatlas2@0.10.1": "npm:graphology-layout-forceatlas2@0.10.1_graphology-types@0.24.7",
+      "npm:graphology-types@0.24.7": "npm:graphology-types@0.24.7",
       "npm:graphology@0.25.4": "npm:graphology@0.25.4_graphology-types@0.24.7",
       "npm:sigma@3.0.0-alpha3": "npm:sigma@3.0.0-alpha3"
     },
     "npm": {
+      "@types/d3-hierarchy@3.1.5": {
+        "integrity": "sha512-DEcBUj1IL3WyPLDlh4m2nsNXnMLITXM5Vwcu4G85yJHtf2cVGPBjgky3L11WBnT+ayHKf06Tchk5mY1eGmd4WQ==",
+        "dependencies": {}
+      },
+      "@types/file-saver@2.0.6": {
+        "integrity": "sha512-Mw671DVqoMHbjw0w4v2iiOro01dlT/WhWp5uwecBa0Wg8c+bcZOjgF1ndBnlaxhtvFCgTRBtsGivSVhrK/vnag==",
+        "dependencies": {}
+      },
       "@yomguithereal/helpers@1.1.1": {
         "integrity": "sha512-UYvAq/XCA7xoh1juWDYsq3W0WywOB+pz8cgVnE1b45ZfdMhBvHDrgmSFG3jXeZSr2tMTYLGHFHON+ekG05Jebg==",
         "dependencies": {}
       },
+      "d3-hierarchy@3.1.2": {
+        "integrity": "sha512-FX/9frcub54beBdugHjDCdikxThEqjnR93Qt7PvQTOHxyiNCAlvMrHhclk3cD5VeAaq9fxmfRp+CnWw9rEMBuA==",
+        "dependencies": {}
+      },
       "events@3.3.0": {
         "integrity": "sha512-mQw+2fkQbALzQ7V0MY0IqdnXNOeTtP4r0lN9z7AAawCXgqea7bDii20AYrIBrFd/Hx0M2Ocz6S111CaFkUcb0Q==",
+        "dependencies": {}
+      },
+      "file-saver@2.0.5": {
+        "integrity": "sha512-P9bmyZ3h/PRG+Nzga+rbdI4OEpNDzAVyy74uVO9ATgzLK6VtAsYybF/+TOCvrc0MO793d6+42lLyZTw7/ArVzA==",
         "dependencies": {}
       },
       "graphology-layout-forceatlas2@0.10.1_graphology-types@0.24.7": {

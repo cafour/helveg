@@ -1,5 +1,4 @@
-import type Graph from "graphology";
-import type { Attributes } from "graphology-types";
+import Graph, { Attributes } from "../deps/graphology.ts";
 
 export interface BfsOptions {
     maxDepth: number;

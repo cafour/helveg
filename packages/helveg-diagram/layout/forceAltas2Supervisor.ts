@@ -1,12 +1,7 @@
-import { HelvegEvent } from "common/event";
-import { type StartMessage, type ProgressMessage, MessageKind, type UpdateMessage, type Message } from "./forceAtlas2Messages";
-import type Graph from "graphology";
-import { createEdgeWeightGetter } from "graphology-utils/getters";
-import type { ForceAtlas2Settings } from "graphology-layout-forceatlas2";
-import helpers from "graphology-layout-forceatlas2/helpers";
-import forceAtlas2WorkerCode from "inline-bundle:../layout/forceAtlas2Worker.ts";
-import type { Attributes, EdgeMapper } from "graphology-types";
-import type { HelvegGraph } from "model/graph";
+import { HelvegEvent } from "../common/event.ts";
+import { ForceAtlas2Settings } from "../deps/graphology-layout-forceatlas2.ts";
+import { Graph } from "../deps/graphology.ts";
+import { MessageKind, StartMessage, Message, UpdateMessage, ProgressMessage } from "./forceAtlas2Messages.ts";
 
 type GraphMatrices = { nodes: Float32Array, edges: Float32Array };
 

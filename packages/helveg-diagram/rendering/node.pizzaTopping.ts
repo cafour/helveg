@@ -1,14 +1,9 @@
-import { NodeProgram, type NodeProgramConstructor } from "sigma/rendering/webgl/programs/common/node";
-import type { ProgramDefinition } from "sigma/rendering/webgl/programs/common/program";
-import type { RenderParams } from "sigma/types";
-import { IconAtlas, IconAtlasEntryStatus } from "./iconAtlas";
-import type Sigma from "sigma";
-import vertexShaderSource from "./node.pizzaTopping.vert";
-import fragmentShaderSource from "./node.pizzaTopping.frag";
-import { StructuralDiagramMode } from "model/structural";
-import type { HelvegNodeAttributes } from "model/graph";
-import { FALLBACK_NODE_ICON } from "model/style";
-import type { PizzaProgramOptions } from "./pizza";
+import { NodeProgram, Sigma, ProgramDefinition, RenderParams } from "../deps/sigma.ts";
+import { HelvegNodeAttributes } from "../model/graph.ts";
+import { StructuralDiagramMode } from "../model/structural.ts";
+import { FALLBACK_NODE_ICON } from "../model/style.ts";
+import { IconAtlasEntryStatus, IconAtlas } from "./iconAtlas.ts";
+import { PizzaProgramOptions } from "./pizza.ts";
 
 const { UNSIGNED_BYTE, FLOAT } = WebGLRenderingContext;
 

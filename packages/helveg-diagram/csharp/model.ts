@@ -1,4 +1,6 @@
-import { FireStatus, PizzaIcons, type MultigraphNodeProperties, type NodeStyle } from "helveg";
+import { PizzaIcons } from "../model/const.ts";
+import { MultigraphNodeProperties } from "../model/multigraph.ts";
+import { NodeStyle, FireStatus } from "../model/style.ts";
 
 export enum EntityKind {
     Solution = "Solution",
@@ -233,13 +235,3 @@ export const DEFAULT_CSHARP_GLYPH_OPTIONS: CSharpGlyphOptions = {
     sizingMode: CSharpGlyphSizingMode.Linear,
     pizzaToppings: { ...DEFAULT_CSHARP_PIZZA_TOPPINGS }
 };
-
-declare module "helveg" {
-    export interface DataOptions {
-        csharp?: CSharpDataOptions;
-    }
-
-    export interface GlyphOptions {
-        csharp?: CSharpGlyphOptions;
-    }
-}

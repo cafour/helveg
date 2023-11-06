@@ -7,7 +7,6 @@ import { IconRegistry } from "./icons.ts";
 import { DEFAULT_HELVEG_OPTIONS, loadOptions, type HelvegOptions, type ExportOptions, type LayoutOptions, type ToolOptions, clearOptions, saveOptions, type AppearanceOptions } from "./options.ts";
 import { LogSeverity, Logger } from "./logger.ts";
 import { NodeStyleRegistry, EdgeStyleRegistry } from "./style.ts";
-import { UIExtensionRegistry } from "./uiExtensions.ts";
 import type { DataOptions } from "./options.ts";
 import { StructuralDiagram } from "./structural.ts";
 
@@ -19,7 +18,7 @@ export interface HelvegInstance {
     nodeStyles: NodeStyleRegistry;
     edgeStyles: EdgeStyleRegistry;
     icons: IconRegistry;
-    uiExtensions: UIExtensionRegistry;
+    // uiExtensions: UIExtensionRegistry;
     plugins: HelvegPluginRegistry;
     diagram?: StructuralDiagram,
     options: HelvegOptions;
@@ -39,12 +38,11 @@ export function createHelvegInstance(): HelvegInstance {
     let iconRegistry = new IconRegistry();
     let nodeStyleRegistry = new NodeStyleRegistry();
     let edgeStyleRegistry = new EdgeStyleRegistry();
-    let uiExtensionRegistry = new UIExtensionRegistry();
+    // let uiExtensionRegistry = new UIExtensionRegistry();
     let pluginRegistry = new HelvegPluginRegistry(
         iconRegistry,
         nodeStyleRegistry,
-        edgeStyleRegistry,
-        uiExtensionRegistry);
+        edgeStyleRegistry);
     let options: HelvegOptions = { ...DEFAULT_HELVEG_OPTIONS };
     options.data = loadOptions<DataOptions>("data") ?? options.data;
     options.export = loadOptions<ExportOptions>("export") ?? options.export;

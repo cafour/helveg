@@ -1,9 +1,13 @@
-import { AppPanels,FALLBACK_EDGE_STYLE, FireStatus, OutlineStyle, bfs, expandNode, findRoots, type HelvegOptions, type HelvegPlugin, type EdgeStyle, type EdgeStyleGenerator, type HelvegGraph, type NodeStyle, type NodeStyleGenerator, type UIExtension, type VisualizationModel, type MultigraphNode, MultigraphDiagnosticSeverity, type MultigraphEdge, PizzaIcons } from "helveg";
-
-import CSharpGlyphsSubpanel from "./components/CSharpGlyphsSubpanel.svelte";
-import CSharpKindsSubpanel from "./components/CSharpKindsSubpanel.svelte";
-
-import { type CSharpDataOptions, DEFAULT_CSHARP_DATA_OPTIONS, type CSharpGlyphOptions, type CSharpNodeProperties, EntityKind, FALLBACK_STYLE, Relations, VSColor, TypeKind, MethodKind, MemberAccessibility, CSharpGlyphSizingMode, DefaultRelationColors, DEFAULT_CSHARP_GLYPH_OPTIONS } from "./model";
+import { AppPanels } from "../model/const.ts";
+import { HelvegGraph, findRoots, expandNode } from "../model/graph.ts";
+import { MultigraphNode, MultigraphDiagnosticSeverity, MultigraphEdge } from "../model/multigraph.ts";
+import { HelvegOptions } from "../model/options.ts";
+import { HelvegPlugin } from "../model/plugin.ts";
+import { EdgeStyle, EdgeStyleGenerator, FALLBACK_EDGE_STYLE, FireStatus, NodeStyle, NodeStyleGenerator, OutlineStyle } from "../model/style.ts";
+import { bfs } from "../model/traversal.ts";
+import { UIExtension } from "../model/uiExtensions.ts";
+import { VisualizationModel } from "../model/visualization.ts";
+import { CSharpDataOptions, CSharpGlyphOptions, CSharpGlyphSizingMode, CSharpNodeProperties, DEFAULT_CSHARP_DATA_OPTIONS, DEFAULT_CSHARP_GLYPH_OPTIONS, DefaultRelationColors, EntityKind, FALLBACK_STYLE, MemberAccessibility, MethodKind, Relations, TypeKind, VSColor } from "./model.ts";
 
 export default function helvegCSharp(options: HelvegOptions): CSharpPlugin {
     return new CSharpPlugin(options);
@@ -17,7 +21,7 @@ declare global {
 window.helvegCSharp = helvegCSharp;
 
 export class CSharpPlugin implements HelvegPlugin {
-    name: string = "csharp";
+    name = "csharp";
     csharpDataOptions: CSharpDataOptions = { ...DEFAULT_CSHARP_DATA_OPTIONS };
     csharpGlyphOptions: CSharpGlyphOptions = { ...DEFAULT_CSHARP_GLYPH_OPTIONS };
     nodeStyles: Map<string, NodeStyleGenerator> = new Map();
