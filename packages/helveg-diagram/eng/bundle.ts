@@ -1,12 +1,13 @@
 import * as esbuild from "esbuild";
 import inlineBundlePlugin from "./inlineBundle.ts";
 
-const context = await esbuild.context({
-  entryPoints: ["mod.ts"],
+const mod = await esbuild.context({
+  entryPoints: ["./mod.ts"],
+  globalName: "helveg",
   outfile: "./dist/helveg-diagram.js",
   platform: "browser",
   target: "esnext",
-  format: "esm",
+  format: "iife",
   tsconfig: "./tsconfig.json",
   bundle: true,
   plugins: [
@@ -20,5 +21,5 @@ const context = await esbuild.context({
   },
 });
 
-await context.rebuild();
-await context.dispose();
+await mod.rebuild();
+await mod.dispose();
