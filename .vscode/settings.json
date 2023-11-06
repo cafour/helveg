@@ -10,5 +10,5 @@
     "deno.enable": true,
     "deno.lint": true,
     "deno.unstable": true,
-    "deno.config": "packages/helveg/deno.json"
+    "deno.config": "packages/helveg-diagram/deno.json"
 }

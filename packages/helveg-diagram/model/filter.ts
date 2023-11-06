@@ -1,5 +1,5 @@
-import type { MultigraphNode, Multigraph } from "./multigraph";
-import { SearchMode } from "./options";
+import { Multigraph, MultigraphNode } from "./multigraph.ts";
+import { SearchMode } from "./options.ts";
 
 export type NodeFilter = (node: MultigraphNode) => boolean;
 

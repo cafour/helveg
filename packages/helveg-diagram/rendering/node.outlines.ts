@@ -1,13 +1,7 @@
-import { NodeProgram, type NodeProgramConstructor } from "sigma/rendering/webgl/programs/common/node";
-import type { ProgramDefinition } from "sigma/rendering/webgl/programs/common/program";
-import type { RenderParams } from "sigma/types";
-import type Sigma from "sigma";
-import vertexShaderSource from "./node.outlines.vert";
-import fragmentShaderSource from "./node.outlines.frag";
-import { floatColor } from "sigma/utils";
-import { StructuralDiagramMode } from "model/structural";
-import type { HelvegNodeAttributes } from "model/graph";
-import { FALLBACK_NODE_STYLE, floatOutlineStyles, floatOutlineWidths } from "model/style";
+import { NodeProgramConstructor, Sigma, NodeProgram, ProgramDefinition, RenderParams } from "../deps/sigma.ts";
+import { HelvegNodeAttributes } from "../model/graph.ts";
+import { StructuralDiagramMode } from "../model/structural.ts";
+import { FALLBACK_NODE_STYLE, floatOutlineWidths, floatOutlineStyles } from "../model/style.ts";
 
 const { UNSIGNED_BYTE, FLOAT } = WebGLRenderingContext;
 

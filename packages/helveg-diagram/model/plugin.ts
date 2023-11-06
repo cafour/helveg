@@ -1,15 +1,14 @@
-import type { HelvegGraph } from "./graph";
-import type { Icon, IconRegistry, IconSet } from "./icons";
-import type { NodeStyleGenerator, NodeStyleRegistry, EdgeStyleGenerator, EdgeStyleRegistry } from "./style";
-import type { UIExtension, UIExtensionRegistry } from "./uiExtensions";
-import type { VisualizationModel } from "./visualization";
+import { HelvegGraph } from "./graph.ts";
+import { Icon, IconRegistry } from "./icons.ts";
+import { NodeStyleGenerator, EdgeStyleGenerator, NodeStyleRegistry, EdgeStyleRegistry } from "./style.ts";
+import { VisualizationModel } from "./visualization.ts";
 
 export interface HelvegPlugin {
     name: string;
     icons?: Map<string, Icon>;
     nodeStyles?: Map<string, NodeStyleGenerator>;
     edgeStyles?: Map<string, EdgeStyleGenerator>;
-    uiExtensions?: Map<string, UIExtension>;
+    // uiExtensions?: Map<string, UIExtension>;
     onVisualize?(model: Readonly<VisualizationModel>, graph: HelvegGraph): void;
 }
 
@@ -20,8 +19,7 @@ export class HelvegPluginRegistry {
     constructor(
         private iconRegistry: IconRegistry,
         private nodeStyles: NodeStyleRegistry,
-        private edgeStyles: EdgeStyleRegistry,
-        private uiExtensions: UIExtensionRegistry) {
+        private edgeStyles: EdgeStyleRegistry) {
     }
 
     register(plugin: HelvegPlugin) {

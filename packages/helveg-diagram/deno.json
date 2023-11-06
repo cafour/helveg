@@ -1,6 +1,7 @@
 {
   "tasks": {
-    "build": "deno run --unstable -A _build.ts"
+    "build": "deno run --unstable -A _build.ts",
+    "check": "deno check --all mod.ts"
   },
   "imports": {
     "esbuild": "https://deno.land/x/esbuild@v0.19.4/mod.js",

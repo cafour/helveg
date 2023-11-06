@@ -1,12 +1,7 @@
-import { NodeProgram, type NodeProgramConstructor } from "sigma/rendering/webgl/programs/common/node";
-import type { ProgramDefinition } from "sigma/rendering/webgl/programs/common/program";
-import type { RenderParams } from "sigma/types";
-import type Sigma from "sigma";
-import { StructuralDiagramMode } from "model/structural";
-import vertexShaderSource from "./node.fire.vert";
-import fragmentShaderSource from "./node.fire.frag";
-import type { HelvegNodeAttributes } from "model/graph";
-import { FireStatus } from "model/style";
+import { ProgramDefinition, NodeProgramConstructor, Sigma, NodeProgram, RenderParams } from "../deps/sigma.ts";
+import { HelvegNodeAttributes } from "../model/graph.ts";
+import { StructuralDiagramMode } from "../model/structural.ts";
+import { FireStatus } from "../model/style.ts";
 
 const { UNSIGNED_BYTE, FLOAT } = WebGLRenderingContext;
 
