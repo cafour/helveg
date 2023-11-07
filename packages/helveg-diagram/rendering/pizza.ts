@@ -1,6 +1,6 @@
 import { NodeProgramConstructor, Sigma, AbstractNodeProgram, NodeDisplayData, RenderParams, getPixelRatio } from "../deps/sigma.ts";
 import { StructuralDiagramMode } from "../model/structural.ts";
-import { IconAtlas } from "./iconAtlas.ts";
+import { EMPTY_ICON_ATLAS, IconAtlas } from "./iconAtlas.ts";
 import { PizzaDoughProgram } from "./node.pizzaDough.ts";
 import { PizzaSauceProgram } from "./node.pizzaSauce.ts";
 import { PizzaToppingProgram } from "./node.pizzaTopping.ts";
@@ -42,14 +42,14 @@ export interface PizzaProgramOptions {
     isPizzaEnabled: boolean;
     crustWidth: number;
     sauceWidth: number;
-    iconAtlas: IconAtlas;
-    diagramMode: StructuralDiagramMode;
+    iconAtlas: Readonly<IconAtlas>;
 }
 
-export const DEFAULT_PIZZA_PROGRAM_OPTIONS = {
+export const DEFAULT_PIZZA_PROGRAM_OPTIONS: PizzaProgramOptions = {
     isPizzaEnabled: false,
     crustWidth: 20,
-    sauceWidth: 40
+    sauceWidth: 40,
+    iconAtlas: EMPTY_ICON_ATLAS
 };
 
 export default function createPizzaProgram(options: PizzaProgramOptions): NodeProgramConstructor {

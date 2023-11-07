@@ -1,6 +1,5 @@
 import { ProgramDefinition, NodeProgramConstructor, Sigma, NodeProgram, RenderParams } from "../deps/sigma.ts";
 import { HelvegNodeAttributes } from "../model/graph.ts";
-import { StructuralDiagramMode } from "../model/structural.ts";
 import { FireStatus } from "../model/style.ts";
 import vertSrc from "./shaders/node.fire.vert";
 import fragSrc from "./shaders/node.fire.frag";
@@ -10,16 +9,14 @@ const { UNSIGNED_BYTE, FLOAT } = WebGLRenderingContext;
 const UNIFORMS = ["u_sizeRatio", "u_pixelRatio", "u_matrix", "u_time", "u_normalizationRatio"];
 
 export interface FireProgramOptions {
-    diagramMode: StructuralDiagramMode;
+    showOnlyHighlighted: boolean;
     particleCount: number;
-    showFire: boolean;
     isFireAnimated: boolean;
 }
 
 export const DEFAULT_FIRE_PROGRAM_OPTIONS: FireProgramOptions = {
-    diagramMode: StructuralDiagramMode.Normal,
+    showOnlyHighlighted: false,
     particleCount: 32,
-    showFire: true,
     isFireAnimated: true,
 };
 
@@ -60,8 +57,7 @@ export class FireProgram extends NodeProgram<typeof UNIFORMS[number]> {
     processVisibleItem(i: number, data: HelvegNodeAttributes): void {
         const array = this.array;
 
-        const useIntensity = this.options.diagramMode === StructuralDiagramMode.Normal
-            || data.highlighted === true;
+        const useIntensity = !this.options.showOnlyHighlighted || data.highlighted === true;
 
         let intensity = data.fire === FireStatus.Smoke ? 0.5
             : data.fire === FireStatus.Flame ? 1

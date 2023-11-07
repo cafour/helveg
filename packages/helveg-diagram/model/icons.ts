@@ -100,6 +100,8 @@ export class IconRegistry {
     }
 }
 
+export const EMPTY_ICON_REGISTRY: Readonly<IconRegistry> = new IconRegistry();
+
 function removeIconTitle(svg: Document) {
     [...svg.getElementsByTagName("title")].forEach(e => e.remove());
 }
