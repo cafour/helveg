@@ -11,12 +11,12 @@ const UNIFORMS = ["u_sizeRatio", "u_pixelRatio", "u_matrix", "u_gap"];
 
 export interface OutlinesProgramOptions {
     gap: number;
-    diagramMode: StructuralDiagramMode;
+    showOnlyHighlighted: boolean;
 }
 
 export const DEFAULT_OUTLINES_PROGRAM_OPTIONS: OutlinesProgramOptions = {
     gap: 0,
-    diagramMode: StructuralDiagramMode.Normal
+    showOnlyHighlighted: false
 };
 
 export default function createOutlinesProgram(options?: Partial<OutlinesProgramOptions>): NodeProgramConstructor {
@@ -58,8 +58,7 @@ export class OutlinesProgram extends NodeProgram<typeof UNIFORMS[number]> {
     processVisibleItem(i: number, data: HelvegNodeAttributes): void {
         const array = this.array;
 
-        const useColor = this.options.diagramMode === StructuralDiagramMode.Normal
-            || data.highlighted === true;
+        const useColor = !this.options.showOnlyHighlighted || data.highlighted === true;
 
         array[i++] = data.x ?? 0;
         array[i++] = data.y ?? 0;

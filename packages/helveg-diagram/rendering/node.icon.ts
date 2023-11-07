@@ -1,8 +1,7 @@
 import { NodeProgramConstructor, Sigma, NodeProgram, ProgramDefinition, RenderParams } from "../deps/sigma.ts";
 import { HelvegNodeAttributes } from "../model/graph.ts";
-import { StructuralDiagramMode } from "../model/structural.ts";
 import { FALLBACK_NODE_ICON } from "../model/style.ts";
-import { IconAtlas, IconAtlasEntryStatus } from "./iconAtlas.ts";
+import { EMPTY_ICON_ATLAS, IconAtlas, IconAtlasEntryStatus } from "./iconAtlas.ts";
 import vertSrc from "./shaders/node.icon.vert";
 import fragSrc from "./shaders/node.icon.frag";
 
@@ -11,9 +10,14 @@ const { UNSIGNED_BYTE, FLOAT } = WebGLRenderingContext;
 const UNIFORMS = ["u_sizeRatio", "u_pixelRatio", "u_matrix", "u_atlas"];
 
 export interface IconProgramOptions {
-    iconAtlas: IconAtlas;
-    diagramMode: StructuralDiagramMode;
+    iconAtlas: Readonly<IconAtlas>;
+    showOnlyHighlighted: boolean;
 }
+
+export const DEFAULT_ICON_PROGRAM_OPTIONS: IconProgramOptions = {
+    iconAtlas: EMPTY_ICON_ATLAS,
+    showOnlyHighlighted: false
+};
 
 export default function createIconProgram(options: IconProgramOptions): NodeProgramConstructor {
     return class extends IconProgram {
@@ -56,9 +60,8 @@ export class IconProgram extends NodeProgram<typeof UNIFORMS[number]> {
         const array = this.array;
         this.options.iconAtlas.tryAddIcon(data.icon ?? FALLBACK_NODE_ICON);
 
-        const isVisible = (this.options.diagramMode === StructuralDiagramMode.Normal
-            || data.highlighted === true);
-        
+        const isVisible = (!this.options.showOnlyHighlighted || data.highlighted === true);
+
         array[i++] = data.x ?? 0;
         array[i++] = data.y ?? 0;
         array[i++] = isVisible ? data.iconSize ?? data.size ?? 1 : 0;
@@ -94,7 +97,7 @@ export class IconProgram extends NodeProgram<typeof UNIFORMS[number]> {
     }
 
 
-    private rebindTexture(iconAtlas: IconAtlas) {
+    private rebindTexture(iconAtlas: Readonly<IconAtlas>) {
         const gl = this.gl;
 
         gl.bindTexture(gl.TEXTURE_2D, this.texture);

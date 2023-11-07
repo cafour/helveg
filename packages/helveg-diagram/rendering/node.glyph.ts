@@ -1,9 +1,9 @@
 import { NodeProgramConstructor, AbstractNodeProgram, Sigma, NodeDisplayData, RenderParams } from "../deps/sigma.ts";
 import { SigmaEffectsExtension } from "./effects.ts";
-import { FireProgramOptions } from "./node.fire.ts";
-import createIconProgram, { IconProgramOptions } from "./node.icon.ts";
-import createOutlinesProgram, { OutlinesProgramOptions } from "./node.outlines.ts";
-import createPizzaProgram, { PizzaProgramOptions } from "./pizza.ts";
+import { DEFAULT_FIRE_PROGRAM_OPTIONS, FireProgramOptions } from "./node.fire.ts";
+import createIconProgram, { DEFAULT_ICON_PROGRAM_OPTIONS, IconProgramOptions } from "./node.icon.ts";
+import createOutlinesProgram, { DEFAULT_OUTLINES_PROGRAM_OPTIONS, OutlinesProgramOptions } from "./node.outlines.ts";
+import createPizzaProgram, { DEFAULT_PIZZA_PROGRAM_OPTIONS, PizzaProgramOptions } from "./pizza.ts";
 
 export interface GlyphProgramOptions
     extends IconProgramOptions, OutlinesProgramOptions, FireProgramOptions, PizzaProgramOptions {
@@ -12,6 +12,17 @@ export interface GlyphProgramOptions
     showOutlines: boolean;
     showFire: boolean;
 }
+
+export const DEFAULT_GLYPH_PROGRAM_OPTIONS: GlyphProgramOptions =
+{
+    showIcons: true,
+    showOutlines: true,
+    showFire: true,
+    ...DEFAULT_ICON_PROGRAM_OPTIONS,
+    ...DEFAULT_OUTLINES_PROGRAM_OPTIONS,
+    ...DEFAULT_FIRE_PROGRAM_OPTIONS,
+    ...DEFAULT_PIZZA_PROGRAM_OPTIONS
+};
 
 export function createGlyphProgram(options: GlyphProgramOptions): NodeProgramConstructor {
     return class extends AbstractNodeProgram {

@@ -2,7 +2,7 @@
 /// https://github.com/Yomguithereal/sigma-experiments/blob/master/renderers/src/node/node.pictogram.ts
 
 import { HelvegEvent } from "../common/event.ts";
-import { IconRegistry } from "../model/icons.ts";
+import { EMPTY_ICON_REGISTRY, IconRegistry } from "../model/icons.ts";
 
 export interface IconAtlasOptions {
     iconSize: number;
@@ -159,3 +159,5 @@ export class IconAtlas {
         this.redrawn.trigger(this);
     }
 }
+
+export const EMPTY_ICON_ATLAS: Readonly<IconAtlas> = new IconAtlas(EMPTY_ICON_REGISTRY as IconRegistry);
