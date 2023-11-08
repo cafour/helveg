@@ -22,3 +22,12 @@ export async function loadJsonScript<T>(script: Element): Promise<T | null> {
         ? <T>JSON.parse(script.textContent!)
         : <T>await (await fetch(src)).json();
 }
+
+export async function requireJsonScript<T>(script: Element): Promise<T> {
+    const result = await loadJsonScript<T>(script);
+    if (!result) {
+        throw new Error(`No JSON could be read from element ${script}.`);
+    }
+
+    return result;
+}
