@@ -1,21 +1,22 @@
 import forceAtlas2 from "../deps/graphology-layout-forceatlas2.ts";
 import Graph from "../deps/graphology.ts";
-import Sigma, { Coordinates, DEFAULT_SETTINGS, NodeProgramConstructor, SigmaNodeEventPayload, SigmaStageEventPayload } from "../deps/sigma.ts";
+import { Sigma, Coordinates, DEFAULT_SETTINGS, NodeProgramConstructor, SigmaNodeEventPayload, SigmaStageEventPayload } from "../deps/sigma.ts";
 import { ForceAtlas2Progress, ForceAtlas2Supervisor } from "../layout/forceAltas2Supervisor.ts";
 import { HelvegEdgeAttributes, HelvegGraph, HelvegNodeAttributes } from "../model/graph.ts";
-import { Logger } from "../model/logger.ts";
+import { ILogger, Logger, sublogger } from "../model/logger.ts";
 import { EdgeStylist, NodeStylist, OutlineStyle, Outlines, getOutlinesTotalWidth } from "../model/style.ts";
 import { VisualizationModel } from "../model/visualization.ts";
 import { GlyphProgramOptions } from "../rendering/node.glyph.ts";
 
 export function initializeSupervisor(
     graph: HelvegGraph,
-    onSupervisorProgress: (progress: ForceAtlas2Progress) => void
+    onSupervisorProgress: (progress: ForceAtlas2Progress) => void,
+    logger?: ILogger
 ): ForceAtlas2Supervisor {
 
     let settings = forceAtlas2.inferSettings(graph);
     settings.adjustSizes = true;
-    const supervisor = new ForceAtlas2Supervisor(graph, settings);
+    const supervisor = new ForceAtlas2Supervisor(graph, settings, logger ? sublogger(logger, "fa2") : undefined);
     supervisor.progress.subscribe(onSupervisorProgress);
     return supervisor;
 }
@@ -118,7 +119,8 @@ export function configureSigma(
 
 export function initializeGraph(
     model: VisualizationModel,
-    selectedRelations: string[]
+    selectedRelations: string[],
+    logger?: ILogger
 ): HelvegGraph {
 
     const graph = new Graph<HelvegNodeAttributes, HelvegEdgeAttributes>({
@@ -149,7 +151,7 @@ export function initializeGraph(
                     style: edge.properties.Style
                 });
             } catch (error) {
-                DEBUG && console.warn(`Failed to add an edge. edge=${edge}, error=${error}`);
+                logger?.warn(`Failed to add an edge. edge=(${edge.src} -> ${edge.dst}), error=${error}`);
             }
         }
     }
@@ -163,7 +165,7 @@ export function styleGraph(
     glyphProgramOptions: GlyphProgramOptions,
     nodeStylist: NodeStylist,
     edgeStylist: EdgeStylist,
-    logger?: Logger) {
+    logger?: ILogger) {
 
     graph.forEachNode((node, attributes) => {
         if (!attributes.style) {
@@ -206,7 +208,7 @@ export function styleGraph(
             model.multigraph.relations[attributes.relation].edges[edge]
         );
         if (!edgeStyle) {
-            DEBUG && console.log(`Edge style '${attributes.style}' could not be applied to edge '${edge}'.`);
+            logger?.debug(`Edge style '${attributes.style}' could not be applied to edge '${edge}'.`);
             return;
         }
 

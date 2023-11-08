@@ -1,5 +1,5 @@
 import { NodeProgramConstructor, Sigma, AbstractNodeProgram, NodeDisplayData, RenderParams, getPixelRatio } from "../deps/sigma.ts";
-import { StructuralDiagramMode } from "../model/structural.ts";
+import { ILogger } from "../model/logger.ts";
 import { EMPTY_ICON_ATLAS, IconAtlas } from "./iconAtlas.ts";
 import { PizzaDoughProgram } from "./node.pizzaDough.ts";
 import { PizzaSauceProgram } from "./node.pizzaSauce.ts";
@@ -34,22 +34,21 @@ import { PizzaToppingProgram } from "./node.pizzaTopping.ts";
 26 [x] cookie
 27 [x] meatball
 */
-const { UNSIGNED_BYTE, FLOAT } = WebGLRenderingContext;
-
-const UNIFORMS = ["u_sizeRatio", "u_pixelRatio", "u_matrix", "u_crustWidth", "u_sauceWidth"];
 
 export interface PizzaProgramOptions {
     isPizzaEnabled: boolean;
     crustWidth: number;
     sauceWidth: number;
     iconAtlas: Readonly<IconAtlas>;
+    showOnlyHighlighted: boolean;
 }
 
 export const DEFAULT_PIZZA_PROGRAM_OPTIONS: PizzaProgramOptions = {
     isPizzaEnabled: false,
     crustWidth: 20,
     sauceWidth: 40,
-    iconAtlas: EMPTY_ICON_ATLAS
+    iconAtlas: EMPTY_ICON_ATLAS,
+    showOnlyHighlighted: false
 };
 
 export default function createPizzaProgram(options: PizzaProgramOptions): NodeProgramConstructor {
@@ -68,7 +67,11 @@ export class PizzaProgram extends AbstractNodeProgram {
     doughCanvas: HTMLCanvasElement;
     doughContext: WebGL2RenderingContext;
 
-    constructor(gl: WebGLRenderingContext, private sigma: Sigma, private options: PizzaProgramOptions) {
+    constructor(
+        gl: WebGLRenderingContext,
+        private sigma: Sigma,
+        private options: PizzaProgramOptions,
+        private logger?: ILogger) {
         super(gl, sigma);
 
         this.doughCanvas = document.createElement("canvas");
@@ -128,7 +131,7 @@ export class PizzaProgram extends AbstractNodeProgram {
     }
 
     private onSigmaKill(): void {
-        DEBUG && console.log("Destroying a CodePizza canvas");
+        this.logger?.debug("Destroying a CodePizza canvas");
 
         this.doughCanvas.remove();
         this.doughCanvas = null!;

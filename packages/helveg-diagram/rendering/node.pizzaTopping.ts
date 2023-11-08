@@ -1,11 +1,10 @@
 import { NodeProgram, Sigma, ProgramDefinition, RenderParams } from "../deps/sigma.ts";
 import { HelvegNodeAttributes } from "../model/graph.ts";
-import { StructuralDiagramMode } from "../model/structural.ts";
 import { FALLBACK_NODE_ICON } from "../model/style.ts";
 import { IconAtlasEntryStatus, IconAtlas } from "./iconAtlas.ts";
 import { PizzaProgramOptions } from "./pizza.ts";
-import vertSrc from "./shaders/node.pizza.vert";
-import fragSrc from "./shaders/node.pizza.frag";
+import vertSrc from "./shaders/node.pizzaTopping.vert";
+import fragSrc from "./shaders/node.pizzaTopping.frag";
 
 const { UNSIGNED_BYTE, FLOAT } = WebGLRenderingContext;
 
@@ -44,8 +43,7 @@ export class PizzaToppingProgram extends NodeProgram<typeof UNIFORMS[number]> {
         const array = this.array;
         this.options.iconAtlas.tryAddIcon(data.icon ?? FALLBACK_NODE_ICON);
 
-        const isVisible = (this.options.diagramMode === StructuralDiagramMode.Normal
-            || data.highlighted === true);
+        const isVisible = !this.options.showOnlyHighlighted || data.highlighted === true;
         
         array[i++] = data.x ?? 0;
         array[i++] = data.y ?? 0;
@@ -82,7 +80,7 @@ export class PizzaToppingProgram extends NodeProgram<typeof UNIFORMS[number]> {
     }
 
 
-    private rebindTexture(iconAtlas: IconAtlas) {
+    private rebindTexture(iconAtlas: Readonly<IconAtlas>) {
         const gl = this.gl;
 
         gl.bindTexture(gl.TEXTURE_2D, this.texture);

@@ -1,4 +1,5 @@
 import { NodeDisplayData, RenderParams, AbstractNodeProgram, Sigma, NodeProgramConstructor, getPixelRatio } from "../deps/sigma.ts";
+import { ILogger } from "../model/logger.ts";
 import { FireProgram } from "./node.fire.ts";
 import { GlyphProgramOptions } from "./node.glyph.ts";
 
@@ -43,7 +44,7 @@ export class SigmaEffectsExtension {
     private _reportingProgram: NodeProgramConstructor;
     private fireProgram: FireProgram = null!;
 
-    constructor(private options: GlyphProgramOptions) {
+    constructor(private options: GlyphProgramOptions, private logger?: ILogger) {
         let self = this;
         this._reportingProgram = class extends ParamsReportingProgram {
             constructor(gl: WebGLRenderingContext, renderer: Sigma) {
@@ -63,7 +64,7 @@ export class SigmaEffectsExtension {
 
     private initialize(sigma: Sigma)  {
         if (this.sigma) {
-            DEBUG && console.log("The effects extension has already been initialized.");
+            this.logger?.debug("The effects extension has already been initialized.");
             return;
         }
 
@@ -104,7 +105,7 @@ export class SigmaEffectsExtension {
     }
 
     private onSigmaKill(): void {
-        DEBUG && console.log("Killing Helveg's effects extension of Sigma.js.");
+        this.logger?.debug("Killing Helveg's effects extension of Sigma.js.");
         if (this.renderFrame) {
             cancelAnimationFrame(this.renderFrame);
             this.renderFrame = 0;

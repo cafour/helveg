@@ -1,5 +1,6 @@
 import FileSaver from "../deps/file-saver.ts";
 import { Sigma } from "../deps/sigma.ts";
+import { ILogger } from "../model/logger.ts";
 import { ExportOptions, DEFAULT_EXPORT_OPTIONS } from "../model/options.ts";
 
 /**
@@ -7,7 +8,7 @@ import { ExportOptions, DEFAULT_EXPORT_OPTIONS } from "../model/options.ts";
  * 
  * Based on the "png-snapshot" example from the Sigma.js repository.
  */
-export function exportDiagram(sigma: Sigma, options?: ExportOptions) {
+export function exportDiagram(sigma: Sigma, options?: ExportOptions, logger?: ILogger) {
     options = { ...DEFAULT_EXPORT_OPTIONS, ...options };
 
     let { width, height } = sigma.getDimensions();
@@ -63,7 +64,7 @@ export function exportDiagram(sigma: Sigma, options?: ExportOptions) {
         if (options.includePizzaDough) {
             let pizzaCanvases = tmpRenderer.getContainer().getElementsByClassName("helveg-codepizza");
             if (pizzaCanvases.length === 0) {
-                DEBUG && console.warn("Could not find the codepizza canvas.");
+                logger?.warn("Could not find the codepizza canvas.");
             }
             for (let pizzaCanvas of pizzaCanvases) {
                 ctx.drawImage(
@@ -83,7 +84,7 @@ export function exportDiagram(sigma: Sigma, options?: ExportOptions) {
         if (options.includeEffects) {
             let effectCanvases = tmpRenderer.getContainer().getElementsByClassName("helveg-effects");
             if (effectCanvases.length === 0) {
-                DEBUG && console.warn("Could not find the effects canvas.");
+                logger?.warn("Could not find the effects canvas.");
             }
             for (let effectCanvas of effectCanvases) {
                 ctx.drawImage(

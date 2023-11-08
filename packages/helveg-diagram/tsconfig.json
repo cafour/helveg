@@ -27,7 +27,6 @@
             "ESNext.AsyncIterable",
         ],
         "types": [
-            "./common/debug.d.ts",
             "./common/shaders.d.ts",
             "./common/inlineBundle.d.ts",
             "./deps/graphology-layout-forceatlas2.d.ts"

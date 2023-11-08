@@ -1,4 +1,5 @@
 import { NodeProgramConstructor, AbstractNodeProgram, Sigma, NodeDisplayData, RenderParams } from "../deps/sigma.ts";
+import { ILogger, sublogger } from "../model/logger.ts";
 import { SigmaEffectsExtension } from "./effects.ts";
 import { DEFAULT_FIRE_PROGRAM_OPTIONS, FireProgramOptions } from "./node.fire.ts";
 import createIconProgram, { DEFAULT_ICON_PROGRAM_OPTIONS, IconProgramOptions } from "./node.icon.ts";
@@ -26,7 +27,7 @@ export const DEFAULT_GLYPH_PROGRAM_OPTIONS: GlyphProgramOptions =
     ...DEFAULT_PIZZA_PROGRAM_OPTIONS
 };
 
-export function createGlyphProgram(options: GlyphProgramOptions): NodeProgramConstructor {
+export function createGlyphProgram(options: GlyphProgramOptions, logger?: ILogger): NodeProgramConstructor {
     return class extends AbstractNodeProgram {
         private effects: SigmaEffectsExtension;
         private iconProgram: AbstractNodeProgram;
@@ -41,7 +42,7 @@ export function createGlyphProgram(options: GlyphProgramOptions): NodeProgramCon
             // NB: The effects extension's lifetime is as long as of this program.
             //     This is done on purpose since Sigma creates one instance of each program for "regular" nodes
             //     and one for "hovered" nodes. A separate effects canvas must exist for each kind.
-            this.effects = new SigmaEffectsExtension(options);
+            this.effects = new SigmaEffectsExtension(options, logger ? sublogger(logger, "effects") : undefined);
 
             this.iconProgram = new (createIconProgram(options))(gl, renderer);
             this.outlinesProgram = new (createOutlinesProgram(options))(gl, renderer);
