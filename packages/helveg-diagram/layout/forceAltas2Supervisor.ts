@@ -3,7 +3,7 @@ import { ForceAtlas2Settings, helpers } from "../deps/graphology-layout-forceatl
 import { createEdgeWeightGetter } from "../deps/graphology-utils.ts";
 import Graph, { Attributes, EdgeMapper } from "../deps/graphology.ts";
 import { MessageKind, StartMessage, Message, UpdateMessage, ProgressMessage } from "./forceAtlas2Messages.ts";
-import forceAtlas2WorkerCode from "inline-bundle:./layout/forceAtlas2Worker.ts";
+import forceAtlas2WorkerCode from "inline-bundle:./forceAtlas2Worker.ts";
 
 type GraphMatrices = { nodes: Float32Array, edges: Float32Array };
 

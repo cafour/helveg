@@ -1,12 +1,11 @@
-import { HelvegInstance, initializeHelvegInstance } from "./model/instance.ts";
+import * as helvegGlobal from "./global.ts";
 
 declare global {
     interface Window {
-        helveg: HelvegInstance;
+        helveg: typeof helvegGlobal
     }
 
-    const helveg: HelvegInstance;
+    const helveg: typeof helvegGlobal;
 }
 
-initializeHelvegInstance(window.helveg)
-    .catch(console.error);
+window.helveg = helvegGlobal;

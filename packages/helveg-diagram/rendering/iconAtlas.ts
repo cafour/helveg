@@ -8,7 +8,7 @@ export interface IconAtlasOptions {
     iconSize: number;
 }
 
-export const DEFAULT_OPTIONS: IconAtlasOptions = {
+export const DEFAULT_ICON_ATLAS_OPTIONS: IconAtlasOptions = {
     iconSize: 256
 };
 
@@ -53,7 +53,7 @@ export class IconAtlas {
     private pendingImages: PendingImage[] = [];
 
     constructor(private iconRegistry: IconRegistry, options?: IconAtlasOptions) {
-        this.options = { ...DEFAULT_OPTIONS, ...options };
+        this.options = { ...DEFAULT_ICON_ATLAS_OPTIONS, ...options };
         this.id = ++IconAtlas.atlasId;
         this.width = this.options.iconSize;
         this.height = this.options.iconSize;

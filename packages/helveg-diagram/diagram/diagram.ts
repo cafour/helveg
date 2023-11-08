@@ -17,13 +17,13 @@ import { EdgeStylist, NodeStylist, fallbackEdgeStylist, fallbackNodeStylist } fr
 export interface DiagramOptions {
     glyphProgram: GlyphProgramOptions,
     mainRelation: string,
-    logSeverity: LogSeverity,
+    logLevel: LogSeverity,
     nodeStylist: NodeStylist,
     edgeStylist: EdgeStylist
 }
 
 export const DEFAULT_DIAGRAM_OPTIONS: DiagramOptions = {
-    logSeverity: LogSeverity.Info,
+    logLevel: LogSeverity.Info,
     mainRelation: "contains",
     glyphProgram: DEFAULT_GLYPH_PROGRAM_OPTIONS,
     nodeStylist: fallbackNodeStylist,
@@ -117,7 +117,7 @@ export class Diagram {
     constructor(element: HTMLElement, options?: Partial<DiagramOptions>) {
         this._element = element;
         this._options = { ...DEFAULT_DIAGRAM_OPTIONS, ...options };
-        this._logger = new Logger(options?.logSeverity, "diagram");
+        this._logger = new Logger(options?.logLevel, "diagram");
         this._logger.logged.subscribe(logConsole);
         this._mainRelation = this._options.mainRelation ?? "contains";
         this._glyphProgram = createGlyphProgram(this.options.glyphProgram);
