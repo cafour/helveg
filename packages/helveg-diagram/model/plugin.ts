@@ -1,13 +1,13 @@
 import { HelvegGraph } from "./graph.ts";
 import { Icon, IconRegistry } from "./icons.ts";
-import { NodeStyleGenerator, EdgeStyleGenerator, NodeStyleRegistry, EdgeStyleRegistry } from "./style.ts";
+import { NodeStylist, EdgeStylist, NodeStyleRegistry, EdgeStyleRegistry } from "./style.ts";
 import { VisualizationModel } from "./visualization.ts";
 
 export interface HelvegPlugin {
     name: string;
     icons?: Map<string, Icon>;
-    nodeStyles?: Map<string, NodeStyleGenerator>;
-    edgeStyles?: Map<string, EdgeStyleGenerator>;
+    nodeStyles?: Map<string, NodeStylist>;
+    edgeStyles?: Map<string, EdgeStylist>;
     // uiExtensions?: Map<string, UIExtension>;
     onVisualize?(model: Readonly<VisualizationModel>, graph: HelvegGraph): void;
 }

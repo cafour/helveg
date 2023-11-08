@@ -7,23 +7,32 @@ import { LogSeverity, Logger, logConsole } from "../model/logger.ts";
 import { ForceAtlas2Progress, ForceAtlas2Supervisor } from "../layout/forceAltas2Supervisor.ts";
 import { wheellOfFortune as wheelOfFortune } from "../layout/circular.ts";
 import tidyTree from "../layout/tidyTree.ts";
-import { HelvegSigma, configureSigma, initializeGraph, initializeSigma, initializeSupervisor } from "./initializers.ts";
+import { HelvegSigma, configureSigma, initializeGraph, initializeSigma, initializeSupervisor, styleGraph } from "./initializers.ts";
 import { DEFAULT_GLYPH_PROGRAM_OPTIONS, GlyphProgramOptions, createGlyphProgram } from "../rendering/node.glyph.ts";
 import { exportDiagram } from "../rendering/export.ts";
 import { buildNodeFilter, filterNodes } from "../model/filter.ts";
 import { bfs } from "../model/traversal.ts";
+import { EdgeStylist, NodeStylist, fallbackEdgeStylist, fallbackNodeStylist } from "../model/style.ts";
 
 export interface DiagramOptions {
-    logSeverity?: LogSeverity,
-    mainRelation?: string
-    glyphProgram: GlyphProgramOptions
+    glyphProgram: GlyphProgramOptions,
+    mainRelation: string,
+    logSeverity: LogSeverity,
+    nodeStylist: NodeStylist,
+    edgeStylist: EdgeStylist
 }
 
 export const DEFAULT_DIAGRAM_OPTIONS: DiagramOptions = {
     logSeverity: LogSeverity.Info,
     mainRelation: "contains",
-    glyphProgram: DEFAULT_GLYPH_PROGRAM_OPTIONS
+    glyphProgram: DEFAULT_GLYPH_PROGRAM_OPTIONS,
+    nodeStylist: fallbackNodeStylist,
+    edgeStylist: fallbackEdgeStylist
 };
+
+export interface DiagramRefreshOptions {
+    selectedRelations?: string[]
+}
 
 export enum DiagramMode {
     Normal = "normal",
@@ -50,6 +59,17 @@ export class Diagram {
 
     private _model: VisualizationModel = EMPTY_MODEL;
     get model(): VisualizationModel { return this._model; }
+    set model(value: VisualizationModel) {
+        this._model = value;
+        this._nodeKeys = Object.values(this._model.multigraph.nodes)
+            .flatMap(n => Object.keys(n.properties))
+            .filter((v, i, a) => a.indexOf(v) === i);
+        this.events.modelChanged.trigger(value);
+
+        // NB: Runs without awaiting.
+        this.refreshGraph(this._lastRefreshOptions);
+        this.refreshSigma();
+    }
 
     private _stats: DiagramStats = { iterationCount: -1, speed: -1.0 };
     get stats(): DiagramStats { return this._stats; }
@@ -87,18 +107,27 @@ export class Diagram {
     private _supervisor?: ForceAtlas2Supervisor;
     private _glyphProgram: NodeProgramConstructor;
 
-    constructor(element: HTMLElement, options?: DiagramOptions) {
+    // used when building JS filters
+    // TODO: likely move to its own place somewhere else
+    private _nodeKeys: string[] = [];
+
+    // used for refreshing
+    private _lastRefreshOptions: DiagramRefreshOptions;
+
+    constructor(element: HTMLElement, options?: Partial<DiagramOptions>) {
         this._element = element;
         this._options = { ...DEFAULT_DIAGRAM_OPTIONS, ...options };
         this._logger = new Logger(options?.logSeverity, "diagram");
         this._logger.logged.subscribe(logConsole);
         this._mainRelation = this._options.mainRelation ?? "contains";
         this._glyphProgram = createGlyphProgram(this.options.glyphProgram);
+        this._lastRefreshOptions = { selectedRelations: [this.mainRelation] }
     }
 
     public readonly events = {
         statusChanged: new HelvegEvent<DiagramStatus>("helveg.diagram.statusChanged"),
         modeChanged: new HelvegEvent<DiagramMode>("helveg.diagram.modeChanged"),
+        modelChanged: new HelvegEvent<VisualizationModel>("helveg.diagram.modelChanged"),
         statsChanged: new HelvegEvent<DiagramStats>("helveg.diagram.statsChanged"),
         nodeSelected: new HelvegEvent<string | null>("helveg.diagram.nodeSelected"),
         nodeClicked: new HelvegEvent<string | null>("helveg.diagram.nodeClicked"),
@@ -343,8 +372,9 @@ export class Diagram {
         this._logger.info(`Isolated ${this._graph.nodes().length} nodes.`);
     }
 
-    async refresh(): Promise<void> {
-        await this.refreshGraph();
+
+    async refresh(options?: DiagramRefreshOptions): Promise<void> {
+        await this.refreshGraph(options ?? this._lastRefreshOptions);
         await this.resetLayout();
     }
 
@@ -462,27 +492,22 @@ export class Diagram {
             return;
         }
 
-        let tmpAppearanceOptions = {
-            ...this._appearanceOptions,
-            showLabels: this._appearanceOptions.glyph.showLabels && this.mode == StructuralDiagramMode.Normal
+        const tmpOptions: GlyphProgramOptions = {
+            ...this.options.glyphProgram,
+            showLabels: this.options.glyphProgram.showLabels && this.mode == DiagramMode.Normal
         };
 
-        configureSigma(this._sigma, tmpAppearanceOptions);
+        configureSigma(this._sigma, tmpOptions);
     }
 
-    private async refreshGraph(): Promise<void> {
+    private async refreshGraph(options: DiagramRefreshOptions): Promise<void> {
         if (!this._model || this._model.isEmpty) {
             return;
         }
 
-        DEBUG && console.log(`Refreshing the graph to match the '${this._model.documentInfo.name}' model.`);
+        this._logger.debug(`Refreshing the graph to match the '${this._model.documentInfo.name}' model.`);
 
-        this._graph = initializeGraph(this._model, this._dataOptions);
-        for (let plugin of this._instance.plugins.getAll()) {
-            if (plugin.onVisualize) {
-                plugin.onVisualize(this._model, this._graph);
-            }
-        }
+        this._graph = initializeGraph(this._model, options.selectedRelations ?? [this.mainRelation]);
         this.restyleGraph();
 
         await this.refreshSupervisor(false, () => this._graph && this._sigma?.setGraph(this._graph));
@@ -490,6 +515,21 @@ export class Diagram {
         this._supervisor = initializeSupervisor(this._graph, this.onSupervisorProgress.bind(this));
 
         this.mode = DiagramMode.Normal;
+    }
+
+    private restyleGraph(): void {
+        if (!this._graph || !this._model || this._model.isEmpty) {
+            return;
+        }
+
+        this._logger.debug(`Restyling the graph.`);
+
+        styleGraph(
+            this._graph,
+            this._model,
+            this.options.glyphProgram,
+            this.options.nodeStylist,
+            this.options.edgeStylist);
     }
 
     private onNodeClick(event: SigmaNodeEventPayload): void {
@@ -505,12 +545,12 @@ export class Diagram {
         }
     }
 
-    private onDown(event: Coordinates): void {
+    private onDown(_event: Coordinates): void {
         this._gestures.isCaptorDown = true;
         this._gestures.hasPanned = false;
     }
 
-    private onUp(coords: Coordinates): void {
+    private onUp(_coords: Coordinates): void {
         if (this.draggedNode) {
             this._graph?.setNodeAttribute(this.draggedNode, "highlighted", false);
             this._graph?.setNodeAttribute(this.draggedNode, "fixed", false);

@@ -11,6 +11,7 @@ export interface GlyphProgramOptions
     showIcons: boolean;
     showOutlines: boolean;
     showFire: boolean;
+    showLabels: boolean;
 }
 
 export const DEFAULT_GLYPH_PROGRAM_OPTIONS: GlyphProgramOptions =
@@ -18,6 +19,7 @@ export const DEFAULT_GLYPH_PROGRAM_OPTIONS: GlyphProgramOptions =
     showIcons: true,
     showOutlines: true,
     showFire: true,
+    showLabels: false,
     ...DEFAULT_ICON_PROGRAM_OPTIONS,
     ...DEFAULT_OUTLINES_PROGRAM_OPTIONS,
     ...DEFAULT_FIRE_PROGRAM_OPTIONS,

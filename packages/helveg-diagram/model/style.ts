@@ -78,7 +78,6 @@ export interface NodeStyle {
     fire: FireStatus;
 }
 
-
 export const FALLBACK_NODE_ICON = "base:PolarChart";
 
 export const FALLBACK_NODE_STYLE: NodeStyle = {
@@ -101,43 +100,15 @@ export const FALLBACK_EDGE_STYLE: EdgeStyle = {
     type: "line"
 };
 
-export type StyleGenerator<TObject, TStyle> = (object: TObject) => TStyle;
-export type NodeStyleGenerator = StyleGenerator<MultigraphNode, NodeStyle>;
-export type EdgeStyleGenerator = StyleGenerator<{relation: string, edge: MultigraphEdge}, EdgeStyle>;
+export type NodeStylist = (node: MultigraphNode) => NodeStyle;
+export type EdgeStylist = (relation: string, edge: MultigraphEdge) => EdgeStyle;
 
-export class StyleRegistry<TObject, TStyle> {
-    private styles = new Map<string, StyleGenerator<TObject, TStyle>>();
-
-    constructor(private fallback: TStyle) {
-    }
-
-    register(name: string, style: StyleGenerator<TObject, TStyle>): void {
-        if (this.styles.has(name)) {
-            throw new Error(`The registry already contains a style named '${name}'.`);
-        }
-
-        this.styles.set(name, style);
-    }
-
-    get(name: string): StyleGenerator<TObject, TStyle> {
-        let style = this.styles.get(name);
-        if (!style) {
-            DEBUG && console.log(`Could not find the '${name}' style.`);
-            return () => this.fallback;
-        }
-
-        return style;
-    }
+export function fallbackNodeStylist(_node: MultigraphNode): NodeStyle
+{
+    return FALLBACK_NODE_STYLE;
 }
 
-export class NodeStyleRegistry extends StyleRegistry<MultigraphNode, NodeStyle> {
-    constructor() {
-        super(FALLBACK_NODE_STYLE);
-    }
-}
-
-export class EdgeStyleRegistry extends StyleRegistry<{relation: string, edge: MultigraphEdge}, EdgeStyle> {
-    constructor() {
-        super(FALLBACK_EDGE_STYLE);
-    }
+export function fallbackEdgeStylist(_relation: string, _edge: MultigraphEdge)
+{
+    return FALLBACK_EDGE_STYLE;
 }

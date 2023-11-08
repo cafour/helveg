@@ -3,7 +3,7 @@ import { HelvegGraph, findRoots, expandNode } from "../model/graph.ts";
 import { MultigraphNode, MultigraphDiagnosticSeverity, MultigraphEdge } from "../model/multigraph.ts";
 import { HelvegOptions } from "../model/options.ts";
 import { HelvegPlugin } from "../model/plugin.ts";
-import { EdgeStyle, EdgeStyleGenerator, FALLBACK_EDGE_STYLE, FireStatus, NodeStyle, NodeStyleGenerator, OutlineStyle } from "../model/style.ts";
+import { EdgeStyle, EdgeStylist, FALLBACK_EDGE_STYLE, FireStatus, NodeStyle, NodeStylist, OutlineStyle } from "../model/style.ts";
 import { bfs } from "../model/traversal.ts";
 import { VisualizationModel } from "../model/visualization.ts";
 import { CSharpDataOptions, CSharpGlyphOptions, CSharpGlyphSizingMode, CSharpNodeProperties, DEFAULT_CSHARP_DATA_OPTIONS, DEFAULT_CSHARP_GLYPH_OPTIONS, DefaultRelationColors, EntityKind, FALLBACK_STYLE, MemberAccessibility, MethodKind, Relations, TypeKind, VSColor } from "./model.ts";
@@ -23,8 +23,8 @@ export class CSharpPlugin implements HelvegPlugin {
     name = "csharp";
     csharpDataOptions: CSharpDataOptions = { ...DEFAULT_CSHARP_DATA_OPTIONS };
     csharpGlyphOptions: CSharpGlyphOptions = { ...DEFAULT_CSHARP_GLYPH_OPTIONS };
-    nodeStyles: Map<string, NodeStyleGenerator> = new Map();
-    edgeStyles: Map<string, EdgeStyleGenerator> = new Map();
+    nodeStyles: Map<string, NodeStylist> = new Map();
+    edgeStyles: Map<string, EdgeStylist> = new Map();
 
     constructor(public options: HelvegOptions) {
         let plugin = this;
@@ -347,7 +347,7 @@ export class CSharpPlugin implements HelvegPlugin {
         }
         return base;
     }
-    
+
     private resolvePizzaNodeStyle(
         props: CSharpNodeProperties,
         csharpGlyphOptions: CSharpGlyphOptions): Partial<NodeStyle> {

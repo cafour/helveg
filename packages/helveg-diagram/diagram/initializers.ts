@@ -3,8 +3,10 @@ import Graph from "../deps/graphology.ts";
 import Sigma, { Coordinates, DEFAULT_SETTINGS, NodeProgramConstructor, SigmaNodeEventPayload, SigmaStageEventPayload } from "../deps/sigma.ts";
 import { ForceAtlas2Progress, ForceAtlas2Supervisor } from "../layout/forceAltas2Supervisor.ts";
 import { HelvegEdgeAttributes, HelvegGraph, HelvegNodeAttributes } from "../model/graph.ts";
-import { AppearanceOptions, DataOptions } from "../model/options.ts";
+import { Logger } from "../model/logger.ts";
+import { EdgeStylist, NodeStylist, OutlineStyle, Outlines, getOutlinesTotalWidth } from "../model/style.ts";
 import { VisualizationModel } from "../model/visualization.ts";
+import { GlyphProgramOptions } from "../rendering/node.glyph.ts";
 
 export function initializeSupervisor(
     graph: HelvegGraph,
@@ -100,10 +102,10 @@ export function initializeSigma(
 
 export function configureSigma(
     sigma: HelvegSigma,
-    appearanceOptions: AppearanceOptions
+    options: GlyphProgramOptions
 ) {
-    sigma.setSetting("renderLabels", appearanceOptions.glyph.showLabels);
-    if (appearanceOptions.codePizza.isEnabled) {
+    sigma.setSetting("renderLabels", options.showLabels);
+    if (options.isPizzaEnabled) {
         sigma.setSetting("zoomToSizeRatioFunction", (cameraRatio) => cameraRatio);
         sigma.setSetting("hoverRenderer", () => { });
         sigma[isHoverEnabledSymbol] = false;
@@ -116,7 +118,7 @@ export function configureSigma(
 
 export function initializeGraph(
     model: VisualizationModel,
-    dataOptions: DataOptions,
+    selectedRelations: string[]
 ): HelvegGraph {
 
     const graph = new Graph<HelvegNodeAttributes, HelvegEdgeAttributes>({
@@ -134,7 +136,7 @@ export function initializeGraph(
         });
     }
 
-    for (const relationId of dataOptions.selectedRelations) {
+    for (const relationId of selectedRelations) {
         const relation = model.multigraph.relations[relationId];
         if (!relation) {
             continue;
@@ -153,4 +155,63 @@ export function initializeGraph(
     }
 
     return graph;
+}
+
+export function styleGraph(
+    graph: HelvegGraph,
+    model: VisualizationModel,
+    glyphProgramOptions: GlyphProgramOptions,
+    nodeStylist: NodeStylist,
+    edgeStylist: EdgeStylist,
+    logger?: Logger) {
+
+    graph.forEachNode((node, attributes) => {
+        if (!attributes.style) {
+            logger?.debug(`Node '${node}' is missing a style attribute.`);
+            return;
+        }
+
+        if (!model.multigraph.nodes[node]) {
+            logger?.debug(`Node '${node}' does not exist in the model.`);
+            return;
+        }
+
+        const nodeStyle = nodeStylist(model.multigraph.nodes[node]);
+        if (!nodeStyle) {
+            logger?.debug(`Node style '${attributes.style}' could not be applied to node '${node}'.`);
+        }
+
+        const outlines = [
+            { width: nodeStyle.size, style: OutlineStyle.Solid },
+            ...nodeStyle.outlines.slice(0, 3),
+        ] as Outlines;
+        attributes.size = glyphProgramOptions.showOutlines && outlines.length > 0
+            ? getOutlinesTotalWidth(outlines)
+            : nodeStyle.size;
+        attributes.iconSize = nodeStyle.size;
+        attributes.color = nodeStyle.color;
+        attributes.type = "glyph";
+        attributes.icon = nodeStyle.icon;
+        attributes.outlines = outlines;
+        attributes.fire = nodeStyle.fire;
+    });
+
+    graph.forEachEdge((edge, attributes) => {
+        if (!attributes.style || !attributes.relation) {
+            return;
+        }
+
+        const edgeStyle = edgeStylist(
+            attributes.relation,
+            model.multigraph.relations[attributes.relation].edges[edge]
+        );
+        if (!edgeStyle) {
+            DEBUG && console.log(`Edge style '${attributes.style}' could not be applied to edge '${edge}'.`);
+            return;
+        }
+
+        attributes.type = edgeStyle.type;
+        attributes.color = edgeStyle.color;
+        attributes.size = edgeStyle.width;
+    });
 }
