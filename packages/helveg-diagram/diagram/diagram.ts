@@ -3,7 +3,7 @@ import { HelvegGraph, findRoots, toggleNode } from "../model/graph.ts";
 import { EMPTY_MODEL, VisualizationModel } from "../model/visualization.ts";
 import { Coordinates, NodeProgramConstructor, Sigma, SigmaNodeEventPayload } from "../deps/sigma.ts";
 import { CutToolOptions, DEFAULT_CUT_TOOL_OPTIONS, DEFAULT_EXPORT_OPTIONS, ExportOptions, SearchMode } from "../model/options.ts";
-import { LogSeverity, Logger, logConsole } from "../model/logger.ts";
+import { LogSeverity, ILogger, consoleLogger } from "../model/logger.ts";
 import { ForceAtlas2Progress, ForceAtlas2Supervisor } from "../layout/forceAltas2Supervisor.ts";
 import { wheellOfFortune as wheelOfFortune } from "../layout/circular.ts";
 import tidyTree from "../layout/tidyTree.ts";
@@ -16,7 +16,7 @@ import { EdgeStylist, NodeStylist, fallbackEdgeStylist, fallbackNodeStylist } fr
 
 export interface DiagramOptions {
     glyphProgram: GlyphProgramOptions,
-    mainRelation: string,
+    mainRelation: string | null,
     logLevel: LogSeverity,
     nodeStylist: NodeStylist,
     edgeStylist: EdgeStylist
@@ -24,7 +24,7 @@ export interface DiagramOptions {
 
 export const DEFAULT_DIAGRAM_OPTIONS: DiagramOptions = {
     logLevel: LogSeverity.Info,
-    mainRelation: "contains",
+    mainRelation: null,
     glyphProgram: DEFAULT_GLYPH_PROGRAM_OPTIONS,
     nodeStylist: fallbackNodeStylist,
     edgeStylist: fallbackEdgeStylist
@@ -75,9 +75,12 @@ export class Diagram {
     get stats(): DiagramStats { return this._stats; }
     private set stats(value: DiagramStats) { this._stats = value; this.events.statsChanged.trigger(value); }
 
-    private _mainRelation: string;
-    get mainRelation(): string { return this._mainRelation; }
-    set mainRelation(value: string) { this._mainRelation = value; this.events.mainRelationChanged.trigger(value); }
+    private _mainRelation: string | null;
+    get mainRelation(): string | null { return this._mainRelation; }
+    set mainRelation(value: string | null) {
+        this._mainRelation = value;
+        this.events.mainRelationChanged.trigger(value);
+    }
 
     private _status: DiagramStatus = DiagramStatus.Stopped;
     get status(): DiagramStatus { return this._status; }
@@ -99,8 +102,8 @@ export class Diagram {
     get draggedNode(): string | null { return this._draggedNode; };
     private set draggedNode(value: string | null) { this._draggedNode = value; }
 
-    private _logger: Logger;
-    get logger(): Logger { return this._logger; }
+    private _logger: ILogger;
+    get logger(): ILogger { return this._logger; }
 
     private _graph?: HelvegGraph;
     private _sigma?: HelvegSigma;
@@ -117,11 +120,10 @@ export class Diagram {
     constructor(element: HTMLElement, options?: Partial<DiagramOptions>) {
         this._element = element;
         this._options = { ...DEFAULT_DIAGRAM_OPTIONS, ...options };
-        this._logger = new Logger(options?.logLevel, "diagram");
-        this._logger.logged.subscribe(logConsole);
-        this._mainRelation = this._options.mainRelation ?? "contains";
-        this._glyphProgram = createGlyphProgram(this.options.glyphProgram);
-        this._lastRefreshOptions = { selectedRelations: [this.mainRelation] };
+        this._logger = consoleLogger("diagram", this._options.logLevel);
+        this._mainRelation = this._options.mainRelation;
+        this._glyphProgram = createGlyphProgram(this.options.glyphProgram, this._logger);
+        this._lastRefreshOptions = { selectedRelations: this.mainRelation ? [this.mainRelation] : [] };
 
         this.element.style.width = "100%";
         this.element.style.height = "100%";
@@ -154,15 +156,20 @@ export class Diagram {
             return;
         }
 
-        this._logger.debug("Resetting the layout.");
-
         if (this._supervisor?.isRunning) {
             await this.stopLayout();
         }
 
         await this.refreshSupervisor();
 
-        let roots = findRoots(this._graph, this._mainRelation);
+        if (!this.mainRelation) {
+            this._logger.debug("Cannot reset layout since no relation is selected as main.");
+            return;
+        }
+
+        this._logger.debug("Resetting the layout.");
+
+        let roots = findRoots(this._graph, this.mainRelation);
         let i = 0;
         let { radius, theta } = roots.size <= 1 ? { radius: 0, theta: 0 } : wheelOfFortune(1000, roots.size);
         radius = Math.min(radius, 4000);
@@ -271,7 +278,7 @@ export class Diagram {
 
     highlight(searchText: string | null, searchMode: SearchMode): void {
         if (!this._graph) {
-            DEBUG && console.warn("Cannot highlight nodes since the graph is not initialized.");
+            this._logger.warn("Cannot highlight nodes since the graph is not initialized.");
             return;
         }
 
@@ -307,7 +314,7 @@ export class Diagram {
 
     highlightNode(nodeId: string | null, includeSubtree: boolean, includeNeighbors: boolean) {
         if (nodeId === null) {
-            DEBUG && console.log("Clearing node highlights.");
+            this._logger.debug("Clearing node highlights.");
             this._graph?.forEachNode((_, a) => a.highlighted = undefined);
             this._sigma?.refresh();
             this.mode = DiagramMode.Normal;
@@ -342,7 +349,7 @@ export class Diagram {
 
     async isolate(searchText: string | null, searchMode: SearchMode): Promise<void> {
         if (!this._graph) {
-            DEBUG && console.warn("Cannot isolate nodes since the graph is not initialized.");
+            this._logger.warn("Cannot isolate nodes since the graph is not initialized.");
             return;
         }
 
@@ -385,7 +392,7 @@ export class Diagram {
         options = { ...DEFAULT_CUT_TOOL_OPTIONS, ...options };
 
         if (!this._graph) {
-            DEBUG && console.warn("Cannot cut nodes since the graph is not initialized.");
+            this._logger.warn("Cannot cut nodes since the graph is not initialized.");
             return;
         }
 
@@ -409,7 +416,7 @@ export class Diagram {
 
     async toggleNode(nodeId: string): Promise<void> {
         if (!this._graph) {
-            DEBUG && console.warn("Cannot toggle nodes since the graph is not initialized.");
+            this._logger.warn("Cannot toggle nodes since the graph is not initialized.");
             return;
         }
 
@@ -441,7 +448,7 @@ export class Diagram {
                 return;
             }
 
-            this._supervisor = initializeSupervisor(this._graph, this.onSupervisorProgress.bind(this));
+            this._supervisor = initializeSupervisor(this._graph, this.onSupervisorProgress.bind(this), this.logger);
             if (shouldLayoutContinue
                 && (lastStatus === DiagramStatus.Running || lastStatus === DiagramStatus.RunningInBackground)) {
                 await this._supervisor.start(lastStatus === DiagramStatus.RunningInBackground);
@@ -511,12 +518,13 @@ export class Diagram {
 
         this._logger.debug(`Refreshing the graph to match the '${this._model.documentInfo.name}' model.`);
 
-        this._graph = initializeGraph(this._model, options.selectedRelations ?? [this.mainRelation]);
+        this._graph = initializeGraph(
+            this._model,
+            options.selectedRelations ?? (this.mainRelation ? [this.mainRelation] : []),
+            this.logger);
         this.restyleGraph();
 
         await this.refreshSupervisor(false, () => this._graph && this._sigma?.setGraph(this._graph));
-
-        this._supervisor = initializeSupervisor(this._graph, this.onSupervisorProgress.bind(this));
 
         this.mode = DiagramMode.Normal;
     }

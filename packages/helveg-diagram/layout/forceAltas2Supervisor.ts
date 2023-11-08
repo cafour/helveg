@@ -2,6 +2,7 @@ import { HelvegEvent } from "../common/event.ts";
 import { ForceAtlas2Settings, helpers } from "../deps/graphology-layout-forceatlas2.ts";
 import { createEdgeWeightGetter } from "../deps/graphology-utils.ts";
 import Graph, { Attributes, EdgeMapper } from "../deps/graphology.ts";
+import { ILogger } from "../model/logger.ts";
 import { MessageKind, StartMessage, Message, UpdateMessage, ProgressMessage } from "./forceAtlas2Messages.ts";
 import forceAtlas2WorkerCode from "inline-bundle:./forceAtlas2Worker.ts";
 
@@ -24,7 +25,7 @@ export class ForceAtlas2Supervisor {
     private lastPerformanceTime: number = 0;
     private matrices: GraphMatrices = { nodes: new Float32Array(0), edges: new Float32Array(0) };
 
-    constructor(private graph: Graph, private settings: ForceAtlas2Settings) {
+    constructor(private graph: Graph, private settings: ForceAtlas2Settings, private logger?: ILogger) {
         this.graph.on("nodeAdded", this.handleGraphUpdate);
         this.graph.on("edgeAdded", this.handleGraphUpdate);
         this.graph.on("nodeDropped", this.handleGraphUpdate);
@@ -95,7 +96,7 @@ export class ForceAtlas2Supervisor {
 
     stop(): Promise<void> {
         if (!this.worker || !this.running) {
-            DEBUG && console.log("Worker is not running, nothing to stop.");
+            this.logger?.debug("Worker is not running, nothing to stop.");
             return Promise.resolve();
         }
 
@@ -104,7 +105,7 @@ export class ForceAtlas2Supervisor {
             this.running = false;
             let killTimeout = setTimeout(() => {
                 this.kill();
-                DEBUG && console.warn("Timed out while waiting for the worker to stop.");
+                this.logger?.warn("Timed out while waiting for the worker to stop.");
                 this.stopped.trigger();
                 resolve();
             }, 1000);
@@ -112,12 +113,12 @@ export class ForceAtlas2Supervisor {
                 clearTimeout(killTimeout);
                 this.stopped.trigger();
 
-                DEBUG && console.log("Worker stopped.");
+                this.logger?.debug("Worker stopped.");
                 resolve();
             });
         });
 
-        DEBUG && console.log("Stopping the worker.");
+        this.logger?.debug("Stopping the worker.");
         this.worker.postMessage({
             kind: MessageKind.Stop
         });

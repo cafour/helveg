@@ -2,12 +2,12 @@ import { csharpEdgeStylist, csharpNodeStylist } from "./csharp/style.ts";
 import { Diagram } from "./diagram/diagram.ts";
 import { IconRegistry, IconSet } from "./model/icons.ts";
 import { DEFAULT_ICON_ATLAS_OPTIONS } from "./rendering/iconAtlas.ts"
-import { LogSeverity } from "./model/logger.ts";
+import { LogSeverity, consoleLogger } from "./model/logger.ts";
 import { EdgeStylist, NodeStylist } from "./model/style.ts";
 import { EMPTY_MODEL, VisualizationModel } from "./model/visualization.ts";
 import { IconAtlas } from "./rendering/iconAtlas.ts";
 import { DEFAULT_GLYPH_PROGRAM_OPTIONS } from "./rendering/node.glyph.ts";
-import { loadJsonScript, loadJsonScripts, requireJsonScript } from "./model/data.ts";
+import { loadJsonScripts, requireJsonScript } from "./model/data.ts";
 
 export interface CreateDiagramOptions {
     element: HTMLElement | null,
@@ -16,7 +16,7 @@ export interface CreateDiagramOptions {
     logLevel: LogSeverity,
     nodeStylist: NodeStylist,
     edgeStylist: EdgeStylist,
-    mainRelation: string,
+    mainRelation: string | null,
     iconSize: number
 }
 
@@ -27,7 +27,7 @@ export const DEFAULT_CREATE_DIAGRAM_OPTIONS: CreateDiagramOptions = {
     element: null,
     nodeStylist: csharpNodeStylist,
     edgeStylist: csharpEdgeStylist,
-    mainRelation: "contains",
+    mainRelation: null,
     iconSize: DEFAULT_ICON_ATLAS_OPTIONS.iconSize
 };
 
@@ -40,14 +40,14 @@ export function createDiagram(options?: Partial<CreateDiagramOptions>): Diagram 
         }
     }
 
-    const iconRegistry = new IconRegistry();
+    const iconRegistry = new IconRegistry(consoleLogger("iconRegistry", opts.logLevel));
     opts.iconSets?.forEach(s => iconRegistry.register(s));
 
     const diagram = new Diagram(opts.element, {
         logLevel: opts.logLevel,
         nodeStylist: opts.nodeStylist,
         edgeStylist: opts.edgeStylist,
-        mainRelation: opts.mainRelation,
+        mainRelation: opts.mainRelation ?? Object.keys(opts.model.multigraph.relations).sort()[0] ?? null,
         glyphProgram: {
             ...DEFAULT_GLYPH_PROGRAM_OPTIONS,
             iconAtlas: new IconAtlas(iconRegistry, { iconSize: opts.iconSize })

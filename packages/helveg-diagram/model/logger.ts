@@ -32,10 +32,30 @@ export interface LogEntry {
     category?: string;
 }
 
-export class Logger {
+type LogHandler = (entry: LogEntry) => void;
+
+export interface ILogger {
+    get logged(): HelvegEvent<LogEntry>;
+    get category(): string;
+
+    log(entry: LogEntry): void;
+    debug(message: string): void;
+    info(message: string): void;
+    warn(message: string): void;
+    error(message: string): void;
+    success(message: string): void;
+}
+
+export class Logger implements ILogger {
     private _logged = new HelvegEvent<LogEntry>("helveg.logger.logged", true);
 
-    constructor(public minSeverity: LogSeverity = LogSeverity.Info, public category?: string) {
+    constructor(
+        public category: string,
+        public minSeverity: LogSeverity = LogSeverity.Info,
+        defaultLogHandler?: LogHandler) {
+        if (defaultLogHandler) {
+            this._logged.subscribe(defaultLogHandler);
+        }
     }
 
     get logged(): HelvegEvent<LogEntry> {
@@ -66,6 +86,43 @@ export class Logger {
     }
 
     success(message: string) {
+        this.log({ message: message, timestamp: new Date(), severity: LogSeverity.Success });
+    }
+}
+
+export class Sublogger implements ILogger {
+    private _logged = new HelvegEvent<LogEntry>("helveg.logger.logged", true);
+
+    constructor(
+        public parent: ILogger,
+        public category: string,
+        public minSeverity?: LogSeverity) {
+    }
+    get logged(): HelvegEvent<LogEntry> {
+        return this._logged;
+    }
+
+    log(entry: LogEntry): void {
+        if (!this.minSeverity || entry.severity >= this.minSeverity) {
+            const category = `${this.parent.category}::${entry.category ?? this.category}`
+            const categorizedEntry = { ...entry, category: category };
+            this._logged.trigger(categorizedEntry);
+            this.parent.log(categorizedEntry);
+        }
+    }
+    debug(message: string): void {
+        this.log({ message: message, timestamp: new Date(), severity: LogSeverity.Debug });
+    }
+    info(message: string): void {
+        this.log({ message: message, timestamp: new Date(), severity: LogSeverity.Info });
+    }
+    warn(message: string): void {
+        this.log({ message: message, timestamp: new Date(), severity: LogSeverity.Warning });
+    }
+    error(message: string): void {
+        this.log({ message: message, timestamp: new Date(), severity: LogSeverity.Error });
+    }
+    success(message: string): void {
         this.log({ message: message, timestamp: new Date(), severity: LogSeverity.Success });
     }
 }
@@ -105,3 +162,16 @@ export function logConsole(entry: LogEntry) {
             return console.log(formatted);
     }
 }
+
+export function consoleLogger(
+    category: string,
+    minSeverity: LogSeverity = LogSeverity.Info) {
+    return new Logger(category, minSeverity, logConsole);
+}
+
+export function sublogger(
+    parent: ILogger,
+    category: string,
+    minSeverity?: LogSeverity) {
+    return new Sublogger(parent, category, minSeverity);
+};

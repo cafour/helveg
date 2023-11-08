@@ -12,10 +12,10 @@
     "homepage": "https://helveg.net",
     "scripts": {
         "check": "tsc --noEmit -p ./tsconfig.json",
-        "watch:check": "npm run tsc -- --watch",
+        "watch:check": "npm run check -- --watch",
         "bundle": "tsx eng/bundle.ts",
         "watch:bundle": "npm run bundle -- --watch",
-        "serve": "npm run bundle -- --serve --sourcemap"
+        "serve": "concurrently --kill-others -r \"npm run bundle -- --serve --sourcemap\" \"npm run watch:check\""
     },
     "dependencies": {
         "@types/d3-hierarchy": "^3.1.2",

@@ -1,4 +1,5 @@
 import { HelvegEvent } from "../common/event.ts";
+import { ILogger } from "./logger.ts";
 
 export enum IconFormat {
     Unknown = "Unknown",
@@ -44,6 +45,9 @@ export const FALLBACK_ICON: Icon = {
 export class IconRegistry {
     private sets: Record<string, IconSet> = {};
     private _setAdded = new HelvegEvent<string>("helveg.IconRegistry.setAdded", true);
+    
+    constructor(public logger?: ILogger) {
+    }
 
     register(set: IconSet) {
         if (this.sets[set.namespace]) {
@@ -66,13 +70,13 @@ export class IconRegistry {
         const iconSet = this.sets[namespace];
         let icon: Icon | null = null;
         if (!iconSet) {
-            DEBUG && console.warn(`Icon set for namespace '${namespace}' could not be found. Using fallback icon.`)
+            this.logger?.warn(`Icon set for namespace '${namespace}' could not be found. Using fallback icon.`)
             icon = FALLBACK_ICON;
         }
         else {
             icon = structuredClone(iconSet.icons[iconName]);
             if (!icon) {
-                DEBUG && console.warn(`Icon '${name}' could not be found. Using fallback icon.`);
+                this.logger?.warn(`Icon '${name}' could not be found. Using fallback icon.`);
                 icon = FALLBACK_ICON;
             }
         }

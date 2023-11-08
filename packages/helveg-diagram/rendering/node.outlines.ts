@@ -1,6 +1,5 @@
 import { NodeProgramConstructor, Sigma, NodeProgram, ProgramDefinition, RenderParams, floatColor } from "../deps/sigma.ts";
 import { HelvegNodeAttributes } from "../model/graph.ts";
-import { StructuralDiagramMode } from "../model/structural.ts";
 import { FALLBACK_NODE_STYLE, floatOutlineWidths, floatOutlineStyles } from "../model/style.ts";
 import vertSrc from "./shaders/node.outlines.vert";
 import fragSrc from "./shaders/node.outlines.frag";

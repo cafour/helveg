@@ -33,8 +33,10 @@
         window.diagram = helveg.createDiagram({
             iconSets: iconSets,
             logLevel: 0,
-            model: model
+            model: model,
+            mainRelation: "declares"
         });
+        await window.diagram.resetLayout();
     </script>
 
     <script type="text/javascript">
