@@ -26,8 +26,8 @@ const mod = await esbuild.context({
       watch: true,
       resolveFrom: "cwd",
       assets: {
-        from: "./eng/template.html",
-        to: "./dist/index.html"
+        from: ["./eng/template/*"],
+        to: ["./dist"]
       }
     })
   ],

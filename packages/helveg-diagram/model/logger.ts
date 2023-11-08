@@ -73,7 +73,11 @@ export class Logger {
 export function formatEntry(entry: LogEntry): string {
     let result = "";
     if (entry.timestamp) {
-        result += '[' + entry.timestamp.toTimeString() + "] ";
+        const hour = entry.timestamp.getHours().toString().padStart(2, "0");
+        const minute = entry.timestamp.getMinutes().toString().padStart(2, "0");
+        const second = entry.timestamp.getSeconds().toString().padStart(2, "0");
+        const millisecond = entry.timestamp.getMilliseconds().toString().padStart(3, "0");
+        result += `[${hour}:${minute}:${second}.${millisecond}] `;
     }
 
     let severityName = getSeverityName(entry.severity);

@@ -121,7 +121,10 @@ export class Diagram {
         this._logger.logged.subscribe(logConsole);
         this._mainRelation = this._options.mainRelation ?? "contains";
         this._glyphProgram = createGlyphProgram(this.options.glyphProgram);
-        this._lastRefreshOptions = { selectedRelations: [this.mainRelation] }
+        this._lastRefreshOptions = { selectedRelations: [this.mainRelation] };
+
+        this.element.style.width = "100%";
+        this.element.style.height = "100%";
     }
 
     public readonly events = {
@@ -502,6 +505,7 @@ export class Diagram {
 
     private async refreshGraph(options: DiagramRefreshOptions): Promise<void> {
         if (!this._model || this._model.isEmpty) {
+            this._logger.debug("Ignoring graph refresh since the model is empty.");
             return;
         }
 

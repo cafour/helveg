@@ -7,7 +7,7 @@ import { EdgeStylist, NodeStylist } from "./model/style.ts";
 import { EMPTY_MODEL, VisualizationModel } from "./model/visualization.ts";
 import { IconAtlas } from "./rendering/iconAtlas.ts";
 import { DEFAULT_GLYPH_PROGRAM_OPTIONS } from "./rendering/node.glyph.ts";
-import { loadJsonScript, loadJsonScripts } from "./model/data.ts";
+import { loadJsonScript, loadJsonScripts, requireJsonScript } from "./model/data.ts";
 
 export interface CreateDiagramOptions {
     element: HTMLElement | null,
@@ -43,7 +43,7 @@ export function createDiagram(options?: Partial<CreateDiagramOptions>): Diagram 
     const iconRegistry = new IconRegistry();
     opts.iconSets?.forEach(s => iconRegistry.register(s));
 
-    return new Diagram(opts.element, {
+    const diagram = new Diagram(opts.element, {
         logLevel: opts.logLevel,
         nodeStylist: opts.nodeStylist,
         edgeStylist: opts.edgeStylist,
@@ -53,17 +53,18 @@ export function createDiagram(options?: Partial<CreateDiagramOptions>): Diagram 
             iconAtlas: new IconAtlas(iconRegistry, { iconSize: opts.iconSize })
         }
     })
+    diagram.model = opts.model;
+    return diagram;
 }
 
-export async function loadIconSet(element: HTMLElement): Promise<IconSet> {
-    const result = await loadJsonScript<IconSet>(element);
-    if (!result) {
-        throw new Error(`No iconSet could be read from element ${element}.`);
-    }
-
-    return result;
+export function loadIconSet(element: HTMLElement): Promise<IconSet> {
+    return requireJsonScript(element);
 }
 
 export function loadIconSets(selector: string): Promise<IconSet[]> {
     return loadJsonScripts(selector);
+}
+
+export function loadModel(element: HTMLElement): Promise<VisualizationModel> {
+    return requireJsonScript(element);
 }
