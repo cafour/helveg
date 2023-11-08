@@ -1,23 +1,17 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
         {
             "request": "launch",
-            "name": "Launch Program",
+            "name": "Bundle",
             "type": "node",
-            "program": "${workspaceFolder}/mod.ts",
+            "program": "${workspaceFolder}/eng/bundle.ts",
             "cwd": "${workspaceFolder}",
-            "runtimeExecutable": "C:\\Users\\Adam\\scoop\\shims\\deno.EXE",
             "runtimeArgs": [
-                "run",
-                "--unstable",
-                "--inspect-wait",
-                "--allow-all"
+                "tsx"
             ],
-            "attachSimplePort": 9229
+            "runtimeExecutable": "npx",
+            "internalConsoleOptions": "openOnSessionStart"
         }
     ]
 }

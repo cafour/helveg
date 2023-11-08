@@ -3,7 +3,6 @@ import inlineBundlePlugin from "./inlineBundle.ts";
 
 const mod = await esbuild.context({
   entryPoints: ["./mod.ts"],
-  globalName: "helveg",
   outfile: "./dist/helveg-diagram.js",
   platform: "browser",
   target: "esnext",
