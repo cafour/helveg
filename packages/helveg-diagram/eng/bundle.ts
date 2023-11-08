@@ -6,7 +6,9 @@ import { hideBin } from "yargs/helpers";
 
 const argv = yargs(hideBin(process.argv))
   .options({
-    watch: { type: "boolean", default: false }
+    watch: { type: "boolean", default: false },
+    serve: { type: "boolean", default: false },
+    sourcemap: { type: "boolean", default: false }
   }).parseSync();
 
 const mod = await esbuild.context({
@@ -16,6 +18,7 @@ const mod = await esbuild.context({
   target: "esnext",
   format: "iife",
   tsconfig: "./tsconfig.json",
+  sourcemap: argv.sourcemap,
   bundle: true,
   plugins: [
     inlineBundlePlugin(),
@@ -36,10 +39,18 @@ const mod = await esbuild.context({
   },
 });
 
-if (argv.watch) {
+if (argv.watch || argv.serve) {
   await mod.watch();
 }
 else {
   await mod.rebuild();
   await mod.dispose();
+}
+
+if (argv.serve) {
+  await mod.serve({
+    servedir: "./dist/",
+    port: 44342,
+    host: "0.0.0.0"
+  })
 }

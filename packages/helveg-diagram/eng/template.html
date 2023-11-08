@@ -17,7 +17,11 @@
 
     <script type="application/json" class="helveg-icons" src="./icons-csharp.json"></script>
 
-    <script type="text/javascript" src="./helveg.js"></script>
+    <script type="text/javascript" src="./helveg-diagram.js"></script>
+
+    <script type="text/javascript">
+        new EventSource('/esbuild').addEventListener('change', () => location.reload())
+    </script>
 </body>
 
 </html>
