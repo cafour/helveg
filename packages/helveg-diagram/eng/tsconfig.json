@@ -21,7 +21,8 @@
         "allowImportingTsExtensions": true,
         "noEmit": true,
         "types": [
-            "node"
+            "node",
+            "yargs"
         ]
     },
     "include": [
