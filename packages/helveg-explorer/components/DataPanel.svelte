@@ -7,26 +7,26 @@
     import { AppIcons, AppPanels } from "../const.ts";
     import ResizingTextarea from "./ResizingTextarea.svelte";
     import ToggleAllCheckbox from "./ToggleAllCheckbox.svelte";
-    import type { SearchMode, VisualizationModel } from "../deps/helveg-diagram.ts";
+    import { SearchMode, type VisualizationModel } from "../deps/helveg-diagram.ts";
     import type { Readable, Writable } from "svelte/store";
 
     let dispatch = createEventDispatcher();
 
     let searchModes = [
         {
-            value: helveg.SearchMode.Contains,
+            value: SearchMode.Contains,
             icon: AppIcons.ContainsMode,
         },
         {
-            value: helveg.SearchMode.Regex,
+            value: SearchMode.Regex,
             icon: AppIcons.RegexMode,
         },
         {
-            value: helveg.SearchMode.JavaScript,
+            value: SearchMode.JavaScript,
             icon: AppIcons.JavaScriptMode,
         },
     ];
-    let selectedSearchMode = helveg.SearchMode.Contains;
+    let selectedSearchMode = SearchMode.Contains;
     let searchText: string = "";
 
     let model = getContext<Readable<VisualizationModel>>("model");

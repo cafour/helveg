@@ -1,21 +1,21 @@
 <script lang="ts">
-    import type { IconOptions, Icon} from "../deps/helveg-diagram.ts";
+    import { type IconOptions, type Icon, type Diagram, IconFormat} from "../deps/helveg-diagram.ts";
     import { readable, type Readable } from "svelte/store";
     import { getContext } from "svelte";
     export let name: string;
     export let title: string | null = null;
     export let theme: string | null = null;
     
-    let instance = getContext<HelvegInstance>("helveg");
+    let icons = getContext<Diagram>("diagram").options.iconRegistry;
 
     function getIconReadable(
         name: string,
         options?: IconOptions
     ): Readable<Icon> {
-        return readable(instance.icons.get(name, options), set => {
-            let update = () => set(instance.icons.get(name, options));
-            instance.icons.setAdded.subscribe(update);
-            return () => instance.icons.setAdded.unsubscribe(update);
+        return readable(icons.get(name, options), set => {
+            let update = () => set(icons.get(name, options));
+            icons.setAdded.subscribe(update);
+            return () => icons.setAdded.unsubscribe(update);
         });
     }
 
@@ -29,9 +29,9 @@
 </script>
 
 <div class="icon {themeClass}" {title}>
-    {#if $icon.format === window.helveg.IconFormat.Svg}
+    {#if $icon.format === IconFormat.Svg}
         {@html $icon.data}
-    {:else if $icon.format == window.helveg.IconFormat.Png}
+    {:else if $icon.format == IconFormat.Png}
         <img src="data:image/png;base64,{$icon.data}" alt="The '{name}' icon" />
     {/if}
 </div>

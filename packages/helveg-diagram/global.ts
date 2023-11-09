@@ -63,6 +63,7 @@ export function createDiagram(options?: Partial<CreateDiagramOptions>): Diagram 
         nodeStylist: opts.nodeStylist,
         edgeStylist: opts.edgeStylist,
         mainRelation: opts.mainRelation ?? Object.keys(opts.model.multigraph.relations).sort()[0] ?? null,
+        iconRegistry: iconRegistry,
         glyphProgram: {
             ...DEFAULT_GLYPH_PROGRAM_OPTIONS,
             iconAtlas: new IconAtlas(iconRegistry, { iconSize: opts.iconSize })

@@ -19,7 +19,9 @@
         "strictPropertyInitialization": true,
         "strictNullChecks": true,
         "allowImportingTsExtensions": true,
-        "noEmit": true,
+        "emitDeclarationOnly": true,
+        "outDir": "dist/types",
+        "composite": true,
         "lib": [
             "DOM",
             "DOM.Iterable",

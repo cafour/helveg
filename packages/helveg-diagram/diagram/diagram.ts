@@ -12,13 +12,15 @@ import { DEFAULT_EXPORT_OPTIONS, ExportOptions, exportDiagram } from "../renderi
 import { SearchMode, buildNodeFilter, filterNodes } from "../model/filter.ts";
 import { bfs } from "../model/traversal.ts";
 import { EdgeStylist, NodeStylist, fallbackEdgeStylist, fallbackNodeStylist } from "../model/style.ts";
+import { EMPTY_ICON_REGISTRY, IconRegistry } from "../global.ts";
 
 export interface DiagramOptions {
     glyphProgram: GlyphProgramOptions,
     mainRelation: string | null,
     logLevel: LogSeverity,
     nodeStylist: NodeStylist,
-    edgeStylist: EdgeStylist
+    edgeStylist: EdgeStylist,
+    iconRegistry: Readonly<IconRegistry>
 }
 
 export const DEFAULT_DIAGRAM_OPTIONS: DiagramOptions = {
@@ -26,7 +28,8 @@ export const DEFAULT_DIAGRAM_OPTIONS: DiagramOptions = {
     mainRelation: null,
     glyphProgram: DEFAULT_GLYPH_PROGRAM_OPTIONS,
     nodeStylist: fallbackNodeStylist,
-    edgeStylist: fallbackEdgeStylist
+    edgeStylist: fallbackEdgeStylist,
+    iconRegistry: EMPTY_ICON_REGISTRY
 };
 
 export interface DiagramRefreshOptions {
@@ -64,7 +67,7 @@ export class Diagram {
     get element(): HTMLElement { return this._element; }
 
     private _options: DiagramOptions;
-    get options(): DiagramOptions { return this._options; }
+    get options(): Readonly<DiagramOptions> { return this._options; }
 
     private _model: VisualizationModel = EMPTY_MODEL;
     get model(): VisualizationModel { return this._model; }

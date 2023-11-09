@@ -1,11 +1,10 @@
 import * as esbuild from "esbuild";
 import esbuildSvelte from "esbuild-svelte";
 import { sassPlugin } from "esbuild-sass-plugin"
+import pluginGlobals from "esbuild-plugin-globals";
 import sveltePreprocess from "svelte-preprocess";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
-import fs from "fs";
-import path from "path";
 import postcss from "postcss";
 import postcssPresetEnv from "postcss-preset-env";
 import autoprefixer from "autoprefixer";
@@ -45,6 +44,9 @@ const mod = await esbuild.context({
             loadPaths: [
                 "./node_modules/uniformcss"
             ]
+        }),
+        pluginGlobals({
+            "@cafour/helveg-diagram": "helveg"
         })
     ],
     loader: {

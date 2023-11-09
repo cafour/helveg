@@ -1,10 +1,9 @@
 /// Based on Guillame Plique's sigma-experiments
 /// https://github.com/Yomguithereal/sigma-experiments/blob/master/renderers/src/node/node.pictogram.ts
 
-import type { Coordinates, Dimensions, NodeDisplayData, RenderParams } from "sigma/types";
-import { floatColor } from "sigma/utils";
-import { NodeProgram, type NodeProgramConstructor } from "sigma/rendering/webgl/programs/common/node";
-import type Sigma from "sigma";
+import type { Coordinates, Dimensions, NodeDisplayData, RenderParams, NodeProgramConstructor } from "../deps/sigma.ts";
+import { floatColor, NodeProgram } from "../deps/sigma.ts";
+import { Sigma } from "../deps/sigma.ts";
 import vertexShaderSource from "./node.pictogram.vert";
 import fragmentShaderSource from "./node.pictogram.frag";
 

@@ -91,7 +91,7 @@
         type Updater,
     } from "svelte/store";
     import { getContext } from "svelte";
-    import { type LogEntry } from "../deps/helveg-diagram.ts";
+    import { LogSeverity, type Diagram, type LogEntry } from "../deps/helveg-diagram.ts";
     import { onDestroy } from "svelte";
     import { AppIcons } from "../const.ts";
     import Icon from "./Icon.svelte";
@@ -100,14 +100,12 @@
         toaster.putIn({
             text: entry.message,
             title: entry.severity,
-            autohide: entry.severity !== helveg.LogSeverity.Error
+            autohide: entry.severity !== LogSeverity.Error,
         });
     }
 
-    let instance = getContext<HelvegInstance>("helveg");
-    if (instance) {
-        instance.logger.logged.subscribe(onLogged);
-    }
+    let diagram = getContext<Diagram>("diagram");
+    diagram.logger.logged.subscribe(onLogged);
 
     export let max = 3;
     export let duration = 250;
@@ -138,20 +136,20 @@
     });
 
     onDestroy(() => {
-        instance.logger.logged.unsubscribe(onLogged);
+        diagram.logger.logged.unsubscribe(onLogged);
     });
-    
+
     function getToastIcon(title: string | null): string {
-        switch(title) {
-            case helveg.LogSeverity.Debug:
+        switch (title) {
+            case LogSeverity.Debug:
                 return AppIcons.DebugToast;
-            case helveg.LogSeverity.Info:
+            case LogSeverity.Info:
                 return AppIcons.InfoToast;
-            case helveg.LogSeverity.Warning:
+            case LogSeverity.Warning:
                 return AppIcons.WarningToast;
-            case helveg.LogSeverity.Error:
+            case LogSeverity.Error:
                 return AppIcons.ErrorToast;
-            case helveg.LogSeverity.Success:
+            case LogSeverity.Success:
                 return AppIcons.SuccessToast;
             default:
                 return AppIcons.MessageToast;
@@ -171,7 +169,10 @@
                 <div class="toast-header">
                     <Icon name={getToastIcon(slice.title)} />
                     <span class="title">{slice.title}</span>
-                    <button on:click={() => toaster.popOut(slice.id)} class="button-icon">
+                    <button
+                        on:click={() => toaster.popOut(slice.id)}
+                        class="button-icon"
+                    >
                         {buttonDismissLabel}
                     </button>
                 </div>

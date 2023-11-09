@@ -12,9 +12,10 @@
     import Toast from "./Toast.svelte";
     import ToolBox from "./ToolBox.svelte";
     import ToolsPanel from "./ToolsPanel.svelte";
-    import type { Diagram } from "../deps/helveg-diagram.ts";
+    import { sublogger, type Diagram, type IconRegistry } from "../deps/helveg-diagram.ts";
     import { AppIcons, AppPanels, AppTools } from "../const.ts";
     import * as Options from "../options.ts";
+    import LoadingScreen from "./LoadingScreen.svelte";
 
     export let diagram: Diagram;
     setContext("diagram", diagram);
@@ -28,6 +29,9 @@
         diagram.events.statsChanged.subscribe(set);
         return () => diagram.events.statsChanged.unsubscribe(set);
     });
+    
+    const logger = sublogger(diagram.logger, "explorer");
+    setContext("logger", logger);
 
     function createOptions<T>(
         contextName: string,
@@ -60,7 +64,7 @@
     const exportOptions = createOptions<Options.ExportOptions>(
         "exportOptions",
         "export",
-        helveg.DEFAULT_EXPORT_OPTIONS
+        Options.DEFAULT_EXPORT_OPTIONS
     );
     const toolOptions = createOptions<Options.ToolOptions>(
         "toolOptions",
@@ -124,14 +128,18 @@
     }
 </script>
 
-<div class="flex flex-row-reverse h-100p relative"></div>
+<div class="flex flex-row-reverse h-100p relative">
     <ToolBox bind:selectedTool on:change={() => onToolChanged(selectedTool)} />
+
+    <LoadingScreen status={$status} />
 
     <Dock name="panels" bind:this={dock}>
         <Tab name="Data" value={AppPanels.Data} icon={AppIcons.DataPanel}>
             <DataPanel
                 on:refresh={() =>
-                    diagram.refresh({ selectedRelations: $dataOptions.selectedRelations })}
+                    diagram.refresh({
+                        selectedRelations: $dataOptions.selectedRelations,
+                    })}
                 on:highlight={(e) =>
                     diagram.highlight(e.detail.searchText, e.detail.searchMode)}
                 on:isolate={(e) =>
@@ -143,8 +151,8 @@
                 on:run={(e) => diagram.runLayout(e.detail)}
                 on:stop={diagram.stopLayout}
                 on:tidyTree={diagram.resetLayout}
-                {status}
-                {stats}
+                status={$status}
+                stats={$stats}
             />
         </Tab>
         <Tab

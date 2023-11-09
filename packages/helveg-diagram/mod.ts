@@ -1,5 +1,5 @@
 import * as helvegGlobal from "./global.ts";
-export type * from "./global.ts";
+export * from "./global.ts";
 
 type HelvegGlobal = typeof helvegGlobal;
 

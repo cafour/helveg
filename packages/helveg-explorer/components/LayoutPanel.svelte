@@ -1,6 +1,6 @@
 <script lang="ts">
     import Panel from "./Panel.svelte";
-    import { type DiagramStatus, type DiagramStats } from "../deps/helveg-diagram.ts";
+    import { DiagramStatus, type DiagramStats } from "../deps/helveg-diagram.ts";
     import { createEventDispatcher, getContext } from "svelte";
     import Icon from "./Icon.svelte";
     import Subpanel from "./Subpanel.svelte";
@@ -51,21 +51,21 @@
         <div class="flex flex-row justify-content-center">
             <button
                 on:click={() => dispatch("run", false)}
-                disabled={status == helveg.DiagramStatus.Running}
+                disabled={status == DiagramStatus.Running}
                 class="button-icon"
             >
                 <Icon name="base:Run" title="Run" />
             </button>
             <button
                 on:click={() => dispatch("run", true)}
-                disabled={status == helveg.DiagramStatus.RunningInBackground}
+                disabled={status == DiagramStatus.RunningInBackground}
                 class="button-icon"
             >
                 <Icon name="base:RunAll" title="Run in background" />
             </button>
             <button
                 on:click={() => dispatch("stop")}
-                disabled={status == helveg.DiagramStatus.Stopped}
+                disabled={status == DiagramStatus.Stopped}
                 class="button-icon"
             >
                 <Icon name="base:Stop" title="Stop" />

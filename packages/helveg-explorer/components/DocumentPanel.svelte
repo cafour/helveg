@@ -5,7 +5,12 @@
     import { createEventDispatcher, getContext } from "svelte";
     import { AppPanels } from "../const.ts";
     import type { Readable, Writable } from "svelte/store";
-    import type { VisualizationModel, ExportOptions } from "../deps/helveg-diagram.ts";
+    import {
+        type VisualizationModel,
+        type Diagram,
+        saveAs
+    } from "../deps/helveg-diagram.ts";
+    import * as Options from "../options.ts";
 
     $: metadataItems = [
         { key: "Name", value: $model.documentInfo.name },
@@ -23,17 +28,37 @@
 
     let dispatch = createEventDispatcher();
 
-    let model = getContext<Readable<VisualizationModel>>("model");
-    let exportOptions = getContext<Writable<ExportOptions>>("exportOptions");
+    const model = getContext<Readable<VisualizationModel>>("model");
+    const diagram = getContext<Diagram>("diagram");
+    const appearanceOptions =
+        getContext<Writable<Options.AppearanceOptions>>("appearance");
+    const dataOptions = getContext<Writable<Options.DataOptions>>("data");
+    const layoutOptions = getContext<Writable<Options.LayoutOptions>>("layout");
+    const exportOptions = getContext<Writable<Options.ExportOptions>>("export");
+    const toolOptions = getContext<Writable<Options.ToolOptions>>("tool");
 
     let importStateInput: HTMLInputElement | null = null;
+
+    interface HelvegSerializedState {
+        options: Options.ExplorerOptions;
+        positions: Record<string, { x: number; y: number }>;
+    }
+
+    function resetOptions() {
+        dataOptions.set(Options.DEFAULT_DATA_OPTIONS);
+        exportOptions.set(Options.DEFAULT_EXPORT_OPTIONS);
+        appearanceOptions.set(Options.DEFAULT_APPEARANCE_OPTIONS);
+        layoutOptions.set(Options.DEFAULT_LAYOUT_OPTIONS);
+        toolOptions.set(Options.DEFAULT_TOOL_OPTIONS);
+        diagram.resetLayout();
+    }
 
     function importState(target: EventTarget | null) {
         let fileUpload = target as HTMLInputElement;
         if (!fileUpload?.files) {
             return;
         }
-        
+
         if (fileUpload.files.length === 0) {
             return;
         }
@@ -46,22 +71,39 @@
             if (typeof result !== "string") {
                 return;
             }
-            
-            let state = JSON.parse(result);
+
+            let state = JSON.parse(result) as HelvegSerializedState;
             if (state) {
-                instance.importState(state);
+                dataOptions.set(state.options.data);
+                exportOptions.set(state.options.export);
+                appearanceOptions.set(state.options.appearance);
+                layoutOptions.set(state.options.layout);
+                toolOptions.set(state.options.tool);
+                diagram.importPositions(state.positions);
             }
         };
     }
-    
+
     function exportState() {
-        let state = instance.exportState();
-        if (state) {
-            helveg.saveAs(
-                new Blob([JSON.stringify(state)],
-                { type: "application/json;charset=utf-8" }),
-                `${instance.model.documentInfo.name}.${new Date().toISOString().slice(0, 10)}.helveg-state.json`);
-        }
+        const state: HelvegSerializedState = {
+            options: {
+                appearance: $appearanceOptions,
+                data: $dataOptions,
+                export: $exportOptions,
+                layout: $layoutOptions,
+                tool: $toolOptions,
+            },
+            positions: diagram.exportPositions(),
+        };
+
+        saveAs(
+            new Blob([JSON.stringify(state)], {
+                type: "application/json;charset=utf-8",
+            }),
+            `${$model.documentInfo.name}.${new Date()
+                .toISOString()
+                .slice(0, 10)}.helveg-state.json`
+        );
     }
 </script>
 
@@ -70,34 +112,39 @@
         <KeyValueList items={metadataItems} />
     </Subpanel>
     <Subpanel name="State">
-        <button class="button-stretch" on:click|preventDefault={() => instance.resetOptions()}>
+        <button class="button-stretch" on:click|preventDefault={resetOptions}>
             Reset options
         </button>
-        <input type="file" bind:this={importStateInput} style="display: none" on:change={e => importState(e.target)}/>
-        <button class="button-stretch" on:click|preventDefault={() => importStateInput?.click()}>
+        <input
+            type="file"
+            bind:this={importStateInput}
+            style="display: none"
+            on:change={(e) => importState(e.target)}
+        />
+        <button
+            class="button-stretch"
+            on:click|preventDefault={() => importStateInput?.click()}
+        >
             Import state
         </button>
-        <button class="button-stretch" on:click|preventDefault={() => exportState()}>
+        <button
+            class="button-stretch"
+            on:click|preventDefault={() => exportState()}
+        >
             Export state
         </button>
     </Subpanel>
     <Subpanel name="Export image">
         <label>
-            <input
-                type="checkbox"
-                bind:checked={$exportOptions.includeNodes}
-            />
+            <input type="checkbox" bind:checked={$exportOptions.includeNodes} />
             IncludeNodes
         </label>
-        
+
         <label>
-            <input
-                type="checkbox"
-                bind:checked={$exportOptions.includeEdges}
-            />
+            <input type="checkbox" bind:checked={$exportOptions.includeEdges} />
             IncludeEdges
         </label>
-        
+
         <label>
             <input
                 type="checkbox"
@@ -105,7 +152,7 @@
             />
             IncludeLabels
         </label>
-        
+
         <label>
             <input
                 type="checkbox"
@@ -113,7 +160,7 @@
             />
             IncludeEffects
         </label>
-        
+
         <label>
             <input
                 type="checkbox"
@@ -121,7 +168,7 @@
             />
             IncludePizzaDough
         </label>
-        
+
         <label>
             <input
                 type="checkbox"
@@ -129,30 +176,33 @@
             />
             IncludeHighlights
         </label>
-        
+
         <label class="flex flex-row gap-8 align-items-center">
             Scale
-            <input
-                type="number"
-                min="1"
-                bind:value={$exportOptions.scale}
-            />
+            <input type="number" min="1" bind:value={$exportOptions.scale} />
         </label>
-        
+
         <label class="flex flex-row gap-8 align-items-center">
             BackgroundColor
-            <input
-                type="color"
-                bind:value={$exportOptions.backgroundColor}
-            />
+            <input type="color" bind:value={$exportOptions.backgroundColor} />
         </label>
-        
+
         <label class="flex flex-row gap-8 align-items-center">
             Opacity
-            <input type="range" id="alpha" min="0" max="1" step="0.1" bind:value={$exportOptions.opacity}>
+            <input
+                type="range"
+                id="alpha"
+                min="0"
+                max="1"
+                step="0.1"
+                bind:value={$exportOptions.opacity}
+            />
         </label>
-        
-        <button class="button-stretch" on:click|preventDefault={() => dispatch("export", $exportOptions)}>
+
+        <button
+            class="button-stretch"
+            on:click|preventDefault={() => dispatch("export", $exportOptions)}
+        >
             Export
         </button>
     </Subpanel>

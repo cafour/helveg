@@ -63,6 +63,7 @@
 <div class="dock flex flex-row-reverse relative z-1">
     <div class="tab-list flex flex-col">
         {#each $tabDescriptors as tabDescriptor}
+            <!-- svelte-ignore a11y-no-static-element-interactions -->
             <div
                 class="tab-item cursor-pointer select-none"
                 class:active={$currentTab === tabDescriptor.value}

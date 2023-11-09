@@ -1,5 +1,6 @@
 <script lang="ts">
     import {
+    MultigraphDiagnosticSeverity,
         type MultigraphDiagnostic,
         type MultigraphNode,
     } from "../deps/helveg-diagram.ts";
@@ -23,13 +24,13 @@
 
     function getDiagnosticIcon(diagnostic: MultigraphDiagnostic) {
         switch (diagnostic.severity) {
-            case helveg.MultigraphDiagnosticSeverity.Hidden:
+            case MultigraphDiagnosticSeverity.Hidden:
                 return AppIcons.HiddenDiagnostic;
-            case helveg.MultigraphDiagnosticSeverity.Info:
+            case MultigraphDiagnosticSeverity.Info:
                 return AppIcons.InfoDiagnostic;
-            case helveg.MultigraphDiagnosticSeverity.Warning:
+            case MultigraphDiagnosticSeverity.Warning:
                 return AppIcons.WarningDiagnostic;
-            case helveg.MultigraphDiagnosticSeverity.Error:
+            case MultigraphDiagnosticSeverity.Error:
                 return AppIcons.ErrorDiagnostic;
             default:
                 return AppIcons.UnknownDiagnostic;

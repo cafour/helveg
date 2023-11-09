@@ -10,8 +10,12 @@
         "url": "https://gitlab.com/helveg/helveg"
     },
     "homepage": "https://helveg.net",
+    "main": "./dist/helveg-explorer.js",
+    "types": "./dist/types/mod.ts",
     "scripts": {
-        "check": "tsc --noEmit -p ./tsconfig.json",
+        "types": "tsc -p ./tsconfig.json",
+        "watch:types": "npm run types -- --watch",
+        "check": "npm run types -- --noEmit --emitDeclarationOnly false",
         "watch:check": "npm run check -- --watch",
         "bundle": "tsx eng/bundle.ts",
         "watch:bundle": "npm run bundle -- --watch",
@@ -27,12 +31,14 @@
         "@types/yargs": "^17.0.24",
         "autoprefixer": "^10.4.16",
         "esbuild": "^0.19.5",
+        "esbuild-plugin-globals": "^0.2.0",
         "esbuild-sass-plugin": "^2.16.0",
         "esbuild-svelte": "^0.8.0",
         "postcss": "^8.4.31",
         "postcss-preset-env": "^9.3.0",
         "svelte-preprocess": "^5.0.4",
         "tsx": "^3.14.0",
+        "typescript": "^5.2.2",
         "yargs": "^17.7.2"
     }
 }
