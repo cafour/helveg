@@ -1,7 +1,7 @@
 {
-    "name": "@cafour/helveg-diagram",
+    "name": "@cafour/helveg-explorer",
     "type": "module",
-    "description": "A node-link diagram component (mainly) for software visualization.",
+    "description": "A software explorer built around helveg-diagram.",
     "license": "BSD-3-Clause",
     "version": "0.0.0-local",
     "private": false,
@@ -10,7 +10,6 @@
         "url": "https://gitlab.com/helveg/helveg"
     },
     "homepage": "https://helveg.net",
-    "main": "mod.ts",
     "scripts": {
         "check": "tsc --noEmit -p ./tsconfig.json",
         "watch:check": "npm run check -- --watch",
@@ -19,26 +18,21 @@
         "serve": "concurrently --kill-others -r \"npm run bundle -- --serve --sourcemap\" \"npm run watch:check\""
     },
     "dependencies": {
-        "@types/d3-hierarchy": "^3.1.2",
-        "@types/file-saver": "^2.0.5",
-        "d3-hierarchy": "^3.1.2",
-        "file-saver": "^2.0.5",
-        "graphology": "^0.25.4",
-        "graphology-layout": "^0.6.1",
-        "graphology-layout-forceatlas2": "^0.10.1",
-        "graphology-types": "^0.24.7",
-        "graphology-utils": "^2.5.2",
-        "sigma": "3.0.0-alpha3"
+        "@cafour/helveg-diagram": "workspace:*",
+        "svelte": "^4.2.2"
     },
     "devDependencies": {
+        "@tsconfig/svelte": "^5.0.2",
         "@types/node": "^20.8.10",
         "@types/yargs": "^17.0.24",
-        "browser-sync": "^2.29.1",
-        "concurrently": "^7.6.0",
+        "autoprefixer": "^10.4.16",
         "esbuild": "^0.19.5",
-        "esbuild-plugin-copy": "^2.1.1",
+        "esbuild-sass-plugin": "^2.16.0",
+        "esbuild-svelte": "^0.8.0",
+        "postcss": "^8.4.31",
+        "postcss-preset-env": "^9.3.0",
+        "svelte-preprocess": "^5.0.4",
         "tsx": "^3.14.0",
-        "typescript": "^5.2.2",
         "yargs": "^17.7.2"
     }
 }
