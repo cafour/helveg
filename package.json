@@ -1,0 +1,21 @@
+{
+    "name": "helveg",
+    "author": "Adam Štěpánek",
+    "license": "BSD-3-Clause",
+    "repository": {
+      "type": "git",
+      "url": "https://gitlab.com/helveg/helveg"
+    },
+    "homepage": "https://helveg.net",
+    "private": true,
+    "pnpm": {
+      "overrides": {
+        "helveg-diagram": "workspace:*",
+        "hevleg-explorer": "workspace:*"
+      }
+    },
+    "engines": {
+      "pnpm": ">=8.10.2"
+    },
+    "packageManager": "pnpm@8.10.2"
+  }
