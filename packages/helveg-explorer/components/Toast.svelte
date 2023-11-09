@@ -91,17 +91,16 @@
         type Updater,
     } from "svelte/store";
     import { getContext } from "svelte";
-    import type { HelvegInstance } from "model/instance";
-    import { LogSeverity, type LogEntry } from "model/logger";
+    import { type LogEntry } from "../deps/helveg-diagram.ts";
     import { onDestroy } from "svelte";
-    import { AppIcons } from "model/const";
+    import { AppIcons } from "../const.ts";
     import Icon from "./Icon.svelte";
 
     function onLogged(entry: LogEntry) {
         toaster.putIn({
             text: entry.message,
             title: entry.severity,
-            autohide: entry.severity !== LogSeverity.Error
+            autohide: entry.severity !== helveg.LogSeverity.Error
         });
     }
 
@@ -144,15 +143,15 @@
     
     function getToastIcon(title: string | null): string {
         switch(title) {
-            case LogSeverity.Debug:
+            case helveg.LogSeverity.Debug:
                 return AppIcons.DebugToast;
-            case LogSeverity.Info:
+            case helveg.LogSeverity.Info:
                 return AppIcons.InfoToast;
-            case LogSeverity.Warning:
+            case helveg.LogSeverity.Warning:
                 return AppIcons.WarningToast;
-            case LogSeverity.Error:
+            case helveg.LogSeverity.Error:
                 return AppIcons.ErrorToast;
-            case LogSeverity.Success:
+            case helveg.LogSeverity.Success:
                 return AppIcons.SuccessToast;
             default:
                 return AppIcons.MessageToast;

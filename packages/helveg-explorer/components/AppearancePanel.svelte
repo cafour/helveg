@@ -1,10 +1,10 @@
 <script lang="ts">
     import Panel from "./Panel.svelte";
     import Subpanel from "./Subpanel.svelte";
-    import { AppPanels } from "model/const";
+    import { AppPanels } from "../const.ts";
     import { getContext } from "svelte";
     import type { Writable } from "svelte/store";
-    import type { AppearanceOptions } from "model/options";
+    import type { AppearanceOptions } from "../options.ts";
 
     let appearanceOptions = getContext<Writable<AppearanceOptions>>("appearanceOptions");
 </script>

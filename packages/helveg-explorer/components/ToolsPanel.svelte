@@ -1,11 +1,11 @@
 <script lang="ts">
     import Panel from "./Panel.svelte";
     import Subpanel from "./Subpanel.svelte";
-    import { AppIcons, AppPanels } from "model/const";
+    import { AppIcons, AppPanels } from "../const.ts";
     import type { Readable, Writable } from "svelte/store";
     import { getContext } from "svelte";
-    import type { VisualizationModel } from "model/visualization";
-    import type { ToolOptions } from "model/options";
+    import type { VisualizationModel } from "../deps/helveg-diagram.ts";
+    import type { ToolOptions } from "../options.ts";
 
     let model = getContext<Readable<VisualizationModel>>("model");
     let toolOptions = getContext<Writable<ToolOptions>>("toolOptions");

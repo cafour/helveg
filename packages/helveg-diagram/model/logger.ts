@@ -1,29 +1,21 @@
 import { HelvegEvent } from "../common/event.ts";
 
 export enum LogSeverity {
-    Debug = 0,
-    Info = 1,
-    Warning = 2,
-    Error = 3,
-    Success = 4
+    Debug = "debug",
+    Info = "info",
+    Warning = "warning",
+    Error = "error",
+    Success = "success"
 }
 
-export function getSeverityName(severity: LogSeverity): string | null {
-    switch (severity) {
-        case LogSeverity.Debug:
-            return "debug";
-        case LogSeverity.Info:
-            return "info";
-        case LogSeverity.Warning:
-            return "warning";
-        case LogSeverity.Error:
-            return "error";
-        case LogSeverity.Success:
-            return "success";
-        default:
-            return null;
-    }
-}
+export const LogSeverityPriority: { [Property in LogSeverity]: number } =
+{
+    debug: 0,
+    info: 1,
+    warning: 2,
+    error: 3,
+    success: 4
+};
 
 export interface LogEntry {
     message: string;
@@ -63,7 +55,7 @@ export class Logger implements ILogger {
     }
 
     log(entry: LogEntry) {
-        if (entry.severity >= this.minSeverity) {
+        if (LogSeverityPriority[entry.severity] >= LogSeverityPriority[this.minSeverity]) {
             const categorizedEntry = { category: this.category, ...entry };
             this._logged.trigger(categorizedEntry);
         }
@@ -103,7 +95,7 @@ export class Sublogger implements ILogger {
     }
 
     log(entry: LogEntry): void {
-        if (!this.minSeverity || entry.severity >= this.minSeverity) {
+        if (!this.minSeverity || LogSeverityPriority[entry.severity] >= LogSeverityPriority[this.minSeverity]) {
             const category = `${this.parent.category}::${entry.category ?? this.category}`
             const categorizedEntry = { ...entry, category: category };
             this._logged.trigger(categorizedEntry);
@@ -137,10 +129,7 @@ export function formatEntry(entry: LogEntry): string {
         result += `[${hour}:${minute}:${second}.${millisecond}] `;
     }
 
-    let severityName = getSeverityName(entry.severity);
-    if (severityName) {
-        result += severityName + ": ";
-    }
+    result += entry.severity + ": ";
 
     if (entry.category) {
         result += entry.category + ": ";

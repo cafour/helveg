@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { AppIcons, AppTools } from "model/const";
+    import { AppIcons, AppTools } from "../const.ts";
     import RadioGroup, { type RadioItem } from "./RadioGroup.svelte";
 
     let tools = <RadioItem[]>[

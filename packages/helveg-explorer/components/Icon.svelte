@@ -1,6 +1,5 @@
 <script lang="ts">
-    import { type IconOptions, type Icon, IconFormat } from "model/icons";
-    import type { HelvegInstance } from "model/instance";
+    import type { IconOptions, Icon} from "../deps/helveg-diagram.ts";
     import { readable, type Readable } from "svelte/store";
     import { getContext } from "svelte";
     export let name: string;
@@ -30,9 +29,9 @@
 </script>
 
 <div class="icon {themeClass}" {title}>
-    {#if $icon.format === IconFormat.Svg}
+    {#if $icon.format === window.helveg.IconFormat.Svg}
         {@html $icon.data}
-    {:else if $icon.format == IconFormat.Png}
+    {:else if $icon.format == window.helveg.IconFormat.Png}
         <img src="data:image/png;base64,{$icon.data}" alt="The '{name}' icon" />
     {/if}
 </div>

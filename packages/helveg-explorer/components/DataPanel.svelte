@@ -1,32 +1,32 @@
 <script lang="ts">
-    import { createEventDispatcher, getContext } from "svelte/internal";
+    import { createEventDispatcher, getContext } from "svelte";
     import Panel from "./Panel.svelte";
     import RadioGroup from "./RadioGroup.svelte";
     import Subpanel from "./Subpanel.svelte";
-    import { SearchMode, type DataOptions } from "model/options";
-    import { AppIcons, AppPanels } from "model/const";
+    import { type DataOptions } from "../options.ts";
+    import { AppIcons, AppPanels } from "../const.ts";
     import ResizingTextarea from "./ResizingTextarea.svelte";
     import ToggleAllCheckbox from "./ToggleAllCheckbox.svelte";
-    import type { VisualizationModel } from "model/visualization";
+    import type { SearchMode, VisualizationModel } from "../deps/helveg-diagram.ts";
     import type { Readable, Writable } from "svelte/store";
 
     let dispatch = createEventDispatcher();
 
     let searchModes = [
         {
-            value: SearchMode.Contains,
+            value: helveg.SearchMode.Contains,
             icon: AppIcons.ContainsMode,
         },
         {
-            value: SearchMode.Regex,
+            value: helveg.SearchMode.Regex,
             icon: AppIcons.RegexMode,
         },
         {
-            value: SearchMode.JavaScript,
+            value: helveg.SearchMode.JavaScript,
             icon: AppIcons.JavaScriptMode,
         },
     ];
-    let selectedSearchMode: SearchMode = SearchMode.Contains;
+    let selectedSearchMode = helveg.SearchMode.Contains;
     let searchText: string = "";
 
     let model = getContext<Readable<VisualizationModel>>("model");

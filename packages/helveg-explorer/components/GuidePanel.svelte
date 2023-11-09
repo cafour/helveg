@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { AppIcons, AppPanels } from "model/const";
+    import { AppIcons, AppPanels } from "../const.ts";
     import Icon from "./Icon.svelte";
     import Panel from "./Panel.svelte";
 </script>

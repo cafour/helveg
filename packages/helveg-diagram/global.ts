@@ -9,18 +9,19 @@ import { DEFAULT_GLYPH_PROGRAM_OPTIONS } from "./rendering/node.glyph.ts";
 import { loadJsonScripts, requireJsonScript } from "./model/data.ts";
 import { Diagram } from "./diagram/diagram.ts";
 
-export type * from "./model/const.ts";
-export type * from "./model/data.ts";
-export type * from "./model/document.ts";
-export type * from "./model/filter.ts";
-export type * from "./model/graph.ts"
-export type * from "./model/icons.ts";
-export type * from "./model/logger.ts";
-export type * from "./model/multigraph.ts"
-export type * from "./model/style.ts";
-export type * from "./model/traversal.ts";
-export type * from "./model/visualization.ts";
-export type * from "./rendering/export.ts";
+// TODO: be a little bit more selective about what to export
+export * from "./model/const.ts";
+export * from "./model/data.ts";
+export * from "./model/document.ts";
+export * from "./model/filter.ts";
+export * from "./model/graph.ts"
+export * from "./model/icons.ts";
+export * from "./model/logger.ts";
+export * from "./model/multigraph.ts"
+export * from "./model/style.ts";
+export * from "./model/traversal.ts";
+export * from "./model/visualization.ts";
+export * from "./rendering/export.ts";
 export * from "./diagram/diagram.ts";
 
 export interface CreateDiagramOptions {

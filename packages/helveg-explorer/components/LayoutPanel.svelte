@@ -1,17 +1,17 @@
 <script lang="ts">
     import Panel from "./Panel.svelte";
-    import { StructuralStatus, type StructuralDiagramStats } from "model/structural";
+    import { type DiagramStatus, type DiagramStats } from "../deps/helveg-diagram.ts";
     import { createEventDispatcher, getContext } from "svelte";
     import Icon from "./Icon.svelte";
     import Subpanel from "./Subpanel.svelte";
     import KeyValueList from "./KeyValueList.svelte";
-    import { AppPanels } from "model/const";
+    import { AppPanels } from "../const.ts";
     import type { Readable, Writable } from "svelte/store";
-    import type { VisualizationModel } from "model/visualization";
-    import type { LayoutOptions } from "model/options";
+    import type { VisualizationModel } from "../deps/helveg-diagram.ts";
+    import type { LayoutOptions } from "../options.ts";
 
-    export let status: StructuralStatus;
-    export let stats: StructuralDiagramStats;
+    export let status: DiagramStatus;
+    export let stats: DiagramStats;
 
     $: items = [
         { key: "Iterations", value: stats?.iterationCount.toString() },
@@ -51,21 +51,21 @@
         <div class="flex flex-row justify-content-center">
             <button
                 on:click={() => dispatch("run", false)}
-                disabled={status == StructuralStatus.Running}
+                disabled={status == helveg.DiagramStatus.Running}
                 class="button-icon"
             >
                 <Icon name="base:Run" title="Run" />
             </button>
             <button
                 on:click={() => dispatch("run", true)}
-                disabled={status == StructuralStatus.RunningInBackground}
+                disabled={status == helveg.DiagramStatus.RunningInBackground}
                 class="button-icon"
             >
                 <Icon name="base:RunAll" title="Run in background" />
             </button>
             <button
                 on:click={() => dispatch("stop")}
-                disabled={status == StructuralStatus.Stopped}
+                disabled={status == helveg.DiagramStatus.Stopped}
                 class="button-icon"
             >
                 <Icon name="base:Stop" title="Stop" />
