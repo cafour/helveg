@@ -66,6 +66,9 @@ export class Diagram {
     private _element: HTMLElement;
     get element(): HTMLElement { return this._element; }
 
+    private _sigmaElement: HTMLElement;
+    get sigmaElement(): HTMLElement { return this._sigmaElement; }
+
     private _options: DiagramOptions;
     get options(): Readonly<DiagramOptions> { return this._options; }
 
@@ -131,6 +134,14 @@ export class Diagram {
 
     constructor(element: HTMLElement, options?: Partial<DiagramOptions>) {
         this._element = element;
+        this._element.style.position = "relative";
+
+        this._sigmaElement = document.createElement("div");
+        this._sigmaElement.classList.add("sigma");
+        this._sigmaElement.style.width = "100%";
+        this._sigmaElement.style.height = "100%";
+        this._element.appendChild(this._sigmaElement);
+
         this._options = { ...DEFAULT_DIAGRAM_OPTIONS, ...options };
         this._logger = consoleLogger("diagram", this._options.logLevel);
         this._mainRelation = this._options.mainRelation;
@@ -485,7 +496,7 @@ export class Diagram {
     }
 
     private refreshSigma(): void {
-        if (!this._element || !this._graph) {
+        if (!this._sigmaElement || !this._graph) {
             return;
         }
 
@@ -496,7 +507,7 @@ export class Diagram {
         }
 
         this._sigma = initializeSigma(
-            this._element,
+            this._sigmaElement,
             this._graph,
             this._glyphProgram,
             this.onNodeClick.bind(this),

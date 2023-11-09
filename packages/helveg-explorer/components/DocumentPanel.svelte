@@ -31,11 +31,11 @@
     const model = getContext<Readable<VisualizationModel>>("model");
     const diagram = getContext<Diagram>("diagram");
     const appearanceOptions =
-        getContext<Writable<Options.AppearanceOptions>>("appearance");
-    const dataOptions = getContext<Writable<Options.DataOptions>>("data");
-    const layoutOptions = getContext<Writable<Options.LayoutOptions>>("layout");
-    const exportOptions = getContext<Writable<Options.ExportOptions>>("export");
-    const toolOptions = getContext<Writable<Options.ToolOptions>>("tool");
+        getContext<Writable<Options.AppearanceOptions>>("appearanceOptions");
+    const dataOptions = getContext<Writable<Options.DataOptions>>("dataOptions");
+    const layoutOptions = getContext<Writable<Options.LayoutOptions>>("layoutOptions");
+    const exportOptions = getContext<Writable<Options.ExportOptions>>("exportOptions");
+    const toolOptions = getContext<Writable<Options.ToolOptions>>("toolOptions");
 
     let importStateInput: HTMLInputElement | null = null;
 

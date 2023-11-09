@@ -1,0 +1,38 @@
+@use "./base.scss";
+
+html,
+dt,
+dd,
+label,
+button,
+input,
+textarea,
+select,
+td,
+th,
+span,
+strong,
+p,
+ul,
+li {
+    font-family: 'Segoe UI', sans-serif;
+    line-height: 1.5;
+    color: var(--font-color-base);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: bold;
+}
+
+.monospace {
+    font-family: var(--font-family-monospace);
+}
+
+a, p a {
+    color: var(--font-color-link);
+    text-decoration: none;
+    
+    &:hover {
+        text-decoration: underline;
+    }
+}

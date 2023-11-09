@@ -1,4 +1,5 @@
 import * as esbuild from "esbuild";
+import { copy } from "esbuild-plugin-copy";
 import esbuildSvelte from "esbuild-svelte";
 import { sassPlugin } from "esbuild-sass-plugin"
 import pluginGlobals from "esbuild-plugin-globals";
@@ -14,7 +15,8 @@ const argv = yargs(hideBin(process.argv))
         watch: { type: "boolean", default: false },
         serve: { type: "boolean", default: false },
         sourcemap: { type: "boolean", default: false },
-        minify: { type: "boolean", default: false }
+        minify: { type: "boolean", default: false },
+        diagramPath: { type: "string", default: "../helveg-diagram/dist/helveg-diagram.js" }
     }).parseSync();
 
 const mod = await esbuild.context({
@@ -29,24 +31,32 @@ const mod = await esbuild.context({
     platform: "browser",
     target: "esnext",
     tsconfig: "./tsconfig.json",
+    keepNames: false,
     plugins: [
         esbuildSvelte({
             preprocess: sveltePreprocess()
         }),
         sassPlugin({
-            async transform(source, _, filePath) {
-                const { css } = await postcss([
-                    autoprefixer,
-                    postcssPresetEnv({ stage: 0 })
-                ]).process(source, { from: filePath });
-                return css;
-            },
             loadPaths: [
                 "./node_modules/uniformcss"
             ]
         }),
         pluginGlobals({
             "@cafour/helveg-diagram": "helveg"
+        }),
+        copy({
+            watch: true,
+            resolveFrom: "cwd",
+            assets: [
+                {
+                    from: ["./eng/template/*"],
+                    to: ["./dist"]
+                },
+                {
+                    from: [argv.diagramPath],
+                    to: ["./dist"]
+                }
+            ],
         })
     ],
     loader: {
@@ -60,17 +70,16 @@ const mod = await esbuild.context({
 
 if (argv.watch || argv.serve) {
     await mod.watch();
-  }
-  else {
+}
+else {
     await mod.rebuild();
     await mod.dispose();
-  }
-  
-  if (argv.serve) {
+}
+
+if (argv.serve) {
     await mod.serve({
-      servedir: "./dist/",
-      port: 44347,
-      host: "0.0.0.0"
+        servedir: "./dist/",
+        port: 44347,
+        host: "0.0.0.0"
     })
-  }
-  
+}

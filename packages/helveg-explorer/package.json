@@ -30,7 +30,9 @@
         "@types/node": "^20.8.10",
         "@types/yargs": "^17.0.24",
         "autoprefixer": "^10.4.16",
+        "concurrently": "^7.6.0",
         "esbuild": "^0.19.5",
+        "esbuild-plugin-copy": "^2.1.1",
         "esbuild-plugin-globals": "^0.2.0",
         "esbuild-sass-plugin": "^2.16.0",
         "esbuild-svelte": "^0.8.0",
@@ -39,6 +41,7 @@
         "svelte-preprocess": "^5.0.4",
         "tsx": "^3.14.0",
         "typescript": "^5.2.2",
+        "uniformcss": "^1.5.4",
         "yargs": "^17.7.2"
     }
 }
