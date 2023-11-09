@@ -1,5 +1,5 @@
 {
-    "name": "helveg",
+    "name": "@cafour/helveg-workspace",
     "author": "Adam Štěpánek",
     "license": "BSD-3-Clause",
     "repository": {
@@ -10,8 +10,8 @@
     "private": true,
     "pnpm": {
       "overrides": {
-        "helveg-diagram": "workspace:*",
-        "hevleg-explorer": "workspace:*"
+        "@cafour/helveg-diagram": "workspace:*",
+        "@cafour/helveg-explorer": "workspace:*"
       }
     },
     "engines": {

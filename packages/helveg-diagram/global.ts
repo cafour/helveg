@@ -1,5 +1,4 @@
 import { csharpEdgeStylist, csharpNodeStylist } from "./csharp/style.ts";
-import { Diagram } from "./diagram/diagram.ts";
 import { IconRegistry, IconSet } from "./model/icons.ts";
 import { DEFAULT_ICON_ATLAS_OPTIONS } from "./rendering/iconAtlas.ts"
 import { LogSeverity, consoleLogger } from "./model/logger.ts";
@@ -8,6 +7,9 @@ import { EMPTY_MODEL, VisualizationModel } from "./model/visualization.ts";
 import { IconAtlas } from "./rendering/iconAtlas.ts";
 import { DEFAULT_GLYPH_PROGRAM_OPTIONS } from "./rendering/node.glyph.ts";
 import { loadJsonScripts, requireJsonScript } from "./model/data.ts";
+import { Diagram } from "./diagram/diagram.ts";
+
+export type { Diagram, VisualizationModel, IconSet, IconAtlas };
 
 export interface CreateDiagramOptions {
     element: HTMLElement | null,

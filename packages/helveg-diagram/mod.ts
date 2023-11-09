@@ -1,11 +1,20 @@
 import * as helvegGlobal from "./global.ts";
+export type * from "./global.ts";
+
+type HelvegGlobal = typeof helvegGlobal;
 
 declare global {
-    interface Window {
-        helveg: typeof helvegGlobal
+
+    interface Helveg extends HelvegGlobal
+    {
     }
 
-    const helveg: typeof helvegGlobal;
+    interface Window {
+        helveg: Helveg
+    }
+
+    const helveg: Helveg;
 }
 
-window.helveg = helvegGlobal;
+window.helveg = window.helveg ?? {};
+Object.assign(window.helveg, helvegGlobal);
