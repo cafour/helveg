@@ -1,4 +1,4 @@
-export function wheellOfFortune(pinSize: number, pinCount: number): { radius: number, theta: number } {
+export function wheelOfFortune(pinSize: number, pinCount: number): { radius: number, theta: number } {
     // Based on: https://en.wikipedia.org/wiki/Circular_segment
     // TODO: There's probably a more effective way to compute this.
     const chord = 2 * pinSize;

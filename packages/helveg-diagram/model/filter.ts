@@ -1,5 +1,10 @@
 import { Multigraph, MultigraphNode } from "./multigraph.ts";
-import { SearchMode } from "./options.ts";
+
+export enum SearchMode {
+    Contains = "contains",
+    Regex = "regex",
+    JavaScript = "js"
+}
 
 export type NodeFilter = (node: MultigraphNode) => boolean;
 
