@@ -1,4 +1,5 @@
 import type { CutOptions, ExportOptions } from "./deps/helveg-diagram.ts";
+export { type CutOptions, type ExportOptions } from "./deps/helveg-diagram.ts";
 
 export interface ToggleToolOptions {
     relation: string | null;
@@ -104,7 +105,7 @@ export const DEFAULT_DATA_OPTIONS: DataOptions = {
     selectedRelations: []
 }
 
-export interface HelvegOptions {
+export interface ExplorerOptions {
     layout: LayoutOptions;
     data: DataOptions;
     appearance: AppearanceOptions;
@@ -112,7 +113,7 @@ export interface HelvegOptions {
     tool: ToolOptions;
 }
 
-export const DEFAULT_HELVEG_OPTIONS: HelvegOptions = {
+export const DEFAULT_HELVEG_OPTIONS: ExplorerOptions = {
     layout: DEFAULT_LAYOUT_OPTIONS,
     data: DEFAULT_DATA_OPTIONS,
     appearance: DEFAULT_APPEARANCE_OPTIONS,

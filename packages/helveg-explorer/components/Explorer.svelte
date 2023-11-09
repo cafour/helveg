@@ -1,6 +1,5 @@
 <script lang="ts">
-    import { writable, readable, get } from "svelte/store";
-    import DiagramWrapper from "./DiagramWrapper.svelte";
+    import { writable, readable, get, type Writable } from "svelte/store";
     import Dock from "./Dock.svelte";
     import DocumentPanel from "./DocumentPanel.svelte";
     import Tab from "./Tab.svelte";
@@ -15,52 +14,68 @@
     import ToolsPanel from "./ToolsPanel.svelte";
     import type { Diagram } from "../deps/helveg-diagram.ts";
     import { AppIcons, AppPanels, AppTools } from "../const.ts";
+    import * as Options from "../options.ts";
 
     export let diagram: Diagram;
+    setContext("diagram", diagram);
 
-    let dataOptions = writable(instance.options.data, set => {
-        instance.optionsChanged.subscribe(o => set(o.data));
+    const status = readable(diagram.status, (set) => {
+        diagram.events.statusChanged.subscribe(set);
+        return () => diagram.events.statusChanged.unsubscribe(set);
     });
-    dataOptions.subscribe(o => saveOptions<DataOptions>("data", o));
-    setContext("dataOptions", dataOptions);
 
-    let layoutOptions = writable(instance.options.layout, set => {
-        instance.optionsChanged.subscribe(o => set(o.layout));
+    const stats = readable(diagram.stats, (set) => {
+        diagram.events.statsChanged.subscribe(set);
+        return () => diagram.events.statsChanged.unsubscribe(set);
     });
-    layoutOptions.subscribe(o => saveOptions<LayoutOptions>("layout", o));
-    setContext("layoutOptions", layoutOptions);
 
-    let appearanceOptions = writable(instance.options.appearance, set => {
-        instance.optionsChanged.subscribe(o => set(o.appearance));
-    });
-    appearanceOptions.subscribe(o => saveOptions<AppearanceOptions>("appearance", o));
-    setContext("appearanceOptions", appearanceOptions);
+    function createOptions<T>(
+        contextName: string,
+        storageName: string,
+        defaults: T
+    ): Writable<T> {
+        const options = writable(
+            Options.loadOptions<T>(storageName) ?? defaults
+        );
+        options.subscribe((v) => Options.saveOptions<T>(storageName, v));
+        setContext(contextName, options);
+        return options;
+    }
 
-    let exportOptions = writable(instance.options.export, set => {
-        instance.optionsChanged.subscribe(o => set(o.export));
-    });
-    exportOptions.subscribe(o => saveOptions<ExportOptions>("export", o));
-    setContext("exportOptions", exportOptions);
+    const dataOptions = createOptions<Options.DataOptions>(
+        "dataOptions",
+        "data",
+        Options.DEFAULT_DATA_OPTIONS
+    );
+    const layoutOptions = createOptions<Options.LayoutOptions>(
+        "layoutOptions",
+        "layout",
+        Options.DEFAULT_LAYOUT_OPTIONS
+    );
+    const appearanceOptions = createOptions<Options.AppearanceOptions>(
+        "appearanceOptions",
+        "appearance",
+        Options.DEFAULT_APPEARANCE_OPTIONS
+    );
+    const exportOptions = createOptions<Options.ExportOptions>(
+        "exportOptions",
+        "export",
+        helveg.DEFAULT_EXPORT_OPTIONS
+    );
+    const toolOptions = createOptions<Options.ToolOptions>(
+        "toolOptions",
+        "tool",
+        Options.DEFAULT_TOOL_OPTIONS
+    );
 
-    let toolOptions = writable(instance.options.tool, set => {
-        instance.optionsChanged.subscribe(o => set(o.tool));
-    });
-    toolOptions.subscribe(o => saveOptions<ToolOptions>("tool", o));
-    setContext("toolOptions", toolOptions);
-
-    let model = readable(instance.model, (set) => {
-        instance.loaded.subscribe((model) => {
-            set(model);
-        });
+    const model = readable(diagram.model, (set) => {
+        diagram.events.modelChanged.subscribe(set);
+        return () => diagram.events.modelChanged.unsubscribe(set);
     });
     setContext("model", model);
 
-    let diagramWrapper: DiagramWrapper;
     let dock: Dock;
     let propertiesPanel: PropertiesPanel;
-    let status: DiagramStatus;
-    let selectedNodeId: string | null;
-    let stats: StructuralDiagramStats;
     let selectedTool: string;
 
     function onNodeSelected(nodeId: string | null) {
@@ -71,20 +86,22 @@
             diagram.highlightNode(null, false, false);
             return;
         }
-        
+
         switch (selectedTool) {
             case AppTools.ShowProperties:
                 propertiesPanel.$set({
-                    node: instance.model.multigraph.nodes[nodeId] ?? null,
+                    node: diagram.model.multigraph.nodes[nodeId] ?? null,
                 });
                 dock.setTab(AppPanels.Properties);
                 diagram.highlightNode(
                     nodeId,
                     get(toolOptions).showProperties.shouldHighlightSubtree,
-                    get(toolOptions).showProperties.shouldHighlightNeighbors);
+                    get(toolOptions).showProperties.shouldHighlightNeighbors
+                );
                 break;
         }
     }
+    diagram.events.nodeSelected.subscribe(onNodeSelected);
 
     function onNodeClicked(nodeId: string) {
         switch (selectedTool) {
@@ -96,6 +113,7 @@
                 break;
         }
     }
+    diagram.events.nodeClicked.subscribe(onNodeClicked);
 
     function onToolChanged(tool: string) {
         switch (tool) {
@@ -106,13 +124,14 @@
     }
 </script>
 
-<main class="flex flex-row-reverse h-100p relative">
+<div class="flex flex-row-reverse h-100p relative"></div>
     <ToolBox bind:selectedTool on:change={() => onToolChanged(selectedTool)} />
 
     <Dock name="panels" bind:this={dock}>
         <Tab name="Data" value={AppPanels.Data} icon={AppIcons.DataPanel}>
             <DataPanel
-                on:refresh={diagramWrapper.refresh}
+                on:refresh={() =>
+                    diagram.refresh({ selectedRelations: $dataOptions.selectedRelations })}
                 on:highlight={(e) =>
                     diagram.highlight(e.detail.searchText, e.detail.searchMode)}
                 on:isolate={(e) =>
@@ -158,4 +177,4 @@
     </Dock>
 
     <Toast />
-</main>
+</div>

@@ -144,9 +144,9 @@ export class Diagram {
         modelChanged: new HelvegEvent<VisualizationModel>("helveg.diagram.modelChanged"),
         statsChanged: new HelvegEvent<DiagramStats>("helveg.diagram.statsChanged"),
         nodeSelected: new HelvegEvent<string | null>("helveg.diagram.nodeSelected"),
-        nodeClicked: new HelvegEvent<string | null>("helveg.diagram.nodeClicked"),
+        nodeClicked: new HelvegEvent<string>("helveg.diagram.nodeClicked"),
         mainRelationChanged: new HelvegEvent<string | null>("helveg.diagram.mainRelationChanged"),
-    };
+    } as const;
 
     // NB: private state for gestures
     private _gestures = {
