@@ -1,28 +1,4 @@
-import { Colors } from "./const.ts";
-
-export enum SearchMode {
-    Contains = "contains",
-    Regex = "regex",
-    JavaScript = "js"
-}
-
-export interface DataOptions {
-    selectedRelations: string[];
-}
-
-export const DEFAULT_DATA_OPTIONS: DataOptions = {
-    selectedRelations: []
-}
-
-export interface CutToolOptions {
-    isTransitive: boolean;
-    relation: string | null;
-}
-
-export const DEFAULT_CUT_TOOL_OPTIONS: CutToolOptions = {
-    isTransitive: true,
-    relation: null
-};
+import type { CutOptions, ExportOptions } from "./deps/helveg-diagram.ts";
 
 export interface ToggleToolOptions {
     relation: string | null;
@@ -43,13 +19,13 @@ export const DEFAULT_SHOW_PROPERTIES_TOOL_OPTIONS: ShowPropertiesToolOptions = {
 };
 
 export interface ToolOptions {
-    cut: CutToolOptions;
+    cut: CutOptions;
     toggle: ToggleToolOptions;
     showProperties: ShowPropertiesToolOptions;
 }
 
 export const DEFAULT_TOOL_OPTIONS: ToolOptions = {
-    cut: DEFAULT_CUT_TOOL_OPTIONS,
+    cut: helveg.DEFAULT_CUT_OPTIONS,
     toggle: DEFAULT_TOGGLE_TOOL_OPTIONS,
     showProperties: DEFAULT_SHOW_PROPERTIES_TOOL_OPTIONS
 }
@@ -120,30 +96,12 @@ export const DEFAULT_LAYOUT_OPTIONS: LayoutOptions = {
     tidyTree: DEFAULT_TIDY_TREE_OPTIONS
 };
 
-export interface ExportOptions {
-    fileName: string | null;
-    includeEdges: boolean;
-    includeNodes: boolean;
-    includeLabels: boolean;
-    includeEffects: boolean;
-    includePizzaDough: boolean;
-    includeHighlights: boolean;
-    backgroundColor: string;
-    opacity: number;
-    scale: number;
+export interface DataOptions {
+    selectedRelations: string[];
 }
 
-export const DEFAULT_EXPORT_OPTIONS: ExportOptions = {
-    fileName: null, // let the diagram decide the name
-    includeEdges: true,
-    includeNodes: true,
-    includeLabels: true,
-    includeEffects: true,
-    includePizzaDough: true,
-    includeHighlights: true,
-    backgroundColor: Colors.White,
-    opacity: 0,
-    scale: 1
+export const DEFAULT_DATA_OPTIONS: DataOptions = {
+    selectedRelations: []
 }
 
 export interface HelvegOptions {
@@ -158,7 +116,7 @@ export const DEFAULT_HELVEG_OPTIONS: HelvegOptions = {
     layout: DEFAULT_LAYOUT_OPTIONS,
     data: DEFAULT_DATA_OPTIONS,
     appearance: DEFAULT_APPEARANCE_OPTIONS,
-    export: DEFAULT_EXPORT_OPTIONS,
+    export: helveg.DEFAULT_EXPORT_OPTIONS,
     tool: DEFAULT_TOOL_OPTIONS
 };
 

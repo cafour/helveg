@@ -1,6 +1,5 @@
 import type { Diagram } from "./deps/helveg-diagram.ts";
 import App from "./components/App.svelte";
-export { App };
 
 export function createExplorer(diagram: Diagram): App {
     const explorerElement = document.createElement("div");
@@ -8,7 +7,10 @@ export function createExplorer(diagram: Diagram): App {
     diagram.element.appendChild(explorerElement);
 
     const app = new App({
-        target: explorerElement
+        target: explorerElement,
+        props: {
+            diagram: diagram
+        }
     })
 
     return app;

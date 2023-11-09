@@ -2,15 +2,14 @@ import { HelvegEvent } from "../common/event.ts";
 import { HelvegGraph, findRoots, toggleNode } from "../model/graph.ts";
 import { EMPTY_MODEL, VisualizationModel } from "../model/visualization.ts";
 import { Coordinates, NodeProgramConstructor, Sigma, SigmaNodeEventPayload } from "../deps/sigma.ts";
-import { CutToolOptions, DEFAULT_CUT_TOOL_OPTIONS, DEFAULT_EXPORT_OPTIONS, ExportOptions, SearchMode } from "../model/options.ts";
 import { LogSeverity, ILogger, consoleLogger } from "../model/logger.ts";
 import { ForceAtlas2Progress, ForceAtlas2Supervisor } from "../layout/forceAltas2Supervisor.ts";
-import { wheellOfFortune as wheelOfFortune } from "../layout/circular.ts";
+import { wheelOfFortune } from "../layout/circular.ts";
 import tidyTree from "../layout/tidyTree.ts";
 import { HelvegSigma, configureSigma, initializeGraph, initializeSigma, initializeSupervisor, styleGraph } from "./initializers.ts";
 import { DEFAULT_GLYPH_PROGRAM_OPTIONS, GlyphProgramOptions, createGlyphProgram } from "../rendering/node.glyph.ts";
-import { exportDiagram } from "../rendering/export.ts";
-import { buildNodeFilter, filterNodes } from "../model/filter.ts";
+import { DEFAULT_EXPORT_OPTIONS, ExportOptions, exportDiagram } from "../rendering/export.ts";
+import { SearchMode, buildNodeFilter, filterNodes } from "../model/filter.ts";
 import { bfs } from "../model/traversal.ts";
 import { EdgeStylist, NodeStylist, fallbackEdgeStylist, fallbackNodeStylist } from "../model/style.ts";
 
@@ -49,6 +48,16 @@ export interface DiagramStats {
     iterationCount: number;
     speed: number;
 }
+
+export interface CutOptions {
+    isTransitive: boolean;
+    relation: string | null;
+}
+
+export const DEFAULT_CUT_OPTIONS: CutOptions = {
+    isTransitive: true,
+    relation: null
+};
 
 export class Diagram {
     private _element: HTMLElement;
@@ -388,8 +397,8 @@ export class Diagram {
         await this.resetLayout();
     }
 
-    async cut(nodeId: string, options?: CutToolOptions): Promise<void> {
-        options = { ...DEFAULT_CUT_TOOL_OPTIONS, ...options };
+    async cut(nodeId: string, options?: CutOptions): Promise<void> {
+        options = { ...DEFAULT_CUT_OPTIONS, ...options };
 
         if (!this._graph) {
             this._logger.warn("Cannot cut nodes since the graph is not initialized.");

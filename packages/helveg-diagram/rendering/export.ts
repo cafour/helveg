@@ -1,7 +1,37 @@
 import FileSaver from "../deps/file-saver.ts";
 import { Sigma } from "../deps/sigma.ts";
+import { Colors } from "../model/const.ts";
 import { ILogger } from "../model/logger.ts";
-import { ExportOptions, DEFAULT_EXPORT_OPTIONS } from "../model/options.ts";
+
+type SaveAsOptions = FileSaver.FileSaverOptions;
+
+export type { SaveAsOptions };
+
+export interface ExportOptions {
+    fileName: string | null;
+    includeEdges: boolean;
+    includeNodes: boolean;
+    includeLabels: boolean;
+    includeEffects: boolean;
+    includePizzaDough: boolean;
+    includeHighlights: boolean;
+    backgroundColor: string;
+    opacity: number;
+    scale: number;
+}
+
+export const DEFAULT_EXPORT_OPTIONS: ExportOptions = {
+    fileName: null, // let the diagram decide the name
+    includeEdges: true,
+    includeNodes: true,
+    includeLabels: true,
+    includeEffects: true,
+    includePizzaDough: true,
+    includeHighlights: true,
+    backgroundColor: Colors.White,
+    opacity: 0,
+    scale: 1
+}
 
 /**
  * A function that exports a diagram to a PNG file.
@@ -121,7 +151,7 @@ export function exportDiagram(sigma: Sigma, options?: ExportOptions, logger?: IL
         exportCanvas.toBlob((blob) => {
             if (blob) {
                 console.log("blob");
-                FileSaver.saveAs(blob, options?.fileName ?? "helveg-export.png");
+                saveAs(blob, options?.fileName ?? "helveg-export.png");
             }
 
             tmpRenderer.kill();
@@ -131,4 +161,10 @@ export function exportDiagram(sigma: Sigma, options?: ExportOptions, logger?: IL
     finally {
         window.devicePixelRatio = originalPixelRatio;
     }
+}
+
+// Wrapper around FileSaver, so that the same bundled copy can be used in helveg-explorer and other dependencies.
+export function saveAs(data: Blob | string, filename?: string, options?: SaveAsOptions): void
+{
+    FileSaver.saveAs(data, filename, options);
 }

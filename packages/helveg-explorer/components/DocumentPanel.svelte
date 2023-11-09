@@ -3,12 +3,9 @@
     import Panel from "./Panel.svelte";
     import Subpanel from "./Subpanel.svelte";
     import { createEventDispatcher, getContext } from "svelte";
-    import { AppPanels } from "model/const";
+    import { AppPanels } from "../const.ts";
     import type { Readable, Writable } from "svelte/store";
-    import type { VisualizationModel } from "model/visualization";
-    import type { ExportOptions } from "model/options";
-    import type { HelvegInstance } from "types";
-    import FileSaver from "file-saver";
+    import type { VisualizationModel, ExportOptions } from "../deps/helveg-diagram.ts";
 
     $: metadataItems = [
         { key: "Name", value: $model.documentInfo.name },
@@ -26,7 +23,6 @@
 
     let dispatch = createEventDispatcher();
 
-    let instance = getContext<HelvegInstance>("helveg");
     let model = getContext<Readable<VisualizationModel>>("model");
     let exportOptions = getContext<Writable<ExportOptions>>("exportOptions");
 
@@ -61,7 +57,7 @@
     function exportState() {
         let state = instance.exportState();
         if (state) {
-            FileSaver.saveAs(
+            helveg.saveAs(
                 new Blob([JSON.stringify(state)],
                 { type: "application/json;charset=utf-8" }),
                 `${instance.model.documentInfo.name}.${new Date().toISOString().slice(0, 10)}.helveg-state.json`);
