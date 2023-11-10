@@ -109,7 +109,7 @@
 
 <Panel name="Document" indent={false} id={AppPanels.Document}>
     <Subpanel name="Theme">
-        <button class="button-stretch" on:click|preventDefault={() => window.document.getElementsByClassName("explorer")[0].classList.toggle("dark")}>
+        <button class="button-stretch primary" on:click|preventDefault={() => window.document.getElementsByClassName("explorer")[0].classList.toggle("dark")}>
             Toggle theme
         </button>
     </Subpanel>
@@ -117,7 +117,7 @@
         <KeyValueList items={metadataItems} />
     </Subpanel>
     <Subpanel name="State">
-        <button class="button-stretch" on:click|preventDefault={resetOptions}>
+        <button class="button-stretch primary" on:click|preventDefault={resetOptions}>
             Reset options
         </button>
         <input
@@ -127,13 +127,13 @@
             on:change={(e) => importState(e.target)}
         />
         <button
-            class="button-stretch"
+            class="button-stretch primary"
             on:click|preventDefault={() => importStateInput?.click()}
         >
             Import state
         </button>
         <button
-            class="button-stretch"
+            class="button-stretch primary"
             on:click|preventDefault={() => exportState()}
         >
             Export state
@@ -205,7 +205,7 @@
         </label>
 
         <button
-            class="button-stretch"
+            class="button-stretch primary"
             on:click|preventDefault={() => dispatch("export", $exportOptions)}
         >
             Export

@@ -17,23 +17,24 @@
         margin-right: 3rem;
         margin-bottom: 1rem;
         width: 30rem;
+        max-width: calc(100vw - 5rem);
         background-color: var(--color-surface-50);
         display: flex;
         flex-direction: column;
         border: 1px solid var(--color-surface-100);
         pointer-events: all;
         color: var(--color-text);
+        font-size: 1rem;
 
         .toast-header {
             display: flex;
             flex-direction: row;
             justify-content: space-between;
-            border-bottom: 1px solid var(--color-surface-100);
+            outline: 1px solid var(--color-surface-100);
             align-items: center;
-            height: 2rem;
+            height: 1.5rem;
 
             .icon {
-                margin-left: 0.5rem;
                 padding: 0.25rem;
                 height: 100%;
                 aspect-ratio: 1/1;
@@ -42,14 +43,19 @@
             .title {
                 text-transform: uppercase;
                 font-weight: lighter;
-                font-size: 1rem;
                 line-height: 1.5rem;
                 flex-grow: 1;
+            }
+            
+            .button-icon {
+                height: 100%;
+                width: auto;
+                aspect-ratio: 1/1;
             }
         }
 
         .toast-body {
-            padding: 0.5rem 1rem;
+            padding: 0.25rem 0.5rem;
         }
     }
 }

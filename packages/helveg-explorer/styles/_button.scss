@@ -1,24 +1,31 @@
-input.button-stretch, button.button-stretch, a.button-stretch {
-    background-color: var(--color-primary-500);
+input.button-stretch,
+button.button-stretch,
+a.button-stretch {
     display: block;
     text-align: center;
     line-height: 1.5;
-    color: var(--color-text-inverted);
     padding: 0.25rem 0.5rem;
     width: 100%;
     cursor: pointer;
-
-    &:hover {
-        background-color: var(--color-primary-600);
-    }
+    background-color: var(--color-surface-100);
+    color: var(--color-text);
+    outline: 1px solid var(--color-surface-200);
+    border: none;
     
-    &:disabled, &[disabled] {
+    &:hover {
+        background-color: var(--color-surface-200);
+    }
+
+    &:disabled,
+    &[disabled] {
         background-color: var(--color-surface-700);
         cursor: not-allowed;
     }
 }
 
-input.button-icon, button.button-icon, a.button-icon {
+input.button-icon,
+button.button-icon,
+a.button-icon {
     width: 2rem;
     height: 2rem;
     background-color: var(--color-surface-50);
@@ -38,9 +45,21 @@ input.button-icon, button.button-icon, a.button-icon {
     &:hover {
         background-color: var(--color-surface-100);
     }
-    
-    &:disabled, &[disabled] {
+
+    &:disabled,
+    &[disabled] {
         background-color: var(--color-surface-200);
         outline-color: var(--color-surface-200);
+    }
+}
+
+:is(.button-stretch, .button-icon).primary {
+    background-color: var(--color-primary-500);
+    color: var(--color-text-inverted);
+    outline: 1px solid var(--color-primary-600);
+    border: none;
+    
+    &:hover {
+        background-color: var(--color-primary-600);
     }
 }

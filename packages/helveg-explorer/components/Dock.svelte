@@ -53,30 +53,37 @@
         $currentTab = $currentTab === value ? null : value;
         localStorage.setItem(`Dock.${name}.currentTab`, $currentTab!);
     }
-    
+
     export function toggleTab(value: string) {
         $currentTab = $currentTab === value ? null : value;
         localStorage.setItem(`Dock.${name}.currentTab`, $currentTab!);
     }
+
+    let className: string | undefined;
+    export { className as class };
 </script>
 
-<div class="dock flex flex-row-reverse relative z-1">
+<div class="dock flex flex-row-reverse relative {className}">
     <div class="tab-list flex flex-col">
         {#each $tabDescriptors as tabDescriptor}
             <!-- svelte-ignore a11y-no-static-element-interactions -->
             <div
-                class="tab-item cursor-pointer select-none"
+                class="tab-item"
                 class:active={$currentTab === tabDescriptor.value}
                 on:click={() => toggleTab(tabDescriptor.value)}
                 on:keypress
                 title={tabDescriptor.name}
             >
                 {#if tabDescriptor.icon}
-                    <Icon name={tabDescriptor.icon} title={tabDescriptor.name} theme=helveg />
+                    <Icon
+                        name={tabDescriptor.icon}
+                        title={tabDescriptor.name}
+                        theme="helveg"
+                    />
                 {/if}
             </div>
         {/each}
-        </div>
+    </div>
 
     <div class="tab-content">
         <slot />

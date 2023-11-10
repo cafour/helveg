@@ -39,7 +39,7 @@
 
 <Panel name="Data" indent={false} id={AppPanels.Data}>
     <Subpanel>
-        <button on:click={() => dispatch("refresh")} class="button-stretch">
+        <button on:click={() => dispatch("refresh")} class="button-stretch primary">
             Refresh
         </button>
     </Subpanel>
@@ -62,11 +62,11 @@
             </div>
             <input
                 type="submit"
-                class="button-stretch mt-8"
+                class="button-stretch mt-8 primary"
                 value="Highlight"
             />
             <button
-                class="button-stretch mt-8"
+                class="button-stretch mt-8 primary"
                 on:click|preventDefault|stopPropagation={() =>
                     dispatch("isolate", {
                         searchText: searchText,

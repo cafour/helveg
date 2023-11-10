@@ -5,7 +5,7 @@
 </script>
 
 <Panel name="Guide" id={AppPanels.Guide}>
-    <a href="https://helveg.net/docs/" class="button-stretch" target="_blank"
+    <a href="https://helveg.net/docs/" class="button-stretch primary" target="_blank"
         >Documentation</a
     >
 

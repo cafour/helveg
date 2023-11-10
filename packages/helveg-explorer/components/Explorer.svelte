@@ -139,10 +139,9 @@
 
     <LoadingScreen status={$status} />
 
-    <ToolBox bind:selectedTool on:change={() => onToolChanged(selectedTool)} />
+    <ToolBox bind:selectedTool on:change={() => onToolChanged(selectedTool)} class="z-1"/>
 
-
-    <Dock name="panels" bind:this={dock}>
+    <Dock name="panels" bind:this={dock} class="z-2">
         <Tab name="Data" value={AppPanels.Data} icon={AppIcons.DataPanel}>
             <DataPanel
                 on:refresh={() =>
@@ -158,8 +157,8 @@
         <Tab name="Layout" value={AppPanels.Layout} icon={AppIcons.LayoutPanel}>
             <LayoutPanel
                 on:run={(e) => diagram.runLayout(e.detail)}
-                on:stop={diagram.stopLayout}
-                on:tidyTree={diagram.resetLayout}
+                on:stop={() => diagram.stopLayout()}
+                on:tidyTree={()=> diagram.resetLayout()}
                 status={$status}
                 stats={$stats}
             />

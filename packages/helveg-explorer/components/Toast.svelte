@@ -100,7 +100,7 @@
         toaster.putIn({
             text: entry.message,
             title: entry.severity,
-            autohide: entry.severity !== LogSeverity.Error,
+            autohide: entry.severity !== LogSeverity.Error
         });
     }
 
@@ -171,7 +171,7 @@
                     <span class="title">{slice.title}</span>
                     <button
                         on:click={() => toaster.popOut(slice.id)}
-                        class="button-icon"
+                        class="button-icon primary"
                     >
                         {buttonDismissLabel}
                     </button>
