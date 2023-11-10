@@ -19,9 +19,8 @@
   },
   "packageManager": "pnpm@8.10.2",
   "scripts": {
-    "bundle": "turbo run bundle",
-    "types": "turbo run types",
-    "publish": "turbo run publish"
+    "build": "turbo run rebuild",
+    "git-version": "turbo run git-version"
   },
   "devDependencies": {
     "rimraf": "^5.0.5",
