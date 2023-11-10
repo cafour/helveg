@@ -27,6 +27,7 @@ build:
       --username gitlab-ci-token
       --password $CI_JOB_TOKEN
       --store-password-in-clear-text
+    - rm -rf artifacts/Helveg.Playground.*.nupkg
     - dotnet nuget push "artifacts/*.nupkg" --source ci
 
 publish:
