@@ -44,7 +44,7 @@ const mod = await esbuild.context({
         pluginGlobals({
             "@cafour/helveg-diagram": "helveg"
         }),
-        copy({
+        ...(argv.serve ? [copy({
             watch: true,
             resolveFrom: "cwd",
             assets: [
@@ -57,7 +57,7 @@ const mod = await esbuild.context({
                     to: ["./dist"]
                 }
             ],
-        })
+        })] : [])
     ],
     loader: {
         ".svg": "text",

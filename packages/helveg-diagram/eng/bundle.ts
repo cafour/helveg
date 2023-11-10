@@ -22,14 +22,14 @@ const mod = await esbuild.context({
   bundle: true,
   plugins: [
     inlineBundlePlugin(),
-    copy({
+    ...(argv.serve ? [copy({
       watch: true,
       resolveFrom: "cwd",
       assets: {
         from: ["./eng/template/*"],
         to: ["./dist"]
       }
-    })
+    })] : [])
   ],
   loader: {
     ".svg": "text",
