@@ -68,18 +68,34 @@ const mod = await esbuild.context({
     metafile: true
 })
 
-if (argv.watch || argv.serve) {
-    await mod.watch();
-}
-else {
-    await mod.rebuild();
-    await mod.dispose();
+async function main()
+{
+    if (argv.watch || argv.serve) {
+        await mod.watch();
+    }
+    else {
+        await mod.rebuild();
+        await mod.dispose();
+    }
+    
+    if (argv.serve) {
+        await mod.serve({
+            servedir: "./dist/",
+            port: 44347,
+            host: "0.0.0.0"
+        })
+    }
 }
 
-if (argv.serve) {
-    await mod.serve({
-        servedir: "./dist/",
-        port: 44347,
-        host: "0.0.0.0"
-    })
+async function stop()
+{
+    console.log("My watch has ended\n");
+    await mod.dispose();
+    process.exit(0);
 }
+
+main();
+process.on("beforeExit", stop);
+process.on("exit", stop);
+process.on("SIGINT", stop);
+process.on("SIGTERM", stop);
