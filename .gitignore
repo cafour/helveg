@@ -85,3 +85,4 @@ node_modules/
 output*.html
 dist/
 .pnpm-store/
+.turbo/

@@ -6,14 +6,18 @@ build:
   cache:
     paths:
       - .nuget/
-      - src/UI/App/.pnpm-store/
+      - .pnpm-store/
   artifacts:
     paths:
       - artifacts/*.nupkg
     expire_in: 42s
   script:
     - apk update && apk add nodejs-current npm
+
     - corepack enable && corepack prepare pnpm@latest --activate
+    - pnpm config set store-dir .pnpm-store/
+    - pnpm install -w
+
     - dotnet build -c Release Helveg.sln
     - dotnet pack --no-build Helveg.sln -o artifacts -c Release
     - if [ "$CI_COMMIT_BRANCH" != "develop" ]; then return 0; fi

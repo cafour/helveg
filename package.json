@@ -1,21 +1,30 @@
 {
-    "name": "@cafour/helveg-workspace",
-    "author": "Adam Štěpánek",
-    "license": "BSD-3-Clause",
-    "repository": {
-      "type": "git",
-      "url": "https://gitlab.com/helveg/helveg"
-    },
-    "homepage": "https://helveg.net",
-    "private": true,
-    "pnpm": {
-      "overrides": {
-        "@cafour/helveg-diagram": "workspace:*",
-        "@cafour/helveg-explorer": "workspace:*"
-      }
-    },
-    "engines": {
-      "pnpm": ">=8.10.2"
-    },
-    "packageManager": "pnpm@8.10.2"
+  "name": "@cafour/helveg-workspace",
+  "author": "Adam Štěpánek",
+  "license": "BSD-3-Clause",
+  "repository": {
+    "type": "git",
+    "url": "https://gitlab.com/helveg/helveg"
+  },
+  "homepage": "https://helveg.net",
+  "private": true,
+  "pnpm": {
+    "overrides": {
+      "@cafour/helveg-diagram": "workspace:*",
+      "@cafour/helveg-explorer": "workspace:*"
+    }
+  },
+  "engines": {
+    "pnpm": ">=8.10.2"
+  },
+  "packageManager": "pnpm@8.10.2",
+  "scripts": {
+    "bundle": "turbo run bundle",
+    "types": "turbo run types",
+    "publish": "turbo run publish"
+  },
+  "devDependencies": {
+    "rimraf": "^5.0.5",
+    "turbo": "^1.10.16"
   }
+}

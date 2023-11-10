@@ -89,7 +89,6 @@ async function main()
 
 async function stop()
 {
-    console.log("My watch has ended\n");
     await mod.dispose();
     process.exit(0);
 }

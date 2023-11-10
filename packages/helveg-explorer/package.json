@@ -3,7 +3,7 @@
     "type": "module",
     "description": "A software explorer built around helveg-diagram.",
     "license": "BSD-3-Clause",
-    "version": "0.12.1",
+    "version": "0.0.0-local",
     "private": false,
     "repository": {
         "type": "git",
@@ -19,13 +19,20 @@
         "watch:check": "npm run check -- --watch",
         "bundle": "tsx eng/bundle.ts",
         "watch:bundle": "npm run bundle -- --watch",
-        "serve": "concurrently --kill-others -r \"npm run bundle -- --serve --sourcemap\" \"npm run watch:check\""
+        "serve": "concurrently --kill-others -r \"npm run bundle -- --serve --sourcemap\" \"npm run watch:check\"",
+        "clean": "rimraf dist/",
+        "build": "npm run types && npm run bundle",
+        "rebuild": "npm run clean && npm run build",
+        "git-version": "tsx eng/git-version.ts"
+    },
+    "peerDependencies": {
+        "@cafour/helveg-diagram": "workspace:*"
     },
     "dependencies": {
-        "@cafour/helveg-diagram": "workspace:*",
         "svelte": "^4.2.2"
     },
     "devDependencies": {
+        "@cafour/helveg-diagram": "workspace:*",
         "@tsconfig/svelte": "^5.0.2",
         "@types/node": "^20.8.10",
         "@types/yargs": "^17.0.24",

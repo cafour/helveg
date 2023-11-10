@@ -12,6 +12,9 @@
     "homepage": "https://helveg.net",
     "main": "./dist/helveg-diagram.js",
     "types": "./dist/types/mod.ts",
+    "files": [
+        "./dist/"
+    ],
     "scripts": {
         "types": "tsc -p ./tsconfig.json",
         "watch:types": "npm run types -- --watch",
@@ -19,7 +22,11 @@
         "watch:check": "npm run check -- --watch",
         "bundle": "tsx eng/bundle.ts",
         "watch:bundle": "npm run bundle -- --watch",
-        "serve": "concurrently --kill-others -r \"npm run bundle -- --serve --sourcemap\" \"npm run watch:check\""
+        "serve": "concurrently --kill-others -r \"npm run bundle -- --serve --sourcemap\" \"npm run watch:check\"",
+        "clean": "rimraf dist/",
+        "build": "npm run types && npm run bundle",
+        "rebuild": "npm run clean && npm run build",
+        "git-version": "tsx eng/git-version.ts"
     },
     "dependencies": {
         "@types/d3-hierarchy": "^3.1.2",
