@@ -29,6 +29,10 @@
     <DebugType>embedded</DebugType>
     <EmbedAllSources>true</EmbedAllSources>
   </PropertyGroup>
+  
+  <PropertyGroup>
+    <RepositoryRoot>$([MSBuild]::NormalizeDirectory($(MSBuildThisFileDirectory)))</RepositoryRoot>
+  </PropertyGroup>
 
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)helveg.png" Pack="true" PackagePath="/" />

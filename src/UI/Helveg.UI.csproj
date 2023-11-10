@@ -1,27 +1,17 @@
-﻿<Project>
-  <Sdk Name="Microsoft.NET.Sdk" />
-  <Sdk Name="Cafour.MSBuild.JS" Version="0.1.1" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <JSBuildCommand>run build:$(Configuration)</JSBuildCommand>
     <TargetFrameworks>$(DefaultLibraryFrameworks)</TargetFrameworks>
-    <JSWorkingDirectory>$(MSBuildProjectDirectory)/App</JSWorkingDirectory>
   </PropertyGroup>
-
-  <ItemGroup>
-    <JSBuildInput Include="$(JSWorkingDirectory)/**/*.svelte" />
-    <JSBuildInput Remove="$(JSWorkingDirectory)/template/**/*" />
-    <JSBuildInput Remove="$(JSWorkingDirectory)/.pnpm-store/**/*" />
-    <JSBuildInput Remove="$(JSWorkingDirectory)/node_modules/**/*" />
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="../Visualization/Helveg.Visualization.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="$(BaseIntermediateOutputPath)/esbuild/helveg.js" LogicalName="helveg.js" />
-    <EmbeddedResource Include="$(BaseIntermediateOutputPath)/esbuild/helveg.css" LogicalName="helveg.css" />
+    <EmbeddedResource Include="$(RepositoryRoot)/packages/helveg-diagram/dist/helveg-diagram.js" LogicalName="helveg-diagram.js" />
+    <EmbeddedResource Include="$(RepositoryRoot)/packages/helveg-explorer/dist/helveg-explorer.js" LogicalName="helveg-explorer.js" />
+    <EmbeddedResource Include="$(RepositoryRoot)/packages/helveg-explorer/dist/helveg-explorer.css" LogicalName="helveg-explorer.css" />
   </ItemGroup>
 
   <ItemGroup>
