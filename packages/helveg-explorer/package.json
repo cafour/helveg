@@ -3,7 +3,7 @@
     "type": "module",
     "description": "A software explorer built around helveg-diagram.",
     "license": "BSD-3-Clause",
-    "version": "0.13.0-alpha.43",
+    "version": "0.0.0-local",
     "private": false,
     "repository": {
         "type": "git",
