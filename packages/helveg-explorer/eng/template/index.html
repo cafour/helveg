@@ -35,7 +35,7 @@
         let model = await helveg.loadModel(document.getElementById("helveg-data"));
         window.diagram = helveg.createDiagram({
             iconSets: iconSets,
-            logLevel: 0,
+            logLevel: "debug",
             model: model,
             mainRelation: "declares"
         });

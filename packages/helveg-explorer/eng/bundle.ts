@@ -34,7 +34,7 @@ const mod = await esbuild.context({
     keepNames: false,
     plugins: [
         esbuildSvelte({
-            preprocess: sveltePreprocess()
+            preprocess: sveltePreprocess(),
         }),
         sassPlugin({
             loadPaths: [

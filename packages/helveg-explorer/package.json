@@ -38,6 +38,7 @@
         "esbuild-svelte": "^0.8.0",
         "postcss": "^8.4.31",
         "postcss-preset-env": "^9.3.0",
+        "sass": "^1.69.5",
         "svelte-preprocess": "^5.0.4",
         "tsx": "^3.14.0",
         "typescript": "^5.2.2",

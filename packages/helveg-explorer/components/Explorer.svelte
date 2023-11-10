@@ -12,7 +12,11 @@
     import Toast from "./Toast.svelte";
     import ToolBox from "./ToolBox.svelte";
     import ToolsPanel from "./ToolsPanel.svelte";
-    import { sublogger, type Diagram, type IconRegistry } from "../deps/helveg-diagram.ts";
+    import {
+        sublogger,
+        type Diagram,
+        type IconRegistry,
+    } from "../deps/helveg-diagram.ts";
     import { AppIcons, AppPanels, AppTools } from "../const.ts";
     import * as Options from "../options.ts";
     import LoadingScreen from "./LoadingScreen.svelte";
@@ -29,7 +33,7 @@
         diagram.events.statsChanged.subscribe(set);
         return () => diagram.events.statsChanged.unsubscribe(set);
     });
-    
+
     const logger = sublogger(diagram.logger, "explorer");
     setContext("logger", logger);
 
@@ -128,7 +132,9 @@
     }
 </script>
 
-<div class="flex flex-row-reverse h-100p relative">
+<div
+    class="explorer-svelte flex flex-row-reverse h-100p relative pointer-events-none"
+>
     <ToolBox bind:selectedTool on:change={() => onToolChanged(selectedTool)} />
 
     <LoadingScreen status={$status} />

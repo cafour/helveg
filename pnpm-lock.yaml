@@ -118,9 +118,12 @@ importers:
       postcss-preset-env:
         specifier: ^9.3.0
         version: 9.3.0(postcss@8.4.31)
+      sass:
+        specifier: ^1.69.5
+        version: 1.69.5
       svelte-preprocess:
         specifier: ^5.0.4
-        version: 5.0.4(postcss@8.4.31)(svelte@4.2.2)(typescript@5.2.2)
+        version: 5.0.4(postcss@8.4.31)(sass@1.69.5)(svelte@4.2.2)(typescript@5.2.2)
       tsx:
         specifier: ^3.14.0
         version: 3.14.0
@@ -2921,7 +2924,7 @@ packages:
     engines: {node: '>= 0.4'}
     dev: true
 
-  /svelte-preprocess@5.0.4(postcss@8.4.31)(svelte@4.2.2)(typescript@5.2.2):
+  /svelte-preprocess@5.0.4(postcss@8.4.31)(sass@1.69.5)(svelte@4.2.2)(typescript@5.2.2):
     resolution: {integrity: sha512-ABia2QegosxOGsVlsSBJvoWeXy1wUKSfF7SWJdTjLAbx/Y3SrVevvvbFNQqrSJw89+lNSsM58SipmZJ5SRi5iw==}
     engines: {node: '>= 14.10.0'}
     requiresBuild: true
@@ -2963,6 +2966,7 @@ packages:
       detect-indent: 6.1.0
       magic-string: 0.27.0
       postcss: 8.4.31
+      sass: 1.69.5
       sorcery: 0.11.0
       strip-indent: 3.0.0
       svelte: 4.2.2

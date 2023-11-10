@@ -10,6 +10,7 @@
     z-index: 2;
     background-color: var(--color-surface-50);
     border: 1px solid var(--color-surface-100);
+    pointer-events: all;
 
     .radio-group {
         display: flex;

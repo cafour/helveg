@@ -12,6 +12,7 @@ export function createExplorer(diagram: Diagram): Explorer {
     explorerElement.style.left = "0";
     explorerElement.style.margin = "0";
     explorerElement.style.padding = "0";
+    explorerElement.style.pointerEvents = "none";
 
     diagram.element.appendChild(explorerElement);
 
