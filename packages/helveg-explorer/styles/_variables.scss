@@ -1,76 +1,116 @@
+@use "sass:map";
+@use "sass:list";
+
+$colors: (
+    text: #1E1E1E,
+    text-inverted: #aaa0a0,
+    link: #924924,
+    surface: ( //
+        0: #FFFFFF, // L 100
+        45: #F8F8F8, // L 97
+        50: #F2EEEE, // L 94
+        100: #DBCECC, // L 83
+        200: #C5B9B7, // L 75
+        300: #A5A4A2, // L 64
+        400: #888888, // L 53
+        500: #656565, // L 40
+        600: #525252, // L 32
+        700: #403E3E, // L 25
+        800: #262525, // L 15
+        900: #1C1B1B, // L 11
+        1000: #000000, // L 0
+    ),
+    primary: ( //
+        50: #f3dcdf,
+        100: #eed0d5,
+        200: #eac5ca,
+        300: #dea2ab,
+        400: #c55c6b,
+        500: #ac162c,
+        600: #9b1428,
+        700: #811121,
+        800: #670d1a,
+        900: #540b16,
+        1000: #3a070f,
+    ),
+    success: ( //
+        50: #ddecdd,
+        100: #d2e6d2,
+        200: #c7dfc7,
+        300: #a5cca5,
+        400: #62a662,
+        500: #1f801f,
+        600: #1c731c,
+        700: #176017,
+        800: #134d13,
+        900: #0f3f0f,
+        1000: #061906,
+    ),
+    warning: ( //
+        50: #f0e9d9,
+        100: #ebe2cc,
+        200: #e6dbbf,
+        300: #d6c599,
+        400: #b89a4d,
+        500: #996f00,
+        600: #8a6400,
+        700: #735300,
+        800: #5c4300,
+        900: #4b3600,
+        1000: #342500,
+    ),
+    error: ( //
+        50: #f6dadc,
+        100: #f3ced1,
+        200: #f1c2c5,
+        300: #e89da2,
+        400: #d6545d,
+        500: #c50b17,
+        600: #b10a15,
+        700: #940811,
+        800: #76070e,
+        900: #61050b,
+        1000: #4d0408,
+    ),
+);
+
 :root {
     --font-family-base: "Segoe UI", sans-serif;
     --font-family-heading: "Segoe UI", sans-serif;
     --font-family-monospace: "Cascadia Mono", "Consolas", monospace;
 
-    --font-color-base: #1E1E1E;
-    --font-color-dark: #F1F1F1;
-    --font-color-link: #924924;
-    
     --icon-dark: #424242;
     --icon-light: #F6F6F6;
+}
 
-    --on-primary: #F1F1F1;
-    --on-success: #F1F1F1;
-    --on-warning: #F1F1F1;
-    --on-error: #F1F1F1;
-    --on-surface: #F1F1F1;
+.explorer {
+    @each $key, $value in $colors {
+        @if type-of($value)==map {
+            @each $level, $hex in $value {
+                --color-#{$key}-#{$level}: #{$hex};
+            }
+        }
 
-    --color-surface-0: #FFFFFF; // L 100
-    --color-surface-45: #F8F8F8; // L 97
-    --color-surface-50: #F2EEEE; // L 94
-    --color-surface-100: #DBCECC; // L 83
-    --color-surface-200: #C5B9B7; // L 75
-    --color-surface-300: #A5A4A2; // L 64
-    --color-surface-400: #888888; // L 53
-    --color-surface-500: #656565; // L 40
-    --color-surface-600: #525252; // L 32
-    --color-surface-700: #403E3E; // L 25
-    --color-surface-800: #262525; // L 15
-    --color-surface-900: #1C1B1B; // L 11
-    --color-surface-1000: #000000; // L 0
+        @else {
+            --color-#{$key}: #{$value};
+        }
+    }
 
-    --color-primary-50: #f3dcdf;
-    --color-primary-100: #eed0d5;
-    --color-primary-200: #eac5ca;
-    --color-primary-300: #dea2ab;
-    --color-primary-400: #c55c6b;
-    --color-primary-500: #ac162c;
-    --color-primary-600: #9b1428;
-    --color-primary-700: #811121;
-    --color-primary-800: #670d1a;
-    --color-primary-900: #540b16;
+    .dark &,
+    &.dark {
+        --color-text: #{map.get($colors, "text-inverted")};
+        --color-text-inverted: #{map.get($colors, "text")};
 
-    --color-success-50: #ddecdd;
-    --color-success-100: #d2e6d2;
-    --color-success-200: #c7dfc7;
-    --color-success-300: #a5cca5;
-    --color-success-400: #62a662;
-    --color-success-500: #1f801f;
-    --color-success-600: #1c731c;
-    --color-success-700: #176017;
-    --color-success-800: #134d13;
-    --color-success-900: #0f3f0f;
+        @each $key, $value in $colors {
+            @if type-of($value)==map {
+                @for $i from 1 through length($value) {
+                    $o: calc(length($value) - $i + 1);
+                    $level: list.nth(list.nth($value, $o), 1);
+                    $hex: list.nth(list.nth($value, $i), 2);
 
-    --color-warning-50: #f0e9d9;
-    --color-warning-100: #ebe2cc;
-    --color-warning-200: #e6dbbf;
-    --color-warning-300: #d6c599;
-    --color-warning-400: #b89a4d;
-    --color-warning-500: #996f00;
-    --color-warning-600: #8a6400;
-    --color-warning-700: #735300;
-    --color-warning-800: #5c4300;
-    --color-warning-900: #4b3600;
-
-    --color-error-50: #f6dadc;
-    --color-error-100: #f3ced1;
-    --color-error-200: #f1c2c5;
-    --color-error-300: #e89da2;
-    --color-error-400: #d6545d;
-    --color-error-500: #c50b17;
-    --color-error-600: #b10a15;
-    --color-error-700: #940811;
-    --color-error-800: #76070e;
-    --color-error-900: #61050b;
+                    --color-#{$key}-#{$level}: #{$hex};
+                }
+            }
+        }
+    }
 }

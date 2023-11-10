@@ -1,5 +1,9 @@
 @use "./variables.scss";
 
+$dark-grey: #212121;
+$vs-bg: #424242;
+$light-grey: #C5C5C5;
+
 .icon {
     .theme-helveg &, &.theme-helveg {
         svg {
@@ -32,5 +36,13 @@
             }
         }
     
+    }
+    
+    .dark & {
+        svg {
+            .light-defaultgrey {
+                fill: $light-grey;
+            }
+        }
     }
 }

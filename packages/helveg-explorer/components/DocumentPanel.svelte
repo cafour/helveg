@@ -108,6 +108,11 @@
 </script>
 
 <Panel name="Document" indent={false} id={AppPanels.Document}>
+    <Subpanel name="Theme">
+        <button class="button-stretch" on:click|preventDefault={() => window.document.getElementsByClassName("explorer")[0].classList.toggle("dark")}>
+            Toggle theme
+        </button>
+    </Subpanel>
     <Subpanel name="Metadata">
         <KeyValueList items={metadataItems} />
     </Subpanel>

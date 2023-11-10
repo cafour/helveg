@@ -17,11 +17,12 @@ ul,
 li {
     font-family: 'Segoe UI', sans-serif;
     line-height: 1.5;
-    color: var(--font-color-base);
+    color: var(--color-text);
 }
 
 h1, h2, h3, h4, h5, h6 {
     font-weight: bold;
+    color: var(--color-text);
 }
 
 .monospace {
@@ -29,7 +30,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 a, p a {
-    color: var(--font-color-link);
+    color: var(--color-link);
     text-decoration: none;
     
     &:hover {

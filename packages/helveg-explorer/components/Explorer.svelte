@@ -135,9 +135,12 @@
 <div
     class="explorer-svelte flex flex-row-reverse h-100p relative pointer-events-none"
 >
-    <ToolBox bind:selectedTool on:change={() => onToolChanged(selectedTool)} />
+    <div class="diagram-background" />
 
     <LoadingScreen status={$status} />
+
+    <ToolBox bind:selectedTool on:change={() => onToolChanged(selectedTool)} />
+
 
     <Dock name="panels" bind:this={dock}>
         <Tab name="Data" value={AppPanels.Data} icon={AppIcons.DataPanel}>
