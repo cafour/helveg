@@ -29,7 +29,7 @@ This software has many dependencies. These are the most significant:
 * [Graphology](https://github.com/graphology/graphology)
 * [Svelte](https://svelte.dev/)
 * [Visual Studio Image Library](https://www.microsoft.com/en-us/download/details.aspx?id=35825)
-    > Please note that a different license applies to icons from this image library.
+    > Please note that a different license applies to icons from this image library. See [VS_LICENSE.rtf](./packages/helveg-diagram/icons/vs/VS_LICENSE.rtf)
     
 ## Other notes
 

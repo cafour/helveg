@@ -30,8 +30,4 @@
     </PackageReference>
   </ItemGroup>
 
-  <ItemGroup>
-    <EmbeddedResource Include="Icons/**/*.svg" LogicalName="Icons.%(filename)%(extension)" />
-  </ItemGroup>
-
 </Project>

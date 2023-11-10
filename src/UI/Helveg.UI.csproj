@@ -15,11 +15,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Icons/**/*.svg" LogicalName="Icons.%(filename)%(extension)" />
-    <EmbeddedResource Include="Icons/**/*.png" LogicalName="Icons.%(filename)%(extension)" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="System.Text.Json" Version="7.0.2" />
   </ItemGroup>
 </Project>
