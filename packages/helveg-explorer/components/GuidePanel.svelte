@@ -63,7 +63,7 @@
     <h3>Tools</h3>
     <dl class="theme-helveg">
         <dt>
-            <Icon name="base:ShowAllConfigurations" /> ShowProperties
+            <Icon name="vs:ShowAllConfigurations" /> ShowProperties
         </dt>
         <dd>
             <p>
@@ -73,14 +73,14 @@
         </dd>
 
         <dt>
-            <Icon name="base:MoveGlyph" /> Move
+            <Icon name="vs:MoveGlyph" /> Move
         </dt>
         <dd>
             <p>Moves the node under the cursor.</p>
         </dd>
 
         <dt>
-            <Icon name="base:Branch" /> Toggle
+            <Icon name="vs:Branch" /> Toggle
         </dt>
         <dd>
             <p>
@@ -91,7 +91,7 @@
         </dd>
 
         <dt>
-            <Icon name="base:Cut" /> Cut
+            <Icon name="vs:Cut" /> Cut
         </dt>
         <dd>
             <p>

@@ -36,7 +36,8 @@
     "include": [
         "**/*.ts",
         "**/*.svelte",
-        "**/*.d.ts"
+        "**/*.d.ts",
+        "package.json"
     ],
     "exclude": [
         "eng/**/*",

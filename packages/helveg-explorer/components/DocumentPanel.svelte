@@ -8,9 +8,10 @@
     import {
         type VisualizationModel,
         type Diagram,
-        saveAs
+        saveAs,
     } from "../deps/helveg-diagram.ts";
     import * as Options from "../options.ts";
+    import { version } from "../package.json";
 
     $: metadataItems = [
         { key: "Name", value: $model.documentInfo.name },
@@ -19,7 +20,8 @@
             value: new Date($model.documentInfo.createdOn).toLocaleString(),
         },
         { key: "Revision", value: $model.documentInfo.revision },
-        { key: "HelvegVersion", value: $model.documentInfo.helvegVersion },
+        { key: "AnalyzerVersion", value: $model.documentInfo.helvegVersion },
+        { key: "ExplorerVersion", value: version },
         {
             key: "NodeCount",
             value: Object.keys($model.multigraph.nodes).length.toString(),
@@ -32,10 +34,14 @@
     const diagram = getContext<Diagram>("diagram");
     const appearanceOptions =
         getContext<Writable<Options.AppearanceOptions>>("appearanceOptions");
-    const dataOptions = getContext<Writable<Options.DataOptions>>("dataOptions");
-    const layoutOptions = getContext<Writable<Options.LayoutOptions>>("layoutOptions");
-    const exportOptions = getContext<Writable<Options.ExportOptions>>("exportOptions");
-    const toolOptions = getContext<Writable<Options.ToolOptions>>("toolOptions");
+    const dataOptions =
+        getContext<Writable<Options.DataOptions>>("dataOptions");
+    const layoutOptions =
+        getContext<Writable<Options.LayoutOptions>>("layoutOptions");
+    const exportOptions =
+        getContext<Writable<Options.ExportOptions>>("exportOptions");
+    const toolOptions =
+        getContext<Writable<Options.ToolOptions>>("toolOptions");
 
     let importStateInput: HTMLInputElement | null = null;
 
@@ -109,7 +115,13 @@
 
 <Panel name="Document" indent={false} id={AppPanels.Document}>
     <Subpanel name="Theme">
-        <button class="button-stretch primary" on:click|preventDefault={() => window.document.getElementsByClassName("explorer")[0].classList.toggle("dark")}>
+        <button
+            class="button-stretch primary"
+            on:click|preventDefault={() =>
+                window.document
+                    .getElementsByClassName("explorer")[0]
+                    .classList.toggle("dark")}
+        >
             Toggle theme
         </button>
     </Subpanel>
@@ -117,7 +129,10 @@
         <KeyValueList items={metadataItems} />
     </Subpanel>
     <Subpanel name="State">
-        <button class="button-stretch primary" on:click|preventDefault={resetOptions}>
+        <button
+            class="button-stretch primary"
+            on:click|preventDefault={resetOptions}
+        >
             Reset options
         </button>
         <input

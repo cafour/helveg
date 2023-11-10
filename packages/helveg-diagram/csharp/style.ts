@@ -16,70 +16,70 @@ function resolveNodeStyle(props: Partial<CSharpNodeProperties>): Partial<NodeSty
     switch (props.Kind) {
         case EntityKind.Solution:
             return {
-                icon: "csharp:Solution",
+                icon: "vs:Solution",
                 size: 55,
                 color: VSColor.DarkPurple,
                 outlines: []
             };
         case EntityKind.Project:
             return {
-                icon: "csharp:CSProjectNode",
+                icon: "vs:CSProjectNode",
                 size: 45,
                 color: VSColor.DarkGray,
                 outlines: []
             };
         case EntityKind.Framework:
             return {
-                icon: "csharp:Framework",
+                icon: "vs:Framework",
                 size: 50,
                 color: VSColor.DarkGray,
                 outlines: []
             };
         case EntityKind.ExternalDependencySource:
             return {
-                icon: "csharp:ReferenceGroup",
+                icon: "vs:ReferenceGroup",
                 size: 50,
                 color: VSColor.DarkGray,
                 outlines: []
             };
         case EntityKind.PackageRepository:
             return {
-                icon: "csharp:NuGet",
+                icon: "nuget:NuGet",
                 size: 50,
                 color: VSColor.NuGetBlue,
                 outlines: []
             };
         case EntityKind.Package:
             return {
-                icon: "csharp:Package",
+                icon: "vs:Package",
                 size: 45,
                 color: VSColor.DarkGray,
                 outlines: []
             };
         case EntityKind.Library:
             return {
-                icon: "csharp:Library",
+                icon: "vs:Library",
                 size: 40,
                 color: VSColor.DarkGray,
                 outlines: []
             };
         case EntityKind.Assembly:
             return {
-                icon: "csharp:Assembly",
+                icon: "vs:Assembly",
                 size: 40,
                 color: VSColor.DarkGray,
                 outlines: []
             };
         case EntityKind.Module:
             return {
-                icon: "csharp:Module",
+                icon: "vs:Module",
                 size: 35,
                 color: VSColor.Purple,
                 outlines: []
             };
         case EntityKind.Namespace:
             return {
-                icon: "csharp:Namespace",
+                icon: "vs:Namespace",
                 size: 30,
                 color: VSColor.DarkGray,
                 outlines: []
@@ -88,27 +88,27 @@ function resolveNodeStyle(props: Partial<CSharpNodeProperties>): Partial<NodeSty
             base.size = 15;
             switch (props.TypeKind) {
                 case TypeKind.Class:
-                    base.icon = "csharp:Class";
+                    base.icon = "vs:Class";
                     base.color = VSColor.DarkYellow;
                     break;
                 case TypeKind.Interface:
-                    base.icon = "csharp:Interface";
+                    base.icon = "vs:Interface";
                     base.color = VSColor.Blue;
                     break;
                 case TypeKind.Enum:
-                    base.icon = "csharp:Enumeration";
+                    base.icon = "vs:Enumeration";
                     base.color = VSColor.DarkYellow;
                     break;
                 case TypeKind.Struct:
-                    base.icon = "csharp:Structure";
+                    base.icon = "vs:Structure";
                     base.color = VSColor.Blue;
                     break;
                 case TypeKind.Delegate:
-                    base.icon = "csharp:Delegate";
+                    base.icon = "vs:Delegate";
                     base.color = VSColor.Purple;
                     break;
                 default:
-                    base.icon = "csharp:Type";
+                    base.icon = "vs:Type";
                     base.color = VSColor.Blue;
                     break;
             }
@@ -122,7 +122,7 @@ function resolveNodeStyle(props: Partial<CSharpNodeProperties>): Partial<NodeSty
             break;
         case EntityKind.TypeParameter:
             return {
-                icon: "csharp:Type",
+                icon: "vs:Type",
                 size: props.DeclaringKind === EntityKind.Method ? 5 : 10,
                 color: VSColor.Blue,
                 outlines: []
@@ -130,7 +130,7 @@ function resolveNodeStyle(props: Partial<CSharpNodeProperties>): Partial<NodeSty
         case EntityKind.Field:
             if (props.IsEnumItem) {
                 return {
-                    icon: "csharp:EnumerationItem",
+                    icon: "vs:EnumerationItem",
                     size: 10,
                     color: VSColor.Blue
                 }
@@ -139,21 +139,21 @@ function resolveNodeStyle(props: Partial<CSharpNodeProperties>): Partial<NodeSty
             base.outlines = [{ style: props.IsStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 2 }];
             base.size = 10;
             if (props.IsConst) {
-                base.icon = "csharp:Constant";
+                base.icon = "vs:Constant";
                 base.color = VSColor.DarkGray;
             } else {
-                base.icon = "csharp:Field";
+                base.icon = "vs:Field";
                 base.color = VSColor.Blue;
             }
             break;
         case EntityKind.Method:
             if (props.MethodKind === MethodKind.BuiltinOperator
                 || props.MethodKind === MethodKind.UserDefinedOperator) {
-                base.icon = "csharp:Operator";
+                base.icon = "vs:Operator";
                 base.color = VSColor.Blue;
             }
             else {
-                base.icon = "csharp:Method";
+                base.icon = "vs:Method";
                 base.color = VSColor.Purple;
             }
 
@@ -161,27 +161,27 @@ function resolveNodeStyle(props: Partial<CSharpNodeProperties>): Partial<NodeSty
             base.outlines = [{ style: props.IsStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 2 }];
             break;
         case EntityKind.Property:
-            base.icon = "csharp:Property";
+            base.icon = "vs:Property";
             base.size = 10;
             base.color = VSColor.DarkGray;
             base.outlines = [{ style: props.IsStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 2 }];
             break;
         case EntityKind.Event:
-            base.icon = "csharp:Event";
+            base.icon = "vs:Event";
             base.size = 10;
             base.color = VSColor.DarkYellow;
             base.outlines = [{ style: props.IsStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 2 }];
             break;
         case EntityKind.Parameter:
             return {
-                icon: "csharp:LocalVariable",
+                icon: "vs:LocalVariable",
                 color: VSColor.Blue,
                 size: 5,
                 outlines: []
             };
         default:
             return {
-                icon: "csharp:ExplodedDoughnutChart",
+                icon: "vs:ExplodedDoughnutChart",
                 size: 5,
                 color: VSColor.DarkGray,
                 outlines: []

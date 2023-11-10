@@ -19,11 +19,11 @@
 
 <body>
     <div id="helveg"></div>
-    <script type="application/json" id="helveg-data" src="helveg-data.json"></script>
+    <script type="application/json" id="helveg-data" src="./helveg-data.json"></script>
 
-    <script type="application/json" class="helveg-icons" src="./icons-base.json"></script>
-
-    <script type="application/json" class="helveg-icons" src="./icons-csharp.json"></script>
+    <script type="application/json" class="helveg-icons" src="./helveg-icons-vs.json"></script>
+    <script type="application/json" class="helveg-icons" src="./helveg-icons-pizza.json"></script>
+    <script type="application/json" class="helveg-icons" src="./helveg-icons-nuget.json"></script>
 
     <script type="text/javascript" src="./helveg-diagram.js"></script>
     
@@ -32,7 +32,7 @@
         let model = await helveg.loadModel(document.getElementById("helveg-data"));
         window.diagram = helveg.createDiagram({
             iconSets: iconSets,
-            logLevel: 0,
+            logLevel: "debug",
             model: model,
             mainRelation: "declares"
         });

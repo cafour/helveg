@@ -9,6 +9,7 @@ import { hideBin } from "yargs/helpers";
 import postcss from "postcss";
 import postcssPresetEnv from "postcss-preset-env";
 import autoprefixer from "autoprefixer";
+import path from "path";
 
 const argv = yargs(hideBin(process.argv))
     .options({
@@ -53,7 +54,7 @@ const mod = await esbuild.context({
                     to: ["./dist"]
                 },
                 {
-                    from: [argv.diagramPath],
+                    from: [argv.diagramPath, `${path.dirname(argv.diagramPath)}/*.json`],
                     to: ["./dist"]
                 }
             ],
@@ -68,8 +69,7 @@ const mod = await esbuild.context({
     metafile: true
 })
 
-async function main()
-{
+async function main() {
     if (argv.watch || argv.serve) {
         await mod.watch();
     }
@@ -77,7 +77,7 @@ async function main()
         await mod.rebuild();
         await mod.dispose();
     }
-    
+
     if (argv.serve) {
         await mod.serve({
             servedir: "./dist/",
@@ -87,8 +87,7 @@ async function main()
     }
 }
 
-async function stop()
-{
+async function stop() {
     await mod.dispose();
     process.exit(0);
 }

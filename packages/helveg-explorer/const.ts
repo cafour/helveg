@@ -1,33 +1,33 @@
 export enum AppIcons {
-    DataPanel = "base:Database",
-    LayoutPanel = "base:Diagram",
-    AppearancePanel = "base:ColorPalette",
-    ToolsPanel = "base:Toolbox",
-    PropertiesPanel = "base:ShowAllConfigurations",
-    DocumentPanel = "base:Document",
-    GuidePanel = "base:StatusHelpOutline",
+    DataPanel = "vs:Database",
+    LayoutPanel = "vs:Diagram",
+    AppearancePanel = "vs:ColorPalette",
+    ToolsPanel = "vs:Toolbox",
+    PropertiesPanel = "vs:ShowAllConfigurations",
+    DocumentPanel = "vs:Document",
+    GuidePanel = "vs:StatusHelpOutline",
 
-    ContainsMode = "base:String",
-    RegexMode = "base:RegularExpression",
-    JavaScriptMode = "base:JSFileNode",
+    ContainsMode = "vs:String",
+    RegexMode = "vs:RegularExpression",
+    JavaScriptMode = "vs:JSFileNode",
 
-    DebugToast = "base:StatusRunning",
-    InfoToast = "base:StatusInformation",
-    WarningToast = "base:StatusWarning",
-    ErrorToast = "base:StatusError",
-    SuccessToast = "base:StatusSuccess",
-    MessageToast = "base:Message",
+    DebugToast = "vs:StatusRunning",
+    InfoToast = "vs:StatusInformation",
+    WarningToast = "vs:StatusWarning",
+    ErrorToast = "vs:StatusError",
+    SuccessToast = "vs:StatusSuccess",
+    MessageToast = "vs:Message",
 
-    MoveTool = "base:MoveGlyph",
-    ShowPropertiesTool = "base:ShowAllConfigurations",
-    ToggleTool = "base:Branch",
-    CutTool = "base:Cut",
+    MoveTool = "vs:MoveGlyph",
+    ShowPropertiesTool = "vs:ShowAllConfigurations",
+    ToggleTool = "vs:Branch",
+    CutTool = "vs:Cut",
 
-    UnknownDiagnostic = "base:StatusHelp",
-    HiddenDiagnostic = "base:StatusHidden",
-    InfoDiagnostic = "base:StatusInformation",
-    WarningDiagnostic = "base:StatusWarning",
-    ErrorDiagnostic = "base:StatusError"
+    UnknownDiagnostic = "vs:StatusHelp",
+    HiddenDiagnostic = "vs:StatusHidden",
+    InfoDiagnostic = "vs:StatusInformation",
+    WarningDiagnostic = "vs:StatusWarning",
+    ErrorDiagnostic = "vs:StatusError"
 }
 
 export enum AppPanels {

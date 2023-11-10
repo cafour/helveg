@@ -1,11 +1,8 @@
 import { HelvegEvent } from "../common/event.ts";
 import { ILogger } from "./logger.ts";
 
-export enum IconFormat {
-    Unknown = "Unknown",
-    Svg = "Svg",
-    Png = "Png"
-}
+// TODO: make a JSON schema for these. In the meantime keep it in sync with pack-icons.ts
+export type IconFormat = "svg" | "png";
 
 export interface Icon {
     name: string;
@@ -15,7 +12,7 @@ export interface Icon {
 
 export interface IconSet {
     namespace: string;
-    icons: Record<string, Icon>;
+    icons: Icon[];
 }
 
 export interface IconOptions {
@@ -39,11 +36,11 @@ const FALLBACK_ICON_SOURCE =
 export const FALLBACK_ICON: Icon = {
     name: "Fallback",
     data: FALLBACK_ICON_SOURCE,
-    format: IconFormat.Svg
+    format: "svg"
 };
 
 export class IconRegistry {
-    private sets: Record<string, IconSet> = {};
+    private sets: Record<string, Record<string, Icon>> = {};
     private _setAdded = new HelvegEvent<string>("helveg.IconRegistry.setAdded", true);
     
     constructor(public logger?: ILogger) {
@@ -53,7 +50,10 @@ export class IconRegistry {
         if (this.sets[set.namespace]) {
             throw new Error(`Icon set with namespace '${set.namespace}' already registered.`);
         }
-        this.sets[set.namespace] = set;
+        this.sets[set.namespace] = {};
+        for (const icon of set.icons) {
+            this.sets[set.namespace][icon.name] = icon;
+        }
         this.setAdded.trigger(set.namespace);
     }
 
@@ -74,14 +74,14 @@ export class IconRegistry {
             icon = FALLBACK_ICON;
         }
         else {
-            icon = structuredClone(iconSet.icons[iconName]);
+            icon = structuredClone(iconSet[iconName]);
             if (!icon) {
                 this.logger?.warn(`Icon '${name}' could not be found. Using fallback icon.`);
                 icon = FALLBACK_ICON;
             }
         }
 
-        if (icon.format === IconFormat.Svg) {
+        if (icon.format === "svg") {
             icon.data = cloneSvgIcon(icon.data, options ?? { removeTitle: true });
         }
         return icon;
@@ -90,9 +90,9 @@ export class IconRegistry {
     getIconDataUrl(name: string, options?: IconOptions): string {
         let icon = this.get(name, options);
         switch (icon.format) {
-            case IconFormat.Svg:
+            case "svg":
                 return svgToDataURI(icon.data);
-            case IconFormat.Png:
+            case "png":
                 return `data:image/png;base64,${icon.data}`;
             default:
                 throw new Error(`IconFormat '${icon.format}' is not supported.`);
@@ -130,7 +130,7 @@ function setIconSize(svg: Document, options: IconOptions): string {
 
 function cloneIcon(icon: Icon, options: IconOptions): Icon {
     let clone = structuredClone(icon);
-    if (clone.format === IconFormat.Svg) {
+    if (clone.format === "svg") {
         clone.data = cloneSvgIcon(clone.data, options);
     }
     return clone;

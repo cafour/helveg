@@ -34,7 +34,7 @@
                 on:click={() => dispatch("tidyTree")}
                 class="button-icon"
             >
-                <Icon name="base:Run" title="Run" />
+                <Icon name="vs:Run" title="Run" />
             </button>
         </div>
         <label class="flex flex-row gap-8 align-items-center">
@@ -54,21 +54,21 @@
                 disabled={status == DiagramStatus.Running}
                 class="button-icon"
             >
-                <Icon name="base:Run" title="Run" />
+                <Icon name="vs:Run" title="Run" />
             </button>
             <button
                 on:click={() => dispatch("run", true)}
                 disabled={status == DiagramStatus.RunningInBackground}
                 class="button-icon"
             >
-                <Icon name="base:RunAll" title="Run in background" />
+                <Icon name="vs:RunAll" title="Run in background" />
             </button>
             <button
                 on:click={() => dispatch("stop")}
                 disabled={status == DiagramStatus.Stopped}
                 class="button-icon"
             >
-                <Icon name="base:Stop" title="Stop" />
+                <Icon name="vs:Stop" title="Stop" />
             </button>
         </div>
         <KeyValueList {items} class="indent" />
