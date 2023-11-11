@@ -39,7 +39,10 @@ public static class MultigraphExtensions
             graph.Relations.Add(relationName, relation);
         }
 
-        relation.Edges.AddRange(edges);
+        foreach (var edge in edges)
+        {
+            relation.Edges.Add($"{edge.Src};{edge.Dst}", edge);
+        }
     }
 
     public static void AddEdge(

@@ -1,15 +1,15 @@
 import { csharpEdgeStylist, csharpNodeStylist } from "./csharp/style.ts";
-import { IconRegistry, IconSet } from "./model/icons.ts";
+import { IconRegistry } from "./model/icons.ts";
 import { DEFAULT_ICON_ATLAS_OPTIONS } from "./rendering/iconAtlas.ts"
 import { LogSeverity, consoleLogger } from "./model/logger.ts";
 import { EdgeStylist, NodeStylist } from "./model/style.ts";
 import { IconAtlas } from "./rendering/iconAtlas.ts";
 import { DEFAULT_GLYPH_PROGRAM_OPTIONS } from "./rendering/node.glyph.ts";
-import { loadJsonScripts, loadScript, requireJsonScript } from "./model/data.ts";
+import { loadJsonScripts, requireJsonScript } from "./model/data.ts";
 import { Diagram } from "./diagram/diagram.ts";
-import * as dataModel from "./model/data-model.ts";
-import * as iconSetModel from "./model/icon-set-model.ts";
 import { EMPTY_DATA_MODEL } from "./model/const.ts";
+import { IconSetModel } from "./model/icon-set-model.ts";
+import { DataModel } from "./model/data-model.ts";
 
 // TODO: be a little bit more selective about what to export
 export * from "./model/const.ts";
@@ -22,12 +22,13 @@ export * from "./model/style.ts";
 export * from "./model/traversal.ts";
 export * from "./rendering/export.ts";
 export * from "./diagram/diagram.ts";
-export { dataModel, iconSetModel };
+export * from "./model/data-model.ts";
+export * from "./model/icon-set-model.ts";
 
 export interface CreateDiagramOptions {
     element: HTMLElement | null,
-    iconSets: IconSet[],
-    model: dataModel.DataModel,
+    iconSets: IconSetModel[],
+    model: DataModel,
     logLevel: LogSeverity,
     nodeStylist: NodeStylist,
     edgeStylist: EdgeStylist,
@@ -62,7 +63,7 @@ export function createDiagram(options?: Partial<CreateDiagramOptions>): Diagram 
         logLevel: opts.logLevel,
         nodeStylist: opts.nodeStylist,
         edgeStylist: opts.edgeStylist,
-        mainRelation: opts.mainRelation ?? Object.keys(opts.model.multigraph.relations).sort()[0] ?? null,
+        mainRelation: opts.mainRelation ?? Object.keys(opts.model.data?.relations ?? {}).sort()[0] ?? null,
         iconRegistry: iconRegistry,
         glyphProgram: {
             ...DEFAULT_GLYPH_PROGRAM_OPTIONS,
@@ -73,12 +74,11 @@ export function createDiagram(options?: Partial<CreateDiagramOptions>): Diagram 
     return diagram;
 }
 
-export async function loadIconSet(element: Element): Promise<iconSetModel.IconSetModel> {
-    const text = await loadScript(element);
-    return iconSetModel.Convert.toIconSetModel(text);
+export function loadIconSet(element: Element): Promise<IconSetModel> {
+    return requireJsonScript(element);
 }
 
-export async function loadIconSets(selector: string): Promise<IconSet[]> {
+export async function loadIconSets(selector: string): Promise<IconSetModel[]> {
     const scripts = document.querySelectorAll(selector);
     const results = [];
     for (const script of scripts) {
@@ -87,8 +87,7 @@ export async function loadIconSets(selector: string): Promise<IconSet[]> {
     return results;
 }
 
-export async function loadModel(element: Element): Promise<dataModel.DataModel> {
-    const text = await loadScript(element);
-    return dataModel.Convert.toDataModel(text);
+export function loadModel(element: Element): Promise<DataModel> {
+    return requireJsonScript(element);
 }
 

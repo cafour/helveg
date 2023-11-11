@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 using System.Threading.Tasks;
 
 namespace Helveg;
@@ -19,5 +22,44 @@ public static class HelvegDefaults
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
         JsonOptions.Converters.Add(new JsonStringEnumConverter());
+        JsonOptions.TypeInfoResolver = new HelvegAssemblyTypeResolver();
+    }
+
+    private class HelvegAssemblyTypeResolver : DefaultJsonTypeInfoResolver
+    {
+        public override JsonTypeInfo GetTypeInfo(Type type, JsonSerializerOptions options)
+        {
+            var typeInfo = base.GetTypeInfo(type, options);
+            if (typeInfo.Kind != JsonTypeInfoKind.Object)
+            {
+                return typeInfo;
+            }
+
+            var helvegAssemblies = (Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly())
+                .GetReferencedAssemblies()
+                .Where(a => a.Name is not null && a.Name.StartsWith(nameof(Helveg)))
+                .Select(Assembly.Load);
+            var derivedTypes = helvegAssemblies.SelectMany(a => a.GetTypes())
+                .Where(t => t.BaseType == type)
+                .Select(t => new JsonDerivedType(t, t.Name))
+                .ToList();
+            if (derivedTypes.Count == 0)
+            {
+                return typeInfo;
+            }
+
+            typeInfo.PolymorphismOptions = new JsonPolymorphismOptions
+            {
+                IgnoreUnrecognizedTypeDiscriminators = true,
+                UnknownDerivedTypeHandling = JsonUnknownDerivedTypeHandling.FailSerialization
+            };
+            foreach (var derivedType in derivedTypes)
+            {
+                typeInfo.PolymorphismOptions.DerivedTypes.Add(derivedType);
+            }
+
+            return typeInfo;
+        }
+
     }
 }

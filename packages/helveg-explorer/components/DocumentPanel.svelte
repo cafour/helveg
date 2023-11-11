@@ -6,7 +6,7 @@
     import { AppPanels } from "../const.ts";
     import type { Readable, Writable } from "svelte/store";
     import {
-        dataModel,
+        type DataModel,
         type Diagram,
         saveAs,
     } from "../deps/helveg-diagram.ts";
@@ -14,13 +14,13 @@
     import { version } from "../package.json";
 
     $: metadataItems = [
-        { key: "Name", value: $model.documentInfo.name },
+        { key: "Name", value: $model.name },
         {
             key: "CreatedOn",
-            value: new Date($model.documentInfo.createdOn).toLocaleString(),
+            value: new Date($model.createdOn).toLocaleString(),
         },
-        { key: "Revision", value: $model.documentInfo.revision },
-        { key: "AnalyzerVersion", value: $model.documentInfo.helvegVersion },
+        { key: "AnalyzerName", value: $model.analyzer.name },
+        { key: "AnalyzerVersion", value: $model.analyzer.version },
         { key: "ExplorerVersion", value: version },
         {
             key: "NodeCount",
@@ -30,7 +30,7 @@
 
     let dispatch = createEventDispatcher();
 
-    const model = getContext<Readable<dataModel.DataModel>>("model");
+    const model = getContext<Readable<DataModel>>("model");
     const diagram = getContext<Diagram>("diagram");
     const appearanceOptions =
         getContext<Writable<Options.AppearanceOptions>>("appearanceOptions");
@@ -106,7 +106,7 @@
             new Blob([JSON.stringify(state)], {
                 type: "application/json;charset=utf-8",
             }),
-            `${$model.documentInfo.name}.${new Date()
+            `${$model.name}.${new Date()
                 .toISOString()
                 .slice(0, 10)}.helveg-state.json`
         );

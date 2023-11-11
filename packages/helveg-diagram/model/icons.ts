@@ -1,19 +1,6 @@
 import { HelvegEvent } from "../common/event.ts";
+import { Icon, IconSetModel } from "./icon-set-model.ts";
 import { ILogger } from "./logger.ts";
-
-// TODO: make a JSON schema for these. In the meantime keep it in sync with pack-icons.ts
-export type IconFormat = "svg" | "png";
-
-export interface Icon {
-    name: string;
-    format: IconFormat,
-    data: string;
-};
-
-export interface IconSet {
-    namespace: string;
-    icons: Icon[];
-}
 
 export interface IconOptions {
     width?: number;
@@ -46,7 +33,7 @@ export class IconRegistry {
     constructor(public logger?: ILogger) {
     }
 
-    register(set: IconSet) {
+    register(set: IconSetModel) {
         if (this.sets[set.namespace]) {
             throw new Error(`Icon set with namespace '${set.namespace}' already registered.`);
         }

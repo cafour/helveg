@@ -98,7 +98,7 @@
         switch (selectedTool) {
             case AppTools.ShowProperties:
                 propertiesPanel.$set({
-                    node: diagram.model.multigraph.nodes[nodeId] ?? null,
+                    node: diagram.model.data?.nodes[nodeId] ?? null,
                 });
                 dock.setTab(AppPanels.Properties);
                 diagram.highlightNode(

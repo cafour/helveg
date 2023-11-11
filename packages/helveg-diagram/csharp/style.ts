@@ -13,7 +13,7 @@ export function csharpEdgeStylist(relation: string, edge: MultigraphEdge): EdgeS
 function resolveNodeStyle(node: Partial<CSharpNode>): Partial<NodeStyle> {
 
     let base: Partial<NodeStyle> = {};
-    switch (node.Kind) {
+    switch (node.kind) {
         case EntityKind.Solution:
             return {
                 icon: "vs:Solution",
@@ -86,7 +86,7 @@ function resolveNodeStyle(node: Partial<CSharpNode>): Partial<NodeStyle> {
             };
         case EntityKind.Type:
             base.size = 15;
-            switch (node.TypeKind) {
+            switch (node.typeKind) {
                 case TypeKind.Class:
                     base.icon = "vs:Class";
                     base.color = VSColor.DarkYellow;
@@ -112,10 +112,10 @@ function resolveNodeStyle(node: Partial<CSharpNode>): Partial<NodeStyle> {
                     base.color = VSColor.Blue;
                     break;
             }
-            let instanceCount = node.InstanceMemberCount ?? 0;
-            let staticCount = node.StaticMemberCount ?? 0;
+            let instanceCount = node.instanceMemberCount ?? 0;
+            let staticCount = node.staticMemberCount ?? 0;
             base.outlines = [
-                { style: node.IsStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 2 },
+                { style: node.isStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 2 },
                 { style: OutlineStyle.Solid, width: instanceCount },
                 { style: OutlineStyle.Dashed, width: staticCount }
             ];
@@ -123,12 +123,12 @@ function resolveNodeStyle(node: Partial<CSharpNode>): Partial<NodeStyle> {
         case EntityKind.TypeParameter:
             return {
                 icon: "vs:Type",
-                size: node.DeclaringKind === EntityKind.Method ? 5 : 10,
+                size: node.declaringKind === EntityKind.Method ? 5 : 10,
                 color: VSColor.Blue,
                 outlines: []
             };
         case EntityKind.Field:
-            if (node.IsEnumItem) {
+            if (node.isEnumItem) {
                 return {
                     icon: "vs:EnumerationItem",
                     size: 10,
@@ -136,9 +136,9 @@ function resolveNodeStyle(node: Partial<CSharpNode>): Partial<NodeStyle> {
                 }
             }
 
-            base.outlines = [{ style: node.IsStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 2 }];
+            base.outlines = [{ style: node.isStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 2 }];
             base.size = 10;
-            if (node.IsConst) {
+            if (node.isConst) {
                 base.icon = "vs:Constant";
                 base.color = VSColor.DarkGray;
             } else {
@@ -147,8 +147,8 @@ function resolveNodeStyle(node: Partial<CSharpNode>): Partial<NodeStyle> {
             }
             break;
         case EntityKind.Method:
-            if (node.MethodKind === MethodKind.BuiltinOperator
-                || node.MethodKind === MethodKind.UserDefinedOperator) {
+            if (node.methodKind === MethodKind.BuiltinOperator
+                || node.methodKind === MethodKind.UserDefinedOperator) {
                 base.icon = "vs:Operator";
                 base.color = VSColor.Blue;
             }
@@ -158,19 +158,19 @@ function resolveNodeStyle(node: Partial<CSharpNode>): Partial<NodeStyle> {
             }
 
             base.size = 10;
-            base.outlines = [{ style: node.IsStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 2 }];
+            base.outlines = [{ style: node.isStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 2 }];
             break;
         case EntityKind.Property:
             base.icon = "vs:Property";
             base.size = 10;
             base.color = VSColor.DarkGray;
-            base.outlines = [{ style: node.IsStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 2 }];
+            base.outlines = [{ style: node.isStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 2 }];
             break;
         case EntityKind.Event:
             base.icon = "vs:Event";
             base.size = 10;
             base.color = VSColor.DarkYellow;
-            base.outlines = [{ style: node.IsStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 2 }];
+            base.outlines = [{ style: node.isStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 2 }];
             break;
         case EntityKind.Parameter:
             return {
@@ -188,7 +188,7 @@ function resolveNodeStyle(node: Partial<CSharpNode>): Partial<NodeStyle> {
             };
     }
 
-    switch (node.Accessibility) {
+    switch (node.accessibility) {
         case MemberAccessibility.Internal:
             base.icon += "Internal";
             break;

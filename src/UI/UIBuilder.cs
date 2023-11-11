@@ -54,7 +54,7 @@ public class UIBuilder
         return new UIBuilder(logger)
             .AddStyle(UIConst.ExplorerCssResourceName, await GetBaseResource(UIConst.ExplorerCssResourceName))
             .AddScript(UIConst.DiagramJsResourceName, await GetBaseResource(UIConst.DiagramJsResourceName))
-            .AddScript(UIConst.ExplorerJsResourceName, await GetBaseResource(UIConst.DiagramJsResourceName))
+            .AddScript(UIConst.ExplorerJsResourceName, await GetBaseResource(UIConst.ExplorerJsResourceName))
             .AddScript(UIConst.VsIconSetResourceName, await GetBaseResource(UIConst.VsIconSetResourceName))
             .AddScript(UIConst.PizzaIconSetResourceName, await GetBaseResource(UIConst.PizzaIconSetResourceName))
             .AddScript(UIConst.NugetIconSetResourceName, await GetBaseResource(UIConst.NugetIconSetResourceName));
@@ -188,7 +188,7 @@ public class UIBuilder
             await writer.WriteAsync(
 @$"
         <!-- {script.fileName} -->
-        <script type=""{(Path.GetExtension(script.fileName) == ".js" ? "text/javascript" : "application/json")}"">
+        <script type=""{(Path.GetExtension(script.fileName) == ".js" ? "text/javascript" : "application/json")}"" {(Path.GetExtension(script.fileName) == ".json" ? "class=\"helveg-icons\"" : "")}>
             {script.contents}
         </script>
 ");
@@ -273,7 +273,7 @@ public class UIBuilder
         {
             entryPointWriter.Write(
 @$"
-        <script type=""{(Path.GetExtension(scriptPath) == ".js" ? "text/javascript" : "application/json")}"" src=""{scriptPath}""></script>
+        <script type=""{(Path.GetExtension(scriptPath) == ".js" ? "text/javascript" : "application/json")}"" src=""{scriptPath}"" {(Path.GetExtension(scriptPath) == ".json" ? "class=\"helveg-icons\"" : "")}></script>
 ");
         }
 

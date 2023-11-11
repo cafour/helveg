@@ -89,7 +89,7 @@ export interface MultigraphRelation {
     /**
      * The edges of the relation.
      */
-    edges?: MultigraphEdge[];
+    edges?: { [key: string]: MultigraphEdge };
     /**
      * Whether or not the relation is transitive. That is a -> b -> c => a -> c.
      */

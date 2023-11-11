@@ -7,7 +7,7 @@
     import KeyValueList from "./KeyValueList.svelte";
     import { AppPanels } from "../const.ts";
     import type { Readable, Writable } from "svelte/store";
-    import type { dataModel } from "../deps/helveg-diagram.ts";
+    import type { DataModel } from "../deps/helveg-diagram.ts";
     import type { LayoutOptions } from "../options.ts";
 
     export let status: DiagramStatus;
@@ -22,7 +22,7 @@
 
     let dispatch = createEventDispatcher();
 
-    let model = getContext<Readable<dataModel.DataModel>>("model");
+    let model = getContext<Readable<DataModel>>("model");
     let layoutOptions = getContext<Writable<LayoutOptions>>("layoutOptions");
 
 </script>

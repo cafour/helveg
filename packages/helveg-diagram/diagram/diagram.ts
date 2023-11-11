@@ -274,7 +274,7 @@ export class Diagram {
         this._logger.debug("Saving the diagram.");
 
         options = { ...DEFAULT_EXPORT_OPTIONS, ...options };
-        options.fileName ??= `${this._model.documentInfo.name}-export.png`;
+        options.fileName ??= `${this._model.name}-export.png`;
         if (this._sigma) {
             exportDiagram(this._sigma, options);
         }
@@ -380,6 +380,11 @@ export class Diagram {
             this._logger.warn("Cannot isolate nodes since the graph is not initialized.");
             return;
         }
+        
+        if (!this._model.data) {
+            this._logger.warn("Cannot isolate nodes since the model contains no data.");
+            return;
+        }
 
         try {
             let filter = buildNodeFilter(searchText, searchMode, this._nodeKeys);
@@ -392,7 +397,7 @@ export class Diagram {
                     return;
                 }
 
-                for (let id of filterNodes(this._model.multigraph, filter, true)) {
+                for (let id of filterNodes(this._model.data!, filter, true)) {
                     if (this._graph.hasNode(id)) {
                         this._graph.dropNode(id);
                     }
@@ -539,12 +544,12 @@ export class Diagram {
     }
 
     private async refreshGraph(options: DiagramRefreshOptions): Promise<void> {
-        if (!this._model || this._model.isEmpty) {
+        if (!this._model || !this._model.data) {
             this._logger.debug("Ignoring graph refresh since the model is empty.");
             return;
         }
 
-        this._logger.debug(`Refreshing the graph to match the '${this._model.documentInfo.name}' model.`);
+        this._logger.debug(`Refreshing the graph to match the '${this._model.name}' model.`);
 
         this._graph = initializeGraph(
             this._model,

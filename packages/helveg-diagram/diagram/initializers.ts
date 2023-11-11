@@ -133,13 +133,12 @@ export function initializeGraph(
         return graph;
     }
 
-    for (const nodeId in model.multigraph.nodes) {
+    for (const nodeId in model.data.nodes) {
         const node = model.data.nodes[nodeId];
         graph.addNode(nodeId, {
-            label: node.properties.Label ?? nodeId,
+            label: node.name ?? nodeId,
             x: 0,
-            y: 0,
-            style: node.properties.Style
+            y: 0
         });
     }
 
@@ -152,8 +151,7 @@ export function initializeGraph(
         for (let [id, edge] of Object.entries(relation.edges)) {
             try {
                 graph.addDirectedEdgeWithKey(`${relationId};${id}`, edge.src, edge.dst, {
-                    relation: relationId,
-                    style: edge.properties.Style
+                    relation: relationId
                 });
             } catch (error) {
                 logger?.warn(`Failed to add an edge. edge=(${edge.src} -> ${edge.dst}), error=${error}`);
@@ -173,17 +171,13 @@ export function styleGraph(
     logger?: ILogger) {
 
     graph.forEachNode((node, attributes) => {
-        if (!attributes.style) {
-            logger?.debug(`Node '${node}' is missing a style attribute.`);
-            return;
-        }
 
-        if (!model.multigraph.nodes[node]) {
+        if (!model.data || !model.data.nodes[node]) {
             logger?.debug(`Node '${node}' does not exist in the model.`);
             return;
         }
 
-        const nodeStyle = nodeStylist(model.multigraph.nodes[node]);
+        const nodeStyle = nodeStylist(model.data.nodes[node]);
         if (!nodeStyle) {
             logger?.debug(`Node style '${attributes.style}' could not be applied to node '${node}'.`);
         }
@@ -204,13 +198,18 @@ export function styleGraph(
     });
 
     graph.forEachEdge((edge, attributes) => {
-        if (!attributes.style || !attributes.relation) {
+        if (!attributes.style || !attributes.relation || !model.data) {
             return;
         }
 
+        const relation = model.data.relations[attributes.relation];
+        if (!relation || !relation.edges) {
+            return;
+        }
+        
         const edgeStyle = edgeStylist(
             attributes.relation,
-            model.multigraph.relations[attributes.relation].edges[edge]
+            relation.edges[edge]
         );
         if (!edgeStyle) {
             logger?.debug(`Edge style '${attributes.style}' could not be applied to edge '${edge}'.`);

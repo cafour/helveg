@@ -19,13 +19,13 @@ export function buildNodeFilter(
 
     if (mode === SearchMode.Contains) {
         let lowerCaseText = searchText.toLowerCase();
-        return (node: MultigraphNode) => node.properties.Label != null
-            && node.properties.Label.toLowerCase().includes(lowerCaseText);
+        return (node: MultigraphNode) => node.name != null
+            && node.name.toLowerCase().includes(lowerCaseText);
     }
 
     if (mode === SearchMode.Regex) {
         let regex = new RegExp(searchText, "i");
-        return (node: MultigraphNode) => node.properties.Label != null && regex.test(node.properties.Label);
+        return (node: MultigraphNode) => node.name != null && regex.test(node.name);
     }
 
     if (mode === SearchMode.JavaScript) {
@@ -33,7 +33,7 @@ export function buildNodeFilter(
             return null;
         }
 
-        let fn = new Function("n", `let { ${variableNames.join(', ')} } = n.properties; return !!(${searchText});`);
+        let fn = new Function("n", `let { ${variableNames.join(', ')} } = n; return !!(${searchText});`);
         return fn as (node: MultigraphNode) => boolean;
     }
 

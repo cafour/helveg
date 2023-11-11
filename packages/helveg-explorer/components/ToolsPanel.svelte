@@ -4,10 +4,10 @@
     import { AppIcons, AppPanels } from "../const.ts";
     import type { Readable, Writable } from "svelte/store";
     import { getContext } from "svelte";
-    import type { dataModel } from "../deps/helveg-diagram.ts";
+    import type { DataModel } from "../deps/helveg-diagram.ts";
     import type { ToolOptions } from "../options.ts";
 
-    let model = getContext<Readable<dataModel.DataModel>>("model");
+    let model = getContext<Readable<DataModel>>("model");
     let toolOptions = getContext<Writable<ToolOptions>>("toolOptions");
     
     $: relations = $model && $model.data ? Object.keys($model.data.relations).sort() : [];

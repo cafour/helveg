@@ -139,7 +139,7 @@ namespace Helveg.Visualization
         /// </summary>
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         [JsonPropertyName("edges")]
-        public virtual List<MultigraphEdge> Edges { get; set; }
+        public virtual Dictionary<string, MultigraphEdge> Edges { get; set; }
 
         /// <summary>
         /// Whether or not the relation is transitive. That is a -> b -> c => a -> c.

@@ -115,9 +115,12 @@
                                 "description": "Whether or not the relation is transitive. That is a -> b -> c => a -> c."
                             },
                             "edges": {
-                                "type": "array",
+                                "type": "object",
                                 "description": "The edges of the relation.",
-                                "items": {
+                                "propertyNames": {
+                                    "type": "string"
+                                },
+                                "additionalProperties": {
                                     "title": "MultigraphEdge",
                                     "description": "An edge of the relation.",
                                     "type": "object",
