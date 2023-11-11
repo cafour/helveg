@@ -2,6 +2,7 @@ import { HelvegEvent } from "../common/event.ts";
 import { ForceAtlas2Settings, helpers } from "../deps/graphology-layout-forceatlas2.ts";
 import { createEdgeWeightGetter } from "../deps/graphology-utils.ts";
 import Graph, { Attributes, EdgeMapper } from "../deps/graphology.ts";
+import { HelvegGraph } from "../global.ts";
 import { ILogger } from "../model/logger.ts";
 import { MessageKind, StartMessage, Message, UpdateMessage, ProgressMessage } from "./forceAtlas2Messages.ts";
 import forceAtlas2WorkerCode from "inline-bundle:./forceAtlas2Worker.ts";
@@ -25,7 +26,7 @@ export class ForceAtlas2Supervisor {
     private lastPerformanceTime: number = 0;
     private matrices: GraphMatrices = { nodes: new Float32Array(0), edges: new Float32Array(0) };
 
-    constructor(private graph: Graph, private settings: ForceAtlas2Settings, private logger?: ILogger) {
+    constructor(private graph: HelvegGraph, private settings: ForceAtlas2Settings, private logger?: ILogger) {
         this.graph.on("nodeAdded", this.handleGraphUpdate);
         this.graph.on("edgeAdded", this.handleGraphUpdate);
         this.graph.on("nodeDropped", this.handleGraphUpdate);
@@ -218,11 +219,11 @@ const FLOATS_PER_EDGE = 3;
 
 // Based on https://github.com/graphology/graphology/blob/master/src/layout-forceatlas2/helpers.js
 function graphToByteArrays(
-    graph: Graph,
+    graph: HelvegGraph,
     getEdgeWeight: EdgeMapper<number, Attributes, Attributes>): GraphMatrices {
 
-    let order = graph.order;
-    let size = graph.size;
+    let order = graph.filterNodes((n, a) => !a.hidden).length;
+    let size = graph.filterEdges((e, a, s, t, sa, ta) => !sa.hidden && !ta.hidden).length;
     let index: Record<string, number> = {};
     let j: number;
 
@@ -243,8 +244,8 @@ function graphToByteArrays(
         index[node] = j;
 
         // Populating byte array
-        NodeMatrix[j] = attr.x;
-        NodeMatrix[j + 1] = attr.y;
+        NodeMatrix[j] = attr.x ?? 0;
+        NodeMatrix[j + 1] = attr.y ?? 0;
         NodeMatrix[j + 2] = 0; // dx
         NodeMatrix[j + 3] = 0; // dy
         NodeMatrix[j + 4] = 0; // old_dx
