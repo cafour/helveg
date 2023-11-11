@@ -32,12 +32,10 @@
             "./common/shaders.d.ts",
             "./common/inlineBundle.d.ts",
             "./deps/graphology-layout-forceatlas2.d.ts"
-        ],
-        "rootDir": "../.."
+        ]
     },
     "include": [
-        "**/*.ts",
-        "../../schema/*.json"
+        "**/*.ts"
     ],
     "exclude": [
         "eng/",

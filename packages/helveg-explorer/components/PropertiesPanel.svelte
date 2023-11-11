@@ -1,8 +1,6 @@
 <script lang="ts">
     import {
-    MultigraphDiagnosticSeverity,
-        type MultigraphDiagnostic,
-        type MultigraphNode,
+        dataModel
     } from "../deps/helveg-diagram.ts";
     import KeyValueList from "./KeyValueList.svelte";
     import Panel from "./Panel.svelte";
@@ -10,10 +8,10 @@
     import { AppIcons, AppPanels } from "../const.ts";
     import Icon from "./Icon.svelte";
 
-    export let node: MultigraphNode | null = null;
+    export let node: dataModel.MultigraphNode | null = null;
     $: nodeItems =
         [
-            ...Object.entries(node?.properties ?? {}).filter(
+            ...Object.entries(node ?? {}).filter(
                 ([k, v]) => k !== "Diagnostics"
             ),
         ].map((p) => ({
@@ -22,15 +20,15 @@
         })) ?? [];
     $: diagnostics = node?.properties?.Diagnostics ?? [];
 
-    function getDiagnosticIcon(diagnostic: MultigraphDiagnostic) {
+    function getDiagnosticIcon(diagnostic: dataModel.MultigraphDiagnostic) {
         switch (diagnostic.severity) {
-            case MultigraphDiagnosticSeverity.Hidden:
+            case "hidden":
                 return AppIcons.HiddenDiagnostic;
-            case MultigraphDiagnosticSeverity.Info:
+            case "info":
                 return AppIcons.InfoDiagnostic;
-            case MultigraphDiagnosticSeverity.Warning:
+            case "warning":
                 return AppIcons.WarningDiagnostic;
-            case MultigraphDiagnosticSeverity.Error:
+            case "error":
                 return AppIcons.ErrorDiagnostic;
             default:
                 return AppIcons.UnknownDiagnostic;

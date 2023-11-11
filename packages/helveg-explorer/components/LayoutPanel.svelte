@@ -7,7 +7,7 @@
     import KeyValueList from "./KeyValueList.svelte";
     import { AppPanels } from "../const.ts";
     import type { Readable, Writable } from "svelte/store";
-    import type { VisualizationModel } from "../deps/helveg-diagram.ts";
+    import type { dataModel } from "../deps/helveg-diagram.ts";
     import type { LayoutOptions } from "../options.ts";
 
     export let status: DiagramStatus;
@@ -18,11 +18,11 @@
         { key: "Speed", value: `${stats?.speed.toFixed(3)} iterations/s` },
     ];
 
-    $: relations = $model ? Object.keys($model.multigraph.relations).sort() : [];
+    $: relations = $model && $model.data ? Object.keys($model.data.relations).sort() : [];
 
     let dispatch = createEventDispatcher();
 
-    let model = getContext<Readable<VisualizationModel>>("model");
+    let model = getContext<Readable<dataModel.DataModel>>("model");
     let layoutOptions = getContext<Writable<LayoutOptions>>("layoutOptions");
 
 </script>

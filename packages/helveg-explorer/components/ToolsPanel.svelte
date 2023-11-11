@@ -4,13 +4,13 @@
     import { AppIcons, AppPanels } from "../const.ts";
     import type { Readable, Writable } from "svelte/store";
     import { getContext } from "svelte";
-    import type { VisualizationModel } from "../deps/helveg-diagram.ts";
+    import type { dataModel } from "../deps/helveg-diagram.ts";
     import type { ToolOptions } from "../options.ts";
 
-    let model = getContext<Readable<VisualizationModel>>("model");
+    let model = getContext<Readable<dataModel.DataModel>>("model");
     let toolOptions = getContext<Writable<ToolOptions>>("toolOptions");
     
-    $: relations = $model ? Object.keys($model.multigraph.relations).sort() : [];
+    $: relations = $model && $model.data ? Object.keys($model.data.relations).sort() : [];
 </script>
 
 <Panel name="Tools" indent={false} id={AppPanels.Tools}>

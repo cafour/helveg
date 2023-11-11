@@ -6,7 +6,7 @@
     import { AppPanels } from "../const.ts";
     import type { Readable, Writable } from "svelte/store";
     import {
-        type VisualizationModel,
+        dataModel,
         type Diagram,
         saveAs,
     } from "../deps/helveg-diagram.ts";
@@ -24,13 +24,13 @@
         { key: "ExplorerVersion", value: version },
         {
             key: "NodeCount",
-            value: Object.keys($model.multigraph.nodes).length.toString(),
+            value: $model.data ? Object.keys($model.data.nodes).length.toString() : "0",
         },
     ];
 
     let dispatch = createEventDispatcher();
 
-    const model = getContext<Readable<VisualizationModel>>("model");
+    const model = getContext<Readable<dataModel.DataModel>>("model");
     const diagram = getContext<Diagram>("diagram");
     const appearanceOptions =
         getContext<Writable<Options.AppearanceOptions>>("appearanceOptions");

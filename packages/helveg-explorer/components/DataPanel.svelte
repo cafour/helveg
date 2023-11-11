@@ -7,7 +7,7 @@
     import { AppIcons, AppPanels } from "../const.ts";
     import ResizingTextarea from "./ResizingTextarea.svelte";
     import ToggleAllCheckbox from "./ToggleAllCheckbox.svelte";
-    import { SearchMode, type DataModel } from "../deps/helveg-diagram.ts";
+    import { SearchMode, dataModel } from "../deps/helveg-diagram.ts";
     import type { Readable, Writable } from "svelte/store";
 
     let dispatch = createEventDispatcher();
@@ -29,11 +29,11 @@
     let selectedSearchMode = SearchMode.Contains;
     let searchText: string = "";
 
-    let model = getContext<Readable<DataModel>>("model");
+    let model = getContext<Readable<dataModel.DataModel>>("model");
     let dataOptions = getContext<Writable<DataOptions>>("dataOptions");
     
-    $: relations = $model
-        ? Object.keys($model.multigraph.relations).sort()
+    $: relations = $model && $model.data
+        ? Object.keys($model.data.relations).sort()
         : [];
 </script>
 

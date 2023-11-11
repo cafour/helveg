@@ -144,6 +144,11 @@ public class Program
         {
             Name = name ?? source.Name,
             CreatedOn = DateTimeOffset.UtcNow,
+            Analyzer = new()
+            {
+                Name = System.Diagnostics.Process.GetCurrentProcess().ProcessName,
+                Version = GitVersionInformation.SemVer
+            },
             Data = multigraph
         });
 
