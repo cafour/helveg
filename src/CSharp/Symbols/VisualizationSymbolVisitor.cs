@@ -76,12 +76,13 @@ public class VisualizationSymbolVisitor : SymbolVisitor
             return;
         }
 
-        base.VisitNamespace(@namespace);
-
         if (@namespace.IsGlobalNamespace)
         {
             graph.GetNode<CSharpNode>(@namespace.Token, CSConst.GlobalNamespaceName);
         }
+
+        base.VisitNamespace(@namespace);
+
 
         graph.AddEdges(
             CSRelations.Declares,
