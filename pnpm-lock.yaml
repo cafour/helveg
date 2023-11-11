@@ -12,6 +12,9 @@ importers:
 
   .:
     devDependencies:
+      quicktype:
+        specifier: ^23.0.77
+        version: 23.0.77
       rimraf:
         specifier: ^5.0.5
         version: 5.0.5
@@ -70,9 +73,6 @@ importers:
       esbuild-plugin-copy:
         specifier: ^2.1.1
         version: 2.1.1(esbuild@0.19.5)
-      quicktype:
-        specifier: ^23.0.77
-        version: 23.0.77
       tsx:
         specifier: ^3.14.0
         version: 3.14.0

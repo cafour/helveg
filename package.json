@@ -20,9 +20,14 @@
   "packageManager": "pnpm@8.10.2",
   "scripts": {
     "build": "turbo run rebuild",
-    "git-version": "turbo run git-version"
+    "git-version": "turbo run git-version",
+    "csharp:none": "quicktype --lang cs --src-lang schema --framework SystemTextJson --array-type list --virtual --namespace Helveg.Visualization",
+    "csharp:data": "npm run csharp:none -- --out \"./src/Visualization/DataModel.cs\" \"./schema/data.json\"",
+    "csharp:icon-set": "npm run csharp:none -- --out \"./src/Visualization/IconSetModel.cs\" \"./schema/icon-set.json\"",
+    "csharp": "npm run csharp:data"
   },
   "devDependencies": {
+    "quicktype": "^23.0.77",
     "rimraf": "^5.0.5",
     "turbo": "^1.10.16"
   }

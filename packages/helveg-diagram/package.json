@@ -11,7 +11,7 @@
     },
     "homepage": "https://helveg.net",
     "main": "./dist/helveg-diagram.js",
-    "types": "./dist/types/mod.ts",
+    "types": "./dist/types/mod.d.ts",
     "files": [
         "./dist/"
     ],
@@ -51,7 +51,6 @@
         "concurrently": "^7.6.0",
         "esbuild": "^0.19.5",
         "esbuild-plugin-copy": "^2.1.1",
-        "quicktype": "^23.0.77",
         "tsx": "^3.14.0",
         "typescript": "^5.2.2",
         "yargs": "^17.7.2"

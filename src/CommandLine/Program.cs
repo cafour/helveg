@@ -75,18 +75,22 @@ public class Program
 
         var workspace = await workflow.Run(new DataSource(source.FullName, DateTimeOffset.UtcNow));
 
-        var multigraphBuilder = new MultigraphBuilder(logger);
+        var graph = new Multigraph()
+        {
+            Nodes = new(),
+            Relations = new()
+        };
 
-        var projectVisitor = new VisualizationProjectVisitor(multigraphBuilder);
+        var projectVisitor = new VisualizationProjectVisitor(graph);
         workspace.Accept(projectVisitor);
 
-        var packageVisitor = new VisualizationPackageVisitor(multigraphBuilder);
+        var packageVisitor = new VisualizationPackageVisitor(graph);
         workspace.Accept(packageVisitor);
 
-        var symbolVisitor = new VisualizationSymbolVisitor(multigraphBuilder);
+        var symbolVisitor = new VisualizationSymbolVisitor(graph);
         workspace.Accept(symbolVisitor);
 
-        return multigraphBuilder.Build();
+        return graph;
     }
 
     public async Task<int> RunPipeline(
@@ -108,7 +112,7 @@ public class Program
             logger.LogCritical($"'{source}' is not a valid SOURCE argument.");
             return 1;
         }
-        
+
         if (string.IsNullOrEmpty(outDir))
         {
             logger.LogCritical($"'{outDir}' is not a valid valid --outdir value.");
@@ -131,20 +135,16 @@ public class Program
         }
 
         var uib = await UIBuilder.CreateDefault(logging.CreateLogger<UIBuilder>());
-        await uib.UseCSharp();
         uib.Mode = mode;
         uib.StylesDirectory = !string.IsNullOrEmpty(styleDir) ? styleDir : uib.StylesDirectory;
         uib.ScriptsDirectory = !string.IsNullOrEmpty(scriptDir) ? scriptDir : uib.ScriptsDirectory;
         uib.IconsDirectory = !string.IsNullOrEmpty(iconDir) ? iconDir : uib.IconsDirectory;
         uib.EntryPointName = !string.IsNullOrEmpty(@out) ? @out : uib.EntryPointName;
-        uib.SetVisualizationModel(new()
+        uib.SetDataModel(new()
         {
-            DocumentInfo = new()
-            {
-                Name = name ?? source.Name ?? multigraph.Id,
-                CreatedOn = DateTimeOffset.UtcNow
-            },
-            Multigraph = multigraph
+            Name = name ?? source.Name,
+            CreatedOn = DateTimeOffset.UtcNow,
+            Data = multigraph
         });
 
         await uib.Build(path =>
@@ -242,7 +242,7 @@ public class Program
             .AddMiddleware(c =>
             {
                 bool isVerbose = c.ParseResult.GetValueForOption(verboseOption);
-                
+
                 program.isForced = c.ParseResult.GetValueForOption(forceOption);
 
                 LogLevel minimumLevel = isVerbose ? LogLevel.Debug : LogLevel.Information;

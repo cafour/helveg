@@ -1,4 +1,5 @@
 import fs from "fs/promises";
+import { existsSync } from "fs";
 import path from "path";
 
 // TODO: make a JSON schema for these. In the meantime keep it in sync with icons.ts
@@ -56,6 +57,10 @@ async function packIconSet(namespaceDir: string) {
         });
     }
     await fs.writeFile(`./dist/helveg-icons-${set.namespace}.json`, JSON.stringify(set));
+}
+
+if (!existsSync("./dist")) {
+    await fs.mkdir("./dist");
 }
 
 const setEntries = await fs.readdir("./icons", { recursive: false, withFileTypes: true });

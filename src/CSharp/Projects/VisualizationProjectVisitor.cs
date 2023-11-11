@@ -9,11 +9,11 @@ namespace Helveg.CSharp.Projects;
 
 public class VisualizationProjectVisitor : ProjectVisitor
 {
-    private readonly MultigraphBuilder builder;
+    private readonly Multigraph graph;
 
-    public VisualizationProjectVisitor(MultigraphBuilder builder)
+    public VisualizationProjectVisitor(Multigraph graph)
     {
-        this.builder = builder;
+        this.graph = graph;
     }
 
     public override void DefaultVisit(IEntity entity)
@@ -24,39 +24,35 @@ public class VisualizationProjectVisitor : ProjectVisitor
     {
         base.VisitSolution(solution);
 
-        builder.GetNode(solution.Token, solution.Name)
-            .SetProperty(Const.StyleProperty, CSConst.NodeStyle)
-            .SetProperty(nameof(Solution.Path), solution.Path)
-            .SetProperty(CSProperties.Kind, CSConst.KindOf<Solution>());
-        builder.AddEdges(
+        var node = graph.GetNode<CSharpNode>(solution.Token, solution.Name);
+        node.Path = solution.Path;
+        node.Kind = CSConst.KindOf<Solution>();
+        graph.AddEdges(
             CSRelations.Declares,
-            solution.Projects.Select(p => new Edge(solution.Id, p.Id)),
-            CSConst.RelationStyle);
+            solution.Projects.Select(p => new MultigraphEdge(solution.Id, p.Id)), true);
     }
 
     public override void VisitProject(Project project)
     {
         base.VisitProject(project);
 
-        builder.GetNode(project.Token, project.Name)
-            .SetProperty(Const.StyleProperty, CSConst.NodeStyle)
-            .SetProperty(nameof(Solution.Path), project.Path)
-            .SetProperty(CSProperties.Kind, CSConst.KindOf<Project>());
+        var node = graph.GetNode<CSharpNode>(project.Token, project.Name);
+        node.Path = project.Path;
+        node.Kind = CSConst.KindOf<Project>();
 
-        builder.AddEdges(CSRelations.DependsOn, project.Dependencies
+        graph.AddEdges(CSRelations.DependsOn, project.Dependencies
             .SelectMany(d => d.Value)
             .Distinct()
             .Where(d => d.Token.HasValue)
-            .Select(d => new Edge(project.Id, d.Token)),
-            CSConst.RelationStyle);
+            .Select(d => new MultigraphEdge(project.Id, d.Token)));
 
         var assemblies = project.Extensions.OfType<AssemblyExtension>().ToArray();
         if (assemblies.Length > 0)
         {
-            builder.AddEdges(
+            graph.AddEdges(
                 CSRelations.Declares,
-                assemblies.Select(a => new Edge(project.Id, a.Assembly.Token)),
-                CSConst.RelationStyle);
+                assemblies.Select(a => new MultigraphEdge(project.Id, a.Assembly.Token)),
+                true);
         }
     }
 
@@ -64,17 +60,16 @@ public class VisualizationProjectVisitor : ProjectVisitor
     {
         base.VisitFramework(framework);
 
-        builder.GetNode(framework.Token, framework.Name)
-            .SetProperty(Const.StyleProperty, CSConst.NodeStyle)
-            .SetProperty(nameof(Framework.Version), framework.Version)
-            .SetProperty(CSProperties.Kind, CSConst.KindOf<Framework>());
+        var node = graph.GetNode<CSharpNode>(framework.Token, framework.Name);
+        node.Version = framework.Version;
+        node.Kind = CSConst.KindOf<Framework>();
 
         if (framework.Libraries.Length > 0)
         {
-            builder.AddEdges(
+            graph.AddEdges(
                 CSRelations.Declares,
-                framework.Libraries.Select(d => new Edge(framework.Token, d.Token)),
-                CSConst.RelationStyle);
+                framework.Libraries.Select(d => new MultigraphEdge(framework.Token, d.Token)),
+                true);
         }
     }
 
@@ -88,14 +83,13 @@ public class VisualizationProjectVisitor : ProjectVisitor
             return;
         }
 
-        builder.GetNode(externalDependencySource.Token, externalDependencySource.Name)
-            .SetProperty(Const.StyleProperty, CSConst.NodeStyle)
-            .SetProperty(CSProperties.Kind, CSConst.KindOf<ExternalDependencySource>());
+        var node = graph.GetNode<CSharpNode>(externalDependencySource.Token, externalDependencySource.Name);
+        node.Kind = CSConst.KindOf<ExternalDependencySource>();
         if (externalDependencySource.Libraries.Length > 0)
         {
-            builder.AddEdges(CSRelations.Declares, externalDependencySource.Libraries
-                .Select(d => new Edge(externalDependencySource.Token, d.Token)),
-                CSConst.RelationStyle);
+            graph.AddEdges(CSRelations.Declares, externalDependencySource.Libraries
+                .Select(d => new MultigraphEdge(externalDependencySource.Token, d.Token)),
+                true);
         }
     }
 
@@ -103,16 +97,15 @@ public class VisualizationProjectVisitor : ProjectVisitor
     {
         base.VisitLibrary(library);
 
-        builder.GetNode(library.Token, library.Identity.Name)
-            .SetProperty(Const.StyleProperty, CSConst.NodeStyle)
-            .SetProperty(CSProperties.Kind, CSConst.KindOf<Library>());
+        var node = graph.GetNode<CSharpNode>(library.Token, library.Identity.Name);
+        node.Kind = CSConst.KindOf<Library>();
         var assemblies = library.Extensions.OfType<AssemblyExtension>().ToArray();
         if (assemblies.Length > 0)
         {
-            builder.AddEdges(
+            graph.AddEdges(
                 CSRelations.Declares,
-                assemblies.Select(a => new Edge(library.Token, a.Assembly.Token)),
-                CSConst.RelationStyle);
+                assemblies.Select(a => new MultigraphEdge(library.Token, a.Assembly.Token)),
+                true);
         }
     }
 }

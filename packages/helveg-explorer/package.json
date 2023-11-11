@@ -11,7 +11,7 @@
     },
     "homepage": "https://helveg.net",
     "main": "./dist/helveg-explorer.js",
-    "types": "./dist/types/mod.ts",
+    "types": "./dist/types/mod.d.ts",
     "files": [
         "./dist/"
     ],

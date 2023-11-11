@@ -9,32 +9,30 @@ namespace Helveg.CSharp.Symbols;
 
 public class VisualizationSymbolVisitor : SymbolVisitor
 {
-    private readonly MultigraphBuilder builder;
+    private readonly Multigraph graph;
 
-    public VisualizationSymbolVisitor(MultigraphBuilder builder)
+    public VisualizationSymbolVisitor(Multigraph graph)
     {
-        this.builder = builder;
+        this.graph = graph;
     }
 
     public override void DefaultVisit(ISymbolDefinition symbol)
     {
-        var node = builder.GetNode(symbol.Token, symbol.Name)
-            .SetProperty(CSProperties.Kind, CSConst.KindOf(symbol.GetType()))
-            .SetProperty(Const.DiagnosticsProperty, symbol.Diagnostics)
-            .SetProperty(Const.StyleProperty, CSConst.NodeStyle);
+        var node = graph.GetNode<CSharpNode>(symbol.Token, symbol.Name);
+        node.Kind = CSConst.KindOf(symbol.GetType());
+        node.Diagnostics = symbol.Diagnostics.Select(d => d.ToMultigraphDiagnostic()).ToList();
 
         if (symbol is IMemberDefinition member)
         {
-            node
-                .SetProperty(nameof(member.Accessibility), member.Accessibility)
-                .SetProperty(nameof(member.IsSealed), member.IsSealed)
-                .SetProperty(nameof(member.IsStatic), member.IsStatic)
-                .SetProperty(nameof(member.IsAbstract), member.IsAbstract)
-                .SetProperty(nameof(member.IsExtern), member.IsExtern)
-                .SetProperty(nameof(member.IsOverride), member.IsOverride)
-                .SetProperty(nameof(member.IsVirtual), member.IsVirtual)
-                .SetProperty(nameof(member.IsImplicitlyDeclared), member.IsImplicitlyDeclared)
-                .SetProperty(nameof(member.CanBeReferencedByName), member.CanBeReferencedByName);
+            node.Accessibility = member.Accessibility;
+            node.IsSealed = member.IsSealed;
+            node.IsStatic = member.IsStatic;
+            node.IsAbstract = member.IsAbstract;
+            node.IsExtern = member.IsExtern;
+            node.IsOverride = member.IsOverride;
+            node.IsVirtual = member.IsVirtual;
+            node.IsImplicitlyDeclared = member.IsImplicitlyDeclared;
+            node.CanBeReferencedByName = member.CanBeReferencedByName;
         }
     }
 
@@ -42,33 +40,32 @@ public class VisualizationSymbolVisitor : SymbolVisitor
     {
         base.VisitAssembly(assembly);
 
-        builder.GetNode(assembly.Name)
-            .SetProperty(nameof(AssemblyId.Version), assembly.Identity.Version)
-            .SetProperty(nameof(AssemblyId.FileVersion), assembly.Identity.FileVersion)
-            .SetProperty(nameof(AssemblyId.CultureName), assembly.Identity.CultureName)
-            .SetProperty(nameof(AssemblyId.PublicKeyToken), assembly.Identity.PublicKeyToken)
-            .SetProperty(nameof(AssemblyId.TargetFramework), assembly.Identity.TargetFramework);
+        var node = graph.GetNode<CSharpNode>(assembly.Name);
+        node.Version = assembly.Identity.Version;
+        node.FileVersion = assembly.Identity.FileVersion;
+        node.CultureName = assembly.Identity.CultureName;
+        node.PublicKeyToken = assembly.Identity.PublicKeyToken;
+        node.TargetFramework = assembly.Identity.TargetFramework;
 
-        builder.AddEdges(
+        graph.AddEdges(
             CSRelations.Declares,
-            assembly.Modules.Select(m => new Edge(assembly.Token, m.Token)),
-            CSConst.RelationStyle);
+            assembly.Modules.Select(m => new MultigraphEdge(assembly.Token, m.Token)),
+            true);
     }
 
     public override void VisitModule(ModuleDefinition module)
     {
         base.VisitModule(module);
-        builder.AddEdge(
+        graph.AddEdge(
             CSRelations.Declares,
-            new Edge(module.Token, module.GlobalNamespace.Token),
-            CSConst.RelationStyle);
+            new MultigraphEdge(module.Token, module.GlobalNamespace.Token),
+            true);
 
-        builder.AddEdges(
+        graph.AddEdges(
             CSRelations.References,
             module.ReferencedAssemblies
                 .Where(a => a.Token.HasValue)
-                .Select(a => new Edge(module.Token, a.Token)),
-            CSConst.RelationStyle);
+                .Select(a => new MultigraphEdge(module.Token, a.Token)));
     }
 
     public override void VisitNamespace(NamespaceDefinition @namespace)
@@ -83,79 +80,76 @@ public class VisualizationSymbolVisitor : SymbolVisitor
 
         if (@namespace.IsGlobalNamespace)
         {
-            builder.GetNode(@namespace.Token)
-                .SetProperty(Const.LabelProperty, CSConst.GlobalNamespaceName);
+            graph.GetNode<CSharpNode>(@namespace.Token, CSConst.GlobalNamespaceName);
         }
 
-        builder.AddEdges(
+        graph.AddEdges(
             CSRelations.Declares,
-            @namespace.Namespaces.Select(n => new Edge(@namespace.Token, n.Token)),
-            CSConst.RelationStyle);
-        builder.AddEdges(
+            @namespace.Namespaces.Select(n => new MultigraphEdge(@namespace.Token, n.Token)),
+            true);
+        graph.AddEdges(
             CSRelations.Declares,
-            @namespace.Types.Select(t => new Edge(@namespace.Token, t.Token)),
-            CSConst.RelationStyle);
+            @namespace.Types.Select(t => new MultigraphEdge(@namespace.Token, t.Token)),
+            true);
     }
 
     public override void VisitType(TypeDefinition type)
     {
         base.VisitType(type);
 
-        var node = builder.GetNode(type.Token)
-            .SetProperty(nameof(TypeDefinition.IsNested), type.IsNested)
-            .SetProperty(nameof(TypeDefinition.TypeKind), type.TypeKind)
-            .SetProperty(nameof(TypeDefinition.IsAnonymousType), type.IsAnonymousType)
-            .SetProperty(nameof(TypeDefinition.IsTupleType), type.IsTupleType)
-            .SetProperty(nameof(TypeDefinition.IsNativeIntegerType), type.IsNativeIntegerType)
-            .SetProperty(nameof(TypeDefinition.IsUnmanagedType), type.IsUnmanagedType)
-            .SetProperty(nameof(TypeDefinition.IsReadOnly), type.IsReadOnly)
-            .SetProperty(nameof(TypeDefinition.IsRefLikeType), type.IsRefLikeType)
-            .SetProperty(nameof(TypeDefinition.IsRecord), type.IsRecord)
-            .SetProperty(nameof(TypeDefinition.Arity), type.Arity)
-            .SetProperty(nameof(TypeDefinition.IsImplicitClass), type.IsImplicitClass);
+        var node = graph.GetNode<CSharpNode>(type.Token);
+        node.IsNested = type.IsNested;
+        node.TypeKind = type.TypeKind;
+        node.IsAnonymousType = type.IsAnonymousType;
+        node.IsTupleType = type.IsTupleType;
+        node.IsNativeIntegerType = type.IsNativeIntegerType;
+        node.IsUnmanagedType = type.IsUnmanagedType;
+        node.IsReadOnly = type.IsReadOnly;
+        node.IsRefLikeType = type.IsRefLikeType;
+        node.IsRecord = type.IsRecord;
+        node.Arity = type.Arity;
+        node.IsImplicitClass = type.IsImplicitClass;
 
         var (instanceCount, staticCount) = CountMembers(type);
-        node.SetProperty(CSProperties.InstanceMemberCount, instanceCount)
-            .SetProperty(CSProperties.StaticMemberCount, staticCount);
+        node.InstanceMemberCount = instanceCount;
+        node.StaticMemberCount = staticCount;
 
-        builder.AddEdges(
+        graph.AddEdges(
             CSRelations.Declares,
-            type.Fields.Select(f => new Edge(type.Token, f.Token)),
-            CSConst.RelationStyle);
-        builder.AddEdges(
+            type.Fields.Select(f => new MultigraphEdge(type.Token, f.Token)),
+            true);
+        graph.AddEdges(
             CSRelations.Declares,
-            type.Events.Select(e => new Edge(type.Token, e.Token)),
-            CSConst.RelationStyle);
-        builder.AddEdges(
+            type.Events.Select(e => new MultigraphEdge(type.Token, e.Token)),
+            true);
+        graph.AddEdges(
             CSRelations.Declares,
-            type.Properties.Select(p => new Edge(type.Token, p.Token)),
-            CSConst.RelationStyle);
-        builder.AddEdges(
+            type.Properties.Select(p => new MultigraphEdge(type.Token, p.Token)),
+            true);
+        graph.AddEdges(
             CSRelations.Declares,
-            type.Methods.Select(m => new Edge(type.Token, m.Token)),
-            CSConst.RelationStyle);
-        builder.AddEdges(
+            type.Methods.Select(m => new MultigraphEdge(type.Token, m.Token)),
+            true);
+        graph.AddEdges(
             CSRelations.Declares,
-            type.TypeParameters.Select(t => new Edge(type.Token, t.Token)),
-            CSConst.RelationStyle);
-        builder.AddEdges(
+            type.TypeParameters.Select(t => new MultigraphEdge(type.Token, t.Token)),
+            true);
+        graph.AddEdges(
             CSRelations.Declares,
-            type.NestedTypes.Select(t => new Edge(type.Token, t.Token)),
-            CSConst.RelationStyle);
+            type.NestedTypes.Select(t => new MultigraphEdge(type.Token, t.Token)),
+            true);
 
-        builder.AddEdges(
+        graph.AddEdges(
             CSRelations.InheritsFrom,
             type.Interfaces
                 .Where(i => i.Token.HasValue)
-                .Select(i => new Edge(type.Token, i.Token)),
-            CSConst.RelationStyle);
+                .Select(i => new MultigraphEdge(type.Token, i.Token)));
 
         if (type.BaseType?.Token.HasValue == true)
         {
-            builder.AddEdge(
+            graph.AddEdge(
                 CSRelations.InheritsFrom,
-                new Edge(type.Token, type.BaseType.Token),
-                CSConst.RelationStyle);
+                new MultigraphEdge(type.Token, type.BaseType.Token));
         }
     }
 
@@ -163,35 +157,32 @@ public class VisualizationSymbolVisitor : SymbolVisitor
     {
         base.VisitField(field);
 
-        builder.GetNode(field.Token)
-            .SetProperty(nameof(FieldDefinition.IsReadOnly), field.IsReadOnly)
-            .SetProperty(nameof(FieldDefinition.IsVolatile), field.IsVolatile)
-            .SetProperty(nameof(FieldDefinition.IsConst), field.IsConst)
-            .SetProperty(nameof(FieldDefinition.IsEnumItem), field.IsEnumItem)
-            .SetProperty(nameof(FieldDefinition.RefKind), field.RefKind)
-            .SetProperty(nameof(FieldDefinition.FieldType), field.FieldType?.Hint ?? Const.Unknown);
+        var node = graph.GetNode<CSharpNode>(field.Token);
+        node.IsReadOnly = field.IsReadOnly;
+        node.IsVolatile = field.IsVolatile;
+        node.IsConst = field.IsConst;
+        node.IsEnumItem = field.IsEnumItem;
+        node.RefKind = field.RefKind;
+        node.FieldType = field.FieldType?.Hint ?? Const.Unknown;
 
         if (field.FieldType?.Token.HasValue == true)
         {
-            builder.AddEdges(CSRelations.TypeOf, GetReferencedTypes(field.FieldType)
-                .Select(t => new Edge(field.Token, t)),
-                CSConst.RelationStyle);
+            graph.AddEdges(CSRelations.TypeOf, GetReferencedTypes(field.FieldType)
+                .Select(t => new MultigraphEdge(field.Token, t)));
         }
 
         if (field.AssociatedEvent?.Token.HasValue == true)
         {
-            builder.AddEdge(
+            graph.AddEdge(
                 CSRelations.AssociatedWith,
-                new Edge(field.Token, field.AssociatedEvent.Token),
-                CSConst.RelationStyle);
+                new MultigraphEdge(field.Token, field.AssociatedEvent.Token));
         }
 
         if (field.AssociatedProperty?.Token.HasValue == true)
         {
-            builder.AddEdge(
+            graph.AddEdge(
                 CSRelations.AssociatedWith,
-                new Edge(field.Token, field.AssociatedProperty.Token),
-                CSConst.RelationStyle);
+                new MultigraphEdge(field.Token, field.AssociatedProperty.Token));
         }
     }
 
@@ -199,21 +190,20 @@ public class VisualizationSymbolVisitor : SymbolVisitor
     {
         base.VisitParameter(parameter);
 
-        builder.GetNode(parameter.Token)
-            .SetProperty(nameof(ParameterDefinition.ParameterType), parameter.ParameterType?.Hint ?? Const.Unknown)
-            .SetProperty(nameof(ParameterDefinition.IsDiscard), parameter.IsDiscard)
-            .SetProperty(nameof(ParameterDefinition.RefKind), parameter.RefKind)
-            .SetProperty(nameof(ParameterDefinition.Ordinal), parameter.Ordinal)
-            .SetProperty(nameof(ParameterDefinition.IsParams), parameter.IsParams)
-            .SetProperty(nameof(ParameterDefinition.IsOptional), parameter.IsOptional)
-            .SetProperty(nameof(ParameterDefinition.IsThis), parameter.IsThis)
-            .SetProperty(nameof(ParameterDefinition.HasExplicitDefaultValue), parameter.HasExplicitDefaultValue);
+        var node = graph.GetNode<CSharpNode>(parameter.Token);
+        node.ParameterType = parameter.ParameterType?.Hint ?? Const.Unknown;
+        node.IsDiscard = parameter.IsDiscard;
+        node.RefKind = parameter.RefKind;
+        node.Ordinal = parameter.Ordinal;
+        node.IsParams = parameter.IsParams;
+        node.IsOptional = parameter.IsOptional;
+        node.IsThis = parameter.IsThis;
+        node.HasExplicitDefaultValue = parameter.HasExplicitDefaultValue;
 
         if (parameter.ParameterType?.Token.HasValue == true)
         {
-            builder.AddEdges(CSRelations.TypeOf, GetReferencedTypes(parameter.ParameterType)
-                .Select(t => new Edge(parameter.Token, t)),
-                CSConst.RelationStyle);
+            graph.AddEdges(CSRelations.TypeOf, GetReferencedTypes(parameter.ParameterType)
+                .Select(t => new MultigraphEdge(parameter.Token, t)));
         }
     }
 
@@ -221,38 +211,34 @@ public class VisualizationSymbolVisitor : SymbolVisitor
     {
         base.VisitEvent(@event);
 
-        builder.GetNode(@event.Token)
-            .SetProperty(nameof(EventDefinition.EventType), @event.EventType?.Hint ?? Const.Unknown);
+        var node = graph.GetNode<CSharpNode>(@event.Token);
+        node.EventType = @event.EventType?.Hint ?? Const.Unknown;
 
         if (@event.EventType?.Token.HasValue == true)
         {
-            builder.AddEdges(CSRelations.TypeOf, GetReferencedTypes(@event.EventType)
-                .Select(t => new Edge(@event.Token, t)),
-                CSConst.RelationStyle);
+            graph.AddEdges(CSRelations.TypeOf, GetReferencedTypes(@event.EventType)
+                .Select(t => new MultigraphEdge(@event.Token, t)));
         }
 
         if (@event.AddMethod?.Token.HasValue == true)
         {
-            builder.AddEdge(
+            graph.AddEdge(
                 CSRelations.AssociatedWith,
-                new Edge(@event.Token, @event.AddMethod.Token),
-                CSConst.RelationStyle);
+                new MultigraphEdge(@event.Token, @event.AddMethod.Token));
         }
 
         if (@event.RemoveMethod?.Token.HasValue == true)
         {
-            builder.AddEdge(
+            graph.AddEdge(
                 CSRelations.AssociatedWith,
-                 new Edge(@event.Token, @event.RemoveMethod.Token),
-                 CSConst.RelationStyle);
+                 new MultigraphEdge(@event.Token, @event.RemoveMethod.Token));
         }
 
         if (@event.RaiseMethod?.Token.HasValue == true)
         {
-            builder.AddEdge(
+            graph.AddEdge(
                 CSRelations.AssociatedWith,
-                new Edge(@event.Token, @event.RaiseMethod.Token),
-                CSConst.RelationStyle);
+                new MultigraphEdge(@event.Token, @event.RaiseMethod.Token));
         }
     }
 
@@ -260,49 +246,45 @@ public class VisualizationSymbolVisitor : SymbolVisitor
     {
         base.VisitProperty(property);
 
-        builder.GetNode(property.Token)
-            .SetProperty(nameof(PropertyDefinition.PropertyType), property.PropertyType?.Hint ?? Const.Unknown)
-            .SetProperty(nameof(PropertyDefinition.IsIndexer), property.IsIndexer)
-            .SetProperty(nameof(PropertyDefinition.IsReadOnly), property.IsReadOnly)
-            .SetProperty(nameof(PropertyDefinition.IsWriteOnly), property.IsWriteOnly)
-            .SetProperty(nameof(PropertyDefinition.IsReadOnly), property.IsRequired)
-            .SetProperty(nameof(PropertyDefinition.RefKind), property.RefKind)
-            .SetProperty(CSProperties.ParameterCount, property.Parameters.Length);
+        var node = graph.GetNode<CSharpNode>(property.Token);
+        node.PropertyType = property.PropertyType?.Hint ?? Const.Unknown;
+        node.IsIndexer = property.IsIndexer;
+        node.IsReadOnly = property.IsReadOnly;
+        node.IsWriteOnly = property.IsWriteOnly;
+        node.IsReadOnly = property.IsRequired;
+        node.RefKind = property.RefKind;
+        node.ParameterCount = property.Parameters.Length;
 
-        builder.AddEdges(
+        graph.AddEdges(
             CSRelations.Declares,
-            property.Parameters.Select(p => new Edge(property.Token, p.Token)),
-            CSConst.RelationStyle);
+            property.Parameters.Select(p => new MultigraphEdge(property.Token, p.Token)),
+            true);
 
         if (property.PropertyType?.Token.HasValue == true)
         {
-            builder.AddEdges(CSRelations.TypeOf, GetReferencedTypes(property.PropertyType)
-                .Select(t => new Edge(property.Token, t)),
-                CSConst.RelationStyle);
+            graph.AddEdges(CSRelations.TypeOf, GetReferencedTypes(property.PropertyType)
+                .Select(t => new MultigraphEdge(property.Token, t)));
         }
 
         if (property.OverriddenProperty?.Token.HasValue == true)
         {
-            builder.AddEdge(
+            graph.AddEdge(
                 CSRelations.Overrides,
-                new Edge(property.Token, property.OverriddenProperty.Token),
-                CSConst.RelationStyle);
+                new MultigraphEdge(property.Token, property.OverriddenProperty.Token));
         }
 
         if (property.GetMethod?.Token.HasValue == true)
         {
-            builder.AddEdge(
+            graph.AddEdge(
                 CSRelations.AssociatedWith,
-                new Edge(property.Token, property.GetMethod.Token),
-                CSConst.RelationStyle);
+                new MultigraphEdge(property.Token, property.GetMethod.Token));
         }
 
         if (property.SetMethod?.Token.HasValue == true)
         {
-            builder.AddEdge(
+            graph.AddEdge(
                 CSRelations.AssociatedWith,
-                new Edge(property.Token, property.SetMethod.Token),
-                CSConst.RelationStyle);
+                new MultigraphEdge(property.Token, property.SetMethod.Token));
         }
     }
 
@@ -310,56 +292,56 @@ public class VisualizationSymbolVisitor : SymbolVisitor
     {
         base.VisitMethod(method);
 
-        builder.GetNode(method.Token)
-            .SetProperty(nameof(MethodDefinition.MethodKind), method.MethodKind)
-            .SetProperty(nameof(MethodDefinition.IsExtensionMethod), method.IsExtensionMethod)
-            .SetProperty(nameof(MethodDefinition.IsAsync), method.IsAsync)
-            .SetProperty(nameof(MethodDefinition.ReturnType), method.ReturnsVoid
+        var node = graph.GetNode<CSharpNode>(method.Token);
+        node.MethodKind = method.MethodKind;
+        node.IsExtensionMethod = method.IsExtensionMethod;
+        node.IsAsync = method.IsAsync;
+        node.ReturnType = method.ReturnsVoid
                 ? "void"
-                : method.ReturnType?.Hint ?? Const.Unknown)
-            .SetProperty(CSProperties.ParameterCount, method.Parameters.Length)
-            .SetProperty(nameof(MethodDefinition.Arity), method.Arity)
-            .SetProperty(nameof(MethodDefinition.IsReadOnly), method.IsReadOnly)
-            .SetProperty(nameof(MethodDefinition.IsInitOnly), method.IsInitOnly);
+                : method.ReturnType?.Hint ?? Const.Unknown;
+        node.ParameterCount = method.Parameters.Length;
+        node.Arity = method.Arity;
+        node.IsReadOnly = method.IsReadOnly;
+        node.IsInitOnly = method.IsInitOnly;
 
-        builder.AddEdges(
+        graph.AddEdges(
             CSRelations.Declares,
-            method.Parameters.Select(p => new Edge(method.Token, p.Token)),
-            CSConst.RelationStyle);
-        builder.AddEdges(
+            method.Parameters.Select(p => new MultigraphEdge(method.Token, p.Token)),
+            true);
+        graph.AddEdges(
             CSRelations.Declares,
-            method.TypeParameters.Select(t => new Edge(method.Token, t.Token)),
-            CSConst.RelationStyle);
+            method.TypeParameters.Select(t => new MultigraphEdge(method.Token, t.Token)),
+            true);
 
         if (!method.ReturnsVoid && method.ReturnType?.Token.HasValue == true)
         {
-            builder.AddEdges(CSRelations.Returns, GetReferencedTypes(method.ReturnType)
-                .Select(t => new Edge(method.Token, t)),
-                CSConst.RelationStyle);
+            graph.AddEdges(CSRelations.Returns, GetReferencedTypes(method.ReturnType)
+                .Select(t => new MultigraphEdge(method.Token, t)),
+                true);
         }
 
         if (method.OverridenMethod?.Token.HasValue == true)
         {
-            builder.AddEdge(
+            graph.AddEdge(
                 CSRelations.Overrides,
-                new Edge(method.Token, method.OverridenMethod.Token),
-                CSConst.RelationStyle);
+                new MultigraphEdge(method.Token, method.OverridenMethod.Token),
+                true);
         }
 
         if (method.AssociatedEvent?.Token.HasValue == true)
         {
-            builder.AddEdge(
+            graph.AddEdge(
                 CSRelations.AssociatedWith,
-                new Edge(method.Token, method.AssociatedEvent.Token),
-                CSConst.RelationStyle);
+                new MultigraphEdge(method.Token, method.AssociatedEvent.Token),
+                true);
         }
 
         if (method.AssociatedProperty?.Token.HasValue == true)
         {
-            builder.AddEdge(
+            graph.AddEdge(
                 CSRelations.AssociatedWith,
-                new Edge(method.Token, method.AssociatedProperty.Token),
-                CSConst.RelationStyle);
+                new MultigraphEdge(method.Token, method.AssociatedProperty.Token),
+                true);
         }
     }
 
@@ -367,10 +349,10 @@ public class VisualizationSymbolVisitor : SymbolVisitor
     {
         base.VisitTypeParameter(typeParameter);
 
-        builder.GetNode(typeParameter.Token)
-            .SetProperty(CSProperties.DeclaringKind, typeParameter.DeclaringMethod is not null
+        var node = graph.GetNode<CSharpNode>(typeParameter.Token);
+        node.DeclaringKind = typeParameter.DeclaringMethod is not null
                 ? CSConst.KindOf<MethodDefinition>()
-                : CSConst.KindOf<TypeDefinition>());
+                : CSConst.KindOf<TypeDefinition>();
     }
 
     private static (int instanceCount, int staticCount) CountMembers(TypeDefinition type)

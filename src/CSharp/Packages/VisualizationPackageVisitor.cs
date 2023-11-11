@@ -10,11 +10,11 @@ namespace Helveg.CSharp.Packages;
 
 public class VisualizationPackageVisitor : PackageVisitor
 {
-    private readonly MultigraphBuilder builder;
+    private readonly Multigraph graph;
 
-    public VisualizationPackageVisitor(MultigraphBuilder builder)
+    public VisualizationPackageVisitor(Multigraph graph)
     {
-        this.builder = builder;
+        this.graph = graph;
     }
 
     public override void DefaultVisit(IEntity entity)
@@ -31,27 +31,23 @@ public class VisualizationPackageVisitor : PackageVisitor
             return;
         }
 
-        builder.GetNode(repository.Token, repository.Name)
-            .SetProperty(Const.StyleProperty, CSConst.NodeStyle)
-            .SetProperty(CSProperties.Kind, CSConst.KindOf<PackageRepository>());
+        var node = graph.GetNode<CSharpNode>(repository.Token, repository.Name);
+        node.Kind = CSConst.KindOf<PackageRepository>();
 
-        builder.AddEdges(
+        graph.AddEdges(
             CSRelations.Declares,
-            repository.Packages.Select(p => new Edge(repository.Token, p.Token)),
-            CSConst.RelationStyle);
+            repository.Packages.Select(p => new MultigraphEdge(repository.Token, p.Token)), true);
     }
 
     public override void VisitPackage(Package package)
     {
         base.VisitPackage(package);
 
-        builder.GetNode(package.Token, package.Name)
-            .SetProperty(Const.StyleProperty, CSConst.NodeStyle)
-            .SetProperty(CSProperties.Kind, CSConst.KindOf<Package>())
-            .SetProperty(nameof(package.Versions), package.Versions);
+        var node = graph.GetNode<CSharpNode>(package.Token, package.Name);
+        node.Kind = CSConst.KindOf<Package>();
+        node.Versions = package.Versions;
 
-        builder.AddEdges(CSRelations.Declares, package.Extensions.OfType<LibraryExtension>()
-            .Select(l => new Edge(package.Token, l.Library.Token)),
-            CSConst.RelationStyle);
+        graph.AddEdges(CSRelations.Declares, package.Extensions.OfType<LibraryExtension>()
+            .Select(l => new MultigraphEdge(package.Token, l.Library.Token)), true);
     }
 }
