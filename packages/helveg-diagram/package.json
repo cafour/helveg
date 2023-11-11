@@ -26,7 +26,7 @@
         "serve": "concurrently --kill-others -r \"npm run bundle -- --serve --sourcemap\" \"npm run watch:types\"",
         "clean": "rimraf dist/",
         "pack-icons": "tsx eng/pack-icons.ts",
-        "build": "npm run pack-icons && npm run schema && npm run types && npm run bundle",
+        "build": "npm run pack-icons && npm run schema && npm run bundle && npm run types",
         "rebuild": "npm run clean && npm run build",
         "git-version": "tsx eng/git-version.ts",
         "schema:data": "quicktype --src-lang schema --out model/data-model.ts ../../schema/data.json --prefer-unions --just-types",

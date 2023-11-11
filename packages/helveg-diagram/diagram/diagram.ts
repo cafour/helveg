@@ -1,5 +1,5 @@
 import { HelvegEvent } from "../common/event.ts";
-import { HelvegGraph, findRoots, toggleNode } from "../model/graph.ts";
+import { HelvegGraph, findRoots, getNodeKinds, toggleNode } from "../model/graph.ts";
 import { Coordinates, NodeProgramConstructor, Sigma, SigmaNodeEventPayload } from "../deps/sigma.ts";
 import { LogSeverity, ILogger, consoleLogger } from "../model/logger.ts";
 import { ForceAtlas2Progress, ForceAtlas2Supervisor } from "../layout/forceAltas2Supervisor.ts";
@@ -9,7 +9,7 @@ import { HelvegSigma, configureSigma, initializeGraph, initializeSigma, initiali
 import { DEFAULT_GLYPH_PROGRAM_OPTIONS, GlyphProgramOptions, createGlyphProgram } from "../rendering/node.glyph.ts";
 import { DEFAULT_EXPORT_OPTIONS, ExportOptions, exportDiagram } from "../rendering/export.ts";
 import { SearchMode, buildNodeFilter, filterNodes } from "../model/filter.ts";
-import { bfs } from "../model/traversal.ts";
+import { bfsGraph } from "../model/traversal.ts";
 import { EdgeStylist, NodeStylist, fallbackEdgeStylist, fallbackNodeStylist } from "../model/style.ts";
 import { EMPTY_ICON_REGISTRY, IconRegistry } from "../global.ts";
 import { DataModel } from "../model/data-model.ts";
@@ -21,7 +21,11 @@ export interface DiagramOptions {
     logLevel: LogSeverity,
     nodeStylist: NodeStylist,
     edgeStylist: EdgeStylist,
-    iconRegistry: Readonly<IconRegistry>
+    iconRegistry: Readonly<IconRegistry>,
+    initial?: {
+        selectedRelations: string[],
+        selectedKinds: string[]
+    }
 }
 
 export const DEFAULT_DIAGRAM_OPTIONS: DiagramOptions = {
@@ -34,7 +38,8 @@ export const DEFAULT_DIAGRAM_OPTIONS: DiagramOptions = {
 };
 
 export interface DiagramRefreshOptions {
-    selectedRelations?: string[]
+    selectedRelations?: string[],
+    selectedKinds?: string[]
 }
 
 export enum DiagramMode {
@@ -156,7 +161,10 @@ export class Diagram {
         this._logger = consoleLogger("diagram", this._options.logLevel);
         this._mainRelation = this._options.mainRelation;
         this._glyphProgram = createGlyphProgram(this.options.glyphProgram, this._logger);
-        this._lastRefreshOptions = { selectedRelations: this.mainRelation ? [this.mainRelation] : [] };
+        this._lastRefreshOptions = {
+            selectedRelations: this.mainRelation ? [this.mainRelation] : [],
+            selectedKinds: getNodeKinds(this._model.data)
+        };
 
         this.element.style.width = "100%";
         this.element.style.height = "100%";
@@ -364,10 +372,10 @@ export class Diagram {
         this._graph.setNodeAttribute(nodeId, "highlighted", true);
 
         if (includeSubtree) {
-            bfs(this._graph, nodeId, {
+            bfsGraph(this._graph, nodeId, {
                 relation: this.mainRelation,
                 callback: (_, attr) => {
-                    attr.highlighted = true;
+                    attr!.highlighted = true;
                 }
             });
         }
@@ -445,7 +453,7 @@ export class Diagram {
             return;
         }
 
-        let reachable = bfs(this._graph, nodeId, { relation: options.relation });
+        let reachable = bfsGraph(this._graph, nodeId, { relation: options.relation });
 
         await this.refreshSupervisor(true, () => {
             reachable.forEach(id => this._graph?.dropNode(id));
@@ -562,6 +570,7 @@ export class Diagram {
         this._graph = initializeGraph(
             this._model,
             options.selectedRelations ?? (this.mainRelation ? [this.mainRelation] : []),
+            options.selectedKinds,
             this.logger);
         this.restyleGraph();
 

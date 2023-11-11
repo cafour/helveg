@@ -2,10 +2,11 @@ import forceAtlas2 from "../deps/graphology-layout-forceatlas2.ts";
 import Graph from "../deps/graphology.ts";
 import { Sigma, Coordinates, DEFAULT_SETTINGS, NodeProgramConstructor, SigmaNodeEventPayload, SigmaStageEventPayload } from "../deps/sigma.ts";
 import { ForceAtlas2Progress, ForceAtlas2Supervisor } from "../layout/forceAltas2Supervisor.ts";
-import { DataModel } from "../model/data-model.ts";
+import { DataModel, Multigraph, MultigraphRelation } from "../model/data-model.ts";
 import { HelvegEdgeAttributes, HelvegGraph, HelvegNodeAttributes } from "../model/graph.ts";
 import { ILogger, Logger, sublogger } from "../model/logger.ts";
 import { EdgeStylist, NodeStylist, OutlineStyle, Outlines, getOutlinesTotalWidth } from "../model/style.ts";
+import { bfsMultigraph } from "../model/traversal.ts";
 import { GlyphProgramOptions } from "../rendering/node.glyph.ts";
 
 export function initializeSupervisor(
@@ -119,7 +120,8 @@ export function configureSigma(
 
 export function initializeGraph(
     model: DataModel,
-    selectedRelations: string[],
+    selectedRelations?: string[],
+    selectedKinds?: string[],
     logger?: ILogger
 ): HelvegGraph {
 
@@ -128,38 +130,87 @@ export function initializeGraph(
         allowSelfLoops: true,
         type: "directed"
     });
-    
+
     if (!model.data) {
         return graph;
     }
 
     for (const nodeId in model.data.nodes) {
         const node = model.data.nodes[nodeId];
-        graph.addNode(nodeId, {
-            label: node.name ?? nodeId,
-            x: 0,
-            y: 0
-        });
+        if (!node.kind || !selectedKinds || selectedKinds.includes(node.kind)) {
+            graph.addNode(nodeId, {
+                label: node.name ?? nodeId,
+                x: 0,
+                y: 0
+            });
+        }
     }
 
+    selectedRelations ??= Object.keys(model.data.relations);
     for (const relationId of selectedRelations) {
         const relation = model.data.relations[relationId];
-        if (!relation || !relation.edges) {
+        if (!relation) {
             continue;
         }
-        
-        for (let [id, edge] of Object.entries(relation.edges)) {
-            try {
-                graph.addDirectedEdgeWithKey(`${relationId};${id}`, edge.src, edge.dst, {
-                    relation: relationId
-                });
-            } catch (error) {
-                logger?.warn(`Failed to add an edge. edge=(${edge.src} -> ${edge.dst}), error=${error}`);
-            }
+
+        if (relation.isTransitive) {
+        // if (false) {
+            addTransitiveRelation(graph, model.data, relationId);
+        } else {
+            addRegularRelation(graph, model.data, relationId);
         }
     }
 
     return graph;
+}
+
+function addRegularRelation(graph: HelvegGraph, multigraph: Multigraph, relationId: string) {
+    const relation = multigraph.relations[relationId];
+    if (!relation || !relation.edges) {
+        return;
+    }
+
+    for (let [id, edge] of Object.entries(relation.edges)) {
+        if (graph.hasNode(edge.src) && graph.hasNode(edge.dst)) {
+            graph.addDirectedEdgeWithKey(`${relationId};${id}`, edge.src, edge.dst, {
+                relation: relationId
+            });
+        }
+    }
+}
+
+function addTransitiveRelation(graph: HelvegGraph, multigraph: Multigraph, relationId: string) {
+    const relation = multigraph.relations[relationId];
+    if (!relation || !relation.edges) {
+        return;
+    }
+
+    addRegularRelation(graph, multigraph, relationId);
+
+    graph.forEachNode((id, a) => {
+        // find nodes that are reachable from the current node, stop at those that are already in the graph 
+        const transitiveChildren = bfsMultigraph(multigraph, id, {
+            relation: relationId,
+            callback: n => n === id || !graph.hasNode(n)
+        });
+        
+        // add the transitive edges and remove the unincluded nodes
+        transitiveChildren.forEach(child => {
+            if (child === id) {
+                // the node doesn't have an edge to itself
+                return;
+            }
+
+            if (graph.hasNode(child)) {
+                let edgeKey = `declares;${id};${child}`;
+                if (!graph.hasEdge(edgeKey)) {
+                    graph.addDirectedEdgeWithKey(edgeKey, id, child, {
+                        relation: relationId
+                    });
+                }
+            }
+        });
+    });
 }
 
 export function styleGraph(
@@ -206,7 +257,7 @@ export function styleGraph(
         if (!relation || !relation.edges) {
             return;
         }
-        
+
         const edgeStyle = edgeStylist(
             attributes.relation,
             relation.edges[edge]

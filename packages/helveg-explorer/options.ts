@@ -99,10 +99,12 @@ export const DEFAULT_LAYOUT_OPTIONS: LayoutOptions = {
 
 export interface DataOptions {
     selectedRelations: string[];
+    selectedKinds: string[];
 }
 
 export const DEFAULT_DATA_OPTIONS: DataOptions = {
-    selectedRelations: []
+    selectedRelations: [],
+    selectedKinds: [],
 }
 
 export interface ExplorerOptions {

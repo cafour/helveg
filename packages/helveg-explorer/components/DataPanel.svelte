@@ -7,7 +7,7 @@
     import { AppIcons, AppPanels } from "../const.ts";
     import ResizingTextarea from "./ResizingTextarea.svelte";
     import ToggleAllCheckbox from "./ToggleAllCheckbox.svelte";
-    import { SearchMode, type DataModel } from "../deps/helveg-diagram.ts";
+    import { SearchMode, type DataModel, getNodeKinds, getRelations } from "../deps/helveg-diagram.ts";
     import type { Readable, Writable } from "svelte/store";
 
     let dispatch = createEventDispatcher();
@@ -32,9 +32,8 @@
     let model = getContext<Readable<DataModel>>("model");
     let dataOptions = getContext<Writable<DataOptions>>("dataOptions");
     
-    $: relations = $model && $model.data
-        ? Object.keys($model.data.relations).sort()
-        : [];
+    $: relations = getRelations($model.data);
+    $: kinds = getNodeKinds($model.data);
 </script>
 
 <Panel name="Data" indent={false} id={AppPanels.Data}>
@@ -97,4 +96,25 @@
             </label>
         {/each}
     </Subpanel>
+    <Subpanel name="Node Kinds">
+        <!-- svelte-ignore a11y-label-has-associated-control -->
+        <label>
+            <ToggleAllCheckbox
+                bind:selected={$dataOptions.selectedKinds}
+                all={kinds}
+            />
+            <span>all</span>
+        </label>
+        {#each kinds as kind}
+            <label>
+                <input
+                    type="checkbox"
+                    bind:group={$dataOptions.selectedKinds}
+                    value={kind}
+                />
+                <span>{kind}</span>
+            </label>
+        {/each}
+    </Subpanel>
+    
 </Panel>

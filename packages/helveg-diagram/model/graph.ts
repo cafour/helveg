@@ -1,6 +1,7 @@
 import { Attributes, EdgeEntry } from "../deps/graphology.ts";
 import Graph from "../deps/graphology.ts";
 import { NodeDisplayData, EdgeDisplayData } from "../deps/sigma.ts";
+import { Multigraph } from "./data-model.ts";
 import { Outlines, FireStatus } from "./style.ts";
 
 export interface HelvegNodeAttributes extends Partial<NodeDisplayData>, Attributes {
@@ -96,4 +97,24 @@ export function toggleNode(graph: HelvegGraph, nodeId: string, relation?: string
     } else {
         collapseNode(graph, nodeId, relation);
     }
+}
+
+export function getRelations(graph: Multigraph | null | undefined): string[] {
+    if (!graph || !graph.relations) {
+        return [];
+    }
+
+    return Object.keys(graph.relations).sort();
+}
+
+export function getNodeKinds(graph: Multigraph | null | undefined): string[] {
+    if (!graph || !graph.nodes) {
+        return [];
+    }
+
+    return Object.values(graph.nodes)
+        .filter(n => n.kind)
+        .map(n => n.kind!)
+        .filter((v, i, a) => a.indexOf(v) === i)
+        .sort();
 }

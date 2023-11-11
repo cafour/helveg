@@ -42,9 +42,10 @@
         storageName: string,
         defaults: T
     ): Writable<T> {
-        const options = writable(
-            Options.loadOptions<T>(storageName) ?? defaults
-        );
+        const options = writable({
+            ...defaults,
+            ...Options.loadOptions<T>(storageName),
+        });
         options.subscribe((v) => Options.saveOptions<T>(storageName, v));
         setContext(contextName, options);
         return options;
@@ -60,6 +61,10 @@
         "layout",
         Options.DEFAULT_LAYOUT_OPTIONS
     );
+    $layoutOptions.tidyTree.relation = diagram.mainRelation;
+    layoutOptions.subscribe((v) => {
+        diagram.mainRelation = v.tidyTree.relation;
+    });
     const appearanceOptions = createOptions<Options.AppearanceOptions>(
         "appearanceOptions",
         "appearance",
@@ -132,7 +137,7 @@
                 break;
         }
     }
-    
+
     appearanceOptions.subscribe((v) => {
         const glyphOptions = diagram.glyphProgramOptions;
         glyphOptions.isFireAnimated = v.glyph.isFireAnimated;
@@ -140,12 +145,12 @@
         glyphOptions.showIcons = v.glyph.showIcons;
         glyphOptions.showLabels = v.glyph.showLabels;
         glyphOptions.showOutlines = v.glyph.showOutlines;
-        
+
         glyphOptions.crustWidth = v.codePizza.crustWidth;
         glyphOptions.sauceWidth = v.codePizza.sauceWidth;
         glyphOptions.isPizzaEnabled = v.codePizza.isEnabled;
         diagram.glyphProgramOptions = glyphOptions;
-    })
+    });
 </script>
 
 <div
@@ -155,7 +160,11 @@
 
     <LoadingScreen status={$status} />
 
-    <ToolBox bind:selectedTool on:change={() => onToolChanged(selectedTool)} class="z-1"/>
+    <ToolBox
+        bind:selectedTool
+        on:change={() => onToolChanged(selectedTool)}
+        class="z-1"
+    />
 
     <Dock name="panels" bind:this={dock} class="z-2">
         <Tab name="Data" value={AppPanels.Data} icon={AppIcons.DataPanel}>
@@ -163,6 +172,7 @@
                 on:refresh={() =>
                     diagram.refresh({
                         selectedRelations: $dataOptions.selectedRelations,
+                        selectedKinds: $dataOptions.selectedKinds
                     })}
                 on:highlight={(e) =>
                     diagram.highlight(e.detail.searchText, e.detail.searchMode)}
@@ -174,7 +184,7 @@
             <LayoutPanel
                 on:run={(e) => diagram.runLayout(e.detail)}
                 on:stop={() => diagram.stopLayout()}
-                on:tidyTree={()=> diagram.resetLayout()}
+                on:tidyTree={() => diagram.resetLayout()}
                 status={$status}
                 stats={$stats}
             />

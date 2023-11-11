@@ -40,7 +40,7 @@ public class VisualizationSymbolVisitor : SymbolVisitor
     {
         base.VisitAssembly(assembly);
 
-        var node = graph.GetNode<CSharpNode>(assembly.Name);
+        var node = graph.GetNode<CSharpNode>(assembly.Token);
         node.Version = assembly.Identity.Version;
         node.FileVersion = assembly.Identity.FileVersion;
         node.CultureName = assembly.Identity.CultureName;
