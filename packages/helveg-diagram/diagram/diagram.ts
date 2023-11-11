@@ -128,6 +128,13 @@ export class Diagram {
     private _supervisor?: ForceAtlas2Supervisor;
     private _glyphProgram: NodeProgramConstructor;
 
+    get glyphProgramOptions(): GlyphProgramOptions { return this.options.glyphProgram; }
+    set glyphProgramOptions(value:GlyphProgramOptions) {
+        this._options.glyphProgram = value;
+        this.reconfigureSigma();
+        this.restyleGraph();
+    }
+
     // used when building JS filters
     // TODO: likely move to its own place somewhere else
     private _nodeKeys: string[] = [];
@@ -380,7 +387,7 @@ export class Diagram {
             this._logger.warn("Cannot isolate nodes since the graph is not initialized.");
             return;
         }
-        
+
         if (!this._model.data) {
             this._logger.warn("Cannot isolate nodes since the model contains no data.");
             return;
@@ -537,7 +544,8 @@ export class Diagram {
 
         const tmpOptions: GlyphProgramOptions = {
             ...this.options.glyphProgram,
-            showLabels: this.options.glyphProgram.showLabels && this.mode == DiagramMode.Normal
+            showLabels: this.options.glyphProgram.showLabels && this.mode == DiagramMode.Normal,
+            showOnlyHighlighted: this.mode == DiagramMode.Highlighting
         };
 
         configureSigma(this._sigma, tmpOptions);
@@ -563,7 +571,7 @@ export class Diagram {
     }
 
     private restyleGraph(): void {
-        if (!this._graph || !this._model || this._model.isEmpty) {
+        if (!this._graph || !this._model || !this._model.data) {
             return;
         }
 

@@ -130,6 +130,20 @@
                 break;
         }
     }
+    
+    appearanceOptions.subscribe((v) => {
+        const glyphOptions = diagram.glyphProgramOptions;
+        glyphOptions.isFireAnimated = v.glyph.isFireAnimated;
+        glyphOptions.showFire = v.glyph.showFire;
+        glyphOptions.showIcons = v.glyph.showIcons;
+        glyphOptions.showLabels = v.glyph.showLabels;
+        glyphOptions.showOutlines = v.glyph.showOutlines;
+        
+        glyphOptions.crustWidth = v.codePizza.crustWidth;
+        glyphOptions.sauceWidth = v.codePizza.sauceWidth;
+        glyphOptions.isPizzaEnabled = v.codePizza.isEnabled;
+        diagram.glyphProgramOptions = glyphOptions;
+    })
 </script>
 
 <div

@@ -139,6 +139,9 @@ public class UIBuilder
             case UIMode.StaticApp:
                 await BuildStatic(streamFactory);
                 break;
+            case UIMode.DataOnly:
+                await BuildDataOnly(streamFactory);
+                break;
             default:
                 throw new InvalidOperationException($"'{Mode}' is not a valid UIMode.");
         }
@@ -283,6 +286,19 @@ public class UIBuilder
 @"    </body>
 </html>
 ");
+    }
+    
+    private async Task BuildDataOnly(Func<string, Stream> streamFactory)
+    {
+        async Task WriteJson<T>(string filePath, T value)
+        {
+            using var stream = streamFactory(filePath);
+            await JsonSerializer.SerializeAsync(stream, value, HelvegDefaults.JsonOptions);
+        }
+        
+        var dataPath = UIConst.DataFileName;
+        dataPath = NormalizePath(dataPath);
+        await WriteJson(dataPath, Model);
     }
 
     private string GetInitializer()
