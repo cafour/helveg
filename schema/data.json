@@ -16,7 +16,8 @@
         },
         "createdOn": {
             "description": "The creation time of this document.",
-            "type": "date"
+            "type": "string",
+            "format": "date"
         },
         "analyzer": {
             "title": "AnalyzerMetadata",
@@ -49,6 +50,9 @@
                 "nodes": {
                     "description": "The nodes of the multigraph.",
                     "type": "object",
+                    "propertyNames": {
+                        "type": "string"
+                    },
                     "additionalProperties": {
                         "title": "Node",
                         "description": "A node of the multigraph.",

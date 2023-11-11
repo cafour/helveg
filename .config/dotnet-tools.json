@@ -7,6 +7,12 @@
       "commands": [
         "dotnet-gitversion"
       ]
+    },
+    "corvus.json.jsonschema.typegeneratortool": {
+      "version": "1.0.18",
+      "commands": [
+        "generatejsonschematypes"
+      ]
     }
   }
 }
