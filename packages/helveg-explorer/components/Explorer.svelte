@@ -124,6 +124,8 @@
     diagram.events.nodeClicked.subscribe(onNodeClicked);
 
     function onToolChanged(tool: string) {
+        diagram.canDragNodes = tool == AppTools.Move;
+
         switch (tool) {
             case AppTools.Cut:
                 dock.setTab(AppPanels.Tools);
