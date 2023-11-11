@@ -1,3 +1,25 @@
+export async function loadScript(element: Element): Promise<string>;
+export async function loadScript(selector: string): Promise<string>;
+export async function loadScript(object: Element | string): Promise<string>
+{
+    if (typeof(object) == "string") {
+        const element = document.querySelector(object);
+        if (!element) {
+            throw new Error(`Selector '${object}' matched no elements.`);
+        }
+        object = element;
+    }
+    
+    let src = object.getAttribute('src');
+    if (src === null && object.textContent === null) {
+        throw new Error(`Script element '${object}' does not have a 'src' attribute or text content.`);
+    }
+
+    return src === null
+        ? object.textContent!
+        : (await fetch(src)).text();
+}
+
 export async function loadJsonScripts<T>(selector: string): Promise<T[]> {
     let results: T[] = [];
     let scripts = [...document.querySelectorAll(selector)];

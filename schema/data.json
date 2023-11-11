@@ -54,7 +54,7 @@
                         "type": "string"
                     },
                     "additionalProperties": {
-                        "title": "Node",
+                        "title": "MultigraphNode",
                         "description": "A node of the multigraph.",
                         "type": "object",
                         "properties": {
@@ -65,6 +65,29 @@
                             "kind": {
                                 "type": "string",
                                 "description": "The kind of the node."
+                            },
+                            "diagnostics": {
+                                "type": "array",
+                                "description": "Diagnostics attached to the node.",
+                                "items": {
+                                    "type": "object",
+                                    "title": "MultigraphDiagnostic",
+                                    "description": "A diagnostic message (warning, error, etc.) regarding a node.",
+                                    "required": ["id", "severity"],
+                                    "properties": {
+                                        "id": {
+                                            "type": "string"
+                                        },
+                                        "severity": {
+                                            "type": "string",
+                                            "title": "MultigraphDiagnosticSeverity",
+                                            "enum": ["hidden", "info", "warning", "error"]
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -76,7 +99,7 @@
                         "type": "string"
                     },
                     "additionalProperties": {
-                        "title": "Relation",
+                        "title": "MultigraphRelation",
                         "type": "object",
                         "description": "A relation of the multigraph.",
                         "required": [
@@ -95,7 +118,7 @@
                                 "type": "array",
                                 "description": "The edges of the relation.",
                                 "items": {
-                                    "title": "Edge",
+                                    "title": "MultigraphEdge",
                                     "description": "An edge of the relation.",
                                     "type": "object",
                                     "properties": {

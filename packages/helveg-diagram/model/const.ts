@@ -1,3 +1,6 @@
+import { DataModel } from "./data-model.ts";
+import { IconSetModel } from "./icon-set-model.ts";
+
 export enum Colors {
     DarkGray = "#202020",
     White = "#ffffff"
@@ -26,3 +29,18 @@ export enum PizzaIcons {
     Chilli = "base:Chilli",
     Tomato = "base:Tomato"
 }
+
+export const EMPTY_DATA_MODEL: DataModel = {
+    name: "Empty",
+    createdOn: new Date("0000-00-00T00:00:00.000Z"),
+    analyzer: {
+        version: "unknown",
+        name: "unknown"
+    },
+    data: undefined
+};
+
+export const EMPTY_ICON_SET_MODEL: IconSetModel = {
+    namespace: "unknown",
+    icons: []
+};

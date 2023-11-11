@@ -25,9 +25,12 @@
         "serve": "concurrently --kill-others -r \"npm run bundle -- --serve --sourcemap\" \"npm run watch:check\"",
         "clean": "rimraf dist/",
         "pack-icons": "tsx eng/pack-icons.ts",
-        "build": "npm run pack-icons && npm run types && npm run bundle",
+        "build": "npm run pack-icons && npm run schema && npm run types && npm run bundle",
         "rebuild": "npm run clean && npm run build",
-        "git-version": "tsx eng/git-version.ts"
+        "git-version": "tsx eng/git-version.ts",
+        "schema:data": "quicktype --src-lang schema --out model/data-model.ts ../../schema/data.json --prefer-unions",
+        "schema:icon-set": "quicktype --src-lang schema --out model/icon-set-model.ts ../../schema/icon-set.json --prefer-unions",
+        "schema": "npm run schema:data && npm run schema:icon-set"
     },
     "dependencies": {
         "@types/d3-hierarchy": "^3.1.2",
@@ -48,6 +51,7 @@
         "concurrently": "^7.6.0",
         "esbuild": "^0.19.5",
         "esbuild-plugin-copy": "^2.1.1",
+        "quicktype": "^23.0.77",
         "tsx": "^3.14.0",
         "typescript": "^5.2.2",
         "yargs": "^17.7.2"

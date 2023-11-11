@@ -2,10 +2,10 @@ import forceAtlas2 from "../deps/graphology-layout-forceatlas2.ts";
 import Graph from "../deps/graphology.ts";
 import { Sigma, Coordinates, DEFAULT_SETTINGS, NodeProgramConstructor, SigmaNodeEventPayload, SigmaStageEventPayload } from "../deps/sigma.ts";
 import { ForceAtlas2Progress, ForceAtlas2Supervisor } from "../layout/forceAltas2Supervisor.ts";
+import { DataModel } from "../model/data-model.ts";
 import { HelvegEdgeAttributes, HelvegGraph, HelvegNodeAttributes } from "../model/graph.ts";
 import { ILogger, Logger, sublogger } from "../model/logger.ts";
 import { EdgeStylist, NodeStylist, OutlineStyle, Outlines, getOutlinesTotalWidth } from "../model/style.ts";
-import { VisualizationModel } from "../model/visualization.ts";
 import { GlyphProgramOptions } from "../rendering/node.glyph.ts";
 
 export function initializeSupervisor(
@@ -118,7 +118,7 @@ export function configureSigma(
 }
 
 export function initializeGraph(
-    model: VisualizationModel,
+    model: DataModel,
     selectedRelations: string[],
     logger?: ILogger
 ): HelvegGraph {
@@ -128,8 +128,13 @@ export function initializeGraph(
         allowSelfLoops: true,
         type: "directed"
     });
+    
+    if (!model.data) {
+        return graph;
+    }
+
     for (const nodeId in model.multigraph.nodes) {
-        const node = model.multigraph.nodes[nodeId];
+        const node = model.data.nodes[nodeId];
         graph.addNode(nodeId, {
             label: node.properties.Label ?? nodeId,
             x: 0,
@@ -139,11 +144,11 @@ export function initializeGraph(
     }
 
     for (const relationId of selectedRelations) {
-        const relation = model.multigraph.relations[relationId];
-        if (!relation) {
+        const relation = model.data.relations[relationId];
+        if (!relation || !relation.edges) {
             continue;
         }
-
+        
         for (let [id, edge] of Object.entries(relation.edges)) {
             try {
                 graph.addDirectedEdgeWithKey(`${relationId};${id}`, edge.src, edge.dst, {
@@ -161,7 +166,7 @@ export function initializeGraph(
 
 export function styleGraph(
     graph: HelvegGraph,
-    model: VisualizationModel,
+    model: DataModel,
     glyphProgramOptions: GlyphProgramOptions,
     nodeStylist: NodeStylist,
     edgeStylist: EdgeStylist,

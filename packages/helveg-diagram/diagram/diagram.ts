@@ -1,6 +1,5 @@
 import { HelvegEvent } from "../common/event.ts";
 import { HelvegGraph, findRoots, toggleNode } from "../model/graph.ts";
-import { EMPTY_MODEL, VisualizationModel } from "../model/visualization.ts";
 import { Coordinates, NodeProgramConstructor, Sigma, SigmaNodeEventPayload } from "../deps/sigma.ts";
 import { LogSeverity, ILogger, consoleLogger } from "../model/logger.ts";
 import { ForceAtlas2Progress, ForceAtlas2Supervisor } from "../layout/forceAltas2Supervisor.ts";
@@ -13,6 +12,8 @@ import { SearchMode, buildNodeFilter, filterNodes } from "../model/filter.ts";
 import { bfs } from "../model/traversal.ts";
 import { EdgeStylist, NodeStylist, fallbackEdgeStylist, fallbackNodeStylist } from "../model/style.ts";
 import { EMPTY_ICON_REGISTRY, IconRegistry } from "../global.ts";
+import { DataModel } from "../model/data-model.ts";
+import { EMPTY_DATA_MODEL } from "../model/const.ts";
 
 export interface DiagramOptions {
     glyphProgram: GlyphProgramOptions,
@@ -72,13 +73,15 @@ export class Diagram {
     private _options: DiagramOptions;
     get options(): Readonly<DiagramOptions> { return this._options; }
 
-    private _model: VisualizationModel = EMPTY_MODEL;
-    get model(): VisualizationModel { return this._model; }
-    set model(value: VisualizationModel) {
+    private _model: DataModel = EMPTY_DATA_MODEL;
+    get model(): DataModel { return this._model; }
+    set model(value: DataModel) {
         this._model = value;
-        this._nodeKeys = Object.values(this._model.multigraph.nodes)
-            .flatMap(n => Object.keys(n.properties))
-            .filter((v, i, a) => a.indexOf(v) === i);
+        if (this._model.data) {
+            this._nodeKeys = Object.values(this._model.data.nodes)
+                .flatMap(n => Object.keys(n))
+                .filter((v, i, a) => a.indexOf(v) === i);
+        }
         this.events.modelChanged.trigger(value);
 
         // NB: Runs without awaiting.
@@ -155,7 +158,7 @@ export class Diagram {
     public readonly events = {
         statusChanged: new HelvegEvent<DiagramStatus>("helveg.diagram.statusChanged"),
         modeChanged: new HelvegEvent<DiagramMode>("helveg.diagram.modeChanged"),
-        modelChanged: new HelvegEvent<VisualizationModel>("helveg.diagram.modelChanged"),
+        modelChanged: new HelvegEvent<DataModel>("helveg.diagram.modelChanged"),
         statsChanged: new HelvegEvent<DiagramStats>("helveg.diagram.statsChanged"),
         nodeSelected: new HelvegEvent<string | null>("helveg.diagram.nodeSelected"),
         nodeClicked: new HelvegEvent<string>("helveg.diagram.nodeClicked"),
@@ -316,11 +319,13 @@ export class Diagram {
 
             this.mode = DiagramMode.Highlighting;
 
-            Object.entries(this._model.multigraph.nodes).forEach(([id, node]) => {
-                if (this._graph?.hasNode(id)) {
-                    this._graph.setNodeAttribute(id, "highlighted", filter!(node));
-                }
-            });
+            if (this._model.data) {
+                Object.entries(this._model.data.nodes).forEach(([id, node]) => {
+                    if (this._graph?.hasNode(id)) {
+                        this._graph.setNodeAttribute(id, "highlighted", filter!(node));
+                    }
+                });
+            }
 
             this._sigma?.refresh();
         }

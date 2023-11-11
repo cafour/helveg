@@ -1,0 +1,45 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://helveg.net/schema/icon-set.json",
+    "title": "HelvegIconSet",
+    "description": "Icons used by Helveg, a software visualization toolkit.",
+    "type": "object",
+    "required": [
+        "namespace",
+        "icons"
+    ],
+    "properties": {
+        "namespace": {
+            "type": "string",
+            "description": "The name of the set that will become the namespace of each of its icons."
+        },
+        "icons": {
+            "type": "array",
+            "items": {
+                "title": "Icon",
+                "description": "An icon.",
+                "type": "object",
+                "required": [
+                    "name",
+                    "format",
+                    "data"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "format": {
+                        "type": "string",
+                        "enum": [
+                            "svg",
+                            "png"
+                        ]
+                    },
+                    "data": {
+                        "type": "string"
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,5 +1,5 @@
 import { PizzaIcons } from "../model/const.ts";
-import { MultigraphNodeProperties } from "../model/multigraph.ts";
+import { MultigraphNode } from "../model/data-model.ts";
 import { NodeStyle, FireStatus } from "../model/style.ts";
 
 export enum EntityKind {
@@ -149,17 +149,17 @@ export enum VSColor {
     NuGetBlue = "#004880"
 }
 
-export interface CSharpNodeProperties extends MultigraphNodeProperties {
-    Kind: EntityKind,
-    TypeKind?: TypeKind,
-    Accessibility?: MemberAccessibility,
-    MethodKind?: MethodKind,
-    IsConst?: boolean,
-    IsEnumItem?: boolean,
-    DeclaringKind?: EntityKind,
-    InstanceMemberCount?: number,
-    StaticMemberCount?: number,
-    IsStatic?: boolean
+export interface CSharpNode extends MultigraphNode {
+    kind: EntityKind,
+    typeKind?: TypeKind,
+    accessibility?: MemberAccessibility,
+    methodKind?: MethodKind,
+    isConst?: boolean,
+    isEnumItem?: boolean,
+    declaringKind?: EntityKind,
+    instanceMemberCount?: number,
+    staticMemberCount?: number,
+    isStatic?: boolean
 }
 
 export const FALLBACK_STYLE: NodeStyle = {
