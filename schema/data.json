@@ -44,7 +44,7 @@
             "type": "object",
             "required": [
                 "nodes",
-                "edges"
+                "relations"
             ],
             "properties": {
                 "nodes": {
@@ -72,33 +72,41 @@
                 "relations": {
                     "description": "The relations of the multigraph.",
                     "type": "object",
-                    "required": [
-                        "name"
-                    ],
-                    "properties": {
-                        "name": {
-                            "type": "string",
-                            "description": "The name of a relation."
-                        },
-                        "isTransitive": {
-                            "type": "boolean",
-                            "description": "Whether or not the relation is transitive. That is a -> b -> c => a -> c."
-                        },
-                        "edges": {
-                            "type": "array",
-                            "description": "The edges of the relation.",
-                            "items": {
-                                "title": "Edge",
-                                "description": "An edge of the relation.",
-                                "type": "object",
-                                "properties": {
-                                    "src": {
-                                        "description": "The id of the source node.",
-                                        "type": "string"
-                                    },
-                                    "dst": {
-                                        "description": "The id of the destination node.",
-                                        "type": "string"
+                    "propertyNames": {
+                        "type": "string"
+                    },
+                    "additionalProperties": {
+                        "title": "Relation",
+                        "type": "object",
+                        "description": "A relation of the multigraph.",
+                        "required": [
+                            "name"
+                        ],
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "The name of the relation."
+                            },
+                            "isTransitive": {
+                                "type": "boolean",
+                                "description": "Whether or not the relation is transitive. That is a -> b -> c => a -> c."
+                            },
+                            "edges": {
+                                "type": "array",
+                                "description": "The edges of the relation.",
+                                "items": {
+                                    "title": "Edge",
+                                    "description": "An edge of the relation.",
+                                    "type": "object",
+                                    "properties": {
+                                        "src": {
+                                            "description": "The id of the source node.",
+                                            "type": "string"
+                                        },
+                                        "dst": {
+                                            "description": "The id of the destination node.",
+                                            "type": "string"
+                                        }
                                     }
                                 }
                             }
