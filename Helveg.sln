@@ -28,6 +28,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Helveg.Visualization", "src
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Helveg.UI", "src\UI\Helveg.UI.csproj", "{243139FF-61A2-4A78-8D34-A35D45459D5F}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "eng", "eng", "{6D6CA189-473E-458D-8325-FCA17562ECAA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Helveg.Engineering.Roslyn", "eng\Roslyn\Helveg.Engineering.Roslyn.csproj", "{B19F3B22-44CF-4321-957E-AACD61A7647B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -58,6 +62,10 @@ Global
 		{243139FF-61A2-4A78-8D34-A35D45459D5F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{243139FF-61A2-4A78-8D34-A35D45459D5F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{243139FF-61A2-4A78-8D34-A35D45459D5F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B19F3B22-44CF-4321-957E-AACD61A7647B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B19F3B22-44CF-4321-957E-AACD61A7647B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B19F3B22-44CF-4321-957E-AACD61A7647B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B19F3B22-44CF-4321-957E-AACD61A7647B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -69,6 +77,7 @@ Global
 		{91F82255-EE85-4DAF-AB4C-A8E649EE5716} = {3C2301C0-129B-4FAA-8ED5-73E23146E200}
 		{10A8EA67-0D49-4EFE-A846-28363CA2B9E2} = {3C2301C0-129B-4FAA-8ED5-73E23146E200}
 		{243139FF-61A2-4A78-8D34-A35D45459D5F} = {3C2301C0-129B-4FAA-8ED5-73E23146E200}
+		{B19F3B22-44CF-4321-957E-AACD61A7647B} = {6D6CA189-473E-458D-8325-FCA17562ECAA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {307F2699-A32F-4386-A8D3-2DBE2B0F6B15}

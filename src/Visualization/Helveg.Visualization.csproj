@@ -6,6 +6,8 @@
 
   <ItemGroup>
     <ProjectReference Include="../Common/Helveg.Common.csproj" />
+    <!-- NB: This currently does not work because of the usual Roslyn/MSBuild fuckery. -->
+    <!-- <ProjectReference Include="../../eng/Roslyn/Helveg.Engineering.Roslyn.csproj" PrivateAssets="all" OutputItemType="Analyzer" ReferenceOutputAssembly="false" SetTargetFramework="TargetFramework=netstandard2.0" /> -->
   </ItemGroup>
 
   <ItemGroup>
