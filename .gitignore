@@ -45,6 +45,7 @@
 !*.config
 !.npmrc
 !*.yaml
+!*.lock
 
 # static files
 !*.html
@@ -84,3 +85,4 @@ node_modules/
 output*.html
 dist/
 .pnpm-store/
+.turbo/

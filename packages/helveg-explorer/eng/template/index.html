@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Helveg Explorer Development Test</title>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <link rel="icon" type="image/png"
+        href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAACxAAAAsQHGLUmNAAACgElEQVRYhcVXy23bQBCdBCmAufBq+U4gTAV2B3YA3i1VELsCOhUorsDSnUDkCkRXEAZgATrzpFQQY5C3wmA4s/zYgN9Fu8vdnTf/FU1FlWa3VZpdTj7o4OOMMw0RPVZplrwXAcaCiEr6b5Hla8jMJcAIrqiJaD+XxGsIMNZF1x4w3s+54MPYjdCQNT4qYSsiusG3TdG1qykERlmgSrMcQhsIkijFmONh+aYEoPkvFg5zf1FbOCBzMV9XabZ4MwLQnC98wtyqAYkar8cSiMZAlWb3wsTnEP448u5zEaAuXAvA9N/F0lH5ewiluGvtpWnMBUtl2uCKsbgW+zhGbqcSuFDzXM2PA0QSZE/AzVQCsYbDvt0JIp6v5R0LRcgngDSS5g/aBkEyK36gPlgWCSkbBPeU8iygfc2Xbwwh34joDP62gmyBwhS+9faM7QXBIpJAjnkIrsY4l6uaoOOqT4AfHI42eo2FX2F8cOIgce7yCYClZF3Dz1ulZS18ewAhLxbcjLEI/FExcImiwhXwL/x+LLq2UXu2IBo0rvG7EWs9Ip88Zg5KtNzPzvcggFP0GZkSiF5DuUELDGEpHqXPhnD+fSi69icyZG9U1SiBwQYifB+KEcElDZpWU6XZb6P81mo+m8CFEHrKgKJrgxX2Ruk27+4RKLq2x9KArGg7BGbooK5wqz17MbBz1gOS8OopuvZOZETpCCfL/DECT876CVobNBqz5QLbKQR2A+3WKruxZ9jBc61JAMH0ELtQTtBwYu3bfaq7daDo2nvPb0ZBiVlrFQvsoULE0c2lVEO7wHIJk2Lh1vkTRv0zQuXjJ1Xo+19VL+A9/zBkbTmIuWTHn21E9AKU08qnEZw5hQAAAABJRU5ErkJggg==" />
+    <style>
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+    <link rel="stylesheet" href="./helveg-explorer.css" />
+</head>
+
+<body>
+    <div id="helveg"></div>
+    <script type="application/json" id="helveg-data" src="helveg-data.json"></script>
+
+    <script type="application/json" class="helveg-icons" src="./helveg-icons-vs.json"></script>
+    <script type="application/json" class="helveg-icons" src="./helveg-icons-pizza.json"></script>
+    <script type="application/json" class="helveg-icons" src="./helveg-icons-nuget.json"></script>
+
+    <script type="text/javascript" src="./helveg-diagram.js"></script>
+
+    <script type="text/javascript" src="./helveg-explorer.js"></script>
+
+    <script type="module">
+        let iconSets = await helveg.loadIconSets(".helveg-icons");
+        let model = await helveg.loadModel(document.getElementById("helveg-data"));
+        window.diagram = helveg.createDiagram({
+            iconSets: iconSets,
+            logLevel: "debug",
+            model: model,
+            mainRelation: "declares"
+        });
+        await window.diagram.resetLayout();
+        helveg.createExplorer(diagram);
+    </script>
+
+    <script type="text/javascript">
+        // Based on: https://esbuild.github.io/api/#hot-reloading-css
+        new EventSource('/esbuild').addEventListener('change', e => {
+            const { added, removed, updated } = JSON.parse(e.data)
+
+            if (!added.length && !removed.length && updated.length === 1) {
+                for (const link of document.getElementsByTagName("link")) {
+                    const url = new URL(link.href)
+
+                    if (url.host === location.host && url.pathname === updated[0]) {
+                        const next = link.cloneNode()
+                        next.href = updated[0] + '?' + Math.random().toString(36).slice(2)
+                        next.onload = () => link.remove()
+                        link.parentNode.insertBefore(next, link.nextSibling)
+                        return
+                    }
+                }
+            }
+
+            location.reload()
+        })
+    </script>
+</body>
+
+</html>

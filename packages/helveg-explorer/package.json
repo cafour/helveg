@@ -1,0 +1,62 @@
+{
+    "name": "@cafour/helveg-explorer",
+    "type": "module",
+    "description": "A software explorer built around helveg-diagram.",
+    "license": "BSD-3-Clause",
+    "version": "0.0.0-local",
+    "private": false,
+    "repository": {
+        "type": "git",
+        "url": "https://gitlab.com/helveg/helveg"
+    },
+    "homepage": "https://helveg.net",
+    "main": "./dist/helveg-explorer.js",
+    "types": "./dist/types/mod.d.ts",
+    "files": [
+        "./dist/"
+    ],
+    "scripts": {
+        "types": "tsc -p ./tsconfig.json",
+        "watch:types": "npm run types -- --watch",
+        "tsc-check": "npm run types -- --noEmit --emitDeclarationOnly false",
+        "watch:tsc-check": "npm run check -- --watch",
+        "watch:svelte-check": "svelte-check --watch",
+        "check": "npm run tsc-check && svelte-check",
+        "watch:check": "concurrently --kill-others -r \"npm run watch:tsc-check\" \"npm run watch:svelte-check\"",
+        "bundle": "tsx eng/bundle.ts",
+        "watch:bundle": "npm run bundle -- --watch",
+        "serve": "concurrently --kill-others -r \"npm run bundle -- --serve --sourcemap\" \"npm run watch:check\"",
+        "clean": "rimraf dist/",
+        "build": "npm run types && npm run bundle",
+        "rebuild": "npm run clean && npm run build",
+        "git-version": "tsx eng/git-version.ts"
+    },
+    "peerDependencies": {
+        "@cafour/helveg-diagram": "workspace:*"
+    },
+    "dependencies": {
+        "svelte": "^4.2.2"
+    },
+    "devDependencies": {
+        "@cafour/helveg-diagram": "workspace:*",
+        "@tsconfig/svelte": "^5.0.2",
+        "@types/node": "^20.8.10",
+        "@types/yargs": "^17.0.24",
+        "autoprefixer": "^10.4.16",
+        "concurrently": "^7.6.0",
+        "esbuild": "^0.19.5",
+        "esbuild-plugin-copy": "^2.1.1",
+        "esbuild-plugin-globals": "^0.2.0",
+        "esbuild-sass-plugin": "^2.16.0",
+        "esbuild-svelte": "^0.8.0",
+        "postcss": "^8.4.31",
+        "postcss-preset-env": "^9.3.0",
+        "sass": "^1.69.5",
+        "svelte-check": "^3.6.0",
+        "svelte-preprocess": "^5.0.4",
+        "tsx": "^3.14.0",
+        "typescript": "^5.2.2",
+        "uniformcss": "^1.5.4",
+        "yargs": "^17.7.2"
+    }
+}

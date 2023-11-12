@@ -1,0 +1,116 @@
+@use "sass:map";
+@use "sass:list";
+
+$colors: (
+    text: #1E1E1E,
+    text-inverted: #bbb0b0,
+    link: #924924,
+    surface: ( //
+        0: #FFFFFF, // L 100
+        45: #F8F8F8, // L 97
+        50: #F2EEEE, // L 94
+        100: #DBCECC, // L 83
+        200: #C5B9B7, // L 75
+        300: #A5A4A2, // L 64
+        400: #888888, // L 53
+        500: #656565, // L 40
+        600: #525252, // L 32
+        700: #403E3E, // L 25
+        800: #262525, // L 15
+        900: #1C1B1B, // L 11
+        1000: #000000, // L 0
+    ),
+    primary: ( //
+        50: #f3dcdf,
+        100: #eed0d5,
+        200: #eac5ca,
+        300: #dea2ab,
+        400: #c55c6b,
+        500: #ac162c,
+        600: #9b1428,
+        700: #811121,
+        800: #670d1a,
+        900: #540b16,
+        1000: #3a070f,
+    ),
+    success: ( //
+        50: #ddecdd,
+        100: #d2e6d2,
+        200: #c7dfc7,
+        300: #a5cca5,
+        400: #62a662,
+        500: #1f801f,
+        600: #1c731c,
+        700: #176017,
+        800: #134d13,
+        900: #0f3f0f,
+        1000: #061906,
+    ),
+    warning: ( //
+        50: #f0e9d9,
+        100: #ebe2cc,
+        200: #e6dbbf,
+        300: #d6c599,
+        400: #b89a4d,
+        500: #996f00,
+        600: #8a6400,
+        700: #735300,
+        800: #5c4300,
+        900: #4b3600,
+        1000: #342500,
+    ),
+    error: ( //
+        50: #f6dadc,
+        100: #f3ced1,
+        200: #f1c2c5,
+        300: #e89da2,
+        400: #d6545d,
+        500: #c50b17,
+        600: #b10a15,
+        700: #940811,
+        800: #76070e,
+        900: #61050b,
+        1000: #4d0408,
+    ),
+);
+
+:root {
+    --font-family-base: "Segoe UI", sans-serif;
+    --font-family-heading: "Segoe UI", sans-serif;
+    --font-family-monospace: "Cascadia Mono", "Consolas", monospace;
+
+    --icon-dark: #424242;
+    --icon-light: #F6F6F6;
+}
+
+.explorer {
+    @each $key, $value in $colors {
+        @if type-of($value)==map {
+            @each $level, $hex in $value {
+                --color-#{$key}-#{$level}: #{$hex};
+            }
+        }
+
+        @else {
+            --color-#{$key}: #{$value};
+        }
+    }
+
+    .dark &,
+    &.dark {
+        --color-text: #{map.get($colors, "text-inverted")};
+        --color-text-inverted: #{map.get($colors, "text")};
+
+        @each $key, $value in $colors {
+            @if type-of($value)==map {
+                @for $i from 1 through length($value) {
+                    $o: calc(length($value) - $i + 1);
+                    $level: list.nth(list.nth($value, $o), 1);
+                    $hex: list.nth(list.nth($value, $i), 2);
+
+                    --color-#{$key}-#{$level}: #{$hex};
+                }
+            }
+        }
+    }
+}

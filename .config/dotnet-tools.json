@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "isRoot": true,
+  "tools": {
+    "gitversion.tool": {
+      "version": "5.12.0",
+      "commands": [
+        "dotnet-gitversion"
+      ]
+    },
+    "corvus.json.jsonschema.typegeneratortool": {
+      "version": "1.0.18",
+      "commands": [
+        "generatejsonschematypes"
+      ]
+    }
+  }
+}

@@ -1,0 +1,145 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://helveg.net/schema/data.json",
+    "title": "HelvegData",
+    "description": "Data produced and consumed by Helveg, a software visualization toolkit.",
+    "type": "object",
+    "required": [
+        "name",
+        "createdOn",
+        "analyzer"
+    ],
+    "properties": {
+        "name": {
+            "description": "The name of the data set.",
+            "type": "string"
+        },
+        "createdOn": {
+            "description": "The creation time of this document.",
+            "type": "string",
+            "format": "date"
+        },
+        "analyzer": {
+            "title": "AnalyzerMetadata",
+            "description": "Metadata about the analyzer that produced this data set.",
+            "type": "object",
+            "required": [
+                "name",
+                "version"
+            ],
+            "properties": {
+                "name": {
+                    "description": "Name of the analyzer.",
+                    "type": "string"
+                },
+                "version": {
+                    "description": "Version of the analyzer.",
+                    "type": "string"
+                }
+            }
+        },
+        "data": {
+            "title": "Multigraph",
+            "description": "The analyzed data in the form of a multigraph.",
+            "type": "object",
+            "required": [
+                "nodes",
+                "relations"
+            ],
+            "properties": {
+                "nodes": {
+                    "description": "The nodes of the multigraph.",
+                    "type": "object",
+                    "propertyNames": {
+                        "type": "string"
+                    },
+                    "additionalProperties": {
+                        "title": "MultigraphNode",
+                        "description": "A node of the multigraph.",
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "Name of the entity this node represents."
+                            },
+                            "kind": {
+                                "type": "string",
+                                "description": "The kind of the node."
+                            },
+                            "diagnostics": {
+                                "type": "array",
+                                "description": "Diagnostics attached to the node.",
+                                "items": {
+                                    "type": "object",
+                                    "title": "MultigraphDiagnostic",
+                                    "description": "A diagnostic message (warning, error, etc.) regarding a node.",
+                                    "required": ["id", "severity"],
+                                    "properties": {
+                                        "id": {
+                                            "type": "string"
+                                        },
+                                        "severity": {
+                                            "type": "string",
+                                            "title": "MultigraphDiagnosticSeverity",
+                                            "enum": ["hidden", "info", "warning", "error"]
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "relations": {
+                    "description": "The relations of the multigraph.",
+                    "type": "object",
+                    "propertyNames": {
+                        "type": "string"
+                    },
+                    "additionalProperties": {
+                        "title": "MultigraphRelation",
+                        "type": "object",
+                        "description": "A relation of the multigraph.",
+                        "required": [
+                            "name"
+                        ],
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "The name of the relation."
+                            },
+                            "isTransitive": {
+                                "type": "boolean",
+                                "description": "Whether or not the relation is transitive. That is a -> b -> c => a -> c."
+                            },
+                            "edges": {
+                                "type": "object",
+                                "description": "The edges of the relation.",
+                                "propertyNames": {
+                                    "type": "string"
+                                },
+                                "additionalProperties": {
+                                    "title": "MultigraphEdge",
+                                    "description": "An edge of the relation.",
+                                    "type": "object",
+                                    "properties": {
+                                        "src": {
+                                            "description": "The id of the source node.",
+                                            "type": "string"
+                                        },
+                                        "dst": {
+                                            "description": "The id of the destination node.",
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

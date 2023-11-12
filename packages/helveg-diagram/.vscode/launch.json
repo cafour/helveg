@@ -1,0 +1,17 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "request": "launch",
+            "name": "Bundle",
+            "type": "node",
+            "program": "${workspaceFolder}/eng/bundle.ts",
+            "cwd": "${workspaceFolder}",
+            "runtimeArgs": [
+                "tsx"
+            ],
+            "runtimeExecutable": "npx",
+            "internalConsoleOptions": "openOnSessionStart"
+        }
+    ]
+}

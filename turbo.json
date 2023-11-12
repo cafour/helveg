@@ -1,0 +1,20 @@
+{
+    "$schema": "https://turbo.build/schema.json",
+    "pipeline": {
+        "build": {
+            "dependsOn": [
+                "^build"
+            ],
+            "outputMode": "new-only"
+        },
+        "rebuild": {
+            "dependsOn": [
+                "^rebuild"
+            ],
+            "outputMode": "new-only"
+        },
+        "git-version": {
+            "cache": false
+        }
+    }
+}

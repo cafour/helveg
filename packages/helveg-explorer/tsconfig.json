@@ -1,0 +1,47 @@
+{
+    "extends": "@tsconfig/svelte/tsconfig.json",
+    "compilerOptions": {
+        "target": "ESNext",
+        "module": "ESNext",
+        "moduleResolution": "Bundler",
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+        "strict": true,
+        "skipLibCheck": true,
+        "isolatedModules": true,
+        "allowJs": true,
+        "allowUnreachableCode": false,
+        "allowUnusedLabels": false,
+        "noImplicitAny": true,
+        "noImplicitReturns": false,
+        "noImplicitThis": true,
+        "strictBindCallApply": true,
+        "strictFunctionTypes": true,
+        "strictPropertyInitialization": true,
+        "strictNullChecks": true,
+        "allowImportingTsExtensions": true,
+        "emitDeclarationOnly": true,
+        "outDir": "dist/types",
+        "composite": true,
+        "lib": [
+            "DOM",
+            "DOM.Iterable",
+            "ESNext",
+            "ESNext.AsyncIterable",
+        ],
+        "types": [
+            "svelte"
+        ]
+    },
+    "include": [
+        "**/*.ts",
+        "**/*.svelte",
+        "**/*.d.ts",
+        "package.json"
+    ],
+    "exclude": [
+        "eng/**/*",
+        "node_modules/",
+        "dist/",
+    ]
+}
