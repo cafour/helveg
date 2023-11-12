@@ -33,13 +33,13 @@ public static class CSConst
     public static readonly NumericToken InvalidToken = NumericToken.CreateInvalid(CSharpNamespace);
     public static readonly NumericToken NoneToken = NumericToken.CreateNone(CSharpNamespace);
 
-    internal static string KindOf<T>()
+    public static string KindOf<T>()
         where T : IEntity
     {
         return KindOf(typeof(T));
     }
 
-    internal static string KindOf(Type type)
+    public static string KindOf(Type type)
     {
         var kind = type.Name;
         if (kind.Length > DefinitionSuffix.Length && kind.EndsWith(DefinitionSuffix, StringComparison.Ordinal))

@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -28,7 +30,10 @@ public record UIStyle(
 public record InitializerOptions(
     string? MainRelation = null,
     string IconSetSelector = ".helveg-icons",
-    string DataId = "helveg-data"
+    string DataId = "helveg-data",
+    ImmutableArray<string>? SelectedRelations = null,
+    ImmutableArray<string>? SelectedKinds = null,
+    int? ExpandedDepth = null
 );
 
 public class UIBuilder
@@ -321,7 +326,7 @@ $@"
         foreach (var script in scripts)
         {
 
-            var classAttribute = script.Classes is not null ? $"class=\"{script.Classes}\"" : "";
+            var classAttribute = script.Classes is not null ? $" class=\"{script.Classes}\"" : "";
             if (embedAll)
             {
 
@@ -352,6 +357,20 @@ $@"
 
     private static string GetInitializer(InitializerOptions options)
     {
+        dynamic refreshOptions = new ExpandoObject();
+        if (options.ExpandedDepth is not null)
+        {
+            refreshOptions.expandedDepth = options.ExpandedDepth;
+        }
+        if (options.SelectedRelations is not null)
+        {
+            refreshOptions.selectedRelations = options.SelectedRelations;
+        }
+        if (options.SelectedKinds is not null)
+        {
+            refreshOptions.selectedKinds = options.SelectedKinds;
+        }
+
         return
 $@"<script type=""module"">
     const iconSets = await helveg.loadIconSets(""{options.IconSetSelector}"");
@@ -361,8 +380,9 @@ $@"<script type=""module"">
         model: model,
         mainRelation: {(options.MainRelation is null ? "null" : $"\"{options.MainRelation}\"")}
     }});
-    await diagram.resetLayout();
     helveg.createExplorer(diagram);
+    await diagram.refresh({JsonSerializer.Serialize(refreshOptions, HelvegDefaults.JsonOptions)});
+
     // NB: this is left here mostly for debugging purposes
     helveg.diagram = diagram;
 </script>";

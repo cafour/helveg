@@ -21,11 +21,13 @@ export interface DiagramOptions {
     logLevel: LogSeverity,
     nodeStylist: NodeStylist,
     edgeStylist: EdgeStylist,
-    iconRegistry: Readonly<IconRegistry>,
-    initial?: {
-        selectedRelations: string[],
-        selectedKinds: string[]
-    }
+    iconRegistry: Readonly<IconRegistry>
+}
+
+export interface DiagramRefreshOptions {
+    selectedRelations?: string[],
+    selectedKinds?: string[],
+    expandedDepth?: number
 }
 
 export const DEFAULT_DIAGRAM_OPTIONS: DiagramOptions = {
@@ -36,11 +38,6 @@ export const DEFAULT_DIAGRAM_OPTIONS: DiagramOptions = {
     edgeStylist: fallbackEdgeStylist,
     iconRegistry: EMPTY_ICON_REGISTRY
 };
-
-export interface DiagramRefreshOptions {
-    selectedRelations?: string[],
-    selectedKinds?: string[]
-}
 
 export enum DiagramMode {
     Normal = "normal",
@@ -161,10 +158,7 @@ export class Diagram {
         this._logger = consoleLogger("diagram", this._options.logLevel);
         this._mainRelation = this._options.mainRelation;
         this._glyphProgram = createGlyphProgram(this.options.glyphProgram, this._logger);
-        this._lastRefreshOptions = {
-            selectedRelations: this.mainRelation ? [this.mainRelation] : [],
-            selectedKinds: getNodeKinds(this._model.data)
-        };
+        this._lastRefreshOptions = {};
 
         this.element.style.width = "100%";
         this.element.style.height = "100%";
@@ -569,9 +563,10 @@ export class Diagram {
 
         this._graph = initializeGraph(
             this._model,
+            this.mainRelation ?? undefined,
             options.selectedRelations ?? (this.mainRelation ? [this.mainRelation] : []),
             options.selectedKinds,
-            this.logger);
+            options.expandedDepth);
         this.restyleGraph();
 
         await this.refreshSupervisor(false, () => this._graph && this._sigma?.setGraph(this._graph));

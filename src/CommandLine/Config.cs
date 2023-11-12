@@ -1,9 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.CommandLine;
 using System.CommandLine.Binding;
 using System.IO;
 using System.Linq;
+using Helveg.CSharp;
+using Helveg.CSharp.Projects;
+using Helveg.CSharp.Symbols;
 using Helveg.UI;
 
 namespace Helveg.CommandLine;
@@ -22,33 +26,16 @@ public record Config(
     UIMode Mode,
     string? Name,
     DirectoryInfo? OutDir,
-    Dictionary<string, string> BuildProperties,
-    bool Force
+    ImmutableDictionary<string, string> BuildProperties,
+    bool Force,
+    int InitialDepth,
+    ImmutableArray<string> InitialRelations,
+    ImmutableArray<string> InitialKinds
 )
 {
-    public static readonly Config Dev = new(
-        Preset: ConfigPreset.Dev,
-        Source: null,
-        ProjectAnalysis: AnalysisScope.Explicit,
-        ExternalAnalysis: AnalysisScope.WithoutSymbols,
-        Mode: UIMode.SingleFile,
-        Name: null,
-        OutDir: null,
-        BuildProperties: new(),
-        Force: false
-    );
+    public static readonly Config Dev;
 
-    public static readonly Config Docs = new(
-        Preset: ConfigPreset.Docs,
-        Source: null,
-        ProjectAnalysis: AnalysisScope.PublicApi,
-        ExternalAnalysis: AnalysisScope.None,
-        Mode: UIMode.DataOnly,
-        Name: null,
-        OutDir: null,
-        BuildProperties: new(),
-        Force: false
-    );
+    public static readonly Config Docs;
 
     public static readonly Option<ConfigPreset> PresetOpt = new(
         aliases: new[] { "--preset" },
@@ -120,6 +107,49 @@ public record Config(
                 }
             }
         });
+
+        var initialKinds = ImmutableArray.Create(
+            CSConst.KindOf<Solution>(),
+            CSConst.KindOf<Project>(),
+            CSConst.KindOf<NamespaceDefinition>(),
+            CSConst.KindOf<TypeDefinition>(),
+            CSConst.KindOf<MethodDefinition>(),
+            CSConst.KindOf<PropertyDefinition>(),
+            CSConst.KindOf<EventDefinition>(),
+            CSConst.KindOf<FieldDefinition>(),
+            CSConst.KindOf<TypeParameterDefinition>(),
+            CSConst.KindOf<ParameterDefinition>()
+        );
+
+        Dev = new(
+            Preset: ConfigPreset.Dev,
+            Source: null,
+            ProjectAnalysis: AnalysisScope.Explicit,
+            ExternalAnalysis: AnalysisScope.WithoutSymbols,
+            Mode: UIMode.SingleFile,
+            Name: null,
+            OutDir: null,
+            BuildProperties: ImmutableDictionary<string, string>.Empty,
+            Force: false,
+            InitialDepth: 1,
+            InitialRelations: ImmutableArray.Create(CSRelations.Declares),
+            InitialKinds: initialKinds
+        );
+
+        Docs = new(
+            Preset: ConfigPreset.Docs,
+            Source: null,
+            ProjectAnalysis: AnalysisScope.PublicApi,
+            ExternalAnalysis: AnalysisScope.None,
+            Mode: UIMode.DataOnly,
+            Name: null,
+            OutDir: null,
+            BuildProperties: ImmutableDictionary<string, string>.Empty,
+            Force: false,
+            InitialDepth: 1,
+            InitialRelations: ImmutableArray.Create(CSRelations.Declares),
+            InitialKinds: initialKinds
+        );
     }
 
     public class Binder : BinderBase<Config>
@@ -152,7 +182,8 @@ public record Config(
                 Mode = Value(ModeOpt) ?? config.Mode,
                 Name = Value(NameOpt),
                 OutDir = Value(OutDirOpt),
-                BuildProperties = Value(BuildPropertiesOpt) ?? config.BuildProperties,
+                BuildProperties = Value(BuildPropertiesOpt)?.ToImmutableDictionary()
+                    ?? config.BuildProperties,
                 Force = Value(ForceOpt) ?? config.Force
             };
 

@@ -3,10 +3,10 @@ import Graph from "../deps/graphology.ts";
 import { Sigma, Coordinates, DEFAULT_SETTINGS, NodeProgramConstructor, SigmaNodeEventPayload, SigmaStageEventPayload } from "../deps/sigma.ts";
 import { ForceAtlas2Progress, ForceAtlas2Supervisor } from "../layout/forceAltas2Supervisor.ts";
 import { DataModel, Multigraph, MultigraphRelation } from "../model/data-model.ts";
-import { HelvegEdgeAttributes, HelvegGraph, HelvegNodeAttributes } from "../model/graph.ts";
+import { HelvegEdgeAttributes, HelvegGraph, HelvegNodeAttributes, findRoots, toggleNode } from "../model/graph.ts";
 import { ILogger, Logger, sublogger } from "../model/logger.ts";
 import { EdgeStylist, NodeStylist, OutlineStyle, Outlines, getOutlinesTotalWidth } from "../model/style.ts";
-import { bfsMultigraph } from "../model/traversal.ts";
+import { bfsGraph, bfsMultigraph } from "../model/traversal.ts";
 import { GlyphProgramOptions } from "../rendering/node.glyph.ts";
 
 export function initializeSupervisor(
@@ -120,9 +120,10 @@ export function configureSigma(
 
 export function initializeGraph(
     model: DataModel,
+    mainRelation?: string,
     selectedRelations?: string[],
     selectedKinds?: string[],
-    logger?: ILogger
+    expandedDepth?: number
 ): HelvegGraph {
 
     const graph = new Graph<HelvegNodeAttributes, HelvegEdgeAttributes>({
@@ -154,11 +155,18 @@ export function initializeGraph(
         }
 
         if (relation.isTransitive) {
-        // if (false) {
             addTransitiveRelation(graph, model.data, relationId);
         } else {
             addRegularRelation(graph, model.data, relationId);
         }
+    }
+
+    if (mainRelation !== undefined && expandedDepth !== undefined) {
+        const mainRoots = findRoots(graph, mainRelation);
+        mainRoots.forEach(r => bfsGraph(graph, r, {
+            maxDepth: expandedDepth,
+            callback: n => toggleNode(graph, n, mainRelation)
+        }));
     }
 
     return graph;
@@ -193,7 +201,7 @@ function addTransitiveRelation(graph: HelvegGraph, multigraph: Multigraph, relat
             relation: relationId,
             callback: n => n === id || !graph.hasNode(n)
         });
-        
+
         // add the transitive edges and remove the unincluded nodes
         transitiveChildren.forEach(child => {
             if (child === id) {

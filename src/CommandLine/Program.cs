@@ -113,7 +113,12 @@ public static class Program
         await UIBuilder.CreateDefault(loggerFactory.CreateLogger<UIBuilder>())
             .SetMode(config.Mode)
             .SetName(config.Name ?? model.Name)
-            .SetInitializerOptions(new("declares"))
+            .SetInitializerOptions(new(
+                MainRelation: CSRelations.Declares,
+                SelectedRelations: config.InitialRelations,
+                SelectedKinds: config.InitialKinds,
+                ExpandedDepth: config.InitialDepth
+            ))
             .SetDataModel(model)
             .SetOutDir(config.OutDir)
             .Build();
