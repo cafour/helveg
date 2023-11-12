@@ -6,7 +6,13 @@
     <img src="https://img.shields.io/nuget/v/helveg?color=005aa7&label=NuGet.org&logo=nuget&style=flat-square" />
 </a>
 
-<img src="https://img.shields.io/gitlab/license/helveg/helveg?style=flat-square&label=License" />
+<a href="https://gitlab.com/helveg/helveg/-/packages">
+    <img src="https://img.shields.io/badge/GitLab-Preview_Packages-e24329?logo=gitlab&style=flat-square" />
+</a>
+
+<a href="./LICENSE">
+    <img src="https://img.shields.io/gitlab/license/helveg/helveg?style=flat-square&label=License" />
+</a>
 
 A tool and an extensible API for the visualization of C# codebases.
 
