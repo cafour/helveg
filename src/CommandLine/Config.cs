@@ -94,6 +94,21 @@ public record Config(
         aliases: new[] { "-f", "--force" },
         description: "Overwrite previous results."
     );
+    
+    public static readonly Option<int?> InitialDepthOpt = new(
+        aliases: new[] { "--initial-depth" },
+        description: "Initial expanded depth of the diagram."
+    );
+    
+    public static readonly Option<List<string>?> InitialRelationsOpt = new(
+        aliases: new[] { "--initial-relation" },
+        description: "Initial selected relations of the diagram."
+    );
+    
+    public static readonly Option<List<string>?> InitialKindsOpt = new(
+        aliases: new[] { "--initial-kind" },
+        description: "Initial selected kinds of the diagram."
+    );
 
     static Config()
     {
@@ -174,6 +189,10 @@ public record Config(
                 ConfigPreset.Docs => Docs,
                 _ => throw new NotSupportedException($"Preset '{preset}' is not supported.")
             };
+            
+            var initialRelations = Value(InitialRelationsOpt);
+            var initialKinds = Value(InitialKindsOpt);
+            
             config = config with
             {
                 Source = Value(SourceArg),
@@ -184,7 +203,14 @@ public record Config(
                 OutDir = Value(OutDirOpt),
                 BuildProperties = Value(BuildPropertiesOpt)?.ToImmutableDictionary()
                     ?? config.BuildProperties,
-                Force = Value(ForceOpt) ?? config.Force
+                Force = Value(ForceOpt) ?? config.Force,
+                InitialDepth = Value(InitialDepthOpt) ?? config.InitialDepth,
+                InitialRelations = initialRelations?.Count > 0
+                    ? initialRelations.ToImmutableArray()
+                    : config.InitialRelations,
+                InitialKinds = initialKinds?.Count > 0
+                    ? initialKinds.ToImmutableArray()
+                    : config.InitialKinds
             };
 
             if (Value(DryRunOpt))

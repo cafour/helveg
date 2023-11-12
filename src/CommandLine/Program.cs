@@ -40,7 +40,10 @@ public static class Program
             Config.NameOpt,
             Config.OutDirOpt,
             Config.BuildPropertiesOpt,
-            Config.ForceOpt
+            Config.ForceOpt,
+            Config.InitialDepthOpt,
+            Config.InitialRelationsOpt,
+            Config.InitialKindsOpt
         };
         var verboseOpt = new Option<bool>(new[] { "-v", "--verbose" }, "Set logging level to Debug.");
         rootCmd.AddGlobalOption(verboseOpt);
