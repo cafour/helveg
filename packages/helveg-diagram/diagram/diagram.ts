@@ -15,19 +15,20 @@ import { EMPTY_ICON_REGISTRY, IconRegistry } from "../global.ts";
 import { DataModel } from "../model/data-model.ts";
 import { EMPTY_DATA_MODEL } from "../model/const.ts";
 
+export interface DiagramRefreshOptions {
+    selectedRelations?: string[],
+    selectedKinds?: string[],
+    expandedDepth?: number
+}
+
 export interface DiagramOptions {
     glyphProgram: GlyphProgramOptions,
     mainRelation: string | null,
     logLevel: LogSeverity,
     nodeStylist: NodeStylist,
     edgeStylist: EdgeStylist,
-    iconRegistry: Readonly<IconRegistry>
-}
-
-export interface DiagramRefreshOptions {
-    selectedRelations?: string[],
-    selectedKinds?: string[],
-    expandedDepth?: number
+    iconRegistry: Readonly<IconRegistry>,
+    refresh: DiagramRefreshOptions
 }
 
 export const DEFAULT_DIAGRAM_OPTIONS: DiagramOptions = {
@@ -36,7 +37,8 @@ export const DEFAULT_DIAGRAM_OPTIONS: DiagramOptions = {
     glyphProgram: DEFAULT_GLYPH_PROGRAM_OPTIONS,
     nodeStylist: fallbackNodeStylist,
     edgeStylist: fallbackEdgeStylist,
-    iconRegistry: EMPTY_ICON_REGISTRY
+    iconRegistry: EMPTY_ICON_REGISTRY,
+    refresh: {}
 };
 
 export enum DiagramMode {
@@ -158,7 +160,7 @@ export class Diagram {
         this._logger = consoleLogger("diagram", this._options.logLevel);
         this._mainRelation = this._options.mainRelation;
         this._glyphProgram = createGlyphProgram(this.options.glyphProgram, this._logger);
-        this._lastRefreshOptions = {};
+        this._lastRefreshOptions = this._options.refresh;
 
         this.element.style.width = "100%";
         this.element.style.height = "100%";
@@ -428,6 +430,11 @@ export class Diagram {
     async refresh(options?: DiagramRefreshOptions): Promise<void> {
         await this.refreshGraph(options ?? this._lastRefreshOptions);
         await this.resetLayout();
+    }
+
+    reset(): Promise<void> {
+        this.mainRelation = this.options.mainRelation;
+        return this.refresh(this.options.refresh);
     }
 
     async cut(nodeId: string, options?: CutOptions): Promise<void> {

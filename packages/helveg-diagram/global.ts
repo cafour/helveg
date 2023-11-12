@@ -6,7 +6,7 @@ import { EdgeStylist, NodeStylist } from "./model/style.ts";
 import { IconAtlas } from "./rendering/iconAtlas.ts";
 import { DEFAULT_GLYPH_PROGRAM_OPTIONS } from "./rendering/node.glyph.ts";
 import { loadJsonScripts, requireJsonScript } from "./model/data.ts";
-import { Diagram } from "./diagram/diagram.ts";
+import { Diagram, DiagramRefreshOptions } from "./diagram/diagram.ts";
 import { EMPTY_DATA_MODEL } from "./model/const.ts";
 import { IconSetModel } from "./model/icon-set-model.ts";
 import { DataModel } from "./model/data-model.ts";
@@ -33,7 +33,8 @@ export interface CreateDiagramOptions {
     nodeStylist: NodeStylist,
     edgeStylist: EdgeStylist,
     mainRelation: string | null,
-    iconSize: number
+    iconSize: number,
+    refresh: DiagramRefreshOptions
 }
 
 export const DEFAULT_CREATE_DIAGRAM_OPTIONS: CreateDiagramOptions = {
@@ -44,7 +45,8 @@ export const DEFAULT_CREATE_DIAGRAM_OPTIONS: CreateDiagramOptions = {
     nodeStylist: csharpNodeStylist,
     edgeStylist: csharpEdgeStylist,
     mainRelation: null,
-    iconSize: DEFAULT_ICON_ATLAS_OPTIONS.iconSize
+    iconSize: DEFAULT_ICON_ATLAS_OPTIONS.iconSize,
+    refresh: {}
 };
 
 export function createDiagram(options?: Partial<CreateDiagramOptions>): Diagram {
@@ -68,7 +70,8 @@ export function createDiagram(options?: Partial<CreateDiagramOptions>): Diagram 
         glyphProgram: {
             ...DEFAULT_GLYPH_PROGRAM_OPTIONS,
             iconAtlas: new IconAtlas(iconRegistry, { iconSize: opts.iconSize })
-        }
+        },
+        refresh: options?.refresh
     })
     diagram.model = opts.model;
     return diagram;

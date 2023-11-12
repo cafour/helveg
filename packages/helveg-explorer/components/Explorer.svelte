@@ -54,7 +54,7 @@
     const dataOptions = createOptions<Options.DataOptions>(
         "dataOptions",
         "data",
-        Options.DEFAULT_DATA_OPTIONS
+        {...Options.DEFAULT_DATA_OPTIONS, ...diagram.options.refresh}
     );
     const layoutOptions = createOptions<Options.LayoutOptions>(
         "layoutOptions",

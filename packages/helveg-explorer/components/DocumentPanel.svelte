@@ -50,13 +50,13 @@
         positions: Record<string, { x: number; y: number }>;
     }
 
-    function resetOptions() {
-        dataOptions.set(Options.DEFAULT_DATA_OPTIONS);
+    async function resetOptions() {
+        dataOptions.set({...Options.DEFAULT_DATA_OPTIONS, ...diagram.options.refresh});
         exportOptions.set(Options.DEFAULT_EXPORT_OPTIONS);
         appearanceOptions.set(Options.DEFAULT_APPEARANCE_OPTIONS);
         layoutOptions.set(Options.DEFAULT_LAYOUT_OPTIONS);
         toolOptions.set(Options.DEFAULT_TOOL_OPTIONS);
-        diagram.resetLayout();
+        await diagram.reset();
     }
 
     function importState(target: EventTarget | null) {

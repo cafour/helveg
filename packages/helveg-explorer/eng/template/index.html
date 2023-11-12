@@ -38,7 +38,12 @@
             iconSets: iconSets,
             logLevel: "debug",
             model: model,
-            mainRelation: "declares"
+            mainRelation: "declares",
+            refresh: {
+                expandedDepth: 1,
+                selectedRelations: ["declares"],
+                selectedKinds: ["Solution", "Project", "Type"]
+            }
         });
         await window.diagram.resetLayout();
         helveg.createExplorer(diagram);

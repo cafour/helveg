@@ -110,6 +110,7 @@ public class VisualizationSymbolVisitor : SymbolVisitor
         node.IsRecord = type.IsRecord;
         node.Arity = type.Arity;
         node.IsImplicitClass = type.IsImplicitClass;
+        node.BaseType = type.BaseType?.Hint ?? Const.Unknown;
 
         var (instanceCount, staticCount) = CountMembers(type);
         node.InstanceMemberCount = instanceCount;

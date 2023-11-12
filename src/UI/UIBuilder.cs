@@ -378,10 +378,11 @@ $@"<script type=""module"">
     const diagram = helveg.createDiagram({{
         iconSets: iconSets,
         model: model,
-        mainRelation: {(options.MainRelation is null ? "null" : $"\"{options.MainRelation}\"")}
+        mainRelation: {(options.MainRelation is null ? "null" : $"\"{options.MainRelation}\"")},
+        refresh: {JsonSerializer.Serialize(refreshOptions, HelvegDefaults.JsonOptions)}
     }});
+    await diagram.reset();
     helveg.createExplorer(diagram);
-    await diagram.refresh({JsonSerializer.Serialize(refreshOptions, HelvegDefaults.JsonOptions)});
 
     // NB: this is left here mostly for debugging purposes
     helveg.diagram = diagram;
