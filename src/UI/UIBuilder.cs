@@ -168,7 +168,7 @@ public class UIBuilder
         InitializerOptions = options;
         return this;
     }
-    
+
     public UIBuilder SetOutDir(DirectoryInfo outDir)
     {
         OutDir = outDir;
@@ -216,7 +216,7 @@ public class UIBuilder
 
     private async Task BuildStatic()
     {
-        logger.LogInformation("Building a '{}' static app at '{}'.", Model.Name, Name);
+        logger.LogInformation("Building a '{}' static app at '{}'.", Model.Name, OutDir);
 
         async Task WriteFile(string filePath, string contents)
         {
@@ -229,11 +229,13 @@ public class UIBuilder
             return WriteFile(filePath, contents);
         }
 
+        Directory.CreateDirectory(Path.Combine(OutDir.FullName, StylesDirName));
         foreach (var style in styles)
         {
             await WriteFile(Path.Combine(StylesDirName, style.FileName), style.Contents);
         }
 
+        Directory.CreateDirectory(Path.Combine(OutDir.FullName, ScriptsDirName));
         foreach (var script in scripts)
         {
             await WriteFile(Path.Combine(ScriptsDirName, script.FileName), script.Contents);
