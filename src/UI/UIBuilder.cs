@@ -50,6 +50,7 @@ public class UIBuilder
     private readonly HashSet<string> scriptNames = new();
     private readonly List<UIStyle> styles = new();
     private readonly List<UIScript> scripts = new();
+    private readonly JsonSerializerOptions jsonOptions;
 
     public DataModel Model { get; set; } = DataModel.CreateEmpty();
     public string Name { get; set; }
@@ -69,6 +70,13 @@ public class UIBuilder
         this.logger = logger ?? NullLoggerFactory.Instance.CreateLogger<UIBuilder>();
         Name = $"helveg_{DateTimeOffset.Now:yyyy-MM-dd_HH-mm)}";
         OutDir = new DirectoryInfo(Environment.CurrentDirectory);
+
+        jsonOptions = new JsonSerializerOptions();
+        foreach(var converter in DataModel.Converters)
+        {
+            jsonOptions.Converters.Add(converter);
+        }
+        HelvegDefaults.ApplyJsonDefaults(jsonOptions);
     }
 
     public static UIBuilder CreateDefault(ILogger<UIBuilder>? logger = null)
@@ -230,7 +238,7 @@ public class UIBuilder
 
         Task WriteJson<T>(string filePath, T value)
         {
-            var contents = JsonSerializer.Serialize(value, HelvegDefaults.JsonOptions);
+            var contents = JsonSerializer.Serialize(value, jsonOptions);
             return WriteFile(filePath, contents);
         }
 
@@ -258,7 +266,7 @@ public class UIBuilder
             Path.Combine(OutDir.FullName, $"{Name}-data.json"),
             FileMode.Create,
             FileAccess.Write);
-        await JsonSerializer.SerializeAsync(stream, Model, HelvegDefaults.JsonOptions);
+        await JsonSerializer.SerializeAsync(stream, Model, jsonOptions);
     }
 
     private string BuildEntryPoint(bool embedAll)
@@ -311,7 +319,7 @@ $@"
 $@"
         <!-- {Name}-data.json -->
         <script type=""application/json"" id=""helveg-data"">
-            {JsonSerializer.Serialize(Model, HelvegDefaults.JsonOptions)}
+            {JsonSerializer.Serialize(Model, jsonOptions)}
         </script>
 ");
         }
@@ -355,7 +363,7 @@ $@"
         return sb.ToString();
     }
 
-    private static string GetInitializer(InitializerOptions options)
+    private string GetInitializer(InitializerOptions options)
     {
         dynamic refreshOptions = new ExpandoObject();
         if (options.ExpandedDepth is not null)
@@ -379,7 +387,7 @@ $@"<script type=""module"">
         iconSets: iconSets,
         model: model,
         mainRelation: {(options.MainRelation is null ? "null" : $"\"{options.MainRelation}\"")},
-        refresh: {JsonSerializer.Serialize(refreshOptions, HelvegDefaults.JsonOptions)}
+        refresh: {JsonSerializer.Serialize(refreshOptions, jsonOptions)}
     }});
     await diagram.reset();
     helveg.createExplorer(diagram);

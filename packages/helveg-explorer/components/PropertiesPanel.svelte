@@ -5,6 +5,8 @@
     import Subpanel from "./Subpanel.svelte";
     import { AppIcons, AppPanels } from "../const.ts";
     import Icon from "./Icon.svelte";
+    import * as marked from "../deps/marked.ts";
+    import dompurify from "../deps/dompurify.ts";
 
     export let node: MultigraphNode | null = null;
     $: nodeItems =
@@ -17,6 +19,7 @@
             value: p[1],
         })) ?? [];
     $: diagnostics = node?.diagnostics ?? [];
+    $: comments = node?.comments ?? [];
 
     function getDiagnosticIcon(diagnostic: MultigraphDiagnostic) {
         switch (diagnostic.severity) {
@@ -45,6 +48,19 @@
         <Subpanel>
             <KeyValueList bind:items={nodeItems} />
         </Subpanel>
+        {#if comments.length > 0}
+            <Subpanel name="Comments" indent={false}>
+                {#each comments as comment}
+                    <div class="comment flex flex-columnn gap-2 mb-2">
+                        {#if comment.format == "markdown"}
+                            {@html dompurify.sanitize(marked.parse(comment.content))}
+                        {:else}
+                            <p>{comment.content}</p>
+                        {/if}
+                    </div>
+                {/each}
+            </Subpanel>
+        {/if}
         {#if diagnostics.length > 0}
             <Subpanel name="Diagnostics" indent={false}>
                 {#each diagnostics as diagnostic}

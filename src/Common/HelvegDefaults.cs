@@ -21,8 +21,15 @@ public static class HelvegDefaults
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
-        JsonOptions.Converters.Add(new JsonStringEnumConverter());
-        JsonOptions.TypeInfoResolver = new HelvegAssemblyTypeResolver();
+        ApplyJsonDefaults(JsonOptions);
+    }
+    
+    public static JsonSerializerOptions ApplyJsonDefaults(JsonSerializerOptions options)
+    {
+        options.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+        options.Converters.Add(new JsonStringEnumConverter());
+        options.TypeInfoResolver = new HelvegAssemblyTypeResolver();
+        return options;
     }
 
     private class HelvegAssemblyTypeResolver : DefaultJsonTypeInfoResolver

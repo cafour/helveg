@@ -15,9 +15,9 @@
     }
   },
   "engines": {
-    "pnpm": ">=8.10.2"
+    "pnpm": ">=8.10.3"
   },
-  "packageManager": "pnpm@8.10.2",
+  "packageManager": "pnpm@8.10.3",
   "scripts": {
     "build": "turbo run rebuild",
     "git-version": "turbo run git-version",
