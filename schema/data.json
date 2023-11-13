@@ -88,6 +88,26 @@
                                         }
                                     }
                                 }
+                            },
+                            "comments": {
+                                "type": "array",
+                                "description": "Comments attached to the node.",
+                                "items": {
+                                    "type": "object",
+                                    "title": "MultigraphComment",
+                                    "description": "A comment regarding a node.",
+                                    "required": ["format", "content"],
+                                    "properties": {
+                                        "format": {
+                                            "type": "string",
+                                            "title": "MultigraphCommentFormat",
+                                            "enum": ["plain", "markdown"]
+                                        },
+                                        "content": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
                             }
                         }
                     }

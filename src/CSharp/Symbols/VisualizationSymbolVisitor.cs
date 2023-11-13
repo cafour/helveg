@@ -21,6 +21,7 @@ public class VisualizationSymbolVisitor : SymbolVisitor
         var node = graph.GetNode<CSharpNode>(symbol.Token, symbol.Name);
         node.Kind = CSConst.KindOf(symbol.GetType());
         node.Diagnostics = symbol.Diagnostics.Select(d => d.ToMultigraphDiagnostic()).ToList();
+        node.Comments = symbol.Comments.Select(d => d.ToMultigraphComment()).ToList();
 
         if (symbol is IMemberDefinition member)
         {

@@ -13,6 +13,17 @@
             "stopAtEntry": false
         },
         {
+          "name": "Playground (Debug)",
+          "type": "coreclr",
+          "request": "launch",
+          "preLaunchTask": "build",
+          "program": "${workspaceFolder}/src/Playground/bin/Debug/net6.0/Helveg.Playground.dll",
+          "args": [],
+          "cwd": "${workspaceFolder}/src/Playground",
+          "console": "internalConsole",
+          "stopAtEntry": false
+      },
+        {
             "type": "node",
             "request": "launch",
             "name": "UI",

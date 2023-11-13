@@ -92,6 +92,13 @@ namespace Helveg.Visualization
     public partial class MultigraphNode
     {
         /// <summary>
+        /// Comments attached to the node.
+        /// </summary>
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("comments")]
+        public virtual List<MultigraphComment> Comments { get; set; }
+
+        /// <summary>
         /// Diagnostics attached to the node.
         /// </summary>
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -111,6 +118,18 @@ namespace Helveg.Visualization
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         [JsonPropertyName("name")]
         public virtual string Name { get; set; }
+    }
+
+    /// <summary>
+    /// A comment regarding a node.
+    /// </summary>
+    public partial class MultigraphComment
+    {
+        [JsonPropertyName("content")]
+        public virtual string Content { get; set; }
+
+        [JsonPropertyName("format")]
+        public virtual MultigraphCommentFormat Format { get; set; }
     }
 
     /// <summary>
@@ -175,6 +194,8 @@ namespace Helveg.Visualization
         public virtual string Src { get; set; }
     }
 
+    public enum MultigraphCommentFormat { Markdown, Plain };
+
     public enum MultigraphDiagnosticSeverity { Error, Hidden, Info, Warning };
 
     public partial class DataModel
@@ -193,12 +214,47 @@ namespace Helveg.Visualization
         {
             Converters =
             {
+                MultigraphCommentFormatConverter.Singleton,
                 MultigraphDiagnosticSeverityConverter.Singleton,
                 new DateOnlyConverter(),
                 new TimeOnlyConverter(),
                 IsoDateTimeOffsetConverter.Singleton
             },
         };
+    }
+
+    internal class MultigraphCommentFormatConverter : JsonConverter<MultigraphCommentFormat>
+    {
+        public override bool CanConvert(Type t) => t == typeof(MultigraphCommentFormat);
+
+        public override MultigraphCommentFormat Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            var value = reader.GetString();
+            switch (value)
+            {
+                case "markdown":
+                    return MultigraphCommentFormat.Markdown;
+                case "plain":
+                    return MultigraphCommentFormat.Plain;
+            }
+            throw new Exception("Cannot unmarshal type MultigraphCommentFormat");
+        }
+
+        public override void Write(Utf8JsonWriter writer, MultigraphCommentFormat value, JsonSerializerOptions options)
+        {
+            switch (value)
+            {
+                case MultigraphCommentFormat.Markdown:
+                    JsonSerializer.Serialize(writer, "markdown", options);
+                    return;
+                case MultigraphCommentFormat.Plain:
+                    JsonSerializer.Serialize(writer, "plain", options);
+                    return;
+            }
+            throw new Exception("Cannot marshal type MultigraphCommentFormat");
+        }
+
+        public static readonly MultigraphCommentFormatConverter Singleton = new MultigraphCommentFormatConverter();
     }
 
     internal class MultigraphDiagnosticSeverityConverter : JsonConverter<MultigraphDiagnosticSeverity>

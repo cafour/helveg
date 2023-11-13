@@ -1,14 +1,8 @@
-﻿using Helveg.CSharp.Projects;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Diagnostics;
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Helveg.CSharp.Symbols;
 
@@ -363,13 +357,22 @@ internal class RoslynSymbolTranscriber
     private T PopulateDefinition<T>(ISymbol symbol, T definition)
         where T : SymbolDefinition
     {
+        var comment = symbol.GetDocumentationCommentXml();
+        if (!string.IsNullOrEmpty(comment)) {
+            comment = MarkdownCommentVisitor.ToMarkdown(comment);
+        }
         return definition with
         {
             Token = tokenMap.GetOrAdd(symbol),
             Name = symbol.Name,
             Diagnostics = symbolDiagnostics.TryGetValue(symbol, out var diagnostics)
                 ? diagnostics
-                : ImmutableArray<Diagnostic>.Empty
+                : ImmutableArray<Diagnostic>.Empty,
+            Comments = !string.IsNullOrEmpty(comment)
+                ? ImmutableArray.Create(new Comment(
+                    Format: CommentFormat.Markdown,
+                    Content: comment))
+                : ImmutableArray<Comment>.Empty
         };
     }
 

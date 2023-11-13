@@ -56,6 +56,10 @@ export interface Multigraph {
  */
 export interface MultigraphNode {
     /**
+     * Comments attached to the node.
+     */
+    comments?: MultigraphComment[];
+    /**
      * Diagnostics attached to the node.
      */
     diagnostics?: MultigraphDiagnostic[];
@@ -69,6 +73,17 @@ export interface MultigraphNode {
     name?: string;
     [property: string]: any;
 }
+
+/**
+ * A comment regarding a node.
+ */
+export interface MultigraphComment {
+    content: string;
+    format:  MultigraphCommentFormat;
+    [property: string]: any;
+}
+
+export type MultigraphCommentFormat = "plain" | "markdown";
 
 /**
  * A diagnostic message (warning, error, etc.) regarding a node.

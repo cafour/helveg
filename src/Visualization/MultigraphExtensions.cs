@@ -75,4 +75,22 @@ public static class MultigraphExtensions
             _ => throw new ArgumentException($"Severity '{severity}' is not supported.")
         };
     }
+    
+    public static MultigraphComment ToMultigraphComment(this Comment comment)
+    {
+        return comment.Format switch
+        {
+            CommentFormat.Plain => new MultigraphComment
+            {
+                Content = comment.Content,
+                Format = MultigraphCommentFormat.Plain
+            },
+            CommentFormat.Markdown => new MultigraphComment
+            {
+                Content =comment.Content,
+                Format = MultigraphCommentFormat.Markdown,
+            },
+            _ => throw new NotSupportedException($"The '{comment.Format}' comment format is unsupported.")
+        };
+    }
 }

@@ -13,6 +13,9 @@ public record EntityBase : IEntity
 
     public ImmutableArray<Diagnostic> Diagnostics { get; init; }
         = ImmutableArray<Diagnostic>.Empty;
+        
+    public ImmutableArray<Comment> Comments { get; init; }
+        = ImmutableArray<Comment>.Empty;
 
     public ImmutableArray<IEntityExtension> Extensions { get; init; }
         = ImmutableArray<IEntityExtension>.Empty;
