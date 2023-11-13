@@ -12,7 +12,7 @@
     $: nodeItems =
         [
             ...Object.entries(node ?? {}).filter(
-                ([k, v]) => k !== "diagnostics" && !k.startsWith("$")
+                ([k, v]) => k !== "diagnostics" && k !== "comments" && !k.startsWith("$")
             ),
         ].map((p) => ({
             key: p[0]!,
@@ -51,7 +51,7 @@
         {#if comments.length > 0}
             <Subpanel name="Comments" indent={false}>
                 {#each comments as comment}
-                    <div class="comment flex flex-columnn gap-2 mb-2">
+                    <div class="comment flex flex-col gap-2 px-16">
                         {#if comment.format == "markdown"}
                             {@html dompurify.sanitize(marked.parse(comment.content))}
                         {:else}
