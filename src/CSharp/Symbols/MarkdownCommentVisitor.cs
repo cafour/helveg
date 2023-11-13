@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
@@ -76,6 +77,7 @@ internal class MarkdownCommentVisitor
 
     public void VisitSummary(XElement summary)
     {
+        WriteLine();
         WriteLine("**Summary**");
         WriteLine();
         VisitChildren(summary);
@@ -85,6 +87,7 @@ internal class MarkdownCommentVisitor
 
     public void VisitRemarks(XElement remarks)
     {
+        WriteLine();
         WriteLine("**Remarks**");
         WriteLine();
         VisitChildren(remarks);
@@ -94,6 +97,7 @@ internal class MarkdownCommentVisitor
 
     public void VisitExample(XElement example)
     {
+        WriteLine();
         WriteLine("**Example**");
         WriteLine();
         VisitChildren(example);
@@ -112,7 +116,11 @@ internal class MarkdownCommentVisitor
 
     public void VisitText(XText text)
     {
-        Write(text.ToString().Trim());
+        var lines = text.ToString().Replace("\r\n", "\n").Split("\n");
+        foreach (var line in lines)
+        {
+            WriteLine(line.TrimStart(' ', '\t'));
+        }
     }
 
     public void VisitSee(XElement see)
@@ -130,7 +138,7 @@ internal class MarkdownCommentVisitor
         {
             // Wrap inline code in ` according to Markdown syntax.
             Write(" `");
-            Write(cref.ToString());
+            Write(cref.Value.ToString()[2..]);
             Write("` ");
             return;
         }
