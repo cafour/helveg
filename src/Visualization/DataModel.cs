@@ -106,6 +106,13 @@ namespace Helveg.Visualization
         public virtual List<MultigraphDiagnostic> Diagnostics { get; set; }
 
         /// <summary>
+        /// The `diff` status of the node.
+        /// </summary>
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("diff")]
+        public virtual MultigraphNodeDiffStatus? Diff { get; set; }
+
+        /// <summary>
         /// The kind of the node.
         /// </summary>
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -198,6 +205,11 @@ namespace Helveg.Visualization
 
     public enum MultigraphDiagnosticSeverity { Error, Hidden, Info, Warning };
 
+    /// <summary>
+    /// The `diff` status of the node.
+    /// </summary>
+    public enum MultigraphNodeDiffStatus { Added, Deleted, Modified, Unmodified };
+
     public partial class DataModel
     {
         public static DataModel FromJson(string json) => JsonSerializer.Deserialize<DataModel>(json, Helveg.Visualization.Converter.Settings);
@@ -216,6 +228,7 @@ namespace Helveg.Visualization
             {
                 MultigraphCommentFormatConverter.Singleton,
                 MultigraphDiagnosticSeverityConverter.Singleton,
+                MultigraphNodeDiffStatusConverter.Singleton,
                 new DateOnlyConverter(),
                 new TimeOnlyConverter(),
                 IsoDateTimeOffsetConverter.Singleton
@@ -299,6 +312,50 @@ namespace Helveg.Visualization
         }
 
         public static readonly MultigraphDiagnosticSeverityConverter Singleton = new MultigraphDiagnosticSeverityConverter();
+    }
+
+    internal class MultigraphNodeDiffStatusConverter : JsonConverter<MultigraphNodeDiffStatus>
+    {
+        public override bool CanConvert(Type t) => t == typeof(MultigraphNodeDiffStatus);
+
+        public override MultigraphNodeDiffStatus Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            var value = reader.GetString();
+            switch (value)
+            {
+                case "added":
+                    return MultigraphNodeDiffStatus.Added;
+                case "deleted":
+                    return MultigraphNodeDiffStatus.Deleted;
+                case "modified":
+                    return MultigraphNodeDiffStatus.Modified;
+                case "unmodified":
+                    return MultigraphNodeDiffStatus.Unmodified;
+            }
+            throw new Exception("Cannot unmarshal type MultigraphNodeDiffStatus");
+        }
+
+        public override void Write(Utf8JsonWriter writer, MultigraphNodeDiffStatus value, JsonSerializerOptions options)
+        {
+            switch (value)
+            {
+                case MultigraphNodeDiffStatus.Added:
+                    JsonSerializer.Serialize(writer, "added", options);
+                    return;
+                case MultigraphNodeDiffStatus.Deleted:
+                    JsonSerializer.Serialize(writer, "deleted", options);
+                    return;
+                case MultigraphNodeDiffStatus.Modified:
+                    JsonSerializer.Serialize(writer, "modified", options);
+                    return;
+                case MultigraphNodeDiffStatus.Unmodified:
+                    JsonSerializer.Serialize(writer, "unmodified", options);
+                    return;
+            }
+            throw new Exception("Cannot marshal type MultigraphNodeDiffStatus");
+        }
+
+        public static readonly MultigraphNodeDiffStatusConverter Singleton = new MultigraphNodeDiffStatusConverter();
     }
     
     public class DateOnlyConverter : JsonConverter<DateOnly>

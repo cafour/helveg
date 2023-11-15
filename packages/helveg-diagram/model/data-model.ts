@@ -64,6 +64,10 @@ export interface MultigraphNode {
      */
     diagnostics?: MultigraphDiagnostic[];
     /**
+     * The `diff` status of the node.
+     */
+    diff?: MultigraphNodeDiffStatus;
+    /**
      * The kind of the node.
      */
     kind?: string;
@@ -96,6 +100,11 @@ export interface MultigraphDiagnostic {
 }
 
 export type MultigraphDiagnosticSeverity = "hidden" | "info" | "warning" | "error";
+
+/**
+ * The `diff` status of the node.
+ */
+export type MultigraphNodeDiffStatus = "unmodified" | "modified" | "added" | "deleted";
 
 /**
  * A relation of the multigraph.
