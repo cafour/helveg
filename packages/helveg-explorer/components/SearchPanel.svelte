@@ -3,12 +3,10 @@
     import Panel from "./Panel.svelte";
     import RadioGroup from "./RadioGroup.svelte";
     import Subpanel from "./Subpanel.svelte";
-    import { type DataOptions } from "../options.ts";
     import { AppIcons, AppPanels } from "../const.ts";
     import ResizingTextarea from "./ResizingTextarea.svelte";
-    import ToggleAllCheckbox from "./ToggleAllCheckbox.svelte";
-    import { SearchMode, type DataModel, getNodeKinds, getRelations } from "../deps/helveg-diagram.ts";
-    import type { Readable, Writable } from "svelte/store";
+    import { SearchMode, type DataModel } from "../deps/helveg-diagram.ts";
+    import type { Readable } from "svelte/store";
 
     let dispatch = createEventDispatcher();
 
@@ -30,19 +28,10 @@
     let searchText: string = "";
 
     let model = getContext<Readable<DataModel>>("model");
-    let dataOptions = getContext<Writable<DataOptions>>("dataOptions");
-    
-    $: relations = getRelations($model.data);
-    $: kinds = getNodeKinds($model.data);
 </script>
 
-<Panel name="Data" indent={false} id={AppPanels.Data}>
+<Panel name="Search" indent={false} id={AppPanels.Search}>
     <Subpanel>
-        <button on:click={() => dispatch("refresh")} class="button-stretch primary">
-            Refresh
-        </button>
-    </Subpanel>
-    <Subpanel name="Search">
         <form
             on:submit|preventDefault={() =>
                 dispatch("highlight", {
@@ -76,45 +65,5 @@
             </button>
         </form>
     </Subpanel>
-    <Subpanel name="Relations">
-        <!-- svelte-ignore a11y-label-has-associated-control -->
-        <label>
-            <ToggleAllCheckbox
-                bind:selected={$dataOptions.selectedRelations}
-                all={relations}
-            />
-            <span>all</span>
-        </label>
-        {#each relations as relation}
-            <label>
-                <input
-                    type="checkbox"
-                    bind:group={$dataOptions.selectedRelations}
-                    value={relation}
-                />
-                <span>{relation}</span>
-            </label>
-        {/each}
-    </Subpanel>
-    <Subpanel name="Node Kinds">
-        <!-- svelte-ignore a11y-label-has-associated-control -->
-        <label>
-            <ToggleAllCheckbox
-                bind:selected={$dataOptions.selectedKinds}
-                all={kinds}
-            />
-            <span>all</span>
-        </label>
-        {#each kinds as kind}
-            <label>
-                <input
-                    type="checkbox"
-                    bind:group={$dataOptions.selectedKinds}
-                    value={kind}
-                />
-                <span>{kind}</span>
-            </label>
-        {/each}
-    </Subpanel>
-    
+    <Subpanel name="Results" />
 </Panel>

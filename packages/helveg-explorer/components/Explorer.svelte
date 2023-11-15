@@ -4,7 +4,6 @@
     import DocumentPanel from "./DocumentPanel.svelte";
     import Tab from "./Tab.svelte";
     import PropertiesPanel from "./PropertiesPanel.svelte";
-    import DataPanel from "./DataPanel.svelte";
     import AppearancePanel from "./AppearancePanel.svelte";
     import LayoutPanel from "./LayoutPanel.svelte";
     import GuidePanel from "./GuidePanel.svelte";
@@ -20,6 +19,7 @@
     import { AppIcons, AppPanels, AppTools } from "../const.ts";
     import * as Options from "../options.ts";
     import LoadingScreen from "./LoadingScreen.svelte";
+    import SearchPanel from "./SearchPanel.svelte";
 
     export let diagram: Diagram;
     setContext("diagram", diagram);
@@ -168,13 +168,8 @@
     />
 
     <Dock name="panels" bind:this={dock} class="z-2">
-        <Tab name="Data" value={AppPanels.Data} icon={AppIcons.DataPanel}>
-            <DataPanel
-                on:refresh={() =>
-                    diagram.refresh({
-                        selectedRelations: $dataOptions.selectedRelations,
-                        selectedKinds: $dataOptions.selectedKinds
-                    })}
+        <Tab name="Search" value={AppPanels.Search} icon={AppIcons.SearchPanel}>
+            <SearchPanel
                 on:highlight={(e) =>
                     diagram.highlight(e.detail.searchText, e.detail.searchMode)}
                 on:isolate={(e) =>
@@ -186,6 +181,11 @@
                 on:run={(e) => diagram.runLayout(e.detail)}
                 on:stop={() => diagram.stopLayout()}
                 on:tidyTree={() => diagram.resetLayout()}
+                on:refresh={() =>
+                    diagram.refresh({
+                        selectedRelations: $dataOptions.selectedRelations,
+                        selectedKinds: $dataOptions.selectedKinds
+                    })}
                 status={$status}
                 stats={$stats}
             />
