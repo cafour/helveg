@@ -1,6 +1,9 @@
 ﻿using Helveg.CSharp.Symbols;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -47,5 +50,66 @@ public static class CSConst
             kind = kind[0..^(DefinitionSuffix.Length)];
         }
         return kind;
+    }
+    
+    /// <summary>
+    /// Finds a solution or project file at the specified path. Preferes solutions before projects if ambiguous.
+    /// </summary>
+    public static string? FindSource(string path, ILogger? logger = null)
+    {
+        logger ??= NullLogger.Instance;
+        
+        if (Directory.Exists(path))
+        {
+            var solutionFiles = Directory.GetFiles(path, $"*{SolutionFileExtension}");
+            if (solutionFiles.Length > 1)
+            {
+                logger.LogError(
+                    "The '{}' directory contains multiple solution files. Provide a path to one them.",
+                    path);
+                return null;
+            }
+            else if (solutionFiles.Length == 1)
+            {
+                path = solutionFiles[0];
+            }
+            else
+            {
+                var csprojFiles = Directory.GetFiles(path, $"*{CSConst.ProjectFileExtension}");
+                if (csprojFiles.Length > 1)
+                {
+                    logger.LogError(
+                        "The '{}' directory contains multiple C# project files. Provide a path to one them.",
+                        path);
+                    return null;
+                }
+                else if (csprojFiles.Length == 1)
+                {
+                    path = csprojFiles[0];
+                }
+                else
+                {
+                    logger.LogCritical(
+                        "The '{}' directory contains no solution nor C# project files.",
+                        path);
+                    return null;
+                }
+            }
+        }
+
+        if (!File.Exists(path))
+        {
+            logger.LogError("The source file '{}' does not exist.", path);
+            return null;
+        }
+
+        var fileExtension = Path.GetExtension(path);
+        if (fileExtension != SolutionFileExtension && fileExtension != ProjectFileExtension)
+        {
+            logger.LogError("The source file '{}' is not a solution nor a C# project file.", path);
+            return null;
+        }
+
+        return path;
     }
 }

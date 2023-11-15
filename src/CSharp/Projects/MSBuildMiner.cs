@@ -143,58 +143,15 @@ public class MSBuildMiner : IMiner
 
     private Solution? GetSolution(string path, CancellationToken cancellationToken = default)
     {
-        if (Directory.Exists(path))
+        var targetFile = CSConst.FindSource(path, logger);
+        if(targetFile is null)
         {
-            var solutionFiles = Directory.GetFiles(path, $"*{CSConst.SolutionFileExtension}");
-            if (solutionFiles.Length > 1)
-            {
-                logger.LogCritical(
-                    "The '{}' directory contains multiple solution files. Provide a path to one them.",
-                    path);
-                return null;
-            }
-            else if (solutionFiles.Length == 1)
-            {
-                path = solutionFiles[0];
-            }
-            else
-            {
-                var csprojFiles = Directory.GetFiles(path, $"*{CSConst.ProjectFileExtension}");
-                if (csprojFiles.Length > 1)
-                {
-                    logger.LogCritical(
-                        "The '{}' directory contains multiple C# project files. Provide a path to one them.",
-                        path);
-                    return null;
-                }
-                else if (csprojFiles.Length == 1)
-                {
-                    path = csprojFiles[0];
-                }
-                else
-                {
-                    logger.LogCritical(
-                        "The '{}' directory contains no solution nor C# project files.",
-                        path);
-                    return null;
-                }
-            }
-        }
-
-        if (!File.Exists(path))
-        {
-            logger.LogError("The source file '{}' does not exist.", path);
             return null;
         }
-
+        path = targetFile;
+        
         var fileExtension = Path.GetExtension(path);
-        if (fileExtension != CSConst.SolutionFileExtension && fileExtension != CSConst.ProjectFileExtension)
-        {
-            logger.LogError("The source file '{}' is not a solution nor a C# project file.", path);
-            return null;
-        }
 
-        var absolutePath = new FileInfo(path).FullName;
         var solution = new Solution
         {
             Index = Interlocked.Increment(ref counter),

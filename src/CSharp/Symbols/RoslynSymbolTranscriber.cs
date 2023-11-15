@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.FindSymbols;
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -13,6 +14,7 @@ namespace Helveg.CSharp.Symbols;
 internal class RoslynSymbolTranscriber
 {
     private readonly WeakReference<Compilation?> compilationRef = new(null);
+    private readonly WeakReference<Compilation?> compareToRef = new(null);
     private readonly SymbolTokenMap tokenMap;
     private ImmutableDictionary<ISymbol, ImmutableArray<Diagnostic>> symbolDiagnostics
         = ImmutableDictionary<ISymbol, ImmutableArray<Diagnostic>>.Empty;
@@ -25,7 +27,9 @@ internal class RoslynSymbolTranscriber
         Scope = scope;
     }
 
-    public AssemblyDefinition Transcribe(AssemblyId assemblyId)
+    public AssemblyDefinition Transcribe(
+        AssemblyId assemblyId,
+        Compilation? compareTo = null)
     {
         var compilation = tokenMap.GetCompilation(assemblyId);
         if (compilation is null)
@@ -35,6 +39,11 @@ internal class RoslynSymbolTranscriber
 
         compilationRef.SetTarget(compilation);
         symbolDiagnostics = GetDiagnostics();
+
+        if (compareTo is not null)
+        {
+            compareToRef.SetTarget(compareTo);
+        }
 
         if (AssemblyId.Create(compilation.Assembly) == assemblyId)
         {
@@ -53,7 +62,7 @@ internal class RoslynSymbolTranscriber
 
     private AssemblyDefinition GetAssembly(IAssemblySymbol assembly)
     {
-        var helAssembly = PopulateDefinition(assembly, new AssemblyDefinition()) with 
+        var helAssembly = PopulateDefinition(assembly, new AssemblyDefinition()) with
         {
             Identity = AssemblyId.Create(assembly)
         };
@@ -116,7 +125,7 @@ internal class RoslynSymbolTranscriber
             type = type.OriginalDefinition;
         }
 
-        var helType = PopulateMember(type, new TypeDefinition()) with 
+        var helType = PopulateMember(type, new TypeDefinition()) with
         {
             MetadataName = type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
             ContainingNamespace = containingNamespace,
@@ -187,7 +196,7 @@ internal class RoslynSymbolTranscriber
                 "must not be null.");
         }
 
-        var helTypeParameter = PopulateDefinition(symbol, new TypeParameterDefinition()) with 
+        var helTypeParameter = PopulateDefinition(symbol, new TypeParameterDefinition()) with
         {
             DeclaringType = declaringType,
             DeclaringMethod = declaringMethod,
@@ -358,8 +367,18 @@ internal class RoslynSymbolTranscriber
         where T : SymbolDefinition
     {
         var comment = symbol.GetDocumentationCommentXml();
-        if (!string.IsNullOrEmpty(comment)) {
+        if (!string.IsNullOrEmpty(comment))
+        {
             comment = MarkdownCommentVisitor.ToMarkdown(comment);
+        }
+        var diff = DiffStatus.Unmodified;
+        if (compareToRef.TryGetTarget(out var compareToCompilation))
+        {
+            var compareToSymbols = SymbolFinder.FindSimilarSymbols(symbol, compareToCompilation).ToArray();
+            if (compareToSymbols.Length == 0)
+            {
+                diff = DiffStatus.Added;
+            }
         }
         return definition with
         {
@@ -372,7 +391,8 @@ internal class RoslynSymbolTranscriber
                 ? ImmutableArray.Create(new Comment(
                     Format: CommentFormat.Markdown,
                     Content: comment))
-                : ImmutableArray<Comment>.Empty
+                : ImmutableArray<Comment>.Empty,
+            DiffStatus = diff
         };
     }
 
