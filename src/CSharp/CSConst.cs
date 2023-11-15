@@ -1,8 +1,8 @@
-﻿using Helveg.CSharp.Symbols;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -16,7 +16,7 @@ namespace Helveg.CSharp;
 public static class CSConst
 {
     public const string CSharpNamespace = "csharp";
-    
+
     public const string NodeStyle = "csharp:Entity";
     public const string RelationStyle = "csharp:Relation";
 
@@ -51,14 +51,14 @@ public static class CSConst
         }
         return kind;
     }
-    
+
     /// <summary>
     /// Finds a solution or project file at the specified path. Preferes solutions before projects if ambiguous.
     /// </summary>
     public static string? FindSource(string path, ILogger? logger = null)
     {
         logger ??= NullLogger.Instance;
-        
+
         if (Directory.Exists(path))
         {
             var solutionFiles = Directory.GetFiles(path, $"*{SolutionFileExtension}");

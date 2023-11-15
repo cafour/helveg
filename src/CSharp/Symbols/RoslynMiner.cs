@@ -105,15 +105,17 @@ public class RoslynMiner : IMiner
         await Task.WhenAll(matchedProjects.Select(p =>
         {
             var candidateCompareToProjects = compareToMSBuildWorkspace?.CurrentSolution.Projects
-                .Where(r => r.Name == p.roslynProject.Name)
+                .Where(r => r.AssemblyName == p.roslynProject.AssemblyName)
                 .ToArray();
             MCA.Project? compareToProject = null;
 
             if (candidateCompareToProjects?.Length > 1)
             {
-                logger.LogError(
-                    "More than one matching comparison project found for '{}'. Ignoring.",
-                    p.roslynProject.Name);
+                logger.LogWarning(
+                    "More than one matching comparison project found for '{}'. Taking the first ({}).",
+                    p.roslynProject.Name,
+                    candidateCompareToProjects[0].Name);
+                compareToProject = candidateCompareToProjects[0];
             }
             else if (candidateCompareToProjects?.Length == 1)
             {
@@ -314,13 +316,13 @@ public class RoslynMiner : IMiner
 
         logger.LogInformation("Found the '{}' assembly.", compilation.Assembly.Name);
 
-        TrackAndVisitProject(project, roslynProject, compareToProject);
-
         MCA.Compilation? compareToCompilation = null;
         if (compareToProject is not null)
         {
             compareToCompilation = await compareToProject.GetCompilationAsync(cancellationToken);
         }
+
+        TrackAndVisitProject(project, roslynProject, compareToProject);
 
         var transcriber = new RoslynSymbolTranscriber(tokenMap, Options.ProjectSymbolAnalysisScope);
         logger.LogDebug("Transcribing the '{}' assembly.", compilation.Assembly.Name);
@@ -338,7 +340,7 @@ public class RoslynMiner : IMiner
 
         // 1. Track the project's own assembly.
         tokenMap.TrackAndVisit(compilation.Assembly, project.Token, compilation);
-        
+
         // (1b.) Track the compareToProjects's assembly;
         if (compareToProject is not null)
         {

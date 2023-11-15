@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.FindSymbols;
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace Helveg.CSharp.Symbols;
@@ -71,11 +72,18 @@ internal class RoslynSymbolTranscriber
         {
             Modules = assembly.Modules
                 .Select(m => GetModule(m, helAssembly.Reference))
+                .Concat(TryGetSimilarSymbol(assembly, compareToRef, out var compareToAssembly)
+                    ? compareToAssembly.Modules
+                        .Where(m => !TryGetSimilarSymbol(m, compilationRef, out _))
+                        .Select(m => GetModule(m, helAssembly.Reference))
+                    : Enumerable.Empty<ModuleDefinition>())
                 .ToImmutableArray()
         };
     }
 
-    private ModuleDefinition GetModule(IModuleSymbol module, AssemblyReference containingAssembly)
+    private ModuleDefinition GetModule(
+        IModuleSymbol module,
+        AssemblyReference containingAssembly)
     {
         var helModule = PopulateDefinition(module, new ModuleDefinition()) with
         {
@@ -104,14 +112,26 @@ internal class RoslynSymbolTranscriber
             ContainingNamespace = containingNamespace
         };
 
+        TryGetSimilarSymbol(@namespace, compareToRef, out var compareToNamespace);
+
         return helNamespace with
         {
             Types = @namespace.GetTypeMembers()
                 .Where(t => t.IsInAnalysisScope(Scope))
                 .Select(t => GetType(t, helNamespace.Reference))
+                .Concat(compareToNamespace is not null
+                    ? compareToNamespace.GetTypeMembers()
+                        .Where(m => !TryGetSimilarSymbol(m, compilationRef, out _))
+                        .Select(m => GetType(m, helNamespace.Reference))
+                    : Enumerable.Empty<TypeDefinition>())
                 .ToImmutableArray(),
             Namespaces = @namespace.GetNamespaceMembers()
                 .Select(n => GetNamespace(n, containingModule, helNamespace.Reference))
+                .Concat(compareToNamespace is not null
+                    ? compareToNamespace.GetNamespaceMembers()
+                        .Where(m => !TryGetSimilarSymbol(m, compilationRef, out _))
+                        .Select(m => GetNamespace(m, containingModule, helNamespace.Reference))
+                    : Enumerable.Empty<NamespaceDefinition>())
                 .ToImmutableArray()
         };
     }
@@ -150,35 +170,74 @@ internal class RoslynSymbolTranscriber
         var members = type.GetMembers()
             .Where(s => s.IsInAnalysisScope(Scope));
 
+        TryGetSimilarSymbol(type, compareToRef, out var compareToType);
+
+        var compareToMembers = compareToType?.GetMembers()
+            .Where(s => s.IsInAnalysisScope(Scope)
+                && !TryGetSimilarSymbol(s, compilationRef, out _))
+            .ToImmutableArray() ?? ImmutableArray<ISymbol>.Empty;
+
         return helType with
         {
             TypeParameters = type.TypeParameters
                 .Select(p => GetTypeParameter(p, reference, null, containingNamespace))
+                .Concat(compareToType is not null
+                    ? compareToType.TypeParameters
+                        .Where(m => !TryGetSimilarSymbol(m, compilationRef, out _))
+                        .Select(m => GetTypeParameter(m, reference, null, containingNamespace))
+                    : Enumerable.Empty<TypeParameterDefinition>())
+                .DistinctBy(e => e.Token)
                 .ToImmutableArray(),
             NestedTypes = type.GetTypeMembers()
                 .Where(t => t.IsInAnalysisScope(Scope))
                 .Select(t => GetType(t, containingNamespace, reference))
+                .Concat(compareToType is not null
+                    ? compareToType.GetTypeMembers()
+                        .Where(m => m.IsInAnalysisScope(Scope) && !TryGetSimilarSymbol(m, compilationRef, out _))
+                        .Select(m => GetType(m, containingNamespace, reference))
+                    : Enumerable.Empty<TypeDefinition>())
+                .DistinctBy(e => e.Token)
                 .ToImmutableArray(),
             // TODO: Does GetMembers() contain nested types as well?
             Fields = members
                 .Where(m => m.Kind == Microsoft.CodeAnalysis.SymbolKind.Field)
                 .Cast<IFieldSymbol>()
                 .Select(f => GetField(f, reference, containingNamespace))
+                .Concat(compareToMembers
+                    .Where(m => m.Kind == Microsoft.CodeAnalysis.SymbolKind.Field)
+                    .Cast<IFieldSymbol>()
+                    .Select(m => GetField(m, reference, containingNamespace)))
+                .DistinctBy(e => e.Token)
                 .ToImmutableArray(),
             Events = members
                 .Where(m => m.Kind == Microsoft.CodeAnalysis.SymbolKind.Event)
                 .Cast<IEventSymbol>()
                 .Select(e => GetEvent(e, reference, containingNamespace))
+                .Concat(compareToMembers
+                    .Where(m => m.Kind == Microsoft.CodeAnalysis.SymbolKind.Event)
+                    .Cast<IEventSymbol>()
+                    .Select(m => GetEvent(m, reference, containingNamespace)))
+                .DistinctBy(e => e.Token)
                 .ToImmutableArray(),
             Properties = members
                 .Where(m => m.Kind == Microsoft.CodeAnalysis.SymbolKind.Property)
                 .Cast<IPropertySymbol>()
                 .Select(p => GetProperty(p, reference, containingNamespace))
+                .Concat(compareToMembers
+                    .Where(m => m.Kind == Microsoft.CodeAnalysis.SymbolKind.Property)
+                    .Cast<IPropertySymbol>()
+                    .Select(m => GetProperty(m, reference, containingNamespace)))
+                .DistinctBy(e => e.Token)
                 .ToImmutableArray(),
             Methods = members
                 .Where(m => m.Kind == Microsoft.CodeAnalysis.SymbolKind.Method)
                 .Cast<IMethodSymbol>()
                 .Select(m => GetMethod(m, reference, containingNamespace))
+                .Concat(compareToMembers
+                    .Where(m => m.Kind == Microsoft.CodeAnalysis.SymbolKind.Method)
+                    .Cast<IMethodSymbol>()
+                    .Select(m => GetMethod(m, reference, containingNamespace)))
+                .DistinctBy(e => e.Token)
                 .ToImmutableArray(),
 
         };
@@ -378,6 +437,14 @@ internal class RoslynSymbolTranscriber
             if (compareToSymbols.Length == 0)
             {
                 diff = DiffStatus.Added;
+            }
+            else if (compilationRef.TryGetTarget(out var compilation))
+            {
+                var symbols = SymbolFinder.FindSimilarSymbols(symbol, compilation).ToArray();
+                if (symbols.Length == 0)
+                {
+                    diff = DiffStatus.Deleted;
+                }
             }
         }
         return definition with
@@ -614,5 +681,28 @@ internal class RoslynSymbolTranscriber
         }
 
         return builder.ToImmutable();
+    }
+
+    private static bool TryGetSimilarSymbol<TSymbol>(
+        TSymbol symbol,
+        WeakReference<Compilation?> searchedCompilation,
+        [NotNullWhen(true)] out TSymbol? foundSymbol)
+        where TSymbol : class, ISymbol
+    {
+        if (!searchedCompilation.TryGetTarget(out var compilation))
+        {
+            foundSymbol = null;
+            return false;
+        }
+
+        var candidateSymbols = SymbolFinder.FindSimilarSymbols(symbol, compilation).ToArray();
+        if (candidateSymbols.Length == 0)
+        {
+            foundSymbol = null;
+            return false;
+        }
+
+        foundSymbol = candidateSymbols[0];
+        return true;
     }
 }
