@@ -142,7 +142,8 @@ export function initializeGraph(
             graph.addNode(nodeId, {
                 label: node.name ?? nodeId,
                 x: 0,
-                y: 0
+                y: 0,
+                kind: node.kind
             });
         }
     }
@@ -245,6 +246,7 @@ export function styleGraph(
             { width: nodeStyle.size, style: OutlineStyle.Solid },
             ...nodeStyle.outlines.slice(0, 3),
         ] as Outlines;
+
         attributes.size = glyphProgramOptions.showOutlines && outlines.length > 0
             ? getOutlinesTotalWidth(outlines)
             : nodeStyle.size;

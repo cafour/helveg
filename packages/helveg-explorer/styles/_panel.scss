@@ -142,7 +142,7 @@
     button:not(:last-of-type) {
         margin-bottom: 0.5rem;
     }
-    
+
     ul {
         list-style: outside;
         list-style-position: inside;
@@ -154,5 +154,10 @@
         li:not(:last-of-type) {
             margin-bottom: 0.25rem;
         }
+    }
+
+    hr {
+        margin: 1rem 0rem;
+        border-bottom: 1px solid var(--color-surface-100);
     }
 }

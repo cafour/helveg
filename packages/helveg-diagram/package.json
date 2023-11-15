@@ -22,7 +22,7 @@
         "watch:check": "npm run check -- --watch",
         "bundle": "tsx eng/bundle.ts",
         "watch:bundle": "npm run bundle -- --watch",
-        "watch": "concurrently --kill-others -r \"npm run watch:bundle\" \"npm run watch:check\"",
+        "watch": "concurrently --kill-others -r \"npm run watch:bundle\" \"npm run watch:types\"",
         "serve": "concurrently --kill-others -r \"npm run bundle -- --serve --sourcemap\" \"npm run watch:types\"",
         "clean": "rimraf dist/",
         "pack-icons": "tsx eng/pack-icons.ts",

@@ -1,4 +1,4 @@
-import { DEFAULT_CUT_OPTIONS, type CutOptions, type ExportOptions, DEFAULT_EXPORT_OPTIONS } from "./deps/helveg-diagram.ts";
+import { DEFAULT_CUT_OPTIONS, type CutOptions, type ExportOptions, DEFAULT_EXPORT_OPTIONS, PizzaIcons } from "./deps/helveg-diagram.ts";
 export { type CutOptions, type ExportOptions, DEFAULT_EXPORT_OPTIONS };
 
 export interface ToggleToolOptions {
@@ -53,6 +53,7 @@ export interface CodePizzaOptions {
     isEnabled: boolean;
     crustWidth: number;
     sauceWidth: number;
+    pizzaToppings?: Record<string, PizzaIcons>;
 }
 
 export const DEFAULT_CODE_PIZZA_OPTIONS: CodePizzaOptions = {

@@ -5,7 +5,7 @@ import { LogSeverity, consoleLogger } from "./model/logger.ts";
 import { EdgeStylist, NodeStylist } from "./model/style.ts";
 import { IconAtlas } from "./rendering/iconAtlas.ts";
 import { DEFAULT_GLYPH_PROGRAM_OPTIONS } from "./rendering/node.glyph.ts";
-import { loadJsonScripts, requireJsonScript } from "./model/data.ts";
+import { requireJsonScript } from "./model/data.ts";
 import { Diagram, DiagramRefreshOptions } from "./diagram/diagram.ts";
 import { EMPTY_DATA_MODEL } from "./model/const.ts";
 import { IconSetModel } from "./model/icon-set-model.ts";
@@ -24,6 +24,7 @@ export * from "./rendering/export.ts";
 export * from "./diagram/diagram.ts";
 export * from "./model/data-model.ts";
 export * from "./model/icon-set-model.ts";
+export * from "./random.ts";
 
 export interface CreateDiagramOptions {
     element: HTMLElement | null,

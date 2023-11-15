@@ -5,6 +5,7 @@ import { IconAtlasEntryStatus, IconAtlas } from "./iconAtlas.ts";
 import { PizzaProgramOptions } from "./pizza.ts";
 import vertSrc from "./shaders/node.pizzaTopping.vert";
 import fragSrc from "./shaders/node.pizzaTopping.frag";
+import { FALLBACK_PIZZA_ICON } from "../global.ts";
 
 const { UNSIGNED_BYTE, FLOAT } = WebGLRenderingContext;
 
@@ -41,15 +42,18 @@ export class PizzaToppingProgram extends NodeProgram<typeof UNIFORMS[number]> {
 
     processVisibleItem(i: number, data: HelvegNodeAttributes): void {
         const array = this.array;
-        this.options.iconAtlas.tryAddIcon(data.icon ?? FALLBACK_NODE_ICON);
+        const pizzaIcon = (data.kind ? this.options.pizzaToppings[data.kind] : FALLBACK_PIZZA_ICON)
+            ?? FALLBACK_PIZZA_ICON;
+
+        this.options.iconAtlas.tryAddIcon(pizzaIcon);
 
         const isVisible = !this.options.showOnlyHighlighted || data.highlighted === true;
-        
+
         array[i++] = data.x ?? 0;
         array[i++] = data.y ?? 0;
         array[i++] = isVisible ? data.size ?? 1 : 0;
 
-        let atlasEntry = this.options.iconAtlas.entries[data.icon ?? FALLBACK_NODE_ICON];
+        let atlasEntry = this.options.iconAtlas.entries[pizzaIcon];
         if (atlasEntry && atlasEntry.status === IconAtlasEntryStatus.Rendered) {
             array[i++] = atlasEntry.x / this.options.iconAtlas.width;
             array[i++] = atlasEntry.y / this.options.iconAtlas.height;

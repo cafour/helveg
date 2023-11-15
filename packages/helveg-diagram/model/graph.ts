@@ -6,6 +6,7 @@ import { Outlines, FireStatus } from "./style.ts";
 
 export interface HelvegNodeAttributes extends Partial<NodeDisplayData>, Attributes {
     style?: string;
+    kind?: string;
     icon?: string;
     iconSize?: number;
     outlines?: Outlines;

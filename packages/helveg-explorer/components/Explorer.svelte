@@ -149,6 +149,7 @@
         glyphOptions.crustWidth = v.codePizza.crustWidth;
         glyphOptions.sauceWidth = v.codePizza.sauceWidth;
         glyphOptions.isPizzaEnabled = v.codePizza.isEnabled;
+        glyphOptions.pizzaToppings = v.codePizza.pizzaToppings ?? glyphOptions.pizzaToppings;
         diagram.glyphProgramOptions = glyphOptions;
     });
 </script>

@@ -41,6 +41,7 @@ export interface PizzaProgramOptions {
     sauceWidth: number;
     iconAtlas: Readonly<IconAtlas>;
     showOnlyHighlighted: boolean;
+    pizzaToppings: Record<string, string>;
 }
 
 export const DEFAULT_PIZZA_PROGRAM_OPTIONS: PizzaProgramOptions = {
@@ -48,7 +49,8 @@ export const DEFAULT_PIZZA_PROGRAM_OPTIONS: PizzaProgramOptions = {
     crustWidth: 20,
     sauceWidth: 40,
     iconAtlas: EMPTY_ICON_ATLAS,
-    showOnlyHighlighted: false
+    showOnlyHighlighted: false,
+    pizzaToppings: {}
 };
 
 export default function createPizzaProgram(options: PizzaProgramOptions): NodeProgramConstructor {

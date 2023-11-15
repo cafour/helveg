@@ -7,28 +7,30 @@ export enum Colors {
 }
 
 export enum PizzaIcons {
-    Bacon = "base:Bacon",
-    Mozzarella = "base:Mozzarella",
-    Basil = "base:Basil",
-    CherryTomato = "base:CherryTomato",
-    Corn = "base:Corn",
-    Egg = "base:Egg",
-    Ham = "base:Ham",
-    Jalapeno = "base:Jalapeno",
-    Pineapple = "base:Pineapple",
-    Salami = "base:Salami",
-    Olive = "base:Olive",
-    OlomoucCheese = "base:OlomoucCheese",
-    Eidam = "base:Eidam",
-    Shrimp = "base:Shrimp",
-    Chicken = "base:Chicken",
-    Pickle = "base:Pickle",
-    Fries = "base:Fries",
-    Cookie = "base:Cookie",
-    Meatball = "base:Meatball",
-    Chilli = "base:Chilli",
-    Tomato = "base:Tomato"
+    Bacon = "pizza:Bacon",
+    Mozzarella = "pizza:Mozzarella",
+    Basil = "pizza:Basil",
+    CherryTomato = "pizza:CherryTomato",
+    Corn = "pizza:Corn",
+    Egg = "pizza:Egg",
+    Ham = "pizza:Ham",
+    Jalapeno = "pizza:Jalapeno",
+    Pineapple = "pizza:Pineapple",
+    Salami = "pizza:Salami",
+    Olive = "pizza:Olive",
+    OlomoucCheese = "pizza:OlomoucCheese",
+    Eidam = "pizza:Eidam",
+    Shrimp = "pizza:Shrimp",
+    Chicken = "pizza:Chicken",
+    Pickle = "pizza:Pickle",
+    Fries = "pizza:Fries",
+    Cookie = "pizza:Cookie",
+    Meatball = "pizza:Meatball",
+    Chilli = "pizza:Chilli",
+    Tomato = "pizza:Tomato"
 }
+
+export const FALLBACK_PIZZA_ICON = PizzaIcons.Cookie;
 
 export const EMPTY_DATA_MODEL: DataModel = {
     name: "Empty",
