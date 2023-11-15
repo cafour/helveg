@@ -21,6 +21,7 @@ public enum ConfigPreset
 public record Config(
     ConfigPreset Preset,
     FileSystemInfo? Source,
+    FileSystemInfo? CompareTo,
     AnalysisScope ProjectAnalysis,
     AnalysisScope ExternalAnalysis,
     UIMode Mode,
@@ -50,6 +51,11 @@ public record Config(
     {
         Arity = ArgumentArity.ExactlyOne
     };
+    
+    public static readonly Option<FileSystemInfo?> CompareToOpt = new(
+        aliases: new[] {"--compare-to"},
+        description: "The target project or solution for comparison."
+    );
 
     public static readonly Option<AnalysisScope?> ProjectAnalysisOpt = new(
         aliases: new[] { "-pa", "--project-analysis" },
@@ -73,12 +79,12 @@ public record Config(
 
     public static readonly Option<string?> NameOpt = new(
         aliases: new[] { "-n", "--name" },
-        description: "Name of the resulting data set / visualization. Defaults to Solution/Project name"
+        description: "Name of the resulting data set / visualization. Defaults to the SOURCE file name."
     );
 
     public static readonly Option<DirectoryInfo> OutDirOpt = new(
         aliases: new[] { "--outdir" },
-        description: "Name of the resulting data set / visualization. Defaults to Solution/Project name",
+        description: "Output directory.",
         getDefaultValue: () => new DirectoryInfo(Environment.CurrentDirectory)
     );
 
@@ -139,6 +145,7 @@ public record Config(
         Dev = new(
             Preset: ConfigPreset.Dev,
             Source: null,
+            CompareTo: null,
             ProjectAnalysis: AnalysisScope.Explicit,
             ExternalAnalysis: AnalysisScope.WithoutSymbols,
             Mode: UIMode.SingleFile,
@@ -154,6 +161,7 @@ public record Config(
         Docs = new(
             Preset: ConfigPreset.Docs,
             Source: null,
+            CompareTo: null,
             ProjectAnalysis: AnalysisScope.PublicApi,
             ExternalAnalysis: AnalysisScope.None,
             Mode: UIMode.DataOnly,
@@ -169,7 +177,6 @@ public record Config(
 
     public class Binder : BinderBase<Config>
     {
-
         protected override Config GetBoundValue(BindingContext bindingContext)
         {
             T? Value<T>(IValueDescriptor<T> descriptor)
@@ -196,6 +203,7 @@ public record Config(
             config = config with
             {
                 Source = Value(SourceArg),
+                CompareTo = Value(CompareToOpt),
                 ProjectAnalysis = Value(ProjectAnalysisOpt) ?? config.ProjectAnalysis,
                 ExternalAnalysis = Value(ExternalAnalysisOpt) ?? config.ExternalAnalysis,
                 Mode = Value(ModeOpt) ?? config.Mode,

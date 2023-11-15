@@ -33,6 +33,7 @@ public static class Program
         {
             Config.SourceArg,
             Config.PresetOpt,
+            Config.CompareToOpt,
             Config.ProjectAnalysisOpt,
             Config.ExternalAnalysisOpt,
             Config.ModeOpt,
@@ -47,7 +48,7 @@ public static class Program
         };
         var verboseOpt = new Option<bool>(new[] { "-v", "--verbose" }, "Set logging level to Debug.");
         rootCmd.AddGlobalOption(verboseOpt);
-        var versionOpt = new Option<bool>(new[] { "--version" }, "Print the Helveg's version.");
+        var versionOpt = new Option<bool>(new[] { "--version" }, "Print Helveg's version.");
         rootCmd.AddGlobalOption(versionOpt);
 
         loggerFactory = new NullLoggerFactory();
