@@ -15,32 +15,38 @@
 
     let appearanceOptions =
         getContext<Writable<AppearanceOptions>>("appearanceOptions");
+    $appearanceOptions.relationColors ??= {};
+    $appearanceOptions.codePizza.pizzaToppings ??= {};
 
     let model = getContext<Readable<DataModel>>("model");
-    let toppings: Record<string, PizzaIcons> =
-        $appearanceOptions.codePizza.pizzaToppings ?? {};
-    $: relationColors = $appearanceOptions.relationColors ?? {};
+    $: pizzaToppings = $appearanceOptions.codePizza.pizzaToppings! ?? {};
+    $: appearanceOptions.update((u) => {
+        u.codePizza.pizzaToppings = pizzaToppings;
+        return u;
+    });
+    $: relationColors = $appearanceOptions.relationColors! ?? {};
+    $: appearanceOptions.update((u) => {
+        u.relationColors = relationColors;
+        return u;
+    });
 
     const allToppings = Object.entries(PizzaIcons);
 
     $: kinds = getNodeKinds($model.data);
     $: relations = getRelations($model.data);
-    $: toppings = randomizeToppings(kinds);
-    $: $appearanceOptions.codePizza.pizzaToppings = toppings;
 
     let seed = 42;
 
-    function randomizeToppings(nodeKinds?: string[]) {
-        nodeKinds ??= kinds;
-        let toppings: Record<string, PizzaIcons> = {};
-        for (const kind of nodeKinds) {
+    onMount(() => randomizeToppings());
+
+    function randomizeToppings() {
+        for (const kind of kinds) {
             const [_, value] =
                 allToppings[cyrb53(kind, seed) % allToppings.length];
-            toppings[kind] = toppings[kind] ?? value;
+            $appearanceOptions.codePizza.pizzaToppings![kind] = value;
         }
 
         seed++;
-        return toppings;
     }
 </script>
 
@@ -86,10 +92,7 @@
         {#each relations as relation}
             <label class="flex flex-row gap-8 align-items-center">
                 <span class="inline-block flex-grow-1">{relation}</span>
-                <input
-                    type="color"
-                    bind:value={relationColors[relation]}
-                />
+                <input type="color" bind:value={relationColors[relation]} />
             </label>
         {/each}
     </Subpanel>
@@ -124,8 +127,7 @@
 
         <button
             class="button-stretch mb-16"
-            on:click={() => (toppings = randomizeToppings(kinds))}
-            >Randomize</button
+            on:click={() => randomizeToppings()}>Randomize</button
         >
 
         {#each kinds as kind}
@@ -134,7 +136,7 @@
                     class="w-80 inline-block flex-shrink-0 ellipsis overflow-hidden"
                     title={kind}>{kind}</span
                 >
-                <select bind:value={toppings[kind]}>
+                <select bind:value={pizzaToppings[kind]}>
                     {#each allToppings as topping}
                         <option value={topping[1]}>{topping[0]}</option>
                     {/each}
