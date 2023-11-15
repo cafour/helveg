@@ -170,7 +170,10 @@ public static class Program
             },
             logger: loggerFactory.CreateLogger<RoslynMiner>());
 
-        var workspace = await workflow.Run(new DataSource(config.Source.FullName, DateTimeOffset.UtcNow));
+        var workspace = await workflow.Run(new DataSource(
+            config.Source.FullName,
+            DateTimeOffset.UtcNow,
+            config.CompareTo?.FullName));
 
         var graph = new Multigraph()
         {

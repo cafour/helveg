@@ -18,6 +18,8 @@ public class VisualizationProjectVisitor : ProjectVisitor
 
     public override void DefaultVisit(IEntity entity)
     {
+        var node = graph.GetNode<CSharpNode>(entity.Id);
+        node.Diff = entity.DiffStatus.ToMultigraphDiffStatus();
     }
 
     public override void VisitSolution(Solution solution)

@@ -8,8 +8,9 @@ namespace Helveg;
 
 public record DataSource(
     string Path,
-    DateTimeOffset CreatedAt
+    DateTimeOffset CreatedAt,
+    string? CompareTo
 )
 {
-    public static readonly DataSource Invalid = new("Invalid", default);
+    public static readonly DataSource Invalid = new("Invalid", default, default);
 }

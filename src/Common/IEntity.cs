@@ -11,6 +11,8 @@ public interface IEntity
 
     ImmutableArray<Comment> Comments { get; }
 
+    DiffStatus DiffStatus { get; }
+
     ImmutableArray<IEntityExtension> Extensions { get; }
 
     IEntity AddExtension(IEntityExtension extension);

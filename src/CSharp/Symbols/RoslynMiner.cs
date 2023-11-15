@@ -65,7 +65,7 @@ public class RoslynMiner : IMiner
                 var projectPath = solution.Projects.SingleOrDefault()?.Path;
                 if (string.IsNullOrEmpty(projectPath))
                 {
-                    logger.LogCritical("No projects can be loaded because no solution or project paths are available.");
+                    logger.LogError("No projects can be loaded because no solution or project paths are available.");
                     return;
                 }
 
@@ -74,7 +74,7 @@ public class RoslynMiner : IMiner
         }
         catch (Exception e)
         {
-            logger.LogCritical("Failed to load a solution or a project.");
+            logger.LogError("Failed to load a solution or a project.");
             logger.LogDebug(e, "MSBuildWorkspace threw an exception.");
             return;
         }
@@ -358,7 +358,7 @@ private void LogMSBuildDiagnostics(MCA.MSBuild.MSBuildWorkspace workspace)
 
     if (workspace.Diagnostics.Any(d => d.Kind == MCA.WorkspaceDiagnosticKind.Failure))
     {
-        logger.LogCritical($"Failed to load the project or solution. "
+        logger.LogError($"Failed to load the project or solution. "
             + "Make sure it can be built with 'dotnet build'.");
     }
 }

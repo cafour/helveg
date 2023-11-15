@@ -11,6 +11,7 @@ public static class MultigraphExtensions
     {
         if (graph.Nodes.TryGetValue(id, out var node))
         {
+            node.Name = name ?? node.Name;
             return (TNode)node;
         }
 
@@ -91,6 +92,18 @@ public static class MultigraphExtensions
                 Format = MultigraphCommentFormat.Markdown,
             },
             _ => throw new NotSupportedException($"The '{comment.Format}' comment format is unsupported.")
+        };
+    }
+    
+    public static MultigraphNodeDiffStatus? ToMultigraphDiffStatus(this DiffStatus diff)
+    {
+        return diff switch
+        {
+            DiffStatus.Unmodified => null,
+            DiffStatus.Modified => MultigraphNodeDiffStatus.Modified,
+            DiffStatus.Added => MultigraphNodeDiffStatus.Added,
+            DiffStatus.Deleted => MultigraphNodeDiffStatus.Deleted,
+            _ => throw new NotSupportedException()
         };
     }
 }
