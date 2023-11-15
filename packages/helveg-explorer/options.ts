@@ -1,4 +1,4 @@
-import { DEFAULT_CUT_OPTIONS, type CutOptions, type ExportOptions, DEFAULT_EXPORT_OPTIONS, PizzaIcons } from "./deps/helveg-diagram.ts";
+import { DEFAULT_CUT_OPTIONS, type CutOptions, type ExportOptions, DEFAULT_EXPORT_OPTIONS, PizzaIcons, DEFAULT_CSHARP_RELATION_COLORS } from "./deps/helveg-diagram.ts";
 export { type CutOptions, type ExportOptions, DEFAULT_EXPORT_OPTIONS };
 
 export interface ToggleToolOptions {
@@ -65,11 +65,13 @@ export const DEFAULT_CODE_PIZZA_OPTIONS: CodePizzaOptions = {
 export interface AppearanceOptions {
     glyph: GlyphOptions;
     codePizza: CodePizzaOptions;
+    relationColors?: Record<string, string>;
 }
 
 export const DEFAULT_APPEARANCE_OPTIONS: AppearanceOptions = {
     glyph: DEFAULT_GLYPH_OPTIONS,
-    codePizza: DEFAULT_CODE_PIZZA_OPTIONS
+    codePizza: DEFAULT_CODE_PIZZA_OPTIONS,
+    relationColors: DEFAULT_CSHARP_RELATION_COLORS
 };
 
 export interface ForceAtlas2Options {

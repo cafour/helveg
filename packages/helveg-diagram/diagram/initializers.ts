@@ -5,7 +5,7 @@ import { ForceAtlas2Progress, ForceAtlas2Supervisor } from "../layout/forceAltas
 import { DataModel, Multigraph, MultigraphRelation } from "../model/data-model.ts";
 import { HelvegEdgeAttributes, HelvegGraph, HelvegNodeAttributes, findRoots, toggleNode } from "../model/graph.ts";
 import { ILogger, Logger, sublogger } from "../model/logger.ts";
-import { EdgeStylist, NodeStylist, OutlineStyle, Outlines, getOutlinesTotalWidth } from "../model/style.ts";
+import { EdgeStylist, FALLBACK_EDGE_STYLE, FALLBACK_NODE_STYLE, NodeStylist, OutlineStyle, Outlines, RelationStylist, getOutlinesTotalWidth } from "../model/style.ts";
 import { bfsGraph, bfsMultigraph } from "../model/traversal.ts";
 import { GlyphProgramOptions } from "../rendering/node.glyph.ts";
 
@@ -228,8 +228,9 @@ export function styleGraph(
     graph: HelvegGraph,
     model: DataModel,
     glyphProgramOptions: GlyphProgramOptions,
-    nodeStylist: NodeStylist,
-    edgeStylist: EdgeStylist,
+    nodeStylist?: NodeStylist,
+    relationStylist?: RelationStylist,
+    edgeStylist?: EdgeStylist,
     logger?: ILogger) {
 
     graph.forEachNode((node, attributes) => {
@@ -239,9 +240,9 @@ export function styleGraph(
             return;
         }
 
-        const nodeStyle = nodeStylist(model.data.nodes[node]);
-        if (!nodeStyle) {
-            logger?.debug(`Node style '${attributes.style}' could not be applied to node '${node}'.`);
+        let nodeStyle = {...FALLBACK_NODE_STYLE};
+        if (nodeStylist) {
+            nodeStyle = {...nodeStyle, ...nodeStylist(model.data.nodes[node])};
         }
 
         const outlines = [
@@ -261,7 +262,7 @@ export function styleGraph(
     });
 
     graph.forEachEdge((edge, attributes) => {
-        if (!attributes.style || !attributes.relation || !model.data) {
+        if (!attributes.relation || !model.data) {
             return;
         }
 
@@ -270,13 +271,14 @@ export function styleGraph(
             return;
         }
 
-        const edgeStyle = edgeStylist(
-            attributes.relation,
-            relation.edges[edge]
-        );
-        if (!edgeStyle) {
-            logger?.debug(`Edge style '${attributes.style}' could not be applied to edge '${edge}'.`);
-            return;
+        let edgeStyle = { ...FALLBACK_EDGE_STYLE };
+
+        if (relationStylist) {
+            edgeStyle = { ...edgeStyle, ...relationStylist(attributes.relation) };
+        }
+
+        if (edgeStylist) {
+            edgeStyle = { ...edgeStyle, ...edgeStylist(attributes.relation, relation.edges[edge]) };
         }
 
         attributes.type = edgeStyle.type;

@@ -10,6 +10,7 @@
         type DataModel,
         cyrb53,
         PizzaIcons,
+        getRelations,
     } from "../deps/helveg-diagram.ts";
 
     let appearanceOptions =
@@ -18,15 +19,19 @@
     let model = getContext<Readable<DataModel>>("model");
     let toppings: Record<string, PizzaIcons> =
         $appearanceOptions.codePizza.pizzaToppings ?? {};
+    let relationColors: Record<string, string> = 
+        $appearanceOptions.relationColors ?? {};
+    $: $appearanceOptions.relationColors = relationColors;
 
     const allToppings = Object.entries(PizzaIcons);
 
     $: kinds = getNodeKinds($model.data);
+    $: relations = getRelations($model.data);
     $: toppings = randomizeToppings(kinds);
     $: $appearanceOptions.codePizza.pizzaToppings = toppings;
-    
+
     let seed = 42;
-    
+
     function randomizeToppings(nodeKinds?: string[]) {
         nodeKinds ??= kinds;
         let toppings: Record<string, PizzaIcons> = {};
@@ -78,6 +83,14 @@
             />
             IsFireAnimated
         </label>
+    </Subpanel>
+    <Subpanel name="Relations">
+        {#each relations as relation}
+            <label class="flex flex-row gap-8 align-items-center">
+                <span class="inline-block flex-grow-1">{relation}</span>
+                <input type="color" bind:value={relationColors[relation]} />
+            </label>
+        {/each}
     </Subpanel>
     <Subpanel name="CodePizza">
         <label>

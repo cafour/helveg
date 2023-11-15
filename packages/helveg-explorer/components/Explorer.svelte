@@ -14,7 +14,7 @@
     import {
         sublogger,
         type Diagram,
-        type IconRegistry,
+        createCsharpRelationStylist,
     } from "../deps/helveg-diagram.ts";
     import { AppIcons, AppPanels, AppTools } from "../const.ts";
     import * as Options from "../options.ts";
@@ -54,7 +54,7 @@
     const dataOptions = createOptions<Options.DataOptions>(
         "dataOptions",
         "data",
-        {...Options.DEFAULT_DATA_OPTIONS, ...diagram.options.refresh}
+        { ...Options.DEFAULT_DATA_OPTIONS, ...diagram.options.refresh }
     );
     const layoutOptions = createOptions<Options.LayoutOptions>(
         "layoutOptions",
@@ -68,7 +68,10 @@
     const appearanceOptions = createOptions<Options.AppearanceOptions>(
         "appearanceOptions",
         "appearance",
-        Options.DEFAULT_APPEARANCE_OPTIONS
+        { relationColors: {}, ...Options.DEFAULT_APPEARANCE_OPTIONS }
+    );
+    diagram.relationStylist = createCsharpRelationStylist(
+        $appearanceOptions.relationColors!
     );
     const exportOptions = createOptions<Options.ExportOptions>(
         "exportOptions",
@@ -149,7 +152,8 @@
         glyphOptions.crustWidth = v.codePizza.crustWidth;
         glyphOptions.sauceWidth = v.codePizza.sauceWidth;
         glyphOptions.isPizzaEnabled = v.codePizza.isEnabled;
-        glyphOptions.pizzaToppings = v.codePizza.pizzaToppings ?? glyphOptions.pizzaToppings;
+        glyphOptions.pizzaToppings =
+            v.codePizza.pizzaToppings ?? glyphOptions.pizzaToppings;
         diagram.glyphProgramOptions = glyphOptions;
     });
 </script>
@@ -184,7 +188,7 @@
                 on:refresh={() =>
                     diagram.refresh({
                         selectedRelations: $dataOptions.selectedRelations,
-                        selectedKinds: $dataOptions.selectedKinds
+                        selectedKinds: $dataOptions.selectedKinds,
                     })}
                 status={$status}
                 stats={$stats}

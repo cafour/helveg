@@ -1,8 +1,8 @@
-import { csharpEdgeStylist, csharpNodeStylist } from "./csharp/style.ts";
+import { csharpNodeStylist, csharpRelationStylist } from "./csharp/style.ts";
 import { IconRegistry } from "./model/icons.ts";
 import { DEFAULT_ICON_ATLAS_OPTIONS } from "./rendering/iconAtlas.ts"
 import { LogSeverity, consoleLogger } from "./model/logger.ts";
-import { EdgeStylist, NodeStylist } from "./model/style.ts";
+import { EdgeStylist, NodeStylist, RelationStylist } from "./model/style.ts";
 import { IconAtlas } from "./rendering/iconAtlas.ts";
 import { DEFAULT_GLYPH_PROGRAM_OPTIONS } from "./rendering/node.glyph.ts";
 import { requireJsonScript } from "./model/data.ts";
@@ -24,6 +24,8 @@ export * from "./rendering/export.ts";
 export * from "./diagram/diagram.ts";
 export * from "./model/data-model.ts";
 export * from "./model/icon-set-model.ts";
+export * from "./csharp/style.ts";
+export * from "./csharp/model.ts";
 export * from "./random.ts";
 
 export interface CreateDiagramOptions {
@@ -31,8 +33,9 @@ export interface CreateDiagramOptions {
     iconSets: IconSetModel[],
     model: DataModel,
     logLevel: LogSeverity,
-    nodeStylist: NodeStylist,
-    edgeStylist: EdgeStylist,
+    nodeStylist?: NodeStylist,
+    relationStylist?: RelationStylist,
+    edgeStylist?: EdgeStylist,
     mainRelation: string | null,
     iconSize: number,
     refresh: DiagramRefreshOptions
@@ -44,7 +47,7 @@ export const DEFAULT_CREATE_DIAGRAM_OPTIONS: CreateDiagramOptions = {
     iconSets: [],
     element: null,
     nodeStylist: csharpNodeStylist,
-    edgeStylist: csharpEdgeStylist,
+    relationStylist: csharpRelationStylist,
     mainRelation: null,
     iconSize: DEFAULT_ICON_ATLAS_OPTIONS.iconSize,
     refresh: {}
@@ -66,6 +69,7 @@ export function createDiagram(options?: Partial<CreateDiagramOptions>): Diagram 
         logLevel: opts.logLevel,
         nodeStylist: opts.nodeStylist,
         edgeStylist: opts.edgeStylist,
+        relationStylist: opts.relationStylist,
         mainRelation: opts.mainRelation ?? Object.keys(opts.model.data?.relations ?? {}).sort()[0] ?? null,
         iconRegistry: iconRegistry,
         glyphProgram: {

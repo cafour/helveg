@@ -88,6 +88,7 @@ export enum DefaultRelationColors {
     Overrides = "#e5c3c8",
     AssociatedWith = "#e5ccb7",
     DependsOn = "#c3d6e5",
+    References = "#c3d6e5",
 }
 
 export enum MemberAccessibility {

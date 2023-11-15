@@ -10,7 +10,7 @@ import { DEFAULT_GLYPH_PROGRAM_OPTIONS, GlyphProgramOptions, createGlyphProgram 
 import { DEFAULT_EXPORT_OPTIONS, ExportOptions, exportDiagram } from "../rendering/export.ts";
 import { SearchMode, buildNodeFilter, filterNodes } from "../model/filter.ts";
 import { bfsGraph } from "../model/traversal.ts";
-import { EdgeStylist, NodeStylist, fallbackEdgeStylist, fallbackNodeStylist } from "../model/style.ts";
+import { EdgeStylist, NodeStylist, RelationStylist, fallbackEdgeStylist, fallbackNodeStylist, fallbackRelationStylist } from "../model/style.ts";
 import { EMPTY_ICON_REGISTRY, IconRegistry } from "../global.ts";
 import { DataModel } from "../model/data-model.ts";
 import { EMPTY_DATA_MODEL } from "../model/const.ts";
@@ -26,7 +26,8 @@ export interface DiagramOptions {
     mainRelation: string | null,
     logLevel: LogSeverity,
     nodeStylist: NodeStylist,
-    edgeStylist: EdgeStylist,
+    relationStylist: RelationStylist,
+    edgeStylist?: EdgeStylist,
     iconRegistry: Readonly<IconRegistry>,
     refresh: DiagramRefreshOptions
 }
@@ -36,7 +37,7 @@ export const DEFAULT_DIAGRAM_OPTIONS: DiagramOptions = {
     mainRelation: null,
     glyphProgram: DEFAULT_GLYPH_PROGRAM_OPTIONS,
     nodeStylist: fallbackNodeStylist,
-    edgeStylist: fallbackEdgeStylist,
+    relationStylist: fallbackRelationStylist,
     iconRegistry: EMPTY_ICON_REGISTRY,
     refresh: {}
 };
@@ -127,13 +128,31 @@ export class Diagram {
     private _logger: ILogger;
     get logger(): ILogger { return this._logger; }
 
+    get nodeStylist(): NodeStylist { return this._options.nodeStylist; }
+    set nodeStylist(value: NodeStylist) {
+        this._options.nodeStylist = value;
+        this.restyleGraph();
+    }
+
+    get edgeStylist(): EdgeStylist | undefined { return this._options.edgeStylist; }
+    set edgeStylist(value: EdgeStylist | undefined) {
+        this._options.edgeStylist = value;
+        this.restyleGraph();
+    };
+
+    get relationStylist(): RelationStylist { return this._options.relationStylist; }
+    set relationStylist(value: RelationStylist) {
+        this._options.relationStylist = value;
+        this.restyleGraph();
+    }
+
     private _graph?: HelvegGraph;
     private _sigma?: HelvegSigma;
     private _supervisor?: ForceAtlas2Supervisor;
     private _glyphProgram: NodeProgramConstructor;
 
     get glyphProgramOptions(): GlyphProgramOptions { return this.options.glyphProgram; }
-    set glyphProgramOptions(value:GlyphProgramOptions) {
+    set glyphProgramOptions(value: GlyphProgramOptions) {
         this._options.glyphProgram = value;
         this.reconfigureSigma();
         this.restyleGraph();
@@ -593,7 +612,9 @@ export class Diagram {
             this._model,
             this.options.glyphProgram,
             this.options.nodeStylist,
-            this.options.edgeStylist);
+            this.options.relationStylist,
+            this.options.edgeStylist,
+            this.logger);
     }
 
     private onNodeClick(event: SigmaNodeEventPayload): void {
