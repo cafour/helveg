@@ -1,6 +1,7 @@
 import type { Diagram } from "./deps/helveg-diagram.ts";
 import Explorer from "./components/Explorer.svelte";
 import "./styles/explorer.scss";
+export * from "./options.ts";
 
 export function createExplorer(diagram: Diagram): Explorer {
     const explorerElement = document.createElement("div");

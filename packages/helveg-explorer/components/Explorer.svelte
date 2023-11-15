@@ -54,12 +54,12 @@
     const dataOptions = createOptions<Options.DataOptions>(
         "dataOptions",
         "data",
-        { ...Options.DEFAULT_DATA_OPTIONS, ...diagram.options.refresh }
+        { ...structuredClone(Options.DEFAULT_DATA_OPTIONS), ...diagram.options.refresh }
     );
     const layoutOptions = createOptions<Options.LayoutOptions>(
         "layoutOptions",
         "layout",
-        Options.DEFAULT_LAYOUT_OPTIONS
+        structuredClone(Options.DEFAULT_LAYOUT_OPTIONS)
     );
     $layoutOptions.tidyTree.relation = diagram.mainRelation;
     layoutOptions.subscribe((v) => {
@@ -68,20 +68,20 @@
     const appearanceOptions = createOptions<Options.AppearanceOptions>(
         "appearanceOptions",
         "appearance",
-        { relationColors: {}, ...Options.DEFAULT_APPEARANCE_OPTIONS }
+        { relationColors: {}, ...structuredClone(Options.DEFAULT_APPEARANCE_OPTIONS) }
     );
-    diagram.relationStylist = createCsharpRelationStylist(
+    $: diagram.relationStylist = createCsharpRelationStylist(
         $appearanceOptions.relationColors!
     );
     const exportOptions = createOptions<Options.ExportOptions>(
         "exportOptions",
         "export",
-        Options.DEFAULT_EXPORT_OPTIONS
+        structuredClone(Options.DEFAULT_EXPORT_OPTIONS)
     );
     const toolOptions = createOptions<Options.ToolOptions>(
         "toolOptions",
         "tool",
-        Options.DEFAULT_TOOL_OPTIONS
+        structuredClone(Options.DEFAULT_TOOL_OPTIONS)
     );
 
     const model = readable(diagram.model, (set) => {

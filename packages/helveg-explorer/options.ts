@@ -5,7 +5,7 @@ export interface ToggleToolOptions {
     relation: string | null;
 }
 
-export const DEFAULT_TOGGLE_TOOL_OPTIONS: ToggleToolOptions = {
+export const DEFAULT_TOGGLE_TOOL_OPTIONS: Readonly<ToggleToolOptions> = {
     relation: null
 };
 
@@ -14,7 +14,7 @@ export interface ShowPropertiesToolOptions {
     shouldHighlightNeighbors: boolean;
 }
 
-export const DEFAULT_SHOW_PROPERTIES_TOOL_OPTIONS: ShowPropertiesToolOptions = {
+export const DEFAULT_SHOW_PROPERTIES_TOOL_OPTIONS: Readonly<ShowPropertiesToolOptions> = {
     shouldHighlightSubtree: false,
     shouldHighlightNeighbors: false
 };
@@ -25,7 +25,7 @@ export interface ToolOptions {
     showProperties: ShowPropertiesToolOptions;
 }
 
-export const DEFAULT_TOOL_OPTIONS: ToolOptions = {
+export const DEFAULT_TOOL_OPTIONS: Readonly<ToolOptions> = {
     cut: DEFAULT_CUT_OPTIONS,
     toggle: DEFAULT_TOGGLE_TOOL_OPTIONS,
     showProperties: DEFAULT_SHOW_PROPERTIES_TOOL_OPTIONS
@@ -68,7 +68,7 @@ export interface AppearanceOptions {
     relationColors?: Record<string, string>;
 }
 
-export const DEFAULT_APPEARANCE_OPTIONS: AppearanceOptions = {
+export const DEFAULT_APPEARANCE_OPTIONS: Readonly<AppearanceOptions> = {
     glyph: DEFAULT_GLYPH_OPTIONS,
     codePizza: DEFAULT_CODE_PIZZA_OPTIONS,
     relationColors: DEFAULT_CSHARP_RELATION_COLORS
@@ -78,7 +78,7 @@ export interface ForceAtlas2Options {
     gravity: number;
 }
 
-export const DEFAULT_FORCE_ATLAS2_OPTIONS: ForceAtlas2Options = {
+export const DEFAULT_FORCE_ATLAS2_OPTIONS: Readonly<ForceAtlas2Options> = {
     gravity: 1
 };
 
@@ -86,7 +86,7 @@ export interface TidyTreeOptions {
     relation: string | null;
 }
 
-export const DEFAULT_TIDY_TREE_OPTIONS: TidyTreeOptions = {
+export const DEFAULT_TIDY_TREE_OPTIONS: Readonly<TidyTreeOptions> = {
     relation: null
 }
 
@@ -95,7 +95,7 @@ export interface LayoutOptions {
     tidyTree: TidyTreeOptions;
 }
 
-export const DEFAULT_LAYOUT_OPTIONS: LayoutOptions = {
+export const DEFAULT_LAYOUT_OPTIONS: Readonly<LayoutOptions> = {
     forceAtlas2: DEFAULT_FORCE_ATLAS2_OPTIONS,
     tidyTree: DEFAULT_TIDY_TREE_OPTIONS
 };
@@ -105,7 +105,7 @@ export interface DataOptions {
     selectedKinds: string[];
 }
 
-export const DEFAULT_DATA_OPTIONS: DataOptions = {
+export const DEFAULT_DATA_OPTIONS: Readonly<DataOptions> = {
     selectedRelations: [],
     selectedKinds: [],
 }
@@ -118,7 +118,7 @@ export interface ExplorerOptions {
     tool: ToolOptions;
 }
 
-export const DEFAULT_HELVEG_OPTIONS: ExplorerOptions = {
+export const DEFAULT_HELVEG_OPTIONS: Readonly<ExplorerOptions> = {
     layout: DEFAULT_LAYOUT_OPTIONS,
     data: DEFAULT_DATA_OPTIONS,
     appearance: DEFAULT_APPEARANCE_OPTIONS,

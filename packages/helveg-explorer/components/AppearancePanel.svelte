@@ -19,9 +19,7 @@
     let model = getContext<Readable<DataModel>>("model");
     let toppings: Record<string, PizzaIcons> =
         $appearanceOptions.codePizza.pizzaToppings ?? {};
-    let relationColors: Record<string, string> = 
-        $appearanceOptions.relationColors ?? {};
-    $: $appearanceOptions.relationColors = relationColors;
+    $: relationColors = $appearanceOptions.relationColors ?? {};
 
     const allToppings = Object.entries(PizzaIcons);
 
@@ -88,7 +86,10 @@
         {#each relations as relation}
             <label class="flex flex-row gap-8 align-items-center">
                 <span class="inline-block flex-grow-1">{relation}</span>
-                <input type="color" bind:value={relationColors[relation]} />
+                <input
+                    type="color"
+                    bind:value={relationColors[relation]}
+                />
             </label>
         {/each}
     </Subpanel>
