@@ -14,6 +14,7 @@ import { EdgeStylist, NodeStylist, RelationStylist, fallbackEdgeStylist, fallbac
 import { EMPTY_ICON_REGISTRY, IconRegistry } from "../global.ts";
 import { DataModel } from "../model/data-model.ts";
 import { EMPTY_DATA_MODEL } from "../model/const.ts";
+import { inferSettings } from "graphology-layout-forceatlas2";
 
 export interface DiagramRefreshOptions {
     selectedRelations?: string[],
@@ -29,17 +30,42 @@ export interface DiagramOptions {
     relationStylist: RelationStylist,
     edgeStylist?: EdgeStylist,
     iconRegistry: Readonly<IconRegistry>,
-    refresh: DiagramRefreshOptions
+    refresh: DiagramRefreshOptions,
+    forceAtlas2: ForceAtlas2Options
 }
 
-export const DEFAULT_DIAGRAM_OPTIONS: DiagramOptions = {
+export interface ForceAtlas2Options {
+    linLogMode?: boolean;
+    outboundAttractionDistribution?: boolean;
+    adjustSizes?: boolean;
+    edgeWeightInfluence?: number;
+    scalingRatio?: number;
+    strongGravityMode?: boolean;
+    gravity?: number;
+    slowDown?: number;
+    barnesHutOptimize?: boolean;
+    barnesHutTheta?: number;
+}
+
+export const DEFAULT_FORCE_ATLAS2_OPTIONS: Readonly<ForceAtlas2Options> = {
+    ...inferSettings(1024),
+    adjustSizes: true,
+    barnesHutOptimize: false,
+    barnesHutTheta: 0.5,
+    edgeWeightInfluence: 1,
+    linLogMode: false,
+    outboundAttractionDistribution: false,
+};
+
+export const DEFAULT_DIAGRAM_OPTIONS: Readonly<DiagramOptions> = {
     logLevel: LogSeverity.Info,
     mainRelation: null,
     glyphProgram: DEFAULT_GLYPH_PROGRAM_OPTIONS,
     nodeStylist: fallbackNodeStylist,
     relationStylist: fallbackRelationStylist,
     iconRegistry: EMPTY_ICON_REGISTRY,
-    refresh: {}
+    refresh: {},
+    forceAtlas2: DEFAULT_FORCE_ATLAS2_OPTIONS
 };
 
 export enum DiagramMode {
@@ -144,6 +170,12 @@ export class Diagram {
     set relationStylist(value: RelationStylist) {
         this._options.relationStylist = value;
         this.restyleGraph();
+    }
+
+    get forceAtlas2Options(): ForceAtlas2Options { return this._options.forceAtlas2; }
+    set forceAtlas2Options(value: ForceAtlas2Options) {
+        this._options.forceAtlas2 = value;
+        this.refreshSupervisor(true);
     }
 
     private _graph?: HelvegGraph;
@@ -516,7 +548,11 @@ export class Diagram {
                 return;
             }
 
-            this._supervisor = initializeSupervisor(this._graph, this.onSupervisorProgress.bind(this), this.logger);
+            this._supervisor = initializeSupervisor(
+                this._graph,
+                this.onSupervisorProgress.bind(this),
+                this.options.forceAtlas2,
+                this.logger);
             if (shouldLayoutContinue
                 && (lastStatus === DiagramStatus.Running || lastStatus === DiagramStatus.RunningInBackground)) {
                 await this._supervisor.start(lastStatus === DiagramStatus.RunningInBackground);

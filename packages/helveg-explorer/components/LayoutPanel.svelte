@@ -1,6 +1,11 @@
 <script lang="ts">
     import Panel from "./Panel.svelte";
-    import { DiagramStatus, type DiagramStats, getRelations, getNodeKinds } from "../deps/helveg-diagram.ts";
+    import {
+        DiagramStatus,
+        type DiagramStats,
+        getRelations,
+        getNodeKinds,
+    } from "../deps/helveg-diagram.ts";
     import { createEventDispatcher, getContext } from "svelte";
     import Icon from "./Icon.svelte";
     import Subpanel from "./Subpanel.svelte";
@@ -25,26 +30,24 @@
 
     let model = getContext<Readable<DataModel>>("model");
     let layoutOptions = getContext<Writable<LayoutOptions>>("layoutOptions");
-        
     let dataOptions = getContext<Writable<DataOptions>>("dataOptions");
 
     $: kinds = getNodeKinds($model.data);
-
 </script>
 
 <Panel name="Layout" indent={false} id={AppPanels.Layout}>
     <Subpanel>
-        <button on:click={() => dispatch("refresh")} class="button-stretch primary">
+        <button
+            on:click={() => dispatch("refresh")}
+            class="button-stretch primary"
+        >
             Refresh
         </button>
     </Subpanel>
-    
+
     <Subpanel name="TidyTree">
         <div class="flex flex-row justify-content-center">
-            <button
-                on:click={() => dispatch("tidyTree")}
-                class="button-icon"
-            >
+            <button on:click={() => dispatch("tidyTree")} class="button-icon">
                 <Icon name="vs:Run" title="Run" />
             </button>
         </div>
@@ -57,8 +60,8 @@
             </select>
         </label>
     </Subpanel>
-    
-    <Subpanel name="ForceAtlas2" indent={false}>
+
+    <Subpanel name="ForceAtlas2" indent={true}>
         <div class="flex flex-row justify-content-center">
             <button
                 on:click={() => dispatch("run", false)}
@@ -82,9 +85,145 @@
                 <Icon name="vs:Stop" title="Stop" />
             </button>
         </div>
-        <KeyValueList {items} class="indent" />
+
+        <hr />
+
+        <div class="flex flex-col">
+            <label>
+                <input
+                    type="checkbox"
+                    bind:checked={$layoutOptions.forceAtlas2.adjustSizes}
+                />
+                <span>AdjustSizes</span>
+            </label>
+            <label>
+                <input
+                    type="checkbox"
+                    bind:checked={$layoutOptions.forceAtlas2.barnesHutOptimize}
+                />
+                <span>BarnesHutOptimize</span>
+            </label>
+            <label>
+                <input
+                    type="checkbox"
+                    bind:checked={$layoutOptions.forceAtlas2.strongGravityMode}
+                />
+                <span>StrongGravityMode</span>
+            </label>
+            <label>
+                <input
+                    type="checkbox"
+                    bind:checked={$layoutOptions.forceAtlas2.linLogMode}
+                />
+                <span>LinLogMode</span>
+            </label>
+            <label>
+                <input
+                    type="checkbox"
+                    bind:checked={$layoutOptions.forceAtlas2.outboundAttractionDistribution}
+                />
+                <span>OutboundAttractionDistribution</span>
+            </label>
+            <label>
+                <div class="flex flex-row gap-8">
+                    <span>Gravity</span>
+                    <input
+                        type="number"
+                        min="0"
+                        step="0.05"
+                        bind:value={$layoutOptions.forceAtlas2.gravity}
+                    />
+                </div>
+                <input
+                    type="range"
+                    class="w-100p"
+                    min="0"
+                    max="0.5"
+                    step="0.05"
+                    bind:value={$layoutOptions.forceAtlas2.gravity}
+                />
+            </label>
+            <label>
+                <div class="flex flex-row gap-8">
+                    <span>ScalingRatio</span>
+                    <input
+                        type="number"
+                        min="0"
+                        bind:value={$layoutOptions.forceAtlas2.scalingRatio}
+                    />
+                </div>
+                <input
+                    type="range"
+                    class="w-100p"
+                    min="1"
+                    max="20"
+                    step="1"
+                    bind:value={$layoutOptions.forceAtlas2.scalingRatio}
+                />
+            </label>
+            <label>
+                <div class="flex flex-row gap-8">
+                    <span>SlowDown</span>
+                    <input
+                        type="number"
+                        min="0"
+                        bind:value={$layoutOptions.forceAtlas2.slowDown}
+                    />
+                </div>
+                <input
+                    type="range"
+                    class="w-100p"
+                    min="1"
+                    max="20"
+                    step="1"
+                    bind:value={$layoutOptions.forceAtlas2.slowDown}
+                />
+            </label>
+            <label>
+                <div class="flex flex-row gap-8">
+                    <span>BarnesHutTheta</span>
+                    <input
+                        type="number"
+                        min="0"
+                        step="0.05"
+                        bind:value={$layoutOptions.forceAtlas2.barnesHutTheta}
+                    />
+                </div>
+                <input
+                    type="range"
+                    class="w-100p"
+                    min="0"
+                    max="5"
+                    step="0.05"
+                    bind:value={$layoutOptions.forceAtlas2.barnesHutTheta}
+                />
+            </label>
+            <!-- <label>
+                <div class="flex flex-row gap-8">
+                    <span>EdgeWeightInfluence</span>
+                    <input
+                        type="number"
+                        min="0"
+                        step="0.1"
+                        bind:value={$layoutOptions.forceAtlas2.edgeWeightInfluence}
+                    />
+                </div>
+                <input
+                    type="range"
+                    class="w-100p"
+                    min="0"
+                    max="10"
+                    step="0.1"
+                    bind:value={$layoutOptions.forceAtlas2.edgeWeightInfluence}
+                />
+            </label> -->
+        </div>
+
+        <hr />
+
+        <KeyValueList {items} />
     </Subpanel>
-    
+
     <Subpanel name="Relations">
         <!-- svelte-ignore a11y-label-has-associated-control -->
         <label>

@@ -6,7 +6,7 @@ import { EdgeStylist, NodeStylist, RelationStylist } from "./model/style.ts";
 import { IconAtlas } from "./rendering/iconAtlas.ts";
 import { DEFAULT_GLYPH_PROGRAM_OPTIONS } from "./rendering/node.glyph.ts";
 import { requireJsonScript } from "./model/data.ts";
-import { Diagram, DiagramRefreshOptions } from "./diagram/diagram.ts";
+import { DEFAULT_FORCE_ATLAS2_OPTIONS, Diagram, DiagramRefreshOptions, ForceAtlas2Options } from "./diagram/diagram.ts";
 import { EMPTY_DATA_MODEL } from "./model/const.ts";
 import { IconSetModel } from "./model/icon-set-model.ts";
 import { DataModel } from "./model/data-model.ts";
@@ -38,10 +38,11 @@ export interface CreateDiagramOptions {
     edgeStylist?: EdgeStylist,
     mainRelation: string | null,
     iconSize: number,
-    refresh: DiagramRefreshOptions
+    refresh: DiagramRefreshOptions,
+    forceAtlas2: ForceAtlas2Options
 }
 
-export const DEFAULT_CREATE_DIAGRAM_OPTIONS: CreateDiagramOptions = {
+export const DEFAULT_CREATE_DIAGRAM_OPTIONS: Readonly<CreateDiagramOptions> = {
     logLevel: LogSeverity.Info,
     model: EMPTY_DATA_MODEL,
     iconSets: [],
@@ -50,7 +51,8 @@ export const DEFAULT_CREATE_DIAGRAM_OPTIONS: CreateDiagramOptions = {
     relationStylist: csharpRelationStylist,
     mainRelation: null,
     iconSize: DEFAULT_ICON_ATLAS_OPTIONS.iconSize,
-    refresh: {}
+    refresh: {},
+    forceAtlas2: DEFAULT_FORCE_ATLAS2_OPTIONS
 };
 
 export function createDiagram(options?: Partial<CreateDiagramOptions>): Diagram {

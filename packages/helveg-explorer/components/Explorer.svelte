@@ -64,6 +64,7 @@
     $layoutOptions.tidyTree.relation = diagram.mainRelation;
     layoutOptions.subscribe((v) => {
         diagram.mainRelation = v.tidyTree.relation;
+        diagram.forceAtlas2Options = v.forceAtlas2;
     });
     const appearanceOptions = createOptions<Options.AppearanceOptions>(
         "appearanceOptions",

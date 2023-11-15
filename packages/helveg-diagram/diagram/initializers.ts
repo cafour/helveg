@@ -1,4 +1,4 @@
-import forceAtlas2 from "../deps/graphology-layout-forceatlas2.ts";
+import forceAtlas2, { ForceAtlas2Settings, inferSettings } from "../deps/graphology-layout-forceatlas2.ts";
 import Graph from "../deps/graphology.ts";
 import { Sigma, Coordinates, DEFAULT_SETTINGS, NodeProgramConstructor, SigmaNodeEventPayload, SigmaStageEventPayload } from "../deps/sigma.ts";
 import { ForceAtlas2Progress, ForceAtlas2Supervisor } from "../layout/forceAltas2Supervisor.ts";
@@ -12,11 +12,11 @@ import { GlyphProgramOptions } from "../rendering/node.glyph.ts";
 export function initializeSupervisor(
     graph: HelvegGraph,
     onSupervisorProgress: (progress: ForceAtlas2Progress) => void,
+    settings?: ForceAtlas2Settings,
     logger?: ILogger
 ): ForceAtlas2Supervisor {
 
-    let settings = forceAtlas2.inferSettings(graph);
-    settings.adjustSizes = true;
+    settings ??= {...inferSettings(graph), adjustSizes: true};
     const supervisor = new ForceAtlas2Supervisor(graph, settings, logger ? sublogger(logger, "fa2") : undefined);
     supervisor.progress.subscribe(onSupervisorProgress);
     return supervisor;
