@@ -96,6 +96,8 @@ export function initializeSigma(
             sigma[hoveredNodeSymbol] = e.node;
         } else {
             sigma[hoveredNodeSymbol] = null;
+            // HACK: This is IMHO currently the only way to force Sigma *not to* render hovered nodes.
+            (sigma as any).hoveredNode = null;
         }
     })
 
