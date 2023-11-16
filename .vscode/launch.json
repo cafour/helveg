@@ -7,8 +7,8 @@
             "request": "launch",
             "preLaunchTask": "build",
             "program": "${workspaceFolder}/src/CommandLine/bin/Debug/net6.0/helveg.dll",
-            "args": ["--preset", "Dev", "--verbose", "--compare-to", "../kafe-main"],
-            "cwd": "C:\\dev\\fi\\kafe",
+            "args": ["--preset", "Dev", "--verbose", "--compare-to", "../kafe-old", "--out-dir", "C:\\temp\\"],
+            "cwd": "C:\\dev\\fi\\kafe-api",
             "console": "internalConsole",
             "stopAtEntry": false
         },

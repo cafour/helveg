@@ -70,8 +70,8 @@ public class MSBuildMiner : IMiner
             {
                 logger.LogInformation(
                     "Comparing the '{}' solution with the '{}' solution.",
-                    solution.Name,
-                    compareToSolution.Name);
+                    solution.Path,
+                    compareToSolution.Path);
 
                 if (compareToSolution.Name != solution.Name)
                 {

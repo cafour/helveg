@@ -42,7 +42,7 @@ public static class MultigraphExtensions
 
         foreach (var edge in edges)
         {
-            relation.Edges.Add($"{edge.Src};{edge.Dst}", edge);
+            relation.Edges[$"{edge.Src};{edge.Dst}"] = edge;
         }
     }
 

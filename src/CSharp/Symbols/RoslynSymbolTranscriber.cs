@@ -1,6 +1,8 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -16,21 +18,25 @@ internal class RoslynSymbolTranscriber
 {
     private readonly WeakReference<Compilation?> compilationRef = new(null);
     private readonly WeakReference<Compilation?> compareToRef = new(null);
+    private DiffStatus? globalDiff = null;
     private readonly SymbolTokenMap tokenMap;
+    private readonly ILogger logger;
     private ImmutableDictionary<ISymbol, ImmutableArray<Diagnostic>> symbolDiagnostics
         = ImmutableDictionary<ISymbol, ImmutableArray<Diagnostic>>.Empty;
 
     public SymbolAnalysisScope Scope { get; }
 
-    public RoslynSymbolTranscriber(SymbolTokenMap tokenMap, SymbolAnalysisScope scope)
+    public RoslynSymbolTranscriber(SymbolTokenMap tokenMap, SymbolAnalysisScope scope, ILogger? logger = null)
     {
         this.tokenMap = tokenMap;
         Scope = scope;
+        this.logger = logger ?? NullLogger.Instance;
     }
 
     public AssemblyDefinition Transcribe(
         AssemblyId assemblyId,
-        Compilation? compareTo = null)
+        Compilation? compareTo = null,
+        DiffStatus? globalDiff = null)
     {
         var compilation = tokenMap.GetCompilation(assemblyId);
         if (compilation is null)
@@ -40,6 +46,7 @@ internal class RoslynSymbolTranscriber
 
         compilationRef.SetTarget(compilation);
         symbolDiagnostics = GetDiagnostics();
+        this.globalDiff = globalDiff;
 
         if (compareTo is not null)
         {
@@ -379,7 +386,7 @@ internal class RoslynSymbolTranscriber
             RefKind = symbol.RefKind.ToHelvegRefKind(),
             ReturnType = GetTypeReference(symbol.ReturnType)
         };
-        
+
         TryGetSimilarSymbol(symbol, compareToRef, out var compareToMethod);
 
         return helMethod with
@@ -455,7 +462,7 @@ internal class RoslynSymbolTranscriber
         {
             comment = MarkdownCommentVisitor.ToMarkdown(comment);
         }
-        var diff = DiffStatus.Unmodified;
+        var diff = globalDiff ?? DiffStatus.Unmodified;
         if (compareToRef.TryGetTarget(out var compareToCompilation))
         {
             var compareToSymbols = SymbolFinder.FindSimilarSymbols(symbol, compareToCompilation).ToArray();
@@ -472,9 +479,21 @@ internal class RoslynSymbolTranscriber
                 }
             }
         }
+
+        var token = tokenMap.GetOrAdd(symbol);
+        if (token.IsNone || !token.IsValid)
+        {
+            logger.LogWarning(
+                "{} '{}' has been assigned with a {} token '{}'. The symbol is probably untracked.",
+                symbol.Kind.ToString(),
+                symbol.ToDisplayString(),
+                token.IsNone ? "None" : "invalid",
+                token);
+        }
+
         return definition with
         {
-            Token = tokenMap.GetOrAdd(symbol),
+            Token = token,
             Name = symbol.Name,
             Diagnostics = symbolDiagnostics.TryGetValue(symbol, out var diagnostics)
                 ? diagnostics

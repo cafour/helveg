@@ -32,14 +32,9 @@ internal class SymbolTokenMap
     public void TrackAndVisit(
         IAssemblySymbol assemblySymbol,
         NumericToken parentToken,
-        Compilation relatedCompilation,
-        string? assemblyPath = null)
+        Compilation relatedCompilation)
     {
         var id = AssemblyId.Create(assemblySymbol);
-        if (assemblyPath is not null)
-        {
-            id = id with { Path = assemblyPath };
-        }
 
         if (Track(id, parentToken, relatedCompilation))
         {
@@ -50,8 +45,7 @@ internal class SymbolTokenMap
     public void TrackAndVisit(
         PortableExecutableReference reference,
         NumericToken parentToken,
-        Compilation relatedCompilation,
-        string? assemblyPath = null)
+        Compilation relatedCompilation)
     {
         var symbol = relatedCompilation.GetAssemblyOrModuleSymbol(reference);
         if (symbol is not IAssemblySymbol assemblySymbol)
@@ -62,11 +56,7 @@ internal class SymbolTokenMap
         }
 
         var id = AssemblyId.Create(assemblySymbol, reference);
-        if (assemblyPath is not null)
-        {
-            id = id with { Path = assemblyPath };
-        }
-        
+
         if (Track(id, parentToken, relatedCompilation))
         {
             new ActionSymbolVisitor(s => GetOrAdd(s)).Visit(assemblySymbol);

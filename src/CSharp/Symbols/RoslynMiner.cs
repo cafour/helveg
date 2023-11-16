@@ -1,12 +1,9 @@
 using Helveg.CSharp.Packages;
 using Helveg.CSharp.Projects;
-using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -23,6 +20,7 @@ public class RoslynMiner : IMiner
 
     private readonly SymbolTokenMap tokenMap;
     private readonly WeakReference<Workspace?> workspaceRef = new(null);
+    private bool isComparing = false;
 
     public RoslynMinerOptions Options { get; }
 
@@ -99,6 +97,8 @@ public class RoslynMiner : IMiner
             {
                 logger.LogError("Failed to open the comparison target as a MSBuildWorkspace. Ignoring.");
             }
+
+            isComparing = compareToMSBuildWorkspace is not null;
         }
 
         // mine each of the project for each target framework separately and likely in parallel
@@ -229,7 +229,7 @@ public class RoslynMiner : IMiner
             return;
         }
 
-        var transcriber = new RoslynSymbolTranscriber(tokenMap, Options.ExternalSymbolAnalysisScope);
+        var transcriber = new RoslynSymbolTranscriber(tokenMap, Options.ExternalSymbolAnalysisScope, logger);
 
         var assemblies = dsHandle.Entity.Libraries.Select(l =>
             {
@@ -261,7 +261,7 @@ public class RoslynMiner : IMiner
             return;
         }
 
-        var transcriber = new RoslynSymbolTranscriber(tokenMap, Options.ExternalSymbolAnalysisScope);
+        var transcriber = new RoslynSymbolTranscriber(tokenMap, Options.ExternalSymbolAnalysisScope, logger);
 
         repoHandle.Entity = repoHandle.Entity with
         {
@@ -316,22 +316,44 @@ public class RoslynMiner : IMiner
 
         logger.LogInformation("Found the '{}' assembly.", compilation.Assembly.Name);
 
+        TrackAndVisitProject(project, roslynProject);
+
         MCA.Compilation? compareToCompilation = null;
+        var isCompareToCompilationTracked = false;
         if (compareToProject is not null)
         {
             compareToCompilation = await compareToProject.GetCompilationAsync(cancellationToken);
+            if (compareToCompilation is not null)
+            {
+                var id = AssemblyId.Create(compilation.Assembly);
+                var comparedId = AssemblyId.Create(compareToCompilation.Assembly);
+                if (id == comparedId)
+                {
+                    logger.LogError("Compared assembly '{}' has the same id as the '{}' assembly. Comparison aborted.",
+                        comparedId.ToDisplayString(),
+                        id.ToDisplayString());
+                }
+                else
+                {
+                    tokenMap.TrackAndVisit(
+                        compareToCompilation.Assembly,
+                        project.Token,
+                        compareToCompilation);
+                    isCompareToCompilationTracked = true;
+                }
+
+            }
         }
-
-        TrackAndVisitProject(project, roslynProject, compareToProject);
-
-        var transcriber = new RoslynSymbolTranscriber(tokenMap, Options.ProjectSymbolAnalysisScope);
+    
+        var transcriber = new RoslynSymbolTranscriber(tokenMap, Options.ProjectSymbolAnalysisScope, logger);
         logger.LogDebug("Transcribing the '{}' assembly.", compilation.Assembly.Name);
         return transcriber.Transcribe(
             AssemblyId.Create(compilation.Assembly),
-            compareToCompilation);
+            compareToCompilation,
+            isComparing && compareToCompilation is null && isCompareToCompilationTracked ? DiffStatus.Added : null);
     }
 
-    private void TrackAndVisitProject(Project project, MCA.Project roslynProject, MCA.Project? compareToProject)
+    private void TrackAndVisitProject(Project project, MCA.Project roslynProject)
     {
         if (!roslynProject.TryGetCompilation(out var compilation))
         {
@@ -339,20 +361,7 @@ public class RoslynMiner : IMiner
         }
 
         // 1. Track the project's own assembly.
-        tokenMap.TrackAndVisit(compilation.Assembly, project.Token, compilation, roslynProject.FilePath);
-
-        // (1b.) Track the compareToProjects's assembly;
-        if (compareToProject is not null)
-        {
-            if (compareToProject.TryGetCompilation(out var compareToCompilation))
-            {
-                tokenMap.TrackAndVisit(
-                    compareToCompilation.Assembly,
-                    project.Token,
-                    compareToCompilation,
-                    compareToProject.FilePath);
-            }
-        }
+        tokenMap.TrackAndVisit(compilation.Assembly, project.Token, compilation);
 
         // 2. Figure out what set of dependencies to use.
         var targetFramework = ParseTargetFramework(roslynProject.Name);
