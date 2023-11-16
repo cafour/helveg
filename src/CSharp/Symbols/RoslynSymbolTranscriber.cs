@@ -333,10 +333,18 @@ internal class RoslynSymbolTranscriber
             RefKind = symbol.RefKind.ToHelvegRefKind()
         };
 
+        TryGetSimilarSymbol(symbol, compareToRef, out var compareToProperty);
+
         return helProperty with
         {
             Parameters = symbol.Parameters
                 .Select(p => GetParameter(p, null, helProperty.Reference))
+                .Concat(compareToProperty is not null
+                    ? compareToProperty.Parameters
+                        .Where(m => !TryGetSimilarSymbol(m, compilationRef, out _))
+                        .Select(m => GetParameter(m, null, helProperty.Reference))
+                    : Enumerable.Empty<ParameterDefinition>())
+                .DistinctBy(e => e.Token)
                 .ToImmutableArray()
         };
     }
@@ -371,6 +379,8 @@ internal class RoslynSymbolTranscriber
             RefKind = symbol.RefKind.ToHelvegRefKind(),
             ReturnType = GetTypeReference(symbol.ReturnType)
         };
+        
+        TryGetSimilarSymbol(symbol, compareToRef, out var compareToMethod);
 
         return helMethod with
         {
@@ -379,9 +389,21 @@ internal class RoslynSymbolTranscriber
                 .ToImmutableArray(),
             TypeParameters = symbol.TypeParameters
                 .Select(p => GetTypeParameter(p, null, helMethod.Reference, containingNamespace))
+                .Concat(compareToMethod is not null
+                    ? compareToMethod.TypeParameters
+                        .Where(m => !TryGetSimilarSymbol(m, compilationRef, out _))
+                        .Select(m => GetTypeParameter(m, null, helMethod.Reference, containingNamespace))
+                    : Enumerable.Empty<TypeParameterDefinition>())
+                .DistinctBy(e => e.Token)
                 .ToImmutableArray(),
             Parameters = symbol.Parameters
                 .Select(p => GetParameter(p, helMethod.Reference, null))
+                .Concat(compareToMethod is not null
+                    ? compareToMethod.Parameters
+                        .Where(m => !TryGetSimilarSymbol(m, compilationRef, out _))
+                        .Select(m => GetParameter(m, helMethod.Reference, null))
+                    : Enumerable.Empty<ParameterDefinition>())
+                .DistinctBy(e => e.Token)
                 .ToImmutableArray()
         };
     }

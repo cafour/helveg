@@ -28,6 +28,7 @@
     let searchText: string = "";
 
     let model = getContext<Readable<DataModel>>("model");
+    export let results: string[] = [];
 </script>
 
 <Panel name="Search" indent={false} id={AppPanels.Search}>
@@ -65,5 +66,16 @@
             </button>
         </form>
     </Subpanel>
-    <Subpanel name="Results" />
+    {#if results.length > 0}
+    <Subpanel name="Results">
+        <div class="flex flex-col">
+            {#each results as result}
+            <div class="flex flex-row">
+                <span>{$model.data?.nodes[result].name}</span>
+                <span>{$model.data?.nodes[result].kind}</span>
+            </div>
+            {/each}
+        </div>
+    </Subpanel>
+    {/if}
 </Panel>

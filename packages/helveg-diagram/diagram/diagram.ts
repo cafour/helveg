@@ -368,26 +368,28 @@ export class Diagram {
         });
     }
 
-    highlight(searchText: string | null, searchMode: SearchMode): void {
+    highlight(searchText: string | null, searchMode: SearchMode): string[] {
         if (!this._graph) {
             this._logger.warn("Cannot highlight nodes since the graph is not initialized.");
-            return;
+            return [];
         }
 
+        let results: string[] = [];
         try {
             let filter = buildNodeFilter(searchText, searchMode, this._nodeKeys);
             if (filter === null) {
                 this.mode = DiagramMode.Normal;
                 this._graph.forEachNode((_, a) => a.highlighted = undefined);
                 this._sigma?.refresh();
-                return;
+                return [];
             }
-
+            
             this.mode = DiagramMode.Highlighting;
 
             if (this._model.data) {
                 Object.entries(this._model.data.nodes).forEach(([id, node]) => {
                     if (this._graph?.hasNode(id)) {
+                        results.push(id);
                         this._graph.setNodeAttribute(id, "highlighted", filter!(node));
                     }
                 });
@@ -399,11 +401,11 @@ export class Diagram {
             this._logger.warn(e?.message
                 ?? e?.toString()
                 ?? "Something bad happened while highlighting nodes.");
-            return;
+            return [];
         }
 
-        this._logger.info(`Highlighting ${this._graph.reduceNodes((count, _, attributes) =>
-            attributes.highlighted ? count + 1 : count, 0)} nodes.`);
+        this._logger.info(`Highlighting ${results.length} nodes.`);
+        return results;
     }
 
     highlightNode(nodeId: string | null, includeSubtree: boolean, includeNeighbors: boolean) {

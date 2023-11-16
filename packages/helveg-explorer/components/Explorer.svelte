@@ -94,6 +94,7 @@
     let dock: Dock;
     let propertiesPanel: PropertiesPanel;
     let selectedTool: string;
+    let searchResults: string[];
 
     function onNodeSelected(nodeId: string | null) {
         if (nodeId === null) {
@@ -177,9 +178,10 @@
         <Tab name="Search" value={AppPanels.Search} icon={AppIcons.SearchPanel}>
             <SearchPanel
                 on:highlight={(e) =>
-                    diagram.highlight(e.detail.searchText, e.detail.searchMode)}
+                    searchResults = diagram.highlight(e.detail.searchText, e.detail.searchMode)}
                 on:isolate={(e) =>
                     diagram.isolate(e.detail.searchText, e.detail.searchMode)}
+                results={searchResults}
             />
         </Tab>
         <Tab name="Layout" value={AppPanels.Layout} icon={AppIcons.LayoutPanel}>

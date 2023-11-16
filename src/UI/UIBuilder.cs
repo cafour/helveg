@@ -163,7 +163,7 @@ public class UIBuilder
         return this;
     }
 
-    public UIBuilder SetFileName(string fileName)
+    public UIBuilder SetFileName(string? fileName)
     {
         FileName = fileName;
         return this;
@@ -189,11 +189,6 @@ public class UIBuilder
 
     public async Task Build()
     {
-        if (string.IsNullOrWhiteSpace(FileName))
-        {
-            throw new ArgumentException("The entry point name must be set.");
-        }
-
         if (!OutDir.Exists)
         {
             OutDir.Create();

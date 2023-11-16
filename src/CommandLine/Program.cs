@@ -117,7 +117,7 @@ public static class Program
         // output
         await UIBuilder.CreateDefault(loggerFactory.CreateLogger<UIBuilder>())
             .SetMode(config.Mode)
-            .SetFileName(config.OutFile ?? config.Name ?? model.Name)
+            .SetFileName(config.OutFile)
             .SetInitializerOptions(new(
                 MainRelation: CSRelations.Declares,
                 SelectedRelations: config.InitialRelations,

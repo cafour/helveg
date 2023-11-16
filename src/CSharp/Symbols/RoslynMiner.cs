@@ -339,14 +339,18 @@ public class RoslynMiner : IMiner
         }
 
         // 1. Track the project's own assembly.
-        tokenMap.TrackAndVisit(compilation.Assembly, project.Token, compilation);
+        tokenMap.TrackAndVisit(compilation.Assembly, project.Token, compilation, roslynProject.FilePath);
 
         // (1b.) Track the compareToProjects's assembly;
         if (compareToProject is not null)
         {
             if (compareToProject.TryGetCompilation(out var compareToCompilation))
             {
-                tokenMap.TrackAndVisit(compareToCompilation.Assembly, project.Token, compareToCompilation);
+                tokenMap.TrackAndVisit(
+                    compareToCompilation.Assembly,
+                    project.Token,
+                    compareToCompilation,
+                    compareToProject.FilePath);
             }
         }
 
