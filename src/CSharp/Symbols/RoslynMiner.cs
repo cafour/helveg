@@ -319,7 +319,7 @@ public class RoslynMiner : IMiner
         TrackAndVisitProject(project, roslynProject);
 
         MCA.Compilation? compareToCompilation = null;
-        var isCompareToCompilationTracked = false;
+        var isCompareToCompilationTracked = true;
         if (compareToProject is not null)
         {
             compareToCompilation = await compareToProject.GetCompilationAsync(cancellationToken);
@@ -332,6 +332,7 @@ public class RoslynMiner : IMiner
                     logger.LogError("Compared assembly '{}' has the same id as the '{}' assembly. Comparison aborted.",
                         comparedId.ToDisplayString(),
                         id.ToDisplayString());
+                    isCompareToCompilationTracked = false;
                 }
                 else
                 {
