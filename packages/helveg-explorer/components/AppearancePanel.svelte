@@ -76,6 +76,13 @@
         <label>
             <input
                 type="checkbox"
+                bind:checked={$appearanceOptions.glyph.showDiffs}
+            />
+            ShowDiffs
+        </label>
+        <label>
+            <input
+                type="checkbox"
                 bind:checked={$appearanceOptions.glyph.showFire}
             />
             ShowFire

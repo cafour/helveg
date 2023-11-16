@@ -149,6 +149,7 @@
         glyphOptions.showIcons = v.glyph.showIcons;
         glyphOptions.showLabels = v.glyph.showLabels;
         glyphOptions.showOutlines = v.glyph.showOutlines;
+        glyphOptions.showDiffs = v.glyph.showDiffs;
 
         glyphOptions.crustWidth = v.codePizza.crustWidth;
         glyphOptions.sauceWidth = v.codePizza.sauceWidth;

@@ -145,7 +145,8 @@ export function initializeGraph(
                 label: node.name ?? nodeId,
                 x: 0,
                 y: 0,
-                kind: node.kind
+                kind: node.kind,
+                diff: node.diff
             });
         }
     }

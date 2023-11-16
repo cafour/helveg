@@ -36,6 +36,7 @@ export interface GlyphOptions {
     showOutlines: boolean;
     showLabels: boolean;
     showFire: boolean;
+    showDiffs: boolean;
     isFireAnimated: boolean;
     codePizza: boolean;
 }
@@ -44,6 +45,7 @@ export const DEFAULT_GLYPH_OPTIONS: GlyphOptions = {
     showIcons: true,
     showOutlines: true,
     showLabels: true,
+    showDiffs: false,
     showFire: true,
     isFireAnimated: true,
     codePizza: false

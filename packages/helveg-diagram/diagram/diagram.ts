@@ -137,7 +137,11 @@ export class Diagram {
 
     private _mode: DiagramMode = DiagramMode.Normal;
     get mode(): DiagramMode { return this._mode; }
-    private set mode(value: DiagramMode) { this._mode = value; this.events.modeChanged.trigger(value); }
+    private set mode(value: DiagramMode) {
+        this._mode = value;
+        this._options.glyphProgram.showOnlyHighlighted = this._mode === DiagramMode.Highlighting;
+        this.events.modeChanged.trigger(value);
+    }
 
     private _selectedNode: string | null = null;
     get selectedNode(): string | null { return this._selectedNode; }
