@@ -39,14 +39,24 @@
     <Subpanel>
         <button
             on:click={() => dispatch("refresh")}
-            class="button-stretch primary"
+            class="button-stretch primary mb-8"
         >
             Refresh
         </button>
+        <label>
+            <div class="flex flex-row gap-8">
+                <span>ExpandedDepth</span>
+                <input
+                    type="number"
+                    min="-1"
+                    bind:value={$dataOptions.expandedDepth}
+                />
+            </div>
+        </label>
     </Subpanel>
 
     <Subpanel name="TidyTree">
-        <div class="flex flex-row justify-content-center">
+        <div class="flex flex-row justify-content-center mb-8">
             <button on:click={() => dispatch("tidyTree")} class="button-icon">
                 <Icon name="vs:Run" title="Run" />
             </button>

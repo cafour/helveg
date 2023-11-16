@@ -3,7 +3,7 @@ import Graph from "../deps/graphology.ts";
 import { Sigma, Coordinates, DEFAULT_SETTINGS, NodeProgramConstructor, SigmaNodeEventPayload, SigmaStageEventPayload } from "../deps/sigma.ts";
 import { ForceAtlas2Progress, ForceAtlas2Supervisor } from "../layout/forceAltas2Supervisor.ts";
 import { DataModel, Multigraph, MultigraphRelation } from "../model/data-model.ts";
-import { HelvegEdgeAttributes, HelvegGraph, HelvegNodeAttributes, findRoots, toggleNode } from "../model/graph.ts";
+import { HelvegEdgeAttributes, HelvegGraph, HelvegNodeAttributes, collapseNode, expandNode, findRoots, toggleNode } from "../model/graph.ts";
 import { ILogger, Logger, sublogger } from "../model/logger.ts";
 import { EdgeStylist, FALLBACK_EDGE_STYLE, FALLBACK_NODE_STYLE, NodeStylist, OutlineStyle, Outlines, RelationStylist, getOutlinesTotalWidth } from "../model/style.ts";
 import { bfsGraph, bfsMultigraph } from "../model/traversal.ts";
@@ -16,7 +16,7 @@ export function initializeSupervisor(
     logger?: ILogger
 ): ForceAtlas2Supervisor {
 
-    settings ??= {...inferSettings(graph), adjustSizes: true};
+    settings ??= { ...inferSettings(graph), adjustSizes: true };
     const supervisor = new ForceAtlas2Supervisor(graph, settings, logger ? sublogger(logger, "fa2") : undefined);
     supervisor.progress.subscribe(onSupervisorProgress);
     return supervisor;
@@ -165,12 +165,18 @@ export function initializeGraph(
         }
     }
 
-    if (mainRelation !== undefined && expandedDepth !== undefined) {
+    if (mainRelation !== undefined && expandedDepth !== undefined && expandedDepth >= 0) {
         const mainRoots = findRoots(graph, mainRelation);
-        mainRoots.forEach(r => bfsGraph(graph, r, {
-            maxDepth: expandedDepth,
-            callback: n => toggleNode(graph, n, mainRelation)
-        }));
+        mainRoots.forEach(r => {
+            collapseNode(graph, r, mainRelation);
+            bfsGraph(graph, r, {
+                maxDepth: expandedDepth - 1,
+                callback: (n, _a, d) => {
+                    expandNode(graph, n, false, mainRelation);
+                }
+
+            });
+        });
     }
 
     return graph;
@@ -241,9 +247,9 @@ export function styleGraph(
             return;
         }
 
-        let nodeStyle = {...FALLBACK_NODE_STYLE};
+        let nodeStyle = { ...FALLBACK_NODE_STYLE };
         if (nodeStylist) {
-            nodeStyle = {...nodeStyle, ...nodeStylist(model.data.nodes[node])};
+            nodeStyle = { ...nodeStyle, ...nodeStylist(model.data.nodes[node]) };
         }
 
         const outlines = [

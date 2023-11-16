@@ -97,6 +97,7 @@ export const DEFAULT_LAYOUT_OPTIONS: Readonly<LayoutOptions> = {
 export interface DataOptions {
     selectedRelations: string[];
     selectedKinds: string[];
+    expandedDepth?: number;
 }
 
 export const DEFAULT_DATA_OPTIONS: Readonly<DataOptions> = {

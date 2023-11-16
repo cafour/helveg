@@ -203,6 +203,7 @@
                     diagram.refresh({
                         selectedRelations: $dataOptions.selectedRelations,
                         selectedKinds: $dataOptions.selectedKinds,
+                        expandedDepth: $dataOptions.expandedDepth
                     })}
                 status={$status}
                 stats={$stats}

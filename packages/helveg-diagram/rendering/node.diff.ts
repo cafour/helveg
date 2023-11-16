@@ -64,7 +64,7 @@ export class DiffProgram extends NodeProgram<typeof UNIFORMS[number]> {
 
     draw(params: RenderParams): void {
         const gl = this.gl;
-        
+
         const { u_sizeRatio, u_pixelRatio, u_matrix } = this.uniformLocations;
 
         gl.uniform1f(u_sizeRatio, params.sizeRatio);
