@@ -21,6 +21,9 @@ public class CSharpNode : MultigraphNode
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public MemberAccessibility? Accessibility { get; set; }
+    
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public MemberAccessibility? EffectiveAccessibility { get; set; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? IsSealed { get; set; }
@@ -168,4 +171,7 @@ public class CSharpNode : MultigraphNode
     
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? BaseType { get; set; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? ContainingType { get; set; }
 }

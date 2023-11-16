@@ -111,6 +111,19 @@ public class VisualizationSymbolVisitor : SymbolVisitor
         node.Arity = type.Arity;
         node.IsImplicitClass = type.IsImplicitClass;
         node.BaseType = type.BaseType?.Hint ?? Const.Unknown;
+        if (type.ContainingType is not null)
+        {
+            node.ContainingType = type.ContainingType.Hint;
+            node.EffectiveAccessibility = CSConst.GetEffectiveAccessibility(
+                type.Accessibility,
+                graph.Nodes.TryGetValue(type.ContainingType.Token, out var containingType)
+                    ? ((CSharpNode)containingType).EffectiveAccessibility
+                    : null);
+        }
+        else
+        {
+            node.EffectiveAccessibility = type.Accessibility;
+        }
 
         var (instanceCount, staticCount) = CountMembers(type);
         node.InstanceMemberCount = instanceCount;
@@ -186,6 +199,16 @@ public class VisualizationSymbolVisitor : SymbolVisitor
                 CSRelations.AssociatedWith,
                 new MultigraphEdge(field.Token, field.AssociatedProperty.Token));
         }
+
+        if (field.ContainingType is not null)
+        {
+            node.ContainingType = field.ContainingType.Hint;
+            node.EffectiveAccessibility = CSConst.GetEffectiveAccessibility(
+                field.Accessibility,
+                graph.Nodes.TryGetValue(field.ContainingType.Token, out var containingType)
+                    ? ((CSharpNode)containingType).EffectiveAccessibility
+                    : null);
+        }
     }
 
     public override void VisitParameter(ParameterDefinition parameter)
@@ -206,6 +229,17 @@ public class VisualizationSymbolVisitor : SymbolVisitor
         {
             graph.AddEdges(CSRelations.TypeOf, GetReferencedTypes(parameter.ParameterType)
                 .Select(t => new MultigraphEdge(parameter.Token, t)));
+        }
+
+        if (parameter.DeclaringMethod is not null || parameter.DeclaringProperty is not null)
+        {
+            node.EffectiveAccessibility = CSConst.GetEffectiveAccessibility(
+                MemberAccessibility.Public,
+                graph.Nodes.TryGetValue(
+                    (parameter.DeclaringMethod?.Token ?? parameter.DeclaringProperty?.Token)!,
+                    out var declaringMember)
+                        ? ((CSharpNode)declaringMember).EffectiveAccessibility
+                        : null);
         }
     }
 
@@ -241,6 +275,16 @@ public class VisualizationSymbolVisitor : SymbolVisitor
             graph.AddEdge(
                 CSRelations.AssociatedWith,
                 new MultigraphEdge(@event.Token, @event.RaiseMethod.Token));
+        }
+
+        if (@event.ContainingType is not null)
+        {
+            node.ContainingType = @event.ContainingType.Hint;
+            node.EffectiveAccessibility = CSConst.GetEffectiveAccessibility(
+                @event.Accessibility,
+                graph.Nodes.TryGetValue(@event.ContainingType.Token, out var containingType)
+                    ? ((CSharpNode)containingType).EffectiveAccessibility
+                    : null);
         }
     }
 
@@ -287,6 +331,16 @@ public class VisualizationSymbolVisitor : SymbolVisitor
             graph.AddEdge(
                 CSRelations.AssociatedWith,
                 new MultigraphEdge(property.Token, property.SetMethod.Token));
+        }
+
+        if (property.ContainingType is not null)
+        {
+            node.ContainingType = property.ContainingType.Hint;
+            node.EffectiveAccessibility = CSConst.GetEffectiveAccessibility(
+                property.Accessibility,
+                graph.Nodes.TryGetValue(property.ContainingType.Token, out var containingType)
+                    ? ((CSharpNode)containingType).EffectiveAccessibility
+                    : null);
         }
     }
 
@@ -345,6 +399,16 @@ public class VisualizationSymbolVisitor : SymbolVisitor
                 new MultigraphEdge(method.Token, method.AssociatedProperty.Token),
                 true);
         }
+    
+        if (method.ContainingType is not null)
+        {
+            node.ContainingType = method.ContainingType.Hint;
+            node.EffectiveAccessibility = CSConst.GetEffectiveAccessibility(
+                method.Accessibility,
+                graph.Nodes.TryGetValue(method.ContainingType.Token, out var containingType)
+                    ? ((CSharpNode)containingType).EffectiveAccessibility
+                    : null);
+        }
     }
 
     public override void VisitTypeParameter(TypeParameterDefinition typeParameter)
@@ -355,6 +419,16 @@ public class VisualizationSymbolVisitor : SymbolVisitor
         node.DeclaringKind = typeParameter.DeclaringMethod is not null
                 ? CSConst.KindOf<MethodDefinition>()
                 : CSConst.KindOf<TypeDefinition>();
+        if (typeParameter.DeclaringMethod is not null || typeParameter.DeclaringType is not null)
+        {
+            node.EffectiveAccessibility = CSConst.GetEffectiveAccessibility(
+                MemberAccessibility.Public,
+                graph.Nodes.TryGetValue(
+                    (typeParameter.DeclaringMethod?.Token ?? typeParameter.DeclaringType?.Token)!,
+                    out var declaringSymbol)
+                        ? ((CSharpNode)declaringSymbol).EffectiveAccessibility
+                        : null);
+        }
     }
 
     private static (int instanceCount, int staticCount) CountMembers(TypeDefinition type)

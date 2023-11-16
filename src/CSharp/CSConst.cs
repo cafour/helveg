@@ -1,6 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Helveg.CSharp.Symbols;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -111,5 +113,34 @@ public static class CSConst
         }
 
         return path;
+    }
+
+    public static MemberAccessibility GetEffectiveAccessibility(MemberAccessibility member, MemberAccessibility? parent)
+    {
+        if (parent is null)
+        {
+            return member;
+        }
+        
+        return member switch
+        {
+            MemberAccessibility.Invalid => MemberAccessibility.Invalid,
+            MemberAccessibility.Private => MemberAccessibility.Private,
+            MemberAccessibility.ProtectedAndInternal => parent == MemberAccessibility.Private
+                ? MemberAccessibility.Private
+                : MemberAccessibility.ProtectedAndInternal,
+            MemberAccessibility.Protected or MemberAccessibility.ProtectedOrInternal => parent switch
+            {
+                MemberAccessibility.Private => MemberAccessibility.Private,
+                MemberAccessibility.Internal => MemberAccessibility.ProtectedAndInternal,
+                _ => member
+            },
+            MemberAccessibility.Public => parent switch
+            {
+                MemberAccessibility.Invalid => MemberAccessibility.Public,
+                _ => parent.Value
+            },
+            _ => member
+        };
     }
 }
