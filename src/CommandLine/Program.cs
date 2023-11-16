@@ -40,6 +40,7 @@ public static class Program
             Config.DryRunOpt,
             Config.NameOpt,
             Config.OutDirOpt,
+            Config.OutFileOpt,
             Config.BuildPropertiesOpt,
             Config.ForceOpt,
             Config.InitialDepthOpt,
@@ -116,7 +117,7 @@ public static class Program
         // output
         await UIBuilder.CreateDefault(loggerFactory.CreateLogger<UIBuilder>())
             .SetMode(config.Mode)
-            .SetName(config.Name ?? model.Name)
+            .SetFileName(config.OutFile ?? config.Name ?? model.Name)
             .SetInitializerOptions(new(
                 MainRelation: CSRelations.Declares,
                 SelectedRelations: config.InitialRelations,

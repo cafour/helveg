@@ -27,6 +27,7 @@ public record Config(
     UIMode Mode,
     string? Name,
     DirectoryInfo? OutDir,
+    string? OutFile,
     ImmutableDictionary<string, string> BuildProperties,
     bool Force,
     int InitialDepth,
@@ -82,8 +83,13 @@ public record Config(
         description: "Name of the resulting data set / visualization. Defaults to the SOURCE file name."
     );
 
+    public static readonly Option<string?> OutFileOpt = new(
+        aliases: new[] { "--out-file" },
+        description: "Output file. Applies to SingleFile and DataOnly modes."
+    );
+
     public static readonly Option<DirectoryInfo> OutDirOpt = new(
-        aliases: new[] { "--outdir" },
+        aliases: new[] { "--out-dir" },
         description: "Output directory.",
         getDefaultValue: () => new DirectoryInfo(Environment.CurrentDirectory)
     );
@@ -151,6 +157,7 @@ public record Config(
             Mode: UIMode.SingleFile,
             Name: null,
             OutDir: null,
+            OutFile: null,
             BuildProperties: ImmutableDictionary<string, string>.Empty,
             Force: false,
             InitialDepth: 1,
@@ -167,6 +174,7 @@ public record Config(
             Mode: UIMode.DataOnly,
             Name: null,
             OutDir: null,
+            OutFile: null,
             BuildProperties: ImmutableDictionary<string, string>.Empty,
             Force: false,
             InitialDepth: 1,
@@ -209,6 +217,7 @@ public record Config(
                 Mode = Value(ModeOpt) ?? config.Mode,
                 Name = Value(NameOpt),
                 OutDir = Value(OutDirOpt),
+                OutFile = Value(OutFileOpt),
                 BuildProperties = Value(BuildPropertiesOpt)?.ToImmutableDictionary()
                     ?? config.BuildProperties,
                 Force = Value(ForceOpt) ?? config.Force,

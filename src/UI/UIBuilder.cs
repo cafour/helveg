@@ -53,7 +53,7 @@ public class UIBuilder
     private readonly JsonSerializerOptions jsonOptions;
 
     public DataModel Model { get; set; } = DataModel.CreateEmpty();
-    public string Name { get; set; }
+    public string? FileName { get; set; }
     public UIMode Mode { get; set; }
     public DirectoryInfo OutDir { get; set; }
     public InitializerOptions InitializerOptions { get; set; } = new();
@@ -68,7 +68,6 @@ public class UIBuilder
     private UIBuilder(ILogger<UIBuilder>? logger = null)
     {
         this.logger = logger ?? NullLoggerFactory.Instance.CreateLogger<UIBuilder>();
-        Name = $"helveg_{DateTimeOffset.Now:yyyy-MM-dd_HH-mm)}";
         OutDir = new DirectoryInfo(Environment.CurrentDirectory);
 
         jsonOptions = new JsonSerializerOptions();
@@ -164,9 +163,9 @@ public class UIBuilder
         return this;
     }
 
-    public UIBuilder SetName(string name)
+    public UIBuilder SetFileName(string fileName)
     {
-        Name = name;
+        FileName = fileName;
         return this;
     }
 
@@ -190,7 +189,7 @@ public class UIBuilder
 
     public async Task Build()
     {
-        if (string.IsNullOrWhiteSpace(Name))
+        if (string.IsNullOrWhiteSpace(FileName))
         {
             throw new ArgumentException("The entry point name must be set.");
         }
@@ -222,9 +221,10 @@ public class UIBuilder
 
     private async Task BuildSingleFile()
     {
-        logger.LogInformation("Building '{}' as a single-file app at '{}.html'.", Model.Name, Name);
+        var fileName = FileName ?? $"{Model.Name}.html";
+        logger.LogInformation("Building '{}' as a single-file app at '{}'.", Model.Name, fileName);
         var entryPoint = BuildEntryPoint(true);
-        await File.WriteAllTextAsync(Path.Combine(OutDir.FullName, $"{Name}.html"), entryPoint);
+        await File.WriteAllTextAsync(Path.Combine(OutDir.FullName, fileName), entryPoint);
     }
 
     private async Task BuildStatic()
@@ -254,16 +254,17 @@ public class UIBuilder
             await WriteFile(Path.Combine(ScriptsDirName, script.FileName), script.Contents);
         }
 
-        await WriteJson($"{Name}-data.json", Model);
+        await WriteJson($"{Model.Name}-data.json", Model);
 
         await WriteFile(DefaultEntryPointName, BuildEntryPoint(false));
     }
 
     private async Task BuildDataOnly()
     {
-        logger.LogInformation("Outputting raw data to '{}-data.json'.", Name);
+        var fileName = FileName ?? $"{Model.Name}-data.json";
+        logger.LogInformation("Outputting raw data to '{}'.", fileName);
         using var stream = new FileStream(
-            Path.Combine(OutDir.FullName, $"{Name}-data.json"),
+            Path.Combine(OutDir.FullName, fileName),
             FileMode.Create,
             FileAccess.Write);
         await JsonSerializer.SerializeAsync(stream, Model, jsonOptions);
@@ -311,13 +312,14 @@ $@"
 
     <body>
         <div id=""helveg""></div>
-        <!-- {Name} -->
+        <!-- {FileName} -->
 ");
+        var dataName = FileName ?? $"{Model.Name}-data.json";
         if (embedAll)
         {
             sb.Append(
 $@"
-        <!-- {Name}-data.json -->
+        <!-- {dataName} -->
         <script type=""application/json"" id=""helveg-data"">
             {JsonSerializer.Serialize(Model, jsonOptions)}
         </script>
@@ -327,7 +329,7 @@ $@"
         {
             sb.Append(
 $@"
-        <script type=""application/json"" id=""helveg-data"" src=""{$"{Name}-data.json"}""></script>");
+        <script type=""application/json"" id=""helveg-data"" src=""{dataName}""></script>");
         }
 
 
