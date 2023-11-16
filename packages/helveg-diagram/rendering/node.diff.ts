@@ -9,16 +9,18 @@ const { UNSIGNED_BYTE, FLOAT } = WebGLRenderingContext;
 const UNIFORMS = ["u_sizeRatio", "u_pixelRatio", "u_matrix"];
 
 export interface DiffProgramOptions {
-    colors: Record<MultigraphNodeDiffStatus, string>
+    colors: Record<MultigraphNodeDiffStatus, string>;
+    showOnlyHighlighted: boolean;
 }
 
 export const DEFAULT_DIFF_PROGRAM_OPTIONS: DiffProgramOptions = {
     colors: {
         unmodified: "#00000000",
-        modified: "#99990088",
-        added: "#00990088",
-        deleted: "#99000088"
-    }
+        modified: "#999900aa",
+        added: "#009900aa",
+        deleted: "#990000aa"
+    },
+    showOnlyHighlighted: false
 };
 
 export default function createDiffProgram(options: DiffProgramOptions): NodeProgramConstructor {
@@ -51,24 +53,25 @@ export class DiffProgram extends NodeProgram<typeof UNIFORMS[number]> {
     }
 
     processVisibleItem(i: number, data: HelvegNodeAttributes): void {
-        const array = this.array;
+        const isEnabled = !this.options.showOnlyHighlighted || data.highlighted === true;
 
+        const array = this.array;
         array[i++] = data.x ?? 0;
         array[i++] = data.y ?? 0;
-        array[i++] = data.iconSize ?? data.size ?? 1;
+        array[i++] = isEnabled ? (data.size ?? 1) : 0;
         array[i++] = floatColor(this.options.colors[data.diff ?? "unmodified"]);
     }
 
     draw(params: RenderParams): void {
         const gl = this.gl;
-
+        
         const { u_sizeRatio, u_pixelRatio, u_matrix } = this.uniformLocations;
 
         gl.uniform1f(u_sizeRatio, params.sizeRatio);
         gl.uniform1f(u_pixelRatio, params.pixelRatio);
         gl.uniformMatrix3fv(u_matrix, false, params.matrix);
 
-        gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_COLOR);
+        gl.blendFunc(gl.SRC_ALPHA, gl.DST_ALPHA);
 
         gl.drawArrays(gl.POINTS, 0, this.verticesCount);
 
