@@ -77,6 +77,7 @@ internal class RoslynSymbolTranscriber
                         .Where(m => !TryGetSimilarSymbol(m, compilationRef, out _))
                         .Select(m => GetModule(m, helAssembly.Reference))
                     : Enumerable.Empty<ModuleDefinition>())
+                .DistinctBy(e => e.Token)
                 .ToImmutableArray()
         };
     }
@@ -124,6 +125,7 @@ internal class RoslynSymbolTranscriber
                         .Where(m => !TryGetSimilarSymbol(m, compilationRef, out _))
                         .Select(m => GetType(m, helNamespace.Reference))
                     : Enumerable.Empty<TypeDefinition>())
+                .DistinctBy(e => e.Token)
                 .ToImmutableArray(),
             Namespaces = @namespace.GetNamespaceMembers()
                 .Select(n => GetNamespace(n, containingModule, helNamespace.Reference))
@@ -132,6 +134,7 @@ internal class RoslynSymbolTranscriber
                         .Where(m => !TryGetSimilarSymbol(m, compilationRef, out _))
                         .Select(m => GetNamespace(m, containingModule, helNamespace.Reference))
                     : Enumerable.Empty<NamespaceDefinition>())
+                .DistinctBy(e => e.Token)
                 .ToImmutableArray()
         };
     }
