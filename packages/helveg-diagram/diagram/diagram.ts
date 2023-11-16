@@ -383,14 +383,17 @@ export class Diagram {
                 this._sigma?.refresh();
                 return [];
             }
-            
+
             this.mode = DiagramMode.Highlighting;
 
             if (this._model.data) {
                 Object.entries(this._model.data.nodes).forEach(([id, node]) => {
                     if (this._graph?.hasNode(id)) {
-                        results.push(id);
-                        this._graph.setNodeAttribute(id, "highlighted", filter!(node));
+                        const isHighlighted = filter!(node);
+                        if (isHighlighted) {
+                            results.push(id);
+                        }
+                        this._graph.setNodeAttribute(id, "highlighted", isHighlighted);
                     }
                 });
             }

@@ -54,7 +54,10 @@
     const dataOptions = createOptions<Options.DataOptions>(
         "dataOptions",
         "data",
-        { ...structuredClone(Options.DEFAULT_DATA_OPTIONS), ...diagram.options.refresh }
+        {
+            ...structuredClone(Options.DEFAULT_DATA_OPTIONS),
+            ...diagram.options.refresh,
+        }
     );
     const layoutOptions = createOptions<Options.LayoutOptions>(
         "layoutOptions",
@@ -69,7 +72,10 @@
     const appearanceOptions = createOptions<Options.AppearanceOptions>(
         "appearanceOptions",
         "appearance",
-        { relationColors: {}, ...structuredClone(Options.DEFAULT_APPEARANCE_OPTIONS) }
+        {
+            relationColors: {},
+            ...structuredClone(Options.DEFAULT_APPEARANCE_OPTIONS),
+        }
     );
     $: diagram.relationStylist = createCsharpRelationStylist(
         $appearanceOptions.relationColors!
@@ -178,9 +184,13 @@
         <Tab name="Search" value={AppPanels.Search} icon={AppIcons.SearchPanel}>
             <SearchPanel
                 on:highlight={(e) =>
-                    searchResults = diagram.highlight(e.detail.searchText, e.detail.searchMode)}
+                    (searchResults = diagram.highlight(
+                        e.detail.searchText,
+                        e.detail.searchMode
+                    ))}
                 on:isolate={(e) =>
                     diagram.isolate(e.detail.searchText, e.detail.searchMode)}
+                on:selected={(e) => (diagram.selectedNode = e.detail)}
                 results={searchResults}
             />
         </Tab>
