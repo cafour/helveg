@@ -7,7 +7,7 @@ import { HelvegEdgeAttributes, HelvegGraph, HelvegNodeAttributes, collapseNode, 
 import { ILogger, Logger, sublogger } from "../model/logger.ts";
 import { EdgeStylist, FALLBACK_EDGE_STYLE, FALLBACK_NODE_STYLE, NodeStylist, OutlineStyle, Outlines, RelationStylist, getOutlinesTotalWidth } from "../model/style.ts";
 import { bfsGraph, bfsMultigraph } from "../model/traversal.ts";
-import { GlyphProgramOptions } from "../rendering/node.glyph.ts";
+import { GlyphProgramOptions, SizingMode } from "../rendering/node.glyph.ts";
 
 export function initializeSupervisor(
     graph: HelvegGraph,
@@ -261,6 +261,25 @@ export function styleGraph(
             ? getOutlinesTotalWidth(outlines)
             : nodeStyle.size;
         attributes.iconSize = nodeStyle.size;
+
+        const getSize = (sizingMode: SizingMode, value: number) =>
+        {
+            switch(sizingMode)
+            {
+                case "linear":
+                    // keep it as is
+                    return value;
+                case "sqrt":
+                    return Math.sqrt(value);
+                case "log":
+                    return Math.log(Math.max(value, 1));
+                default:
+                    return value;
+            }
+        }
+        
+        attributes.size = getSize(glyphProgramOptions.sizingMode, attributes.size);
+        attributes.iconSize = getSize(glyphProgramOptions.sizingMode, attributes.iconSize);
         attributes.color = nodeStyle.color;
         attributes.type = "glyph";
         attributes.icon = nodeStyle.icon;

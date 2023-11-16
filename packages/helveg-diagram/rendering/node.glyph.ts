@@ -7,6 +7,8 @@ import createIconProgram, { DEFAULT_ICON_PROGRAM_OPTIONS, IconProgramOptions } f
 import createOutlinesProgram, { DEFAULT_OUTLINES_PROGRAM_OPTIONS, OutlinesProgramOptions } from "./node.outlines.ts";
 import createPizzaProgram, { DEFAULT_PIZZA_PROGRAM_OPTIONS, PizzaProgramOptions } from "./pizza.ts";
 
+export type SizingMode = "linear" | "sqrt" | "log";
+
 export interface GlyphProgramOptions
     extends IconProgramOptions, OutlinesProgramOptions, FireProgramOptions, PizzaProgramOptions, DiffProgramOptions {
 
@@ -15,6 +17,7 @@ export interface GlyphProgramOptions
     showFire: boolean;
     showLabels: boolean;
     showDiffs: boolean;
+    sizingMode: SizingMode;
 }
 
 export const DEFAULT_GLYPH_PROGRAM_OPTIONS: GlyphProgramOptions =
@@ -24,6 +27,7 @@ export const DEFAULT_GLYPH_PROGRAM_OPTIONS: GlyphProgramOptions =
     showFire: true,
     showLabels: false,
     showDiffs: false,
+    sizingMode: "linear",
     ...DEFAULT_ICON_PROGRAM_OPTIONS,
     ...DEFAULT_OUTLINES_PROGRAM_OPTIONS,
     ...DEFAULT_FIRE_PROGRAM_OPTIONS,

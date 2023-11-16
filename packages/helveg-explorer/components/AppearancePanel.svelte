@@ -94,6 +94,17 @@
             />
             IsFireAnimated
         </label>
+        <label class="flex flex-row gap-8 align-items-center">
+            <span
+                class="w-80 inline-block flex-shrink-0 ellipsis overflow-hidden"
+                title="SizingMode">SizingMode</span
+            >
+            <select bind:value={$appearanceOptions.glyph.sizingMode}>
+                <option value="sqrt">sqrt</option>
+                <option value="linear">linear</option>
+                <option value="log">log</option>
+            </select>
+        </label>
     </Subpanel>
     <Subpanel name="Relations">
         {#each relations as relation}

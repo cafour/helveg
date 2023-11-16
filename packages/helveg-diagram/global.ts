@@ -27,6 +27,7 @@ export * from "./model/icon-set-model.ts";
 export * from "./csharp/style.ts";
 export * from "./csharp/model.ts";
 export * from "./random.ts";
+export * from "./rendering/node.glyph.ts";
 
 export interface CreateDiagramOptions {
     element: HTMLElement | null,

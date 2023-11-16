@@ -194,12 +194,6 @@ export const DEFAULT_CSHARP_DATA_OPTIONS: CSharpDataOptions = {
     ]
 }
 
-export enum CSharpGlyphSizingMode {
-    Linear = "linear",
-    Sqrt = "sqrt",
-    Log = "log"
-}
-
 export const DEFAULT_CSHARP_PIZZA_TOPPINGS: Record<keyof typeof IconableEntities, PizzaIcons> = {
     Solution: PizzaIcons.Bacon,
     Project: PizzaIcons.Mozzarella,
@@ -225,14 +219,4 @@ export const DEFAULT_CSHARP_PIZZA_TOPPINGS: Record<keyof typeof IconableEntities
     Event: PizzaIcons.Chilli,
     Parameter: PizzaIcons.Corn,
     Fallback: PizzaIcons.Cookie
-};
-
-export interface CSharpGlyphOptions {
-    sizingMode: CSharpGlyphSizingMode;
-    pizzaToppings: Record<keyof typeof IconableEntities, PizzaIcons>
-}
-
-export const DEFAULT_CSHARP_GLYPH_OPTIONS: CSharpGlyphOptions = {
-    sizingMode: CSharpGlyphSizingMode.Linear,
-    pizzaToppings: { ...DEFAULT_CSHARP_PIZZA_TOPPINGS }
 };
