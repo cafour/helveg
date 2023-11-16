@@ -7,6 +7,7 @@ in float a_size;
 in vec4 a_color;
 in vec4 a_outlineWidths;
 in vec4 a_outlineStyles;
+in float a_collapsed;
 
 uniform float u_sizeRatio;
 uniform float u_pixelRatio;
@@ -35,6 +36,10 @@ void main() {
   // Extract the color:
   v_color = a_color;
   v_color.a *= bias;
+
+  if (a_collapsed > 0.0) {
+    v_color *= 0.33;
+  }
 
   float gap = u_gap / a_size;
   v_outlineStarts = vec4(
