@@ -2,7 +2,9 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
+using System.Xml;
 using System.Xml.Linq;
+using Microsoft.Extensions.Logging;
 
 namespace Helveg.CSharp;
 
@@ -15,15 +17,23 @@ internal class MarkdownCommentVisitor
 
     public static string? ToMarkdown(string comment)
     {
-        var node = XElement.Parse(comment);
-        if (node is null)
+        try
         {
+            var node = XElement.Parse(comment);
+            if (node is null)
+            {
+                return null;
+            }
+
+            var visitor = new MarkdownCommentVisitor();
+            visitor.VisitElement(node);
+            return visitor.Output.ToString();
+        }
+        catch (XmlException)
+        {
+            // TODO: Fail less silently.
             return null;
         }
-
-        var visitor = new MarkdownCommentVisitor();
-        visitor.VisitElement(node);
-        return visitor.Output.ToString();
     }
 
     public void Visit(XNode node)

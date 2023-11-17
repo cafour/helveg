@@ -1,46 +1,53 @@
 {
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "name": "Helveg (Debug)",
-            "type": "coreclr",
-            "request": "launch",
-            "preLaunchTask": "build",
-            "program": "${workspaceFolder}/src/CommandLine/bin/Debug/net6.0/helveg.dll",
-            "args": ["--preset", "Dev", "--verbose", "--compare-to", "../kafe-old", "--out-dir", "C:\\temp\\"],
-            "cwd": "C:\\dev\\fi\\kafe-api",
-            "console": "internalConsole",
-            "stopAtEntry": false
-        },
-        {
-          "name": "Playground (Debug)",
-          "type": "coreclr",
-          "request": "launch",
-          "preLaunchTask": "build",
-          "program": "${workspaceFolder}/src/Playground/bin/Debug/net6.0/Helveg.Playground.dll",
-          "args": [],
-          "cwd": "${workspaceFolder}/src/Playground",
-          "console": "internalConsole",
-          "stopAtEntry": false
-      },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "UI",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
-            "runtimeArgs": [
-              "--loader",
-              "ts-node/esm"
-            ],
-            "args": [
-              "${workspaceFolder}/src/UI/App/eng/build.ts"
-            ],
-            "cwd": "${workspaceFolder}/src/UI/App",
-            "env": {
-              "TS_NODE_PROJECT": "${workspaceFolder}/src/UI/App/eng/tsconfig.json"
-            }
-        }
-    ]
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Helveg (Debug)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/src/CommandLine/bin/Debug/net6.0/helveg.dll",
+      "args": [
+        "--preset",
+        "Dev",
+        "--verbose",
+        "--out-dir",
+        "C:\\tmp\\",
+        "NoMobile.sln"
+      ],
+      "cwd": "C:\\dev\\riganti\\freya\\",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Playground (Debug)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/src/Playground/bin/Debug/net6.0/Helveg.Playground.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/src/Playground",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "UI",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "runtimeArgs": [
+        "--loader",
+        "ts-node/esm"
+      ],
+      "args": [
+        "${workspaceFolder}/src/UI/App/eng/build.ts"
+      ],
+      "cwd": "${workspaceFolder}/src/UI/App",
+      "env": {
+        "TS_NODE_PROJECT": "${workspaceFolder}/src/UI/App/eng/tsconfig.json"
+      }
+    }
+  ]
 }
