@@ -187,7 +187,8 @@
                 on:highlight={(e) =>
                     (searchResults = diagram.highlight(
                         e.detail.searchText,
-                        e.detail.searchMode
+                        e.detail.searchMode,
+                        e.detail.expandedOnly
                     ))}
                 on:isolate={(e) =>
                     diagram.isolate(e.detail.searchText, e.detail.searchMode)}

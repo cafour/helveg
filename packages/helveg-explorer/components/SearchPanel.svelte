@@ -31,6 +31,7 @@
     ];
     let selectedSearchMode = SearchMode.Contains;
     let searchText: string = "";
+    let expandedOnly: boolean = false;
 
     let model = getContext<Readable<DataModel>>("model");
     let diagram = getContext<Diagram>("diagram");
@@ -50,6 +51,7 @@
                 dispatch("highlight", {
                     searchText: searchText,
                     searchMode: selectedSearchMode,
+                    expandedOnly: expandedOnly
                 })}
         >
             <div class="flex flex-row gap-4">
@@ -61,6 +63,13 @@
                     class="theme-light"
                 />
             </div>
+            <label>
+                <input
+                    type="checkbox"
+                    bind:checked={expandedOnly}
+                />
+                <span>ExpandedOnly</span>
+            </label>
             <input
                 type="submit"
                 class="button-stretch mt-8 primary"

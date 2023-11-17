@@ -1,5 +1,5 @@
 import { HelvegEvent } from "../common/event.ts";
-import { HelvegGraph, findRoots, getNodeKinds, toggleNode } from "../model/graph.ts";
+import { HelvegGraph, expandPathsTo, findRoots, getNodeKinds, toggleNode } from "../model/graph.ts";
 import { Coordinates, NodeProgramConstructor, Sigma, SigmaNodeEventPayload } from "../deps/sigma.ts";
 import { LogSeverity, ILogger, consoleLogger } from "../model/logger.ts";
 import { ForceAtlas2Progress, ForceAtlas2Supervisor } from "../layout/forceAltas2Supervisor.ts";
@@ -368,7 +368,7 @@ export class Diagram {
         });
     }
 
-    highlight(searchText: string | null, searchMode: SearchMode): string[] {
+    highlight(searchText: string | null, searchMode: SearchMode, expandedOnly: boolean = false): string[] {
         if (!this._graph) {
             this._logger.warn("Cannot highlight nodes since the graph is not initialized.");
             return [];
@@ -388,10 +388,13 @@ export class Diagram {
 
             if (this._model.data) {
                 Object.entries(this._model.data.nodes).forEach(([id, node]) => {
-                    if (this._graph?.hasNode(id)) {
+                    if (this._graph?.hasNode(id) && (!expandedOnly || !this._graph.getNodeAttribute(id, "hidden"))) {
                         const isHighlighted = filter!(node);
                         if (isHighlighted) {
                             results.push(id);
+                            if (!expandedOnly) {
+                                expandPathsTo(this._graph, id, this.mainRelation ?? undefined);
+                            }
                         }
                         this._graph.setNodeAttribute(id, "highlighted", isHighlighted);
                     }

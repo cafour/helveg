@@ -93,6 +93,19 @@ export function expandNode(
     });
 }
 
+export function expandPathsTo(graph: HelvegGraph, nodeId: string, relation?: string) {
+    graph.forEachInboundEdge(nodeId, (e, a, s, t, sa, ta) => {
+        if (s === nodeId) {
+            // ignore self-references
+            return;
+        }
+        if (sa.collapsed === true && (!relation || a.relation === relation)) {
+            expandNode(graph, s, false, relation);
+            expandPathsTo(graph, s, relation);
+        }
+    });
+}
+
 export function toggleNode(graph: HelvegGraph, nodeId: string, relation?: string) {
     if (graph.getNodeAttribute(nodeId, "collapsed")) {
         expandNode(graph, nodeId, false, relation);
