@@ -255,7 +255,7 @@ export class Diagram {
         await this.refreshSupervisor();
 
         if (!this.mainRelation) {
-            this._logger.debug("Cannot reset layout since no relation is selected as main.");
+            this._logger.error("Cannot reset layout since no relation is selected as main.");
             return;
         }
 
@@ -295,6 +295,8 @@ export class Diagram {
         }
 
         this._logger.debug("Running the layout.");
+        
+        this._graph.forEachNode((n, a) => a.inInitialPosition = false);
 
         await this._supervisor.start(inBackground);
 

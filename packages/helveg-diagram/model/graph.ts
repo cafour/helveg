@@ -14,6 +14,7 @@ export interface HelvegNodeAttributes extends Partial<NodeDisplayData>, Attribut
     fixed?: boolean;
     collapsed?: boolean;
     diff?: MultigraphNodeDiffStatus;
+    inInitialPosition?: boolean;
 }
 
 export interface HelvegEdgeAttributes extends Partial<EdgeDisplayData>, Attributes {
@@ -84,8 +85,12 @@ export function expandNode(
 
         let dist = (nodeSize + (neighbor.attributes.size ?? 2));
         neighbor.targetAttributes.hidden = false;
-        neighbor.targetAttributes.x = x + dist * Math.cos((i / neighborEdge.length) * 2 * Math.PI);
-        neighbor.targetAttributes.y = y + dist * Math.sin((i / neighborEdge.length) * 2 * Math.PI);
+        if (neighbor.sourceAttributes.inInitialPosition !== true
+            && neighbor.targetAttributes.inInitialPosition !== true) {
+            neighbor.targetAttributes.x = x + dist * Math.cos((i / neighborEdge.length) * 2 * Math.PI);
+            neighbor.targetAttributes.y = y + dist * Math.sin((i / neighborEdge.length) * 2 * Math.PI);
+            neighbor.targetAttributes.inInitialPosition = false;
+        }
 
         if (recursive) {
             expandNode(graph, neighbor.target, true, relation);
