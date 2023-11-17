@@ -5,24 +5,29 @@
 </script>
 
 <Panel name="Guide" id={AppPanels.Guide}>
-    <a href="https://helveg.net/docs/" class="button-stretch primary" target="_blank"
-        >Documentation</a
+    <a
+        href="https://helveg.net/user-guide/"
+        class="button-stretch primary"
+        target="_blank">Documentation</a
     >
 
     <h3>Panels</h3>
     <dl class="theme-helveg">
         <dt>
-            <Icon name={AppIcons.DataPanel} /> Data
+            <Icon name={AppIcons.SearchPanel} /> Search
         </dt>
         <dd>
-            <p>Filters the nodes and relations shown.</p>
+            <p>Searches though the nodes and shows the results.</p>
         </dd>
 
         <dt>
             <Icon name={AppIcons.LayoutPanel} /> Layout
         </dt>
         <dd>
-            <p>Contains settings affecting how the nodes are laid out.</p>
+            <p>
+                Contains settings affecting what nodes are show and how they are
+                laid out.
+            </p>
             <p>
                 Allows to pause, restart, or run the layout in the background.
             </p>
@@ -85,8 +90,7 @@
         <dd>
             <p>
                 Appends child nodes to the node under the cursor with respect to
-                the <code>CollapsingRelation</code>
-                in the Tools panel.
+                the <code>Relation</code> setting in the Tools panel.
             </p>
         </dd>
 
@@ -96,9 +100,9 @@
         <dd>
             <p>
                 Cuts the selected node and its descendants from the diagram. The
-                child relation is the <code>CuttingRelation</code> in the Tools
-                panel. If <code>IsCuttingTransitive</code> is false, only the node
-                under the cursor is removed.
+                child relation is the <code>Relation</code> setting in the Tools
+                panel. If <code>IsTransitive</code> is false, only the node under
+                the cursor is removed.
             </p>
         </dd>
     </dl>
@@ -129,27 +133,39 @@
         error is shown in the Properties panel. Similarly, if a node is
         smoldering, there's a warning.
     </p>
-    
+
     <h3>About</h3>
 
     <p>
-        <em>Helveg</em> is the product of my studies at the <a href="https://www.fi.muni.cz/" target="_blank">Faculty of Informatics, Masaryk University</a>.
+        <em>Helveg</em> is the product of my studies at the
+        <a href="https://www.fi.muni.cz/" target="_blank"
+            >Faculty of Informatics, Masaryk University</a
+        >.
     </p>
     <p>
-        The <em>CodePizza</em> feature has been created as a part of the <em>PV097 Visual Creativity Informatics</em> course in spring 2023. <em>CodePizza</em> is dedicated to the now defunct <em>Pizza Nostra</em>, which used to make the weirdest looking pizza I have ever seen.
+        The <em>CodePizza</em> feature has been created as a part of the
+        <em>PV097 Visual Creativity Informatics</em>
+        course in spring 2023. <em>CodePizza</em> is dedicated to the now
+        defunct <em>Pizza Nostra</em>, which used to make the weirdest looking
+        pizza I have ever seen.
     </p>
-    <p>
-        &#169; 2020-2023 Adam Štěpánek and contributors
-    </p>
-    
+    <p>&#169; 2020-2023 Adam Štěpánek and contributors</p>
+
     <h3>License</h3>
     <p>
-        <em>Helveg</em> is licensed under the <a href="https://opensource.org/license/bsd-3-clause/" target="_blank">3-Clause BSD license</a>.
+        <em>Helveg</em> is licensed under the
+        <a href="https://opensource.org/license/bsd-3-clause/" target="_blank"
+            >3-Clause BSD license</a
+        >.
     </p>
     <p>
-        Helveg uses Visual Studio Icons by Microsoft. These are licensed under <a href="https://www.microsoft.com/en-us/download/details.aspx?id=35825" target="_blank">Microsoft Software License Terms</a>.
+        Helveg uses Visual Studio Icons by Microsoft. These are licensed under <a
+            href="https://www.microsoft.com/en-us/download/details.aspx?id=35825"
+            target="_blank">Microsoft Software License Terms</a
+        >.
     </p>
     <p>
-        Please note that other restrictions might apply to the visualized data itself.
+        Please note that other restrictions might apply to the visualized data
+        itself.
     </p>
 </Panel>

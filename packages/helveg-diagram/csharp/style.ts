@@ -1,5 +1,5 @@
 import { MultigraphNode } from "../model/data-model.ts";
-import { EdgeStyle, FALLBACK_EDGE_STYLE, FALLBACK_NODE_STYLE, NodeStyle, NodeStylist, OutlineStyle, RelationStylist } from "../model/style";
+import { EdgeStyle, FALLBACK_EDGE_STYLE, FALLBACK_NODE_STYLE, FireStatus, NodeStyle, NodeStylist, OutlineStyle, RelationStylist } from "../model/style";
 import { CSharpNode, DefaultRelationColors, EntityKind, MemberAccessibility, MethodKind, Relations, TypeKind, VSColor } from "./model";
 
 export const csharpNodeStylist: NodeStylist = (node: MultigraphNode) => {
@@ -25,8 +25,18 @@ export function createCsharpRelationStylist(colors: Record<string, string>): Rel
 export const csharpRelationStylist: RelationStylist = createCsharpRelationStylist(DEFAULT_CSHARP_RELATION_COLORS);
 
 function resolveNodeStyle(node: Partial<CSharpNode>): Partial<NodeStyle> {
-
     let base: Partial<NodeStyle> = {};
+    
+    const hasErrors = (node.diagnostics ?? [])
+        ?.filter(d => d.severity === "error")
+        .length > 0;
+    const hasWarnings = (node.diagnostics ?? [])
+        ?.filter(d => d.severity === "warning")
+        .length > 0;
+    base.fire = hasErrors ? FireStatus.Flame
+        : hasWarnings ? FireStatus.Smoke
+        : FireStatus.None;
+    
     switch (node.kind) {
         case EntityKind.Solution:
             return {
