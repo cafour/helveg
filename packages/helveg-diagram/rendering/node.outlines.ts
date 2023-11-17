@@ -40,7 +40,7 @@ export class OutlinesProgram extends NodeProgram<typeof UNIFORMS[number]> {
     getDefinition(): ProgramDefinition<typeof UNIFORMS[number]> {
         return {
             VERTICES: 1,
-            ARRAY_ITEMS_PER_VERTEX: 6,
+            ARRAY_ITEMS_PER_VERTEX: 7,
             VERTEX_SHADER_SOURCE: vertSrc,
             FRAGMENT_SHADER_SOURCE: fragSrc,
             UNIFORMS,
@@ -49,7 +49,8 @@ export class OutlinesProgram extends NodeProgram<typeof UNIFORMS[number]> {
                 { name: "a_size", size: 1, type: FLOAT },
                 { name: "a_color", size: 4, type: UNSIGNED_BYTE, normalized: true },
                 { name: "a_outlineWidths", size: 4, type: UNSIGNED_BYTE, normalized: true },
-                { name: "a_outlineStyles", size: 4, type: UNSIGNED_BYTE, normalized: false }
+                { name: "a_outlineStyles", size: 4, type: UNSIGNED_BYTE, normalized: false },
+                { name: "a_collapsed", size: 1, type: FLOAT }
             ],
         };
     }
@@ -65,6 +66,7 @@ export class OutlinesProgram extends NodeProgram<typeof UNIFORMS[number]> {
         array[i++] = floatColor(useColor ? data.color ?? FALLBACK_NODE_STYLE.color : "#aaaaaa");
         array[i++] = floatOutlineWidths(data.outlines ?? FALLBACK_NODE_STYLE.outlines);
         array[i++] = floatOutlineStyles(data.outlines ?? FALLBACK_NODE_STYLE.outlines);
+        array[i++] = +!!(useColor && data.collapsed);
     }
 
     draw(params: RenderParams): void {

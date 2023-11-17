@@ -29,16 +29,23 @@ internal class SymbolTokenMap
         this.logger = logger ?? NullLogger.Instance;
     }
 
-    public void TrackAndVisit(IAssemblySymbol assemblySymbol, NumericToken parentToken, Compilation relatedCompilation)
+    public void TrackAndVisit(
+        IAssemblySymbol assemblySymbol,
+        NumericToken parentToken,
+        Compilation relatedCompilation)
     {
         var id = AssemblyId.Create(assemblySymbol);
+
         if (Track(id, parentToken, relatedCompilation))
         {
             new ActionSymbolVisitor(s => GetOrAdd(s)).Visit(assemblySymbol);
         }
     }
 
-    public void TrackAndVisit(PortableExecutableReference reference, NumericToken parentToken, Compilation relatedCompilation)
+    public void TrackAndVisit(
+        PortableExecutableReference reference,
+        NumericToken parentToken,
+        Compilation relatedCompilation)
     {
         var symbol = relatedCompilation.GetAssemblyOrModuleSymbol(reference);
         if (symbol is not IAssemblySymbol assemblySymbol)
@@ -49,6 +56,7 @@ internal class SymbolTokenMap
         }
 
         var id = AssemblyId.Create(assemblySymbol, reference);
+
         if (Track(id, parentToken, relatedCompilation))
         {
             new ActionSymbolVisitor(s => GetOrAdd(s)).Visit(assemblySymbol);
@@ -104,7 +112,8 @@ internal class SymbolTokenMap
     private bool Track(AssemblyId assemblyId, NumericToken parentToken, Compilation relatedCompilation)
     {
         var hasAdded = false;
-        assemblyMap.GetOrAdd(assemblyId, _ => {
+        assemblyMap.GetOrAdd(assemblyId, _ =>
+        {
             hasAdded = true;
             logger.LogDebug("Tracking '{}'.", assemblyId.ToDisplayString());
             return (

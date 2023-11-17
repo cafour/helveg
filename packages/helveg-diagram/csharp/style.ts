@@ -1,18 +1,42 @@
-import { MultigraphNode, MultigraphEdge } from "../model/data-model.ts";
-import { EdgeStyle, FALLBACK_EDGE_STYLE, FALLBACK_NODE_STYLE, NodeStyle, OutlineStyle } from "../model/style";
+import { MultigraphNode } from "../model/data-model.ts";
+import { EdgeStyle, FALLBACK_EDGE_STYLE, FALLBACK_NODE_STYLE, FireStatus, NodeStyle, NodeStylist, OutlineStyle, RelationStylist } from "../model/style";
 import { CSharpNode, DefaultRelationColors, EntityKind, MemberAccessibility, MethodKind, Relations, TypeKind, VSColor } from "./model";
 
-export function csharpNodeStylist(node: MultigraphNode): NodeStyle {
+export const csharpNodeStylist: NodeStylist = (node: MultigraphNode) => {
     return { ...FALLBACK_NODE_STYLE, ...resolveNodeStyle(node as Partial<CSharpNode>) };
 }
 
-export function csharpEdgeStylist(relation: string, edge: MultigraphEdge): EdgeStyle {
-    return {...FALLBACK_EDGE_STYLE, ...resolveEdgeStyle(relation, edge)};
+export const DEFAULT_CSHARP_RELATION_COLORS: Record<string, string> =
+{
+    [Relations.Declares]: DefaultRelationColors.Declares,
+    [Relations.AssociatedWith]: DefaultRelationColors.AssociatedWith,
+    [Relations.DependsOn]: DefaultRelationColors.DependsOn,
+    [Relations.InheritsFrom]: DefaultRelationColors.InheritsFrom,
+    [Relations.Overrides]: DefaultRelationColors.Overrides,
+    [Relations.References]: DefaultRelationColors.References,
+    [Relations.Returns]: DefaultRelationColors.Returns,
+    [Relations.TypeOf]: DefaultRelationColors.TypeOf
+};
+
+export function createCsharpRelationStylist(colors: Record<string, string>): RelationStylist {
+    return (r) => { return {...FALLBACK_EDGE_STYLE, ...resolveRelationStyle(r, colors)}};
 }
 
-function resolveNodeStyle(node: Partial<CSharpNode>): Partial<NodeStyle> {
+export const csharpRelationStylist: RelationStylist = createCsharpRelationStylist(DEFAULT_CSHARP_RELATION_COLORS);
 
+function resolveNodeStyle(node: Partial<CSharpNode>): Partial<NodeStyle> {
     let base: Partial<NodeStyle> = {};
+    
+    const hasErrors = (node.diagnostics ?? [])
+        ?.filter(d => d.severity === "error")
+        .length > 0;
+    const hasWarnings = (node.diagnostics ?? [])
+        ?.filter(d => d.severity === "warning")
+        .length > 0;
+    base.fire = hasErrors ? FireStatus.Flame
+        : hasWarnings ? FireStatus.Smoke
+        : FireStatus.None;
+    
     switch (node.kind) {
         case EntityKind.Solution:
             return {
@@ -204,47 +228,48 @@ function resolveNodeStyle(node: Partial<CSharpNode>): Partial<NodeStyle> {
     return base;
 }
 
-function resolveEdgeStyle(relation: string, edge: MultigraphEdge): EdgeStyle {
+function resolveRelationStyle(relation: string, colors?: Record<string, string>): EdgeStyle {
+    colors = {...DEFAULT_CSHARP_RELATION_COLORS, ...colors};
     switch (relation) {
         case Relations.Declares:
             return {
-                color: DefaultRelationColors.Declares,
+                color: colors[Relations.Declares],
                 width: 2,
                 type: "arrow"
             };
         case Relations.InheritsFrom:
             return {
-                color: DefaultRelationColors.InheritsFrom,
+                color: colors[Relations.InheritsFrom],
                 width: 4,
                 type: "arrow"
             };
         case Relations.TypeOf:
             return {
-                color: DefaultRelationColors.TypeOf,
+                color: colors[Relations.TypeOf],
                 width: 4,
                 type: "arrow"
             };
         case Relations.Overrides:
             return {
-                color: DefaultRelationColors.Overrides,
+                color: colors[Relations.Overrides],
                 width: 4,
                 type: "arrow"
             };
         case Relations.Returns:
             return {
-                color: DefaultRelationColors.Returns,
+                color: colors[Relations.Returns],
                 width: 4,
                 type: "arrow"
             };
         case Relations.DependsOn:
             return {
-                color: DefaultRelationColors.DependsOn,
+                color: colors[Relations.DependsOn],
                 width: 6,
                 type: "arrow"
             };
         case Relations.References:
             return {
-                color: DefaultRelationColors.DependsOn,
+                color: colors[Relations.References],
                 width: 4,
                 type: "arrow"
             };

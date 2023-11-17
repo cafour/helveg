@@ -22,7 +22,7 @@
         "watch:check": "npm run check -- --watch",
         "bundle": "tsx eng/bundle.ts",
         "watch:bundle": "npm run bundle -- --watch",
-        "watch": "concurrently --kill-others -r \"npm run watch:bundle\" \"npm run watch:check\"",
+        "watch": "concurrently --kill-others -r \"npm run watch:bundle\" \"npm run watch:types\"",
         "serve": "concurrently --kill-others -r \"npm run bundle -- --serve --sourcemap\" \"npm run watch:types\"",
         "clean": "rimraf dist/",
         "pack-icons": "tsx eng/pack-icons.ts",
@@ -33,7 +33,7 @@
         "schema:icon-set": "quicktype --src-lang schema --out model/icon-set-model.ts ../../schema/icon-set.json --prefer-unions --just-types",
         "schema": "npm run schema:data && npm run schema:icon-set"
     },
-    "dependencies": {
+    "devDependencies": {
         "@types/d3-hierarchy": "^3.1.2",
         "@types/file-saver": "^2.0.5",
         "d3-hierarchy": "^3.1.2",
@@ -43,9 +43,7 @@
         "graphology-layout-forceatlas2": "^0.10.1",
         "graphology-types": "^0.24.7",
         "graphology-utils": "^2.5.2",
-        "sigma": "3.0.0-alpha3"
-    },
-    "devDependencies": {
+        "sigma": "3.0.0-alpha3",
         "@types/node": "^20.8.10",
         "@types/yargs": "^17.0.24",
         "browser-sync": "^2.29.1",

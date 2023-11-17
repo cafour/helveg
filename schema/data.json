@@ -66,6 +66,12 @@
                                 "type": "string",
                                 "description": "The kind of the node."
                             },
+                            "diff": {
+                                "type": "string",
+                                "title": "MultigraphNodeDiffStatus",
+                                "description": "The `diff` status of the node.",
+                                "enum": ["unmodified", "modified", "added", "deleted"]
+                            },
                             "diagnostics": {
                                 "type": "array",
                                 "description": "Diagnostics attached to the node.",
@@ -84,6 +90,26 @@
                                             "enum": ["hidden", "info", "warning", "error"]
                                         },
                                         "message": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            },
+                            "comments": {
+                                "type": "array",
+                                "description": "Comments attached to the node.",
+                                "items": {
+                                    "type": "object",
+                                    "title": "MultigraphComment",
+                                    "description": "A comment regarding a node.",
+                                    "required": ["format", "content"],
+                                    "properties": {
+                                        "format": {
+                                            "type": "string",
+                                            "title": "MultigraphCommentFormat",
+                                            "enum": ["plain", "markdown"]
+                                        },
+                                        "content": {
                                             "type": "string"
                                         }
                                     }

@@ -18,6 +18,8 @@ public class VisualizationProjectVisitor : ProjectVisitor
 
     public override void DefaultVisit(IEntity entity)
     {
+        var node = graph.GetNode<CSharpNode>(entity.Id);
+        node.Diff = entity.DiffStatus.ToMultigraphDiffStatus();
     }
 
     public override void VisitSolution(Solution solution)
@@ -75,13 +77,13 @@ public class VisualizationProjectVisitor : ProjectVisitor
 
     public override void VisitExternalDependencySource(ExternalDependencySource externalDependencySource)
     {
-        base.VisitExternalDependencySource(externalDependencySource);
-
         if (externalDependencySource.Libraries.Length == 0)
         {
             // don't add the node, if it will have been empty
             return;
         }
+        
+        base.VisitExternalDependencySource(externalDependencySource);
 
         var node = graph.GetNode<CSharpNode>(externalDependencySource.Token, externalDependencySource.Name);
         node.Kind = CSConst.KindOf<ExternalDependencySource>();

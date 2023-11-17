@@ -31,8 +31,8 @@ public record Workspace
         if (!roots.TryAdd(root.Id, root))
         {
             return false;
-        }
 
+        }
         root.Accept(new EntityTrackingVisitor(entities));
         return true;
     }

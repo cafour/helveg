@@ -8,6 +8,7 @@ namespace Helveg.UI;
 
 public enum UIMode
 {
+    None,
     SingleFile,
     StaticApp,
     DataOnly

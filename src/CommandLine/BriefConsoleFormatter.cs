@@ -37,6 +37,7 @@ public class BriefConsoleFormatter : ConsoleFormatter
         {
             LogLevel.Critical => Ansi.Color.Background.Red,
             LogLevel.Error => Ansi.Color.Foreground.Red,
+            LogLevel.Warning => Ansi.Color.Foreground.Yellow,
             LogLevel.Information => Ansi.Color.Foreground.Green,
             LogLevel.Trace => Ansi.Color.Foreground.DarkGray,
             _ => Ansi.Color.Foreground.Default

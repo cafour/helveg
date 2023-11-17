@@ -1,11 +1,11 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Dynamic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Helveg.Visualization;
@@ -14,84 +14,141 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Helveg.UI;
 
+public record UIScript(
+    string FileName,
+    string Contents,
+    string Type = "text/javascript",
+    string? Classes = null
+);
+
+public record UIStyle(
+    string FileName,
+    string Contents,
+    string? Classes = null
+);
+
+public record InitializerOptions(
+    string? MainRelation = null,
+    string IconSetSelector = ".helveg-icons",
+    string DataId = "helveg-data",
+    ImmutableArray<string>? SelectedRelations = null,
+    ImmutableArray<string>? SelectedKinds = null,
+    int? ExpandedDepth = null
+);
+
 public class UIBuilder
 {
     public const string DefaultEntryPointName = "index.html";
-    public const string DefaultIconsDirectory = "icons";
-    public const string DefaultStylesDirectory = "styles";
-    public const string DefaultScriptsDirectory = "scripts";
+    public const string DefaultStylesDirName = "styles";
+    public const string DefaultScriptsDirName = "scripts";
 
     public const string FaviconDataUrl = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAACxAAAAsQHGLUmNAAACgElEQVRYhcVXy23bQBCdBCmAufBq+U4gTAV2B3YA3i1VELsCOhUorsDSnUDkCkRXEAZgATrzpFQQY5C3wmA4s/zYgN9Fu8vdnTf/FU1FlWa3VZpdTj7o4OOMMw0RPVZplrwXAcaCiEr6b5Hla8jMJcAIrqiJaD+XxGsIMNZF1x4w3s+54MPYjdCQNT4qYSsiusG3TdG1qykERlmgSrMcQhsIkijFmONh+aYEoPkvFg5zf1FbOCBzMV9XabZ4MwLQnC98wtyqAYkar8cSiMZAlWb3wsTnEP448u5zEaAuXAvA9N/F0lH5ewiluGvtpWnMBUtl2uCKsbgW+zhGbqcSuFDzXM2PA0QSZE/AzVQCsYbDvt0JIp6v5R0LRcgngDSS5g/aBkEyK36gPlgWCSkbBPeU8iygfc2Xbwwh34joDP62gmyBwhS+9faM7QXBIpJAjnkIrsY4l6uaoOOqT4AfHI42eo2FX2F8cOIgce7yCYClZF3Dz1ulZS18ewAhLxbcjLEI/FExcImiwhXwL/x+LLq2UXu2IBo0rvG7EWs9Ip88Zg5KtNzPzvcggFP0GZkSiF5DuUELDGEpHqXPhnD+fSi69icyZG9U1SiBwQYifB+KEcElDZpWU6XZb6P81mo+m8CFEHrKgKJrgxX2Ruk27+4RKLq2x9KArGg7BGbooK5wqz17MbBz1gOS8OopuvZOZETpCCfL/DECT876CVobNBqz5QLbKQR2A+3WKruxZ9jBc61JAMH0ELtQTtBwYu3bfaq7daDo2nvPb0ZBiVlrFQvsoULE0c2lVEO7wHIJk2Lh1vkTRv0zQuXjJ1Xo+19VL+A9/zBkbTmIuWTHn21E9AKU08qnEZw5hQAAAABJRU5ErkJggg==";
-
 
     private readonly ILogger<UIBuilder> logger;
 
     private readonly HashSet<string> styleNames = new();
     private readonly HashSet<string> scriptNames = new();
-    private readonly HashSet<string> iconSetNamespaces = new();
-    private readonly List<(string fileName, string contents)> styles = new();
-    private readonly List<(string fileName, string contents)> scripts = new();
-    private readonly List<string> pluginExpressions = new();
+    private readonly List<UIStyle> styles = new();
+    private readonly List<UIScript> scripts = new();
+    private readonly JsonSerializerOptions jsonOptions;
 
-    public DataModel Model { get; set; } = UIConst.InvalidDataModel;
-    public string EntryPointName { get; set; } = DefaultEntryPointName;
-    public string? DataDirectory { get; set; }
-    public string IconsDirectory { get; set; } = DefaultIconsDirectory;
-    public string StylesDirectory { get; set; } = DefaultStylesDirectory;
-    public string ScriptsDirectory { get; set; } = DefaultScriptsDirectory;
-    public UIMode Mode { get; set; } = UIMode.SingleFile;
+    public DataModel Model { get; set; } = DataModel.CreateEmpty();
+    public string? FileName { get; set; }
+    public UIMode Mode { get; set; }
+    public DirectoryInfo OutDir { get; set; }
+    public InitializerOptions InitializerOptions { get; set; } = new();
 
-    public IReadOnlyList<(string fileName, string contents)> Styles => styles;
-    public IReadOnlyList<(string fileName, string contents)> Scripts => scripts;
+    // Scripts and styles are put into separate directories not only because that's more readable
+    // but also because that way name collisions do not matter.
+    public string StylesDirName { get; set; } = DefaultStylesDirName;
+    public string ScriptsDirName { get; set; } = DefaultScriptsDirName;
+    public IReadOnlyList<UIStyle> Styles => styles;
+    public IReadOnlyList<UIScript> Scripts => scripts;
 
     private UIBuilder(ILogger<UIBuilder>? logger = null)
     {
         this.logger = logger ?? NullLoggerFactory.Instance.CreateLogger<UIBuilder>();
+        OutDir = new DirectoryInfo(Environment.CurrentDirectory);
+
+        jsonOptions = new JsonSerializerOptions();
+        foreach(var converter in DataModel.Converters)
+        {
+            jsonOptions.Converters.Add(converter);
+        }
+        HelvegDefaults.ApplyJsonDefaults(jsonOptions);
     }
 
-    public static async Task<UIBuilder> CreateDefault(ILogger<UIBuilder>? logger = null)
+    public static UIBuilder CreateDefault(ILogger<UIBuilder>? logger = null)
     {
         return new UIBuilder(logger)
-            .AddStyle(UIConst.ExplorerCssResourceName, await GetBaseResource(UIConst.ExplorerCssResourceName))
-            .AddScript(UIConst.DiagramJsResourceName, await GetBaseResource(UIConst.DiagramJsResourceName))
-            .AddScript(UIConst.ExplorerJsResourceName, await GetBaseResource(UIConst.ExplorerJsResourceName))
-            .AddScript(UIConst.VsIconSetResourceName, await GetBaseResource(UIConst.VsIconSetResourceName))
-            .AddScript(UIConst.PizzaIconSetResourceName, await GetBaseResource(UIConst.PizzaIconSetResourceName))
-            .AddScript(UIConst.NugetIconSetResourceName, await GetBaseResource(UIConst.NugetIconSetResourceName));
+            .AddStyle(UIConst.ExplorerCssResourceName, UIConst.ExplorerCss.Value)
+            .AddScript(UIConst.DiagramJsResourceName, UIConst.DiagramJs.Value)
+            .AddScript(UIConst.ExplorerJsResourceName, UIConst.ExplorerJs.Value)
+            .AddScript(
+                UIConst.VsIconSetResourceName,
+                UIConst.VsIconSet.Value,
+                "application/json",
+                "helveg-icons")
+            .AddScript(
+                UIConst.PizzaIconSetResourceName,
+                UIConst.PizzaIconSet.Value,
+                "application/json",
+                "helveg-icons")
+            .AddScript(
+                UIConst.NugetIconSetResourceName,
+                UIConst.NugetIconSet.Value,
+                "application/json",
+                "helveg-icons");
     }
 
-    public UIBuilder AddStyle(string fileName, string contents)
+    public UIBuilder AddStyle(UIStyle style)
     {
-        if (string.IsNullOrWhiteSpace(fileName))
+        if (!styleNames.Add(style.FileName))
         {
-            throw new ArgumentNullException(nameof(fileName));
+            throw new ArgumentException($"Style with name '{style.FileName}' has already been added.");
         }
 
-        if (!styleNames.Add(fileName))
-        {
-            throw new ArgumentException($"Style with name '{fileName}' has already been added.");
-        }
-
-        styles.Add((fileName, contents));
-        logger.LogDebug("Added style '{}' with length '{}'.", fileName, contents.Length);
+        styles.Add(style);
+        logger.LogDebug("Added style '{}' with length '{}'.", style.FileName, style.Contents.Length);
         return this;
     }
 
-    public UIBuilder AddScript(string fileName, string contents)
+    public UIBuilder AddStyle(
+        string fileName,
+        string contents,
+        string? classes = null)
     {
-        if (string.IsNullOrWhiteSpace(fileName))
+        return AddStyle(new UIStyle(
+            fileName,
+            contents,
+            classes
+        ));
+    }
+
+    public UIBuilder AddScript(UIScript script)
+    {
+        if (!scriptNames.Add(script.FileName))
         {
-            throw new ArgumentNullException(nameof(fileName));
+            throw new ArgumentException($"Script with name '{script.FileName}' has already been added.");
         }
 
-        if (!scriptNames.Add(fileName))
-        {
-            throw new ArgumentException($"Script with name '{fileName}' has already been added.");
-        }
-
-        scripts.Add((fileName, contents));
-        logger.LogDebug("Added script '{}' with length '{}'.", fileName, contents.Length);
+        scripts.Add(script);
+        logger.LogDebug("Added script '{}' with length '{}'.", script.FileName, script.Contents.Length);
         return this;
+    }
+
+    public UIBuilder AddScript(
+        string fileName,
+        string contents,
+        string type = "text/javascript",
+        string? classes = null)
+    {
+        return AddScript(new UIScript(
+            fileName,
+            contents,
+            type,
+            classes
+        ));
     }
 
     public UIBuilder SetDataModel(DataModel model)
@@ -106,9 +163,9 @@ public class UIBuilder
         return this;
     }
 
-    public UIBuilder SetEntryPointName(string entryPointName)
+    public UIBuilder SetFileName(string? fileName)
     {
-        EntryPointName = entryPointName;
+        FileName = fileName;
         return this;
     }
 
@@ -118,44 +175,101 @@ public class UIBuilder
         return this;
     }
 
-    public UIBuilder AddPlugin(string expression)
+    public UIBuilder SetInitializerOptions(InitializerOptions options)
     {
-        pluginExpressions.Add(expression);
+        InitializerOptions = options;
         return this;
     }
 
-    public async Task Build(Func<string, Stream> streamFactory)
+    public UIBuilder SetOutDir(DirectoryInfo outDir)
     {
-        if (string.IsNullOrWhiteSpace(EntryPointName))
+        OutDir = outDir;
+        return this;
+    }
+
+    public async Task Build()
+    {
+        if (!OutDir.Exists)
         {
-            throw new ArgumentException("The entry point name must be set.");
+            OutDir.Create();
         }
 
         switch (Mode)
         {
             case UIMode.SingleFile:
-                await BuildSingleFile(streamFactory);
+                await BuildSingleFile();
                 break;
             case UIMode.StaticApp:
-                await BuildStatic(streamFactory);
+                await BuildStatic();
                 break;
             case UIMode.DataOnly:
-                await BuildDataOnly(streamFactory);
+                await BuildDataOnly();
+                break;
+            case UIMode.None:
+                logger.LogInformation("Outputting nothing.");
                 break;
             default:
-                throw new InvalidOperationException($"'{Mode}' is not a valid UIMode.");
+                throw new InvalidOperationException($"'{Mode}' is not supported.");
         }
 
     }
 
-    private async Task BuildSingleFile(Func<string, Stream> streamFactory)
+    private async Task BuildSingleFile()
     {
-        logger.LogInformation("Building '{}' as a single-file app at '{}'.", Model.Name, EntryPointName);
+        var fileName = FileName ?? $"{Model.Name}.html";
+        logger.LogInformation("Building '{}' as a single-file app at '{}'.", Model.Name, fileName);
+        var entryPoint = BuildEntryPoint(true);
+        await File.WriteAllTextAsync(Path.Combine(OutDir.FullName, fileName), entryPoint);
+    }
 
-        using var stream = streamFactory(EntryPointName);
-        using var writer = new StreamWriter(stream);
+    private async Task BuildStatic()
+    {
+        logger.LogInformation("Building a '{}' static app at '{}'.", Model.Name, OutDir);
 
-        writer.Write(
+        async Task WriteFile(string filePath, string contents)
+        {
+            await File.WriteAllTextAsync(Path.Combine(OutDir.FullName, filePath), contents);
+        }
+
+        Task WriteJson<T>(string filePath, T value)
+        {
+            var contents = JsonSerializer.Serialize(value, jsonOptions);
+            return WriteFile(filePath, contents);
+        }
+
+        Directory.CreateDirectory(Path.Combine(OutDir.FullName, StylesDirName));
+        foreach (var style in styles)
+        {
+            await WriteFile(Path.Combine(StylesDirName, style.FileName), style.Contents);
+        }
+
+        Directory.CreateDirectory(Path.Combine(OutDir.FullName, ScriptsDirName));
+        foreach (var script in scripts)
+        {
+            await WriteFile(Path.Combine(ScriptsDirName, script.FileName), script.Contents);
+        }
+
+        await WriteJson($"{Model.Name}-data.json", Model);
+
+        await WriteFile(DefaultEntryPointName, BuildEntryPoint(false));
+    }
+
+    private async Task BuildDataOnly()
+    {
+        var fileName = FileName ?? $"{Model.Name}-data.json";
+        logger.LogInformation("Outputting raw data to '{}'.", fileName);
+        using var stream = new FileStream(
+            Path.Combine(OutDir.FullName, fileName),
+            FileMode.Create,
+            FileAccess.Write);
+        await JsonSerializer.SerializeAsync(stream, Model, jsonOptions);
+    }
+
+    private string BuildEntryPoint(bool embedAll)
+    {
+        var sb = new StringBuilder();
+
+        sb.Append(
 @$"<!DOCTYPE html>
 <html lang=""en"">
     <head>
@@ -164,156 +278,119 @@ public class UIBuilder
         <meta content=""width=device-width, initial-scale=1.0"" name=""viewport"" />
         <link rel=""icon"" type=""image/png"" href=""{FaviconDataUrl}"" />
         ");
+
         foreach (var style in styles)
         {
-            await writer.WriteAsync(
+            var classAttribute = style.Classes is not null ? $" class=\"{style.Classes}\"" : "";
+
+            if (embedAll)
+            {
+                sb.Append(
 @$"
-        <!-- {style.fileName} -->
-        <style>
-            {style.contents}
+        <!-- {style.FileName} -->
+        <style{classAttribute}>
+            {style.Contents}
         </style>
 ");
+            }
+            else
+            {
+                sb.Append(
+$@"
+        <link rel=""stylesheet"" type=""text/css"" href=""{StylesDirName}/{style.FileName}""{classAttribute}>");
+            }
         }
 
-        await writer.WriteAsync(
+        sb.Append(
 @$"
     </head>
 
     <body>
         <div id=""helveg""></div>
+        <!-- {FileName} -->
+");
+        var dataName = FileName ?? $"{Model.Name}-data.json";
+        if (embedAll)
+        {
+            sb.Append(
+$@"
+        <!-- {dataName} -->
         <script type=""application/json"" id=""helveg-data"">
-            {JsonSerializer.Serialize(Model, HelvegDefaults.JsonOptions)}
+            {JsonSerializer.Serialize(Model, jsonOptions)}
         </script>
 ");
+        }
+        else
+        {
+            sb.Append(
+$@"
+        <script type=""application/json"" id=""helveg-data"" src=""{dataName}""></script>");
+        }
+
 
         foreach (var script in scripts)
         {
-            await writer.WriteAsync(
+
+            var classAttribute = script.Classes is not null ? $" class=\"{script.Classes}\"" : "";
+            if (embedAll)
+            {
+
+                sb.Append(
 @$"
-        <!-- {script.fileName} -->
-        <script type=""{(Path.GetExtension(script.fileName) == ".js" ? "text/javascript" : "application/json")}"" {(Path.GetExtension(script.fileName) == ".json" ? "class=\"helveg-icons\"" : "")}>
-            {script.contents}
+        <!-- {script.FileName} -->
+        <script type=""{script.Type}""{classAttribute}>
+            {script.Contents}
         </script>
 ");
+            }
+            else
+            {
+                sb.Append(
+@$"
+        <script type=""{script.Type}"" src=""{ScriptsDirName}/{script.FileName}""{classAttribute}></script>");
+            }
         }
 
-        writer.Write(GetInitializer());
+        sb.Append(GetInitializer(InitializerOptions));
 
-        writer.Write(
+        sb.Append(
 @"    </body>
 </html>
 ");
+        return sb.ToString();
     }
 
-    private async Task BuildStatic(Func<string, Stream> streamFactory)
+    private string GetInitializer(InitializerOptions options)
     {
-        logger.LogInformation("Building a '{}' static app at '{}'.", Model.Name, EntryPointName);
-
-        async Task WriteFile(string filePath, string contents)
+        dynamic refreshOptions = new ExpandoObject();
+        if (options.ExpandedDepth is not null)
         {
-            using var stream = streamFactory(filePath);
-            using var writer = new StreamWriter(stream);
-            await writer.WriteAsync(contents);
+            refreshOptions.expandedDepth = options.ExpandedDepth;
+        }
+        if (options.SelectedRelations is not null)
+        {
+            refreshOptions.selectedRelations = options.SelectedRelations;
+        }
+        if (options.SelectedKinds is not null)
+        {
+            refreshOptions.selectedKinds = options.SelectedKinds;
         }
 
-        async Task WriteJson<T>(string filePath, T value)
-        {
-            using var stream = streamFactory(filePath);
-            await JsonSerializer.SerializeAsync(stream, value, HelvegDefaults.JsonOptions);
-        }
-
-        var stylePaths = new List<string>();
-        foreach (var (fileName, contents) in styles)
-        {
-            var stylePath = Path.Combine(StylesDirectory, fileName);
-            await WriteFile(stylePath, contents);
-            stylePaths.Add(NormalizePath(stylePath));
-        }
-
-        var scriptPaths = new List<string>();
-        foreach (var (fileName, contents) in scripts)
-        {
-            var scriptPath = Path.Combine(ScriptsDirectory, fileName);
-            await WriteFile(scriptPath, contents);
-            scriptPaths.Add(NormalizePath(scriptPath));
-        }
-
-        var dataPath = !string.IsNullOrEmpty(DataDirectory)
-            ? Path.Combine(DataDirectory, UIConst.DataFileName)
-            : UIConst.DataFileName;
-        dataPath = NormalizePath(dataPath);
-        await WriteJson(dataPath, Model);
-
-        using var entryPointStream = streamFactory(EntryPointName);
-        using var entryPointWriter = new StreamWriter(entryPointStream);
-        entryPointWriter.Write(
-@$"<!DOCTYPE html>
-<html lang=""en"">
-    <head>
-        <title>{Model.Name ?? "Unknown"} | Helveg</title>
-        <meta charset=""utf-8"" />
-        <meta content=""width=device-width, initial-scale=1.0"" name=""viewport"" />
-        <link rel=""icon"" type=""image/png"" href=""{FaviconDataUrl}"" />
-        ");
-        foreach (var stylePath in stylePaths)
-        {
-            entryPointWriter.Write(
-@$"
-        <link rel=""stylesheet"" type=""text/css"" href=""{stylePath}"">
-");
-        }
-
-        entryPointWriter.Write(
-@$"
-    </head>
-
-    <body>
-        <div id=""app""></div>
-        <script type=""application/json"" id=""helveg-data"" src=""{dataPath}""></script>
-");
-
-        foreach (var scriptPath in scriptPaths)
-        {
-            entryPointWriter.Write(
-@$"
-        <script type=""{(Path.GetExtension(scriptPath) == ".js" ? "text/javascript" : "application/json")}"" src=""{scriptPath}"" {(Path.GetExtension(scriptPath) == ".json" ? "class=\"helveg-icons\"" : "")}></script>
-");
-        }
-
-        entryPointWriter.Write(GetInitializer());
-
-        entryPointWriter.Write(
-@"    </body>
-</html>
-");
-    }
-    
-    private async Task BuildDataOnly(Func<string, Stream> streamFactory)
-    {
-        async Task WriteJson<T>(string filePath, T value)
-        {
-            using var stream = streamFactory(filePath);
-            await JsonSerializer.SerializeAsync(stream, value, HelvegDefaults.JsonOptions);
-        }
-        
-        var dataPath = UIConst.DataFileName;
-        dataPath = NormalizePath(dataPath);
-        await WriteJson(dataPath, Model);
-    }
-
-    private string GetInitializer()
-    {
         return
-@$"<script type=""module"">
-    let iconSets = await helveg.loadIconSets("".helveg-icons"");
-        let model = await helveg.loadModel(document.getElementById(""helveg-data""));
-        window.diagram = helveg.createDiagram({{
-            iconSets: iconSets,
-            model: model,
-            mainRelation: ""declares""
-        }});
-        await window.diagram.resetLayout();
-        helveg.createExplorer(diagram);
+$@"<script type=""module"">
+    const iconSets = await helveg.loadIconSets(""{options.IconSetSelector}"");
+    const model = await helveg.loadModel(document.getElementById(""{options.DataId}""));
+    const diagram = helveg.createDiagram({{
+        iconSets: iconSets,
+        model: model,
+        mainRelation: {(options.MainRelation is null ? "null" : $"\"{options.MainRelation}\"")},
+        refresh: {JsonSerializer.Serialize(refreshOptions, jsonOptions)}
+    }});
+    await diagram.reset();
+    helveg.createExplorer(diagram);
+
+    // NB: this is left here mostly for debugging purposes
+    helveg.diagram = diagram;
 </script>";
     }
 
@@ -325,35 +402,5 @@ public class UIBuilder
             return path.Replace('\\', '/');
         }
         return path;
-    }
-
-    private static async Task<string> GetBaseResource(string name)
-    {
-        var dir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-        Stream? stream = null;
-        if (dir is not null)
-        {
-            var namePath = Path.Combine(dir, name);
-            if (File.Exists(namePath))
-            {
-                stream = File.OpenRead(namePath);
-            }
-        }
-
-        if (stream is null)
-        {
-            stream = typeof(UIBuilder).Assembly.GetManifestResourceStream(name);
-        }
-
-        if (stream is null)
-        {
-            throw new ArgumentException($"Could not find resource '{name}'.");
-        }
-
-        using (stream)
-        {
-            using var reader = new StreamReader(stream);
-            return await reader.ReadToEndAsync();
-        }
     }
 }

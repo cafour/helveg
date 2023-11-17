@@ -34,14 +34,12 @@
     "peerDependencies": {
         "@cafour/helveg-diagram": "workspace:*"
     },
-    "dependencies": {
-        "svelte": "^4.2.2"
-    },
     "devDependencies": {
         "@cafour/helveg-diagram": "workspace:*",
         "@tsconfig/svelte": "^5.0.2",
         "@types/node": "^20.8.10",
         "@types/yargs": "^17.0.24",
+        "@types/dompurify": "^3.0.5",
         "autoprefixer": "^10.4.16",
         "concurrently": "^7.6.0",
         "esbuild": "^0.19.5",
@@ -57,6 +55,9 @@
         "tsx": "^3.14.0",
         "typescript": "^5.2.2",
         "uniformcss": "^1.5.4",
-        "yargs": "^17.7.2"
+        "yargs": "^17.7.2",
+        "dompurify": "^3.0.6",
+        "marked": "^10.0.0",
+        "svelte": "^4.2.2"
     }
 }

@@ -18,8 +18,8 @@ const DEFAULT_OPTIONS: TidyTreeLayoutOptions = {
 export default function tidyTree(graph: HelvegGraph, rootId: string, options?: Partial<TidyTreeLayoutOptions>) {
     let opts = { ...DEFAULT_OPTIONS, ...options };
     const root = hierarchy(rootId, nodeId =>
-        <string[]>graph.mapOutboundEdges(nodeId, (_, attr, __, dst, ___, dstAttr) =>
-            attr.relation && attr.relation === opts.relation && dstAttr.hidden !== true
+        <string[]>graph.mapOutboundEdges(nodeId, (_edge, attr, _src, dst, _srcAttr, dstAttr) =>
+            attr.relation && attr.relation === opts.relation
                 ? dst
                 : undefined)
             .filter(dst => dst != undefined));
@@ -34,6 +34,7 @@ export default function tidyTree(graph: HelvegGraph, rootId: string, options?: P
         if (x != null && y != null && !isNaN(x) && !isNaN(y)) {
             graph.setNodeAttribute(node.data, "x", opts.offset.x + y * Math.cos(x));
             graph.setNodeAttribute(node.data, "y", opts.offset.y + y * Math.sin(x));
+            graph.setNodeAttribute(node.data, "inInitialPosition", true);
         }
     })
 }

@@ -4,7 +4,6 @@
     import DocumentPanel from "./DocumentPanel.svelte";
     import Tab from "./Tab.svelte";
     import PropertiesPanel from "./PropertiesPanel.svelte";
-    import DataPanel from "./DataPanel.svelte";
     import AppearancePanel from "./AppearancePanel.svelte";
     import LayoutPanel from "./LayoutPanel.svelte";
     import GuidePanel from "./GuidePanel.svelte";
@@ -15,11 +14,12 @@
     import {
         sublogger,
         type Diagram,
-        type IconRegistry,
+        createCsharpRelationStylist,
     } from "../deps/helveg-diagram.ts";
     import { AppIcons, AppPanels, AppTools } from "../const.ts";
     import * as Options from "../options.ts";
     import LoadingScreen from "./LoadingScreen.svelte";
+    import SearchPanel from "./SearchPanel.svelte";
 
     export let diagram: Diagram;
     setContext("diagram", diagram);
@@ -54,31 +54,41 @@
     const dataOptions = createOptions<Options.DataOptions>(
         "dataOptions",
         "data",
-        Options.DEFAULT_DATA_OPTIONS
+        {
+            ...structuredClone(Options.DEFAULT_DATA_OPTIONS),
+            ...diagram.options.refresh,
+        }
     );
     const layoutOptions = createOptions<Options.LayoutOptions>(
         "layoutOptions",
         "layout",
-        Options.DEFAULT_LAYOUT_OPTIONS
+        structuredClone(Options.DEFAULT_LAYOUT_OPTIONS)
     );
     $layoutOptions.tidyTree.relation = diagram.mainRelation;
     layoutOptions.subscribe((v) => {
         diagram.mainRelation = v.tidyTree.relation;
+        diagram.forceAtlas2Options = v.forceAtlas2;
     });
     const appearanceOptions = createOptions<Options.AppearanceOptions>(
         "appearanceOptions",
         "appearance",
-        Options.DEFAULT_APPEARANCE_OPTIONS
+        {
+            relationColors: {},
+            ...structuredClone(Options.DEFAULT_APPEARANCE_OPTIONS),
+        }
+    );
+    $: diagram.relationStylist = createCsharpRelationStylist(
+        $appearanceOptions.relationColors!
     );
     const exportOptions = createOptions<Options.ExportOptions>(
         "exportOptions",
         "export",
-        Options.DEFAULT_EXPORT_OPTIONS
+        structuredClone(Options.DEFAULT_EXPORT_OPTIONS)
     );
     const toolOptions = createOptions<Options.ToolOptions>(
         "toolOptions",
         "tool",
-        Options.DEFAULT_TOOL_OPTIONS
+        structuredClone(Options.DEFAULT_TOOL_OPTIONS)
     );
 
     const model = readable(diagram.model, (set) => {
@@ -90,6 +100,7 @@
     let dock: Dock;
     let propertiesPanel: PropertiesPanel;
     let selectedTool: string;
+    let searchResults: string[];
 
     function onNodeSelected(nodeId: string | null) {
         if (nodeId === null) {
@@ -145,10 +156,14 @@
         glyphOptions.showIcons = v.glyph.showIcons;
         glyphOptions.showLabels = v.glyph.showLabels;
         glyphOptions.showOutlines = v.glyph.showOutlines;
+        glyphOptions.showDiffs = v.glyph.showDiffs;
+        glyphOptions.sizingMode = v.glyph.sizingMode;
 
         glyphOptions.crustWidth = v.codePizza.crustWidth;
         glyphOptions.sauceWidth = v.codePizza.sauceWidth;
         glyphOptions.isPizzaEnabled = v.codePizza.isEnabled;
+        glyphOptions.pizzaToppings =
+            v.codePizza.pizzaToppings ?? glyphOptions.pizzaToppings;
         diagram.glyphProgramOptions = glyphOptions;
     });
 </script>
@@ -167,17 +182,18 @@
     />
 
     <Dock name="panels" bind:this={dock} class="z-2">
-        <Tab name="Data" value={AppPanels.Data} icon={AppIcons.DataPanel}>
-            <DataPanel
-                on:refresh={() =>
-                    diagram.refresh({
-                        selectedRelations: $dataOptions.selectedRelations,
-                        selectedKinds: $dataOptions.selectedKinds
-                    })}
+        <Tab name="Search" value={AppPanels.Search} icon={AppIcons.SearchPanel}>
+            <SearchPanel
                 on:highlight={(e) =>
-                    diagram.highlight(e.detail.searchText, e.detail.searchMode)}
+                    (searchResults = diagram.highlight(
+                        e.detail.searchText,
+                        e.detail.searchMode,
+                        e.detail.expandedOnly
+                    ))}
                 on:isolate={(e) =>
                     diagram.isolate(e.detail.searchText, e.detail.searchMode)}
+                on:selected={(e) => (diagram.selectedNode = e.detail)}
+                results={searchResults}
             />
         </Tab>
         <Tab name="Layout" value={AppPanels.Layout} icon={AppIcons.LayoutPanel}>
@@ -185,6 +201,12 @@
                 on:run={(e) => diagram.runLayout(e.detail)}
                 on:stop={() => diagram.stopLayout()}
                 on:tidyTree={() => diagram.resetLayout()}
+                on:refresh={() =>
+                    diagram.refresh({
+                        selectedRelations: $dataOptions.selectedRelations,
+                        selectedKinds: $dataOptions.selectedKinds,
+                        expandedDepth: $dataOptions.expandedDepth
+                    })}
                 status={$status}
                 stats={$stats}
             />

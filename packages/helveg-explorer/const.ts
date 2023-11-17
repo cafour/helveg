@@ -6,6 +6,7 @@ export enum AppIcons {
     PropertiesPanel = "vs:ShowAllConfigurations",
     DocumentPanel = "vs:Document",
     GuidePanel = "vs:StatusHelpOutline",
+    SearchPanel = "vs:Search",
 
     ContainsMode = "vs:String",
     RegexMode = "vs:RegularExpression",
@@ -38,7 +39,8 @@ export enum AppPanels {
     Tools = "tools-panel",
     Properties = "properties-panel",
     Document = "document-panel",
-    Guide = "guide-panel"
+    Guide = "guide-panel",
+    Search = "search-panel"
 }
 
 export enum AppTools {

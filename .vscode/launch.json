@@ -7,11 +7,22 @@
             "request": "launch",
             "preLaunchTask": "build",
             "program": "${workspaceFolder}/src/CommandLine/bin/Debug/net6.0/helveg.dll",
-            "args": ["-pa", "PublicApi", "--verbose"],
-            "cwd": "C:\\dev\\fi\\kafe",
+            "args": ["--preset", "Dev", "--verbose", "--compare-to", "../kafe-old", "--out-dir", "C:\\temp\\"],
+            "cwd": "C:\\dev\\fi\\kafe-api",
             "console": "internalConsole",
             "stopAtEntry": false
         },
+        {
+          "name": "Playground (Debug)",
+          "type": "coreclr",
+          "request": "launch",
+          "preLaunchTask": "build",
+          "program": "${workspaceFolder}/src/Playground/bin/Debug/net6.0/Helveg.Playground.dll",
+          "args": [],
+          "cwd": "${workspaceFolder}/src/Playground",
+          "console": "internalConsole",
+          "stopAtEntry": false
+      },
         {
             "type": "node",
             "request": "launch",

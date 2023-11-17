@@ -9,6 +9,10 @@ public interface IEntity
 
     ImmutableArray<Diagnostic> Diagnostics { get; }
 
+    ImmutableArray<Comment> Comments { get; }
+
+    DiffStatus DiffStatus { get; }
+
     ImmutableArray<IEntityExtension> Extensions { get; }
 
     IEntity AddExtension(IEntityExtension extension);

@@ -101,11 +101,17 @@ export const FALLBACK_EDGE_STYLE: EdgeStyle = {
 };
 
 export type NodeStylist = (node: MultigraphNode) => NodeStyle;
+export type RelationStylist = (relation: string) => EdgeStyle;
 export type EdgeStylist = (relation: string, edge: MultigraphEdge) => EdgeStyle;
 
 export function fallbackNodeStylist(_node: MultigraphNode): NodeStyle
 {
     return FALLBACK_NODE_STYLE;
+}
+
+export function fallbackRelationStylist(_relation: string)
+{
+    return FALLBACK_EDGE_STYLE;
 }
 
 export function fallbackEdgeStylist(_relation: string, _edge: MultigraphEdge)

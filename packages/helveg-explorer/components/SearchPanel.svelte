@@ -3,12 +3,15 @@
     import Panel from "./Panel.svelte";
     import RadioGroup from "./RadioGroup.svelte";
     import Subpanel from "./Subpanel.svelte";
-    import { type DataOptions } from "../options.ts";
     import { AppIcons, AppPanels } from "../const.ts";
     import ResizingTextarea from "./ResizingTextarea.svelte";
-    import ToggleAllCheckbox from "./ToggleAllCheckbox.svelte";
-    import { SearchMode, type DataModel, getNodeKinds, getRelations } from "../deps/helveg-diagram.ts";
-    import type { Readable, Writable } from "svelte/store";
+    import {
+        SearchMode,
+        type DataModel,
+        Diagram,
+    } from "../deps/helveg-diagram.ts";
+    import type { Readable } from "svelte/store";
+    import Icon from "./Icon.svelte";
 
     let dispatch = createEventDispatcher();
 
@@ -28,26 +31,27 @@
     ];
     let selectedSearchMode = SearchMode.Contains;
     let searchText: string = "";
+    let expandedOnly: boolean = false;
 
     let model = getContext<Readable<DataModel>>("model");
-    let dataOptions = getContext<Writable<DataOptions>>("dataOptions");
-    
-    $: relations = getRelations($model.data);
-    $: kinds = getNodeKinds($model.data);
+    let diagram = getContext<Diagram>("diagram");
+    export let results: string[] = [];
+    $: nodeResults = results
+        .map((r) => {
+            return { ...$model.data?.nodes[r]!, id: r };
+        })
+        .filter((n) => n && n.name)
+        .sort((l, r) => l.name!.localeCompare(r.name!));
 </script>
 
-<Panel name="Data" indent={false} id={AppPanels.Data}>
+<Panel name="Search" indent={false} id={AppPanels.Search}>
     <Subpanel>
-        <button on:click={() => dispatch("refresh")} class="button-stretch primary">
-            Refresh
-        </button>
-    </Subpanel>
-    <Subpanel name="Search">
         <form
             on:submit|preventDefault={() =>
                 dispatch("highlight", {
                     searchText: searchText,
                     searchMode: selectedSearchMode,
+                    expandedOnly: expandedOnly
                 })}
         >
             <div class="flex flex-row gap-4">
@@ -59,6 +63,13 @@
                     class="theme-light"
                 />
             </div>
+            <label>
+                <input
+                    type="checkbox"
+                    bind:checked={expandedOnly}
+                />
+                <span>ExpandedOnly</span>
+            </label>
             <input
                 type="submit"
                 class="button-stretch mt-8 primary"
@@ -76,45 +87,22 @@
             </button>
         </form>
     </Subpanel>
-    <Subpanel name="Relations">
-        <!-- svelte-ignore a11y-label-has-associated-control -->
-        <label>
-            <ToggleAllCheckbox
-                bind:selected={$dataOptions.selectedRelations}
-                all={relations}
-            />
-            <span>all</span>
-        </label>
-        {#each relations as relation}
-            <label>
-                <input
-                    type="checkbox"
-                    bind:group={$dataOptions.selectedRelations}
-                    value={relation}
-                />
-                <span>{relation}</span>
-            </label>
-        {/each}
-    </Subpanel>
-    <Subpanel name="Node Kinds">
-        <!-- svelte-ignore a11y-label-has-associated-control -->
-        <label>
-            <ToggleAllCheckbox
-                bind:selected={$dataOptions.selectedKinds}
-                all={kinds}
-            />
-            <span>all</span>
-        </label>
-        {#each kinds as kind}
-            <label>
-                <input
-                    type="checkbox"
-                    bind:group={$dataOptions.selectedKinds}
-                    value={kind}
-                />
-                <span>{kind}</span>
-            </label>
-        {/each}
-    </Subpanel>
-    
+    {#if results.length > 0}
+        <Subpanel name="Results" indent={false}>
+            <div class="flex flex-col">
+                {#each nodeResults as node}
+                    <!-- svelte-ignore a11y-click-events-have-key-events -->
+                    <!-- svelte-ignore a11y-no-static-element-interactions -->
+                    <div
+                        class="flex flex-row search-item"
+                        class:selected={node.id == diagram.selectedNode}
+                        on:click={() => dispatch("selected", node.id)}
+                    >
+                        <Icon name={diagram.nodeStylist(node).icon} />
+                        <span>{node.name}</span>
+                    </div>
+                {/each}
+            </div>
+        </Subpanel>
+    {/if}
 </Panel>

@@ -11,6 +11,7 @@ public static class MultigraphExtensions
     {
         if (graph.Nodes.TryGetValue(id, out var node))
         {
+            node.Name = name ?? node.Name;
             return (TNode)node;
         }
 
@@ -41,7 +42,7 @@ public static class MultigraphExtensions
 
         foreach (var edge in edges)
         {
-            relation.Edges.Add($"{edge.Src};{edge.Dst}", edge);
+            relation.Edges[$"{edge.Src};{edge.Dst}"] = edge;
         }
     }
 
@@ -73,6 +74,36 @@ public static class MultigraphExtensions
             DiagnosticSeverity.Warning => MultigraphDiagnosticSeverity.Warning,
             DiagnosticSeverity.Error => MultigraphDiagnosticSeverity.Error,
             _ => throw new ArgumentException($"Severity '{severity}' is not supported.")
+        };
+    }
+
+    public static MultigraphComment ToMultigraphComment(this Comment comment)
+    {
+        return comment.Format switch
+        {
+            CommentFormat.Plain => new MultigraphComment
+            {
+                Content = comment.Content,
+                Format = MultigraphCommentFormat.Plain
+            },
+            CommentFormat.Markdown => new MultigraphComment
+            {
+                Content = comment.Content,
+                Format = MultigraphCommentFormat.Markdown,
+            },
+            _ => throw new NotSupportedException($"The '{comment.Format}' comment format is unsupported.")
+        };
+    }
+    
+    public static MultigraphNodeDiffStatus? ToMultigraphDiffStatus(this DiffStatus diff)
+    {
+        return diff switch
+        {
+            DiffStatus.Unmodified => null,
+            DiffStatus.Modified => MultigraphNodeDiffStatus.Modified,
+            DiffStatus.Added => MultigraphNodeDiffStatus.Added,
+            DiffStatus.Deleted => MultigraphNodeDiffStatus.Deleted,
+            _ => throw new NotSupportedException()
         };
     }
 }

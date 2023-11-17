@@ -15,6 +15,9 @@
         },
         "git-version": {
             "cache": false
+        },
+        "schema": {
+            "outputMode": "new-only"
         }
     }
 }

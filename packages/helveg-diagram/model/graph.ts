@@ -1,17 +1,20 @@
 import { Attributes, EdgeEntry } from "../deps/graphology.ts";
 import Graph from "../deps/graphology.ts";
 import { NodeDisplayData, EdgeDisplayData } from "../deps/sigma.ts";
-import { Multigraph } from "./data-model.ts";
+import { Multigraph, MultigraphNodeDiffStatus } from "./data-model.ts";
 import { Outlines, FireStatus } from "./style.ts";
 
 export interface HelvegNodeAttributes extends Partial<NodeDisplayData>, Attributes {
     style?: string;
+    kind?: string;
     icon?: string;
     iconSize?: number;
     outlines?: Outlines;
     fire?: FireStatus;
     fixed?: boolean;
     collapsed?: boolean;
+    diff?: MultigraphNodeDiffStatus;
+    inInitialPosition?: boolean;
 }
 
 export interface HelvegEdgeAttributes extends Partial<EdgeDisplayData>, Attributes {
@@ -82,11 +85,28 @@ export function expandNode(
 
         let dist = (nodeSize + (neighbor.attributes.size ?? 2));
         neighbor.targetAttributes.hidden = false;
-        neighbor.targetAttributes.x = x + dist * Math.cos((i / neighborEdge.length) * 2 * Math.PI);
-        neighbor.targetAttributes.y = y + dist * Math.sin((i / neighborEdge.length) * 2 * Math.PI);
+        if (neighbor.sourceAttributes.inInitialPosition !== true
+            && neighbor.targetAttributes.inInitialPosition !== true) {
+            neighbor.targetAttributes.x = x + dist * Math.cos((i / neighborEdge.length) * 2 * Math.PI);
+            neighbor.targetAttributes.y = y + dist * Math.sin((i / neighborEdge.length) * 2 * Math.PI);
+            neighbor.targetAttributes.inInitialPosition = false;
+        }
 
         if (recursive) {
             expandNode(graph, neighbor.target, true, relation);
+        }
+    });
+}
+
+export function expandPathsTo(graph: HelvegGraph, nodeId: string, relation?: string) {
+    graph.forEachInboundEdge(nodeId, (e, a, s, t, sa, ta) => {
+        if (s === nodeId) {
+            // ignore self-references
+            return;
+        }
+        if (sa.collapsed === true && (!relation || a.relation === relation)) {
+            expandNode(graph, s, false, relation);
+            expandPathsTo(graph, s, relation);
         }
     });
 }

@@ -56,9 +56,17 @@ export interface Multigraph {
  */
 export interface MultigraphNode {
     /**
+     * Comments attached to the node.
+     */
+    comments?: MultigraphComment[];
+    /**
      * Diagnostics attached to the node.
      */
     diagnostics?: MultigraphDiagnostic[];
+    /**
+     * The `diff` status of the node.
+     */
+    diff?: MultigraphNodeDiffStatus;
     /**
      * The kind of the node.
      */
@@ -71,6 +79,17 @@ export interface MultigraphNode {
 }
 
 /**
+ * A comment regarding a node.
+ */
+export interface MultigraphComment {
+    content: string;
+    format:  MultigraphCommentFormat;
+    [property: string]: any;
+}
+
+export type MultigraphCommentFormat = "plain" | "markdown";
+
+/**
  * A diagnostic message (warning, error, etc.) regarding a node.
  */
 export interface MultigraphDiagnostic {
@@ -81,6 +100,11 @@ export interface MultigraphDiagnostic {
 }
 
 export type MultigraphDiagnosticSeverity = "hidden" | "info" | "warning" | "error";
+
+/**
+ * The `diff` status of the node.
+ */
+export type MultigraphNodeDiffStatus = "unmodified" | "modified" | "added" | "deleted";
 
 /**
  * A relation of the multigraph.

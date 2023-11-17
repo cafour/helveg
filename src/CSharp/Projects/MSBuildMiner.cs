@@ -57,72 +57,101 @@ public class MSBuildMiner : IMiner
             return;
         }
 
+        // 1.2 Find the ComparedTo solution file and check if it has the same name.
+        Solution? compareToSolution = null;
+        if (workspace.Source.CompareTo is not null)
+        {
+            compareToSolution = GetSolution(workspace.Source.CompareTo, cancellationToken);
+            if (compareToSolution is null)
+            {
+                logger.LogError("The CompareTo solution at '{}' could no be loaded.", workspace.Source.CompareTo);
+            }
+            else
+            {
+                logger.LogInformation(
+                    "Comparing the '{}' solution with the '{}' solution.",
+                    solution.Path,
+                    compareToSolution.Path);
+
+                if (compareToSolution.Name != solution.Name)
+                {
+                    solution = solution with { DiffStatus = DiffStatus.Added };
+                    compareToSolution = compareToSolution with { DiffStatus = DiffStatus.Deleted };
+                }
+            }
+        }
+
         if (!workspace.TryAddRoot(solution))
         {
             logger.LogError("Failed to add the '{}' root to the mining workspace.", solution.Id);
+        }
+
+        if (compareToSolution is not null && !workspace.TryAddRoot(compareToSolution))
+        {
+            logger.LogError("Failed to add the CompareTo solution '{}' to the workspace.", compareToSolution.Id);
         }
 
         // 2. Mine the projects in the solution.
         // NB: All projects in the solution need to exist so that they can be referenced by each other.
         await MineSolutionProjects(solution.Token, cancellationToken);
 
+        if (compareToSolution is not null)
+        {
+            await MineSolutionProjects(compareToSolution.Token, cancellationToken);
+
+            using var solutionHandle = await workspace.GetRootExclusively<Solution>(
+                solution.Token,
+                cancellationToken);
+            solution = solutionHandle.Entity!;
+
+            using var compareToSolutionHandle = await workspace.GetRootExclusively<Solution>(
+                compareToSolution.Token,
+                cancellationToken);
+            compareToSolution = compareToSolutionHandle.Entity!;
+
+            var addedProjects = solution.Projects.ExceptBy(compareToSolution.Projects.Select(p => p.Name), p => p.Name);
+            foreach (var addedProject in addedProjects)
+            {
+                solution = solution with
+                {
+                    Projects = solution.Projects.Replace(
+                        addedProject,
+                        addedProject with { DiffStatus = DiffStatus.Added })
+                };
+            }
+
+            var removedProjects = compareToSolution.Projects.ExceptBy(
+                compareToSolution.Projects.Select(p => p.Name),
+                p => p.Name);
+            foreach (var removedProject in removedProjects)
+            {
+                solution = solution with
+                {
+                    Projects = solution.Projects.Add(removedProject with
+                    {
+                        DiffStatus = DiffStatus.Deleted,
+                        ContainingSolution = solution.Token
+                    })
+                };
+            }
+            solutionHandle.Entity = solution;
+            compareToSolutionHandle.Entity = null;
+        }
+
         return;
     }
 
     private Solution? GetSolution(string path, CancellationToken cancellationToken = default)
     {
-        if (Directory.Exists(path))
+        var targetFile = CSConst.FindSource(path, logger);
+        if(targetFile is null)
         {
-            var solutionFiles = Directory.GetFiles(path, $"*{CSConst.SolutionFileExtension}");
-            if (solutionFiles.Length > 1)
-            {
-                logger.LogCritical(
-                    "The '{}' directory contains multiple solution files. Provide a path to one them.",
-                    path);
-                return null;
-            }
-            else if (solutionFiles.Length == 1)
-            {
-                path = solutionFiles[0];
-            }
-            else
-            {
-                var csprojFiles = Directory.GetFiles(path, $"*{CSConst.ProjectFileExtension}");
-                if (csprojFiles.Length > 1)
-                {
-                    logger.LogCritical(
-                        "The '{}' directory contains multiple C# project files. Provide a path to one them.",
-                        path);
-                    return null;
-                }
-                else if (csprojFiles.Length == 1)
-                {
-                    path = csprojFiles[0];
-                }
-                else
-                {
-                    logger.LogCritical(
-                        "The '{}' directory contains no solution nor C# project files.",
-                        path);
-                    return null;
-                }
-            }
-        }
-
-        if (!File.Exists(path))
-        {
-            logger.LogCritical("The source file '{}' does not exist.", path);
             return null;
         }
-
+        path = targetFile;
+        
         var fileExtension = Path.GetExtension(path);
-        if (fileExtension != CSConst.SolutionFileExtension && fileExtension != CSConst.ProjectFileExtension)
-        {
-            logger.LogCritical("The source file '{}' is not a solution nor a C# project file.", path);
-            return null;
-        }
 
-        var absolutePath = new FileInfo(path).FullName;
         var solution = new Solution
         {
             Index = Interlocked.Increment(ref counter),
@@ -398,7 +427,7 @@ public class MSBuildMiner : IMiner
         {
             projectReferencePath = new FileInfo(Path.Combine(Path.GetDirectoryName(project.Path) ?? "", projectReferencePath)).FullName;
 
-            var solution = workspace.Roots.Values.OfType<Solution>().First();
+            var solution = workspace.Roots.Values.OfType<Solution>().Single(r => r.Token == project.ContainingSolution);
 
             var referencedProject = solution?.Projects
                 .Where(p => p.Path == projectReferencePath)

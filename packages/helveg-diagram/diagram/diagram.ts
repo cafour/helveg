@@ -1,5 +1,5 @@
 import { HelvegEvent } from "../common/event.ts";
-import { HelvegGraph, findRoots, getNodeKinds, toggleNode } from "../model/graph.ts";
+import { HelvegGraph, expandPathsTo, findRoots, getNodeKinds, toggleNode } from "../model/graph.ts";
 import { Coordinates, NodeProgramConstructor, Sigma, SigmaNodeEventPayload } from "../deps/sigma.ts";
 import { LogSeverity, ILogger, consoleLogger } from "../model/logger.ts";
 import { ForceAtlas2Progress, ForceAtlas2Supervisor } from "../layout/forceAltas2Supervisor.ts";
@@ -10,37 +10,63 @@ import { DEFAULT_GLYPH_PROGRAM_OPTIONS, GlyphProgramOptions, createGlyphProgram 
 import { DEFAULT_EXPORT_OPTIONS, ExportOptions, exportDiagram } from "../rendering/export.ts";
 import { SearchMode, buildNodeFilter, filterNodes } from "../model/filter.ts";
 import { bfsGraph } from "../model/traversal.ts";
-import { EdgeStylist, NodeStylist, fallbackEdgeStylist, fallbackNodeStylist } from "../model/style.ts";
+import { EdgeStylist, NodeStylist, RelationStylist, fallbackEdgeStylist, fallbackNodeStylist, fallbackRelationStylist } from "../model/style.ts";
 import { EMPTY_ICON_REGISTRY, IconRegistry } from "../global.ts";
 import { DataModel } from "../model/data-model.ts";
 import { EMPTY_DATA_MODEL } from "../model/const.ts";
+import { inferSettings } from "graphology-layout-forceatlas2";
+
+export interface DiagramRefreshOptions {
+    selectedRelations?: string[],
+    selectedKinds?: string[],
+    expandedDepth?: number
+}
 
 export interface DiagramOptions {
     glyphProgram: GlyphProgramOptions,
     mainRelation: string | null,
     logLevel: LogSeverity,
     nodeStylist: NodeStylist,
-    edgeStylist: EdgeStylist,
+    relationStylist: RelationStylist,
+    edgeStylist?: EdgeStylist,
     iconRegistry: Readonly<IconRegistry>,
-    initial?: {
-        selectedRelations: string[],
-        selectedKinds: string[]
-    }
+    refresh: DiagramRefreshOptions,
+    forceAtlas2: ForceAtlas2Options
 }
 
-export const DEFAULT_DIAGRAM_OPTIONS: DiagramOptions = {
+export interface ForceAtlas2Options {
+    linLogMode?: boolean;
+    outboundAttractionDistribution?: boolean;
+    adjustSizes?: boolean;
+    edgeWeightInfluence?: number;
+    scalingRatio?: number;
+    strongGravityMode?: boolean;
+    gravity?: number;
+    slowDown?: number;
+    barnesHutOptimize?: boolean;
+    barnesHutTheta?: number;
+}
+
+export const DEFAULT_FORCE_ATLAS2_OPTIONS: Readonly<ForceAtlas2Options> = {
+    ...inferSettings(1024),
+    adjustSizes: true,
+    barnesHutOptimize: false,
+    barnesHutTheta: 0.5,
+    edgeWeightInfluence: 1,
+    linLogMode: false,
+    outboundAttractionDistribution: false,
+};
+
+export const DEFAULT_DIAGRAM_OPTIONS: Readonly<DiagramOptions> = {
     logLevel: LogSeverity.Info,
     mainRelation: null,
     glyphProgram: DEFAULT_GLYPH_PROGRAM_OPTIONS,
     nodeStylist: fallbackNodeStylist,
-    edgeStylist: fallbackEdgeStylist,
-    iconRegistry: EMPTY_ICON_REGISTRY
+    relationStylist: fallbackRelationStylist,
+    iconRegistry: EMPTY_ICON_REGISTRY,
+    refresh: {},
+    forceAtlas2: DEFAULT_FORCE_ATLAS2_OPTIONS
 };
-
-export interface DiagramRefreshOptions {
-    selectedRelations?: string[],
-    selectedKinds?: string[]
-}
 
 export enum DiagramMode {
     Normal = "normal",
@@ -111,7 +137,11 @@ export class Diagram {
 
     private _mode: DiagramMode = DiagramMode.Normal;
     get mode(): DiagramMode { return this._mode; }
-    private set mode(value: DiagramMode) { this._mode = value; this.events.modeChanged.trigger(value); }
+    private set mode(value: DiagramMode) {
+        this._mode = value;
+        this._options.glyphProgram.showOnlyHighlighted = this._mode === DiagramMode.Highlighting;
+        this.events.modeChanged.trigger(value);
+    }
 
     private _selectedNode: string | null = null;
     get selectedNode(): string | null { return this._selectedNode; }
@@ -128,13 +158,37 @@ export class Diagram {
     private _logger: ILogger;
     get logger(): ILogger { return this._logger; }
 
+    get nodeStylist(): NodeStylist { return this._options.nodeStylist; }
+    set nodeStylist(value: NodeStylist) {
+        this._options.nodeStylist = value;
+        this.restyleGraph();
+    }
+
+    get edgeStylist(): EdgeStylist | undefined { return this._options.edgeStylist; }
+    set edgeStylist(value: EdgeStylist | undefined) {
+        this._options.edgeStylist = value;
+        this.restyleGraph();
+    };
+
+    get relationStylist(): RelationStylist { return this._options.relationStylist; }
+    set relationStylist(value: RelationStylist) {
+        this._options.relationStylist = value;
+        this.restyleGraph();
+    }
+
+    get forceAtlas2Options(): ForceAtlas2Options { return this._options.forceAtlas2; }
+    set forceAtlas2Options(value: ForceAtlas2Options) {
+        this._options.forceAtlas2 = value;
+        this.refreshSupervisor(true);
+    }
+
     private _graph?: HelvegGraph;
     private _sigma?: HelvegSigma;
     private _supervisor?: ForceAtlas2Supervisor;
     private _glyphProgram: NodeProgramConstructor;
 
     get glyphProgramOptions(): GlyphProgramOptions { return this.options.glyphProgram; }
-    set glyphProgramOptions(value:GlyphProgramOptions) {
+    set glyphProgramOptions(value: GlyphProgramOptions) {
         this._options.glyphProgram = value;
         this.reconfigureSigma();
         this.restyleGraph();
@@ -161,10 +215,7 @@ export class Diagram {
         this._logger = consoleLogger("diagram", this._options.logLevel);
         this._mainRelation = this._options.mainRelation;
         this._glyphProgram = createGlyphProgram(this.options.glyphProgram, this._logger);
-        this._lastRefreshOptions = {
-            selectedRelations: this.mainRelation ? [this.mainRelation] : [],
-            selectedKinds: getNodeKinds(this._model.data)
-        };
+        this._lastRefreshOptions = this._options.refresh;
 
         this.element.style.width = "100%";
         this.element.style.height = "100%";
@@ -204,7 +255,7 @@ export class Diagram {
         await this.refreshSupervisor();
 
         if (!this.mainRelation) {
-            this._logger.debug("Cannot reset layout since no relation is selected as main.");
+            this._logger.error("Cannot reset layout since no relation is selected as main.");
             return;
         }
 
@@ -244,6 +295,8 @@ export class Diagram {
         }
 
         this._logger.debug("Running the layout.");
+        
+        this._graph.forEachNode((n, a) => a.inInitialPosition = false);
 
         await this._supervisor.start(inBackground);
 
@@ -317,27 +370,35 @@ export class Diagram {
         });
     }
 
-    highlight(searchText: string | null, searchMode: SearchMode): void {
+    highlight(searchText: string | null, searchMode: SearchMode, expandedOnly: boolean = false): string[] {
         if (!this._graph) {
             this._logger.warn("Cannot highlight nodes since the graph is not initialized.");
-            return;
+            return [];
         }
 
+        let results: string[] = [];
         try {
             let filter = buildNodeFilter(searchText, searchMode, this._nodeKeys);
             if (filter === null) {
                 this.mode = DiagramMode.Normal;
                 this._graph.forEachNode((_, a) => a.highlighted = undefined);
                 this._sigma?.refresh();
-                return;
+                return [];
             }
 
             this.mode = DiagramMode.Highlighting;
 
             if (this._model.data) {
                 Object.entries(this._model.data.nodes).forEach(([id, node]) => {
-                    if (this._graph?.hasNode(id)) {
-                        this._graph.setNodeAttribute(id, "highlighted", filter!(node));
+                    if (this._graph?.hasNode(id) && (!expandedOnly || !this._graph.getNodeAttribute(id, "hidden"))) {
+                        const isHighlighted = filter!(node);
+                        if (isHighlighted) {
+                            results.push(id);
+                            if (!expandedOnly) {
+                                expandPathsTo(this._graph, id, this.mainRelation ?? undefined);
+                            }
+                        }
+                        this._graph.setNodeAttribute(id, "highlighted", isHighlighted);
                     }
                 });
             }
@@ -348,11 +409,11 @@ export class Diagram {
             this._logger.warn(e?.message
                 ?? e?.toString()
                 ?? "Something bad happened while highlighting nodes.");
-            return;
+            return [];
         }
 
-        this._logger.info(`Highlighting ${this._graph.reduceNodes((count, _, attributes) =>
-            attributes.highlighted ? count + 1 : count, 0)} nodes.`);
+        this._logger.info(`Highlighting ${results.length} nodes.`);
+        return results;
     }
 
     highlightNode(nodeId: string | null, includeSubtree: boolean, includeNeighbors: boolean) {
@@ -436,6 +497,11 @@ export class Diagram {
         await this.resetLayout();
     }
 
+    reset(): Promise<void> {
+        this.mainRelation = this.options.mainRelation;
+        return this.refresh(this.options.refresh);
+    }
+
     async cut(nodeId: string, options?: CutOptions): Promise<void> {
         options = { ...DEFAULT_CUT_OPTIONS, ...options };
 
@@ -496,7 +562,11 @@ export class Diagram {
                 return;
             }
 
-            this._supervisor = initializeSupervisor(this._graph, this.onSupervisorProgress.bind(this), this.logger);
+            this._supervisor = initializeSupervisor(
+                this._graph,
+                this.onSupervisorProgress.bind(this),
+                this.options.forceAtlas2,
+                this.logger);
             if (shouldLayoutContinue
                 && (lastStatus === DiagramStatus.Running || lastStatus === DiagramStatus.RunningInBackground)) {
                 await this._supervisor.start(lastStatus === DiagramStatus.RunningInBackground);
@@ -569,9 +639,10 @@ export class Diagram {
 
         this._graph = initializeGraph(
             this._model,
+            this.mainRelation ?? undefined,
             options.selectedRelations ?? (this.mainRelation ? [this.mainRelation] : []),
             options.selectedKinds,
-            this.logger);
+            options.expandedDepth);
         this.restyleGraph();
 
         await this.refreshSupervisor(false, () => this._graph && this._sigma?.setGraph(this._graph));
@@ -591,7 +662,9 @@ export class Diagram {
             this._model,
             this.options.glyphProgram,
             this.options.nodeStylist,
-            this.options.edgeStylist);
+            this.options.relationStylist,
+            this.options.edgeStylist,
+            this.logger);
     }
 
     private onNodeClick(event: SigmaNodeEventPayload): void {
