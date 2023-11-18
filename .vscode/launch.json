@@ -12,10 +12,9 @@
         "Dev",
         "--verbose",
         "--out-dir",
-        "C:\\tmp\\",
-        "NoMobile.sln"
+        "C:\\temp\\"
       ],
-      "cwd": "C:\\dev\\riganti\\freya\\",
+      "cwd": "C:\\dev\\helveg\\",
       "console": "internalConsole",
       "stopAtEntry": false
     },
