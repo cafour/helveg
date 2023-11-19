@@ -94,6 +94,13 @@
             />
             IsFireAnimated
         </label>
+        <label>
+            <input
+                type="checkbox"
+                bind:checked={$appearanceOptions.glyph.dimCollapsedNodes}
+            />
+            DimCollapsedNodes
+        </label>
         <label class="flex flex-row gap-8 align-items-center">
             <span
                 class="w-80 inline-block flex-shrink-0 ellipsis overflow-hidden"

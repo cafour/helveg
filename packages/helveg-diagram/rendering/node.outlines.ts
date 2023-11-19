@@ -11,11 +11,13 @@ const UNIFORMS = ["u_sizeRatio", "u_pixelRatio", "u_matrix", "u_gap"];
 export interface OutlinesProgramOptions {
     gap: number;
     showOnlyHighlighted: boolean;
+    dimCollapsedNodes: boolean;
 }
 
 export const DEFAULT_OUTLINES_PROGRAM_OPTIONS: OutlinesProgramOptions = {
     gap: 0,
-    showOnlyHighlighted: false
+    showOnlyHighlighted: false,
+    dimCollapsedNodes: true
 };
 
 export default function createOutlinesProgram(options?: Partial<OutlinesProgramOptions>): NodeProgramConstructor {
@@ -66,7 +68,7 @@ export class OutlinesProgram extends NodeProgram<typeof UNIFORMS[number]> {
         array[i++] = floatColor(useColor ? data.color ?? FALLBACK_NODE_STYLE.color : "#aaaaaa");
         array[i++] = floatOutlineWidths(data.outlines ?? FALLBACK_NODE_STYLE.outlines);
         array[i++] = floatOutlineStyles(data.outlines ?? FALLBACK_NODE_STYLE.outlines);
-        array[i++] = +!!(useColor && data.collapsed);
+        array[i++] = +!!(useColor && this.options.dimCollapsedNodes && data.collapsed);
     }
 
     draw(params: RenderParams): void {

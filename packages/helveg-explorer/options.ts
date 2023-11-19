@@ -38,6 +38,7 @@ export interface GlyphOptions {
     showFire: boolean;
     showDiffs: boolean;
     isFireAnimated: boolean;
+    dimCollapsedNodes: boolean;
     codePizza: boolean;
     sizingMode: SizingMode
 }
@@ -49,6 +50,7 @@ export const DEFAULT_GLYPH_OPTIONS: GlyphOptions = {
     showDiffs: false,
     showFire: true,
     isFireAnimated: true,
+    dimCollapsedNodes: true,
     codePizza: false,
     sizingMode: "linear"
 }

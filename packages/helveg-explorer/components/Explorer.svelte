@@ -157,6 +157,7 @@
         glyphOptions.showLabels = v.glyph.showLabels;
         glyphOptions.showOutlines = v.glyph.showOutlines;
         glyphOptions.showDiffs = v.glyph.showDiffs;
+        glyphOptions.dimCollapsedNodes = v.glyph.dimCollapsedNodes;
         glyphOptions.sizingMode = v.glyph.sizingMode;
 
         glyphOptions.crustWidth = v.codePizza.crustWidth;
