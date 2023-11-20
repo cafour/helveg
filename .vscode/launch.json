@@ -9,8 +9,10 @@
       "program": "${workspaceFolder}/src/CommandLine/bin/Debug/net6.0/helveg.dll",
       "args": [
         "--preset",
-        "Dev",
+        "Docs",
         "--verbose",
+        "--mode",
+        "SingleFile",
         "--out-dir",
         "C:\\temp\\"
       ],

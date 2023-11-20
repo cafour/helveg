@@ -18,6 +18,17 @@ public class VisualizationProjectVisitor : ProjectVisitor
 
     public override void DefaultVisit(IEntity entity)
     {
+        // TODO: Figure out why some namespaces are visited by this visitor but not VisualizationSymbolVisitor and
+        //       thus create stupid empty nodes in the diagram.
+        if (entity is not Solution
+            && entity is not Project
+            && entity is not Framework
+            && entity is not Library
+            && entity is not ExternalDependencySource)
+        {
+            return;
+        }
+        
         var node = graph.GetNode<CSharpNode>(entity.Id);
         node.Diff = entity.DiffStatus.ToMultigraphDiffStatus();
     }
