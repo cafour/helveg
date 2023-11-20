@@ -158,7 +158,7 @@
                     <span>ScalingRatio</span>
                     <input
                         type="number"
-                        min="0"
+                        min="1"
                         bind:value={$layoutOptions.forceAtlas2.scalingRatio}
                     />
                 </div>
@@ -176,7 +176,7 @@
                     <span>SlowDown</span>
                     <input
                         type="number"
-                        min="0"
+                        min="1"
                         bind:value={$layoutOptions.forceAtlas2.slowDown}
                     />
                 </div>
