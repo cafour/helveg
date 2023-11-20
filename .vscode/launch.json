@@ -21,6 +21,27 @@
       "stopAtEntry": false
     },
     {
+      "name": "Helveg (kafe_diff)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/src/CommandLine/bin/Debug/net6.0/helveg.dll",
+      "args": [
+        "--preset",
+        "Dev",
+        "--verbose",
+        "--mode",
+        "SingleFile",
+        "--out-dir",
+        "C:\\temp\\",
+        "--compare-to",
+        "C:\\dev\\fi\\kafe-old"
+      ],
+      "cwd": "C:\\dev\\fi\\kafe-api",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
       "name": "Playground (Debug)",
       "type": "coreclr",
       "request": "launch",

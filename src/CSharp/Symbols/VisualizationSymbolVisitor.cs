@@ -22,6 +22,7 @@ public class VisualizationSymbolVisitor : SymbolVisitor
         node.Kind = CSConst.KindOf(symbol.GetType());
         node.Diagnostics = symbol.Diagnostics.Select(d => d.ToMultigraphDiagnostic()).ToList();
         node.Comments = symbol.Comments.Select(d => d.ToMultigraphComment()).ToList();
+        node.Diff = symbol.DiffStatus.ToMultigraphDiffStatus();
 
         if (symbol is IMemberDefinition member)
         {
