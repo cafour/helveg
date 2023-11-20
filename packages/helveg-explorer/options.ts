@@ -1,14 +1,6 @@
 import { DEFAULT_CUT_OPTIONS, type CutOptions, type ExportOptions, DEFAULT_EXPORT_OPTIONS, PizzaIcons, DEFAULT_CSHARP_RELATION_COLORS, type ForceAtlas2Options, DEFAULT_FORCE_ATLAS2_OPTIONS, type SizingMode } from "./deps/helveg-diagram.ts";
 export { type CutOptions, type ExportOptions, DEFAULT_EXPORT_OPTIONS };
 
-export interface ToggleToolOptions {
-    relation: string | null;
-}
-
-export const DEFAULT_TOGGLE_TOOL_OPTIONS: Readonly<ToggleToolOptions> = {
-    relation: null
-};
-
 export interface ShowPropertiesToolOptions {
     shouldHighlightSubtree: boolean;
     shouldHighlightNeighbors: boolean;
@@ -21,13 +13,11 @@ export const DEFAULT_SHOW_PROPERTIES_TOOL_OPTIONS: Readonly<ShowPropertiesToolOp
 
 export interface ToolOptions {
     cut: CutOptions;
-    toggle: ToggleToolOptions;
     showProperties: ShowPropertiesToolOptions;
 }
 
 export const DEFAULT_TOOL_OPTIONS: Readonly<ToolOptions> = {
     cut: DEFAULT_CUT_OPTIONS,
-    toggle: DEFAULT_TOGGLE_TOOL_OPTIONS,
     showProperties: DEFAULT_SHOW_PROPERTIES_TOOL_OPTIONS
 }
 

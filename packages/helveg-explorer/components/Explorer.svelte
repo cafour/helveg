@@ -133,7 +133,7 @@
                 diagram.toggleNode(nodeId);
                 break;
             case AppTools.Cut:
-                diagram.cut(nodeId);
+                diagram.cut(nodeId, get(toolOptions).cut);
                 break;
         }
     }

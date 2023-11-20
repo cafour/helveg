@@ -86,12 +86,10 @@ export interface DiagramStats {
 
 export interface CutOptions {
     isTransitive: boolean;
-    relation: string | null;
 }
 
 export const DEFAULT_CUT_OPTIONS: CutOptions = {
-    isTransitive: true,
-    relation: null
+    isTransitive: true
 };
 
 export class Diagram {
@@ -519,7 +517,7 @@ export class Diagram {
             return;
         }
 
-        let reachable = bfsGraph(this._graph, nodeId, { relation: options.relation });
+        let reachable = bfsGraph(this._graph, nodeId);
 
         await this.refreshSupervisor(true, () => {
             reachable.forEach(id => this._graph?.dropNode(id));
