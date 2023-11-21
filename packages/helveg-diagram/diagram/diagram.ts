@@ -534,7 +534,7 @@ export class Diagram {
             return;
         }
 
-        await this.refreshSupervisor(true, () => toggleNode(this._graph!, nodeId));
+        await this.refreshSupervisor(true, () => toggleNode(this._graph!, nodeId, this.mainRelation ?? undefined));
     }
 
     /**
