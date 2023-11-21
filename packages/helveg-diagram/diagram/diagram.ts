@@ -517,7 +517,9 @@ export class Diagram {
             return;
         }
 
-        let reachable = bfsGraph(this._graph, nodeId);
+        let reachable = bfsGraph(this._graph, nodeId, {
+            relation: this.mainRelation
+        });
 
         await this.refreshSupervisor(true, () => {
             reachable.forEach(id => this._graph?.dropNode(id));
