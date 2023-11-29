@@ -7,6 +7,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Helveg.Visualization;
 using Microsoft.Extensions.Logging;
@@ -28,11 +29,25 @@ public record UIStyle(
 );
 
 public record InitializerOptions(
+    [property:JsonIgnore]
     string? MainRelation = null,
+
+    [property:JsonIgnore]
     string IconSetSelector = ".helveg-icons",
+
+    [property:JsonIgnore]
     string DataId = "helveg-data",
+
+    [property:JsonPropertyName("selectedRelations")]
+    [property:JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     ImmutableArray<string>? SelectedRelations = null,
+
+    [property:JsonPropertyName("selectedKinds")]
+    [property:JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     ImmutableArray<string>? SelectedKinds = null,
+
+    [property:JsonPropertyName("expandedDepth")]
+    [property:JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     int? ExpandedDepth = null
 );
 
@@ -71,7 +86,7 @@ public class UIBuilder
         OutDir = new DirectoryInfo(Environment.CurrentDirectory);
 
         jsonOptions = new JsonSerializerOptions();
-        foreach(var converter in DataModel.Converters)
+        foreach (var converter in DataModel.Converters)
         {
             jsonOptions.Converters.Add(converter);
         }
@@ -362,20 +377,6 @@ $@"
 
     private string GetInitializer(InitializerOptions options)
     {
-        dynamic refreshOptions = new ExpandoObject();
-        if (options.ExpandedDepth is not null)
-        {
-            refreshOptions.expandedDepth = options.ExpandedDepth;
-        }
-        if (options.SelectedRelations is not null)
-        {
-            refreshOptions.selectedRelations = options.SelectedRelations;
-        }
-        if (options.SelectedKinds is not null)
-        {
-            refreshOptions.selectedKinds = options.SelectedKinds;
-        }
-
         return
 $@"<script type=""module"">
     const iconSets = await helveg.loadIconSets(""{options.IconSetSelector}"");
@@ -384,7 +385,7 @@ $@"<script type=""module"">
         iconSets: iconSets,
         model: model,
         mainRelation: {(options.MainRelation is null ? "null" : $"\"{options.MainRelation}\"")},
-        refresh: {JsonSerializer.Serialize(refreshOptions, jsonOptions)}
+        refresh: {JsonSerializer.Serialize(options, jsonOptions)}
     }});
     await diagram.reset();
     helveg.createExplorer(diagram);

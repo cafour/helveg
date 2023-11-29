@@ -54,7 +54,7 @@ export function collapseNode(graph: Graph, nodeId: string, relation?: string) {
             return;
         }
 
-        collapseNode(graph, dst);
+        collapseNode(graph, dst, relation);
         dstAttr.hidden = true;
     });
 }

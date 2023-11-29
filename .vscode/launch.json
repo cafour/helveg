@@ -2,7 +2,7 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Helveg (Debug)",
+      "name": "Helveg (helveg.html)",
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
@@ -14,14 +14,16 @@
         "--mode",
         "SingleFile",
         "--out-dir",
-        "C:\\temp\\"
+        "C:\\temp\\",
+        "-n",
+        "helveg"
       ],
       "cwd": "C:\\dev\\helveg\\",
       "console": "internalConsole",
       "stopAtEntry": false
     },
     {
-      "name": "Helveg (kafe_diff)",
+      "name": "Helveg (kafe_diff.html)",
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
@@ -35,7 +37,9 @@
         "--out-dir",
         "C:\\temp\\",
         "--compare-to",
-        "C:\\dev\\fi\\kafe-old"
+        "C:\\dev\\fi\\kafe-old",
+        "-n",
+        "kafe_diff"
       ],
       "cwd": "C:\\dev\\fi\\kafe-api",
       "console": "internalConsole",
