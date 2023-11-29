@@ -17,6 +17,7 @@ build:
     - corepack enable && corepack prepare pnpm@latest --activate
     - pnpm config set store-dir .pnpm-store/
     - pnpm install -w
+    - pnpm run git-version
     - pnpm run build
 
     - dotnet build -c Release Helveg.sln
