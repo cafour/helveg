@@ -25,7 +25,7 @@
         </dt>
         <dd>
             <p>
-                Contains settings affecting what nodes are show and how they are
+                Contains settings affecting what nodes are shown and how they are
                 laid out.
             </p>
             <p>
