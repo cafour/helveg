@@ -34,6 +34,7 @@
     import Icon from "./Icon.svelte";
 
     export let name: string;
+    export let fallbackTab: string | null = null;
 
     DockContext.currentTab = writable<string | null>(null);
     DockContext.tabDescriptors = writable<TabDescriptor[]>([]);
@@ -42,10 +43,11 @@
     let tabDescriptors = DockContext.tabDescriptors;
 
     onMount(() => {
-        $currentTab = localStorage.getItem(`Dock.${name}.currentTab`);
+        const storedTab = localStorage.getItem(`Dock.${name}.currentTab`);
+        setTab(storedTab && storedTab.length ? storedTab : fallbackTab);
     });
 
-    export function setTab(value: string) {
+    export function setTab(value: string | null) {
         if (value === $currentTab) {
             return;
         }

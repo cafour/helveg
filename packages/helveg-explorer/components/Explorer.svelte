@@ -182,7 +182,7 @@
         class="z-1"
     />
 
-    <Dock name="panels" bind:this={dock} class="z-2">
+    <Dock name="panels" bind:this={dock} class="z-2" fallbackTab={AppPanels.Guide}>
         <Tab name="Search" value={AppPanels.Search} icon={AppIcons.SearchPanel}>
             <SearchPanel
                 on:highlight={(e) =>
