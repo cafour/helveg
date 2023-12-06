@@ -13,6 +13,7 @@ build:
     expire_in: 42s
   script:
     - apk update && apk add nodejs-current npm
+    - dotnet tool restore
 
     - corepack enable && corepack prepare pnpm@latest --activate
     - pnpm config set store-dir .pnpm-store/
