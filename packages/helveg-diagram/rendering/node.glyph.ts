@@ -26,7 +26,7 @@ export const DEFAULT_GLYPH_PROGRAM_OPTIONS: GlyphProgramOptions =
     showOutlines: true,
     showFire: true,
     showLabels: false,
-    showDiffs: false,
+    showDiffs: true,
     sizingMode: "linear",
     ...DEFAULT_ICON_PROGRAM_OPTIONS,
     ...DEFAULT_OUTLINES_PROGRAM_OPTIONS,

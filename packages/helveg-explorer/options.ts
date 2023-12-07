@@ -37,7 +37,7 @@ export const DEFAULT_GLYPH_OPTIONS: GlyphOptions = {
     showIcons: true,
     showOutlines: true,
     showLabels: true,
-    showDiffs: false,
+    showDiffs: true,
     showFire: true,
     isFireAnimated: true,
     dimCollapsedNodes: true,
