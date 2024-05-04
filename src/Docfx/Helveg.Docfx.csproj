@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>$(DefaultLibraryFrameworks)</TargetFrameworks>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Docfx.Common" Version="2.76.0" />
+    <PackageReference Include="Docfx.Plugins" Version="2.76.0" />
+    <PackageReference Include="System.Composition" Version="8.0.0" />
+  </ItemGroup>
+
+</Project>

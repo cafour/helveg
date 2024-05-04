@@ -1,0 +1,49 @@
+{
+  "metadata": [
+    {
+      "src": [
+        {
+          "src": "../../src",
+          "files": [
+            "CommandLine/Helveg.CommandLine.csproj",
+            "Common/Helveg.Common.csproj",
+            "CSharp/Helveg.CSharp.csproj",
+            "UI/Helveg.UI.csproj",
+            "Visualization/Helveg.Visualization.csproj"
+          ]
+        }
+      ],
+      "dest": "api"
+    }
+  ],
+  "build": {
+    "content": [
+      {
+        "files": [
+          "**/*.{md,yml}"
+        ],
+        "exclude": [
+          "_site/**"
+        ]
+      }
+    ],
+    "resource": [
+      {
+        "files": [
+          "images/**"
+        ]
+      }
+    ],
+    "output": "_site",
+    "template": [
+      "default",
+      "modern"
+    ],
+    "globalMetadata": {
+      "_appName": "Helveg.Samples.Docfx",
+      "_appTitle": "Helveg.Samples.Docfx",
+      "_enableSearch": true,
+      "pdf": false
+    }
+  }
+}
