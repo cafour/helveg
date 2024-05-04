@@ -53,7 +53,7 @@
                 {#each comments as comment}
                     <div class="comment flex flex-col gap-2 px-16">
                         {#if comment.format == "markdown"}
-                            {@html dompurify.sanitize(marked.parse(comment.content))}
+                            {@html dompurify.sanitize(marked.parse(comment.content).toString())}
                         {:else}
                             <p>{comment.content}</p>
                         {/if}

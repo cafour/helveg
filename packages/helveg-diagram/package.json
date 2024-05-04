@@ -34,9 +34,15 @@
         "schema": "npm run schema:data && npm run schema:icon-set"
     },
     "devDependencies": {
-        "@types/d3-hierarchy": "^3.1.2",
-        "@types/file-saver": "^2.0.5",
+        "@types/d3-hierarchy": "^3.1.7",
+        "@types/file-saver": "^2.0.7",
+        "@types/node": "^20.12.8",
+        "@types/yargs": "^17.0.32",
+        "browser-sync": "^3.0.2",
+        "concurrently": "^8.2.2",
         "d3-hierarchy": "^3.1.2",
+        "esbuild": "^0.20.2",
+        "esbuild-plugin-copy": "^2.1.1",
         "file-saver": "^2.0.5",
         "graphology": "^0.25.4",
         "graphology-layout": "^0.6.1",
@@ -44,14 +50,8 @@
         "graphology-types": "^0.24.7",
         "graphology-utils": "^2.5.2",
         "sigma": "3.0.0-alpha3",
-        "@types/node": "^20.8.10",
-        "@types/yargs": "^17.0.24",
-        "browser-sync": "^2.29.1",
-        "concurrently": "^7.6.0",
-        "esbuild": "^0.19.5",
-        "esbuild-plugin-copy": "^2.1.1",
-        "tsx": "^3.14.0",
-        "typescript": "^5.2.2",
+        "tsx": "^4.9.1",
+        "typescript": "^5.4.5",
         "yargs": "^17.7.2"
     }
 }
