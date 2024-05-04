@@ -37,8 +37,10 @@
     "output": "_site",
     "template": [
       "default",
-      "modern"
+      "modern",
+      "../DocfxTemplate"
     ],
+    "postProcessors": ["HelvegProcessor"],
     "globalMetadata": {
       "_appName": "Helveg.Samples.Docfx",
       "_appTitle": "Helveg.Samples.Docfx",
