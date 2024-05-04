@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System;
+using System.Collections.Immutable;
 using System.Composition;
 using Docfx.Plugins;
 
@@ -9,6 +10,7 @@ public class HelvegProcessor : IPostProcessor
 {
     public ImmutableDictionary<string, object> PrepareMetadata(ImmutableDictionary<string, object> metadata)
     {
+        Console.WriteLine("test");
         return metadata;
     }
 
