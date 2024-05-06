@@ -16,9 +16,9 @@ public class HelvegProcessor : IPostProcessor
 
     public Manifest Process(Manifest manifest, string outputFolder)
     {
-        foreach(var file in manifest.Files)
+        foreach (var file in manifest.Files)
         {
-            foreach(var output in file.Output)
+            foreach (var output in file.Output)
             {
             }
         }

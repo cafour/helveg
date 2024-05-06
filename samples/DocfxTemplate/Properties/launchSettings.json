@@ -1,0 +1,11 @@
+{
+    "profiles": {
+      "Helveg.Samples.Docfx": {
+        "commandName": "Executable",
+        "executablePath": "C:\\Users\\Adam\\.dotnet\\tools\\docfx.exe",
+        "commandLineArgs": "build",
+        "workingDirectory": "C:\\dev\\helveg\\samples\\Docfx",
+        "nativeDebugging": true
+      }
+    }
+  }
