@@ -45,7 +45,8 @@
       "_appName": "Helveg.Samples.Docfx",
       "_appTitle": "Helveg.Samples.Docfx",
       "_enableSearch": true,
-      "pdf": false
+      "pdf": false,
+      "_helvegSource": "../../Helveg.sln"
     }
   }
 }

@@ -13,4 +13,8 @@
     <PackageReference Include="System.Composition" Version="8.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\CommandLine\Helveg.CommandLine.csproj" />
+  </ItemGroup>
+
 </Project>

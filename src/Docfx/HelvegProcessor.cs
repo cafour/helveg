@@ -6,6 +6,7 @@ using AngleSharp;
 using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
 using Docfx.Plugins;
+using Microsoft.Extensions.Logging;
 
 namespace Helveg.Docfx;
 
@@ -14,6 +15,20 @@ public class HelvegProcessor : IPostProcessor
 {
     public ImmutableDictionary<string, object> PrepareMetadata(ImmutableDictionary<string, object> metadata)
     {
+        var helvegSource = metadata.GetValueOrDefault("_helvegSource") as string
+            ?? throw new ArgumentNullException("Missing _helvegSource in docfx.json globalMetadata.");
+
+        helvegSource = Path.Combine(Directory.GetCurrentDirectory(), helvegSource);
+
+        CommandLine.Program.InitializeLogging(false, LogLevel.Information);
+        CommandLine.Program.Run(CommandLine.Config.Docs with
+        {
+            Source = File.Exists(helvegSource) ? new FileInfo(helvegSource) : new DirectoryInfo(helvegSource),
+            OutDir = new DirectoryInfo(Path.Combine(Directory.GetCurrentDirectory(), "_site")),
+            OutFile = "helveg.html",
+            Mode = UI.UIMode.SingleFile
+        }).GetAwaiter().GetResult();
+
         return metadata;
     }
 
@@ -25,6 +40,11 @@ public class HelvegProcessor : IPostProcessor
 
         foreach (var file in manifest.Files)
         {
+            if (Path.GetDirectoryName(file.SourceRelativePath) != "api")
+            {
+                continue;
+            }
+
             foreach (var output in file.Output)
             {
                 if (output.Key != ".html")
@@ -52,6 +72,7 @@ public class HelvegProcessor : IPostProcessor
                 helvegLink.TextContent = "Show in Helveg";
                 var searchTerm = Path.GetFileNameWithoutExtension(output.Value.RelativePath);
                 helvegLink.SetAttribute("href", $"/helveg.html?q={searchTerm}");
+                helvegLink.SetAttribute("target", "_blank");
                 h1.After(helvegLink);
 
                 File.WriteAllText(path, document.ToHtml());
