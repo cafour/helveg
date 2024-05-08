@@ -101,6 +101,14 @@ export function initializeSigma(
         }
     })
 
+    sigma.on("leaveNode", e => {
+        if (sigma[isHoverEnabledSymbol]) {
+            sigma[hoveredNodeSymbol] = null;
+            // HACK: This is IMHO currently the only way to force Sigma *not to* render hovered nodes.
+            (sigma as any).hoveredNode = null;
+        }
+    })
+
     return sigma;
 }
 
@@ -262,10 +270,8 @@ export function styleGraph(
             : nodeStyle.size;
         attributes.iconSize = nodeStyle.size;
 
-        const getSize = (sizingMode: SizingMode, value: number) =>
-        {
-            switch(sizingMode)
-            {
+        const getSize = (sizingMode: SizingMode, value: number) => {
+            switch (sizingMode) {
                 case "linear":
                     // keep it as is
                     return value;
@@ -277,7 +283,7 @@ export function styleGraph(
                     return value;
             }
         }
-        
+
         attributes.size = getSize(glyphProgramOptions.sizingMode, attributes.size);
         attributes.iconSize = getSize(glyphProgramOptions.sizingMode, attributes.iconSize);
         attributes.color = nodeStyle.color;
