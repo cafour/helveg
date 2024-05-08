@@ -59,12 +59,12 @@ export interface IOperation<TContext> {
     shortcut?: IKeyboardShortcut,
     gesture?: IMouseGesture,
 
-    keyDown?: (state: IExplorerState, context: TContext, event: KeyboardEvent) => void,
-    keyUp?: (state: IExplorerState, context: TContext, event: KeyboardEvent) => void
+    keyDown?: (state: IExplorerState, context: TContext, event: KeyboardEvent) => void | Promise<void>,
+    keyUp?: (state: IExplorerState, context: TContext, event: KeyboardEvent) => void | Promise<void>
 
-    mouseDown?: (state: IExplorerState, context: TContext, event: MouseEvent) => void,
-    mouseMove?: (state: IExplorerState, context: TContext, event: MouseEvent) => void,
-    mouseUp?: (state: IExplorerState, context: TContext, event: MouseEvent) => void,
+    mouseDown?: (state: IExplorerState, context: TContext, event: MouseEvent) => void | Promise<void>,
+    mouseMove?: (state: IExplorerState, context: TContext, event: MouseEvent) => void | Promise<void>,
+    mouseUp?: (state: IExplorerState, context: TContext, event: MouseEvent) => void | Promise<void>,
 }
 
 export type IGlobalOperation = IOperation<undefined>;
@@ -109,7 +109,7 @@ export const DEFAULT_OPERATIONS: Array<IOperation<any>> = [
             key: "m"
         },
         icon: AppIcons.MoveTool,
-        scope: OperationScope.GLOBAL,
+        scope: OperationScope.TOOLBOX,
 
         keyUp(state) {
             state.mouseOperation.set("mouse");
@@ -148,5 +148,93 @@ export const DEFAULT_OPERATIONS: Array<IOperation<any>> = [
         keyUp(state) {
             state.mouseOperation.set("show-properties");
         },
-    }
+    },
+    <INodeOperation>{
+        id: "toggle",
+        name: "Toggle",
+        hint: "Collapses or expands nodes.",
+        shortcut: {
+            key: "t"
+        },
+        gesture: {
+            button: MouseButton.MAIN
+        },
+        icon: AppIcons.ToggleTool,
+        scope: OperationScope.NODE,
+
+        async keyUp(state, node) {
+            if (!node) {
+                state.logger.warn("Select a node to Toggle.");
+                return;
+            }
+
+            await state.diagram.toggleNode(node);
+        },
+        async mouseUp(state, node) {
+            if (!node) {
+                state.logger.warn("Select a node to Toggle.");
+                return;
+            }
+
+            await state.diagram.toggleNode(node);
+        }
+    },
+    <IGlobalOperation>{
+        id: "tool-toggle",
+        name: "Switch to the Toggle tool",
+        hint: "Collapses or expands nodes.",
+        shortcut: {
+            key: "t"
+        },
+        icon: AppIcons.ToggleTool,
+        scope: OperationScope.TOOLBOX,
+
+        keyUp(state) {
+            state.mouseOperation.set("toggle");
+        },
+    },
+    <INodeOperation>{
+        id: "cut",
+        name: "Cut",
+        hint: "Cuts nodes and (optionally) its descendants.",
+        shortcut: {
+            key: "c"
+        },
+        gesture: {
+            button: MouseButton.MAIN
+        },
+        icon: AppIcons.CutTool,
+        scope: OperationScope.NODE,
+
+        async keyUp(state, node) {
+            if (!node) {
+                state.logger.warn("Select a node to Cut.");
+                return;
+            }
+
+            await state.diagram.cut(node);
+        },
+        async mouseUp(state, node) {
+            if (!node) {
+                state.logger.warn("Select a node to Cut.");
+                return;
+            }
+
+            await state.diagram.cut(node);
+        }
+    },
+    <IGlobalOperation>{
+        id: "tool-cut",
+        name: "Switch to the Cut tool",
+        hint: "Cuts nodes and (optionally) its descendants.",
+        shortcut: {
+            key: "c"
+        },
+        icon: AppIcons.CutTool,
+        scope: OperationScope.TOOLBOX,
+
+        keyUp(state) {
+            state.mouseOperation.set("toggle");
+        },
+    },
 ]
