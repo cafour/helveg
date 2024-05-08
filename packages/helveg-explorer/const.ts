@@ -28,7 +28,9 @@ export enum AppIcons {
     HiddenDiagnostic = "vs:StatusHidden",
     InfoDiagnostic = "vs:StatusInformation",
     WarningDiagnostic = "vs:StatusWarning",
-    ErrorDiagnostic = "vs:StatusError"
+    ErrorDiagnostic = "vs:StatusError",
+    
+    Hint = "vs:StatusHelpOutline",
 }
 
 export enum AppPanels {
