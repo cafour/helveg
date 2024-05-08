@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { writable, readable, get, type Writable } from "svelte/store";
+    import { get } from "svelte/store";
     import Dock from "./Dock.svelte";
     import DocumentPanel from "./DocumentPanel.svelte";
     import Tab from "./Tab.svelte";
@@ -11,95 +11,29 @@
     import Toast from "./Toast.svelte";
     import ToolBox from "./ToolBox.svelte";
     import ToolsPanel from "./ToolsPanel.svelte";
-    import {
-        sublogger,
-        type Diagram,
-        createCsharpRelationStylist,
-    } from "../deps/helveg-diagram.ts";
+    import { type Diagram } from "../deps/helveg-diagram.ts";
     import { AppIcons, AppPanels, AppTools } from "../const.ts";
-    import * as Options from "../options.ts";
     import LoadingScreen from "./LoadingScreen.svelte";
     import SearchPanel from "./SearchPanel.svelte";
+    import { createExplorerState } from "../explorer-state.ts";
+    import ContextMenu from "./ContextMenu.svelte";
 
     export let diagram: Diagram;
     setContext("diagram", diagram);
 
-    const status = readable(diagram.status, (set) => {
-        diagram.events.statusChanged.subscribe(set);
-        return () => diagram.events.statusChanged.unsubscribe(set);
-    });
-
-    const stats = readable(diagram.stats, (set) => {
-        diagram.events.statsChanged.subscribe(set);
-        return () => diagram.events.statsChanged.unsubscribe(set);
-    });
-
-    const logger = sublogger(diagram.logger, "explorer");
-    setContext("logger", logger);
-
-    function createOptions<T>(
-        contextName: string,
-        storageName: string,
-        defaults: T
-    ): Writable<T> {
-        const options = writable({
-            ...defaults,
-            ...Options.loadOptions<T>(storageName),
-        });
-        options.subscribe((v) => Options.saveOptions<T>(storageName, v));
-        setContext(contextName, options);
-        return options;
-    }
-
-    const dataOptions = createOptions<Options.DataOptions>(
-        "dataOptions",
-        "data",
-        {
-            ...structuredClone(Options.DEFAULT_DATA_OPTIONS),
-            ...diagram.options.refresh,
-        }
-    );
-    const layoutOptions = createOptions<Options.LayoutOptions>(
-        "layoutOptions",
-        "layout",
-        structuredClone(Options.DEFAULT_LAYOUT_OPTIONS)
-    );
-    $layoutOptions.tidyTree.relation = diagram.mainRelation;
-    layoutOptions.subscribe((v) => {
-        diagram.mainRelation = v.tidyTree.relation;
-        diagram.forceAtlas2Options = v.forceAtlas2;
-    });
-    const appearanceOptions = createOptions<Options.AppearanceOptions>(
-        "appearanceOptions",
-        "appearance",
-        {
-            relationColors: {},
-            ...structuredClone(Options.DEFAULT_APPEARANCE_OPTIONS),
-        }
-    );
-    $: diagram.relationStylist = createCsharpRelationStylist(
-        $appearanceOptions.relationColors!
-    );
-    const exportOptions = createOptions<Options.ExportOptions>(
-        "exportOptions",
-        "export",
-        structuredClone(Options.DEFAULT_EXPORT_OPTIONS)
-    );
-    const toolOptions = createOptions<Options.ToolOptions>(
-        "toolOptions",
-        "tool",
-        structuredClone(Options.DEFAULT_TOOL_OPTIONS)
-    );
-
-    const model = readable(diagram.model, (set) => {
-        diagram.events.modelChanged.subscribe(set);
-        return () => diagram.events.modelChanged.unsubscribe(set);
-    });
-    setContext("model", model);
+    const state = createExplorerState(diagram);
+    setContext("state", state);
+    setContext("model", state.model);
+    setContext("logger", state.logger);
+    setContext("dataOptions", state.dataOptions);
+    setContext("layoutOptions", state.layoutOptions);
+    setContext("appearanceOptions", state.appearanceOptions);
+    setContext("exportOptions", state.exportOptions);
+    setContext("toolOptions", state.toolOptions);
+    const { status, stats, selectedTool, dataOptions } = state;
 
     let dock: Dock;
     let propertiesPanel: PropertiesPanel;
-    let selectedTool: string;
     let searchResults: string[];
 
     function onNodeSelected(nodeId: string | null) {
@@ -111,7 +45,7 @@
             return;
         }
 
-        switch (selectedTool) {
+        switch ($selectedTool) {
             case AppTools.ShowProperties:
                 propertiesPanel.$set({
                     node: diagram.model.data?.nodes[nodeId] ?? null,
@@ -119,8 +53,10 @@
                 dock.setTab(AppPanels.Properties);
                 diagram.highlightNode(
                     nodeId,
-                    get(toolOptions).showProperties.shouldHighlightSubtree,
-                    get(toolOptions).showProperties.shouldHighlightNeighbors
+                    get(state.toolOptions).showProperties
+                        .shouldHighlightSubtree,
+                    get(state.toolOptions).showProperties
+                        .shouldHighlightNeighbors,
                 );
                 break;
         }
@@ -128,28 +64,28 @@
     diagram.events.nodeSelected.subscribe(onNodeSelected);
 
     function onNodeClicked(nodeId: string) {
-        switch (selectedTool) {
+        switch ($selectedTool) {
             case AppTools.Toggle:
                 diagram.toggleNode(nodeId);
                 break;
             case AppTools.Cut:
-                diagram.cut(nodeId, get(toolOptions).cut);
+                diagram.cut(nodeId, get(state.toolOptions).cut);
                 break;
         }
     }
     diagram.events.nodeClicked.subscribe(onNodeClicked);
 
-    function onToolChanged(tool: string) {
+    selectedTool.subscribe(tool => {
         diagram.canDragNodes = tool == AppTools.Move;
-
+    
         switch (tool) {
             case AppTools.Cut:
                 dock.setTab(AppPanels.Tools);
                 break;
         }
-    }
+    });
 
-    appearanceOptions.subscribe((v) => {
+    state.appearanceOptions.subscribe((v) => {
         const glyphOptions = diagram.glyphProgramOptions;
         glyphOptions.isFireAnimated = v.glyph.isFireAnimated;
         glyphOptions.showFire = v.glyph.showFire;
@@ -177,19 +113,23 @@
     <LoadingScreen status={$status} />
 
     <ToolBox
-        bind:selectedTool
-        on:change={() => onToolChanged(selectedTool)}
+        bind:selectedTool={$selectedTool}
         class="z-1"
     />
 
-    <Dock name="panels" bind:this={dock} class="z-2" fallbackTab={AppPanels.Guide}>
+    <Dock
+        name="panels"
+        bind:this={dock}
+        class="z-2"
+        fallbackTab={AppPanels.Guide}
+    >
         <Tab name="Search" value={AppPanels.Search} icon={AppIcons.SearchPanel}>
             <SearchPanel
                 on:highlight={(e) =>
                     (searchResults = diagram.highlight(
                         e.detail.searchText,
                         e.detail.searchMode,
-                        e.detail.expandedOnly
+                        e.detail.expandedOnly,
                     ))}
                 on:isolate={(e) =>
                     diagram.isolate(e.detail.searchText, e.detail.searchMode)}
@@ -206,7 +146,7 @@
                     diagram.refresh({
                         selectedRelations: $dataOptions.selectedRelations,
                         selectedKinds: $dataOptions.selectedKinds,
-                        expandedDepth: $dataOptions.expandedDepth
+                        expandedDepth: $dataOptions.expandedDepth,
                     })}
                 status={$status}
                 stats={$stats}
@@ -242,4 +182,5 @@
     </Dock>
 
     <Toast />
+    <ContextMenu />
 </div>

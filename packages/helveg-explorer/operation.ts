@@ -68,7 +68,7 @@ export interface IOperation<TContext> {
 }
 
 export type IGlobalOperation = IOperation<undefined>;
-export type INodeOperation = IOperation<string | undefined>;
+export type INodeOperation = IOperation<string | null | undefined>;
 
 export const DEFAULT_OPERATIONS: Array<IOperation<any>> = [
     <INodeOperation>{
@@ -112,7 +112,7 @@ export const DEFAULT_OPERATIONS: Array<IOperation<any>> = [
         scope: OperationScope.TOOLBOX,
 
         keyUp(state) {
-            state.mouseOperation.set("mouse");
+            state.selectedTool.set("mouse");
         },
     },
     <INodeOperation>{
@@ -129,10 +129,10 @@ export const DEFAULT_OPERATIONS: Array<IOperation<any>> = [
         scope: OperationScope.NODE,
 
         keyUp(state, node) {
-            state.selectedNode.set(node);
+            state.selectedNode.set(node ?? null);
         },
         mouseUp(state, node) {
-            state.selectedNode.set(node);
+            state.selectedNode.set(node ?? null);
         }
     },
     <IGlobalOperation>{
@@ -146,7 +146,7 @@ export const DEFAULT_OPERATIONS: Array<IOperation<any>> = [
         scope: OperationScope.TOOLBOX,
 
         keyUp(state) {
-            state.mouseOperation.set("show-properties");
+            state.selectedTool.set("show-properties");
         },
     },
     <INodeOperation>{
@@ -190,7 +190,7 @@ export const DEFAULT_OPERATIONS: Array<IOperation<any>> = [
         scope: OperationScope.TOOLBOX,
 
         keyUp(state) {
-            state.mouseOperation.set("toggle");
+            state.selectedTool.set("toggle");
         },
     },
     <INodeOperation>{
@@ -234,7 +234,7 @@ export const DEFAULT_OPERATIONS: Array<IOperation<any>> = [
         scope: OperationScope.TOOLBOX,
 
         keyUp(state) {
-            state.mouseOperation.set("toggle");
+            state.selectedTool.set("toggle");
         },
     },
 ]
