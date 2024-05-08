@@ -5,7 +5,7 @@ import { LogSeverity, ILogger, consoleLogger } from "../model/logger.ts";
 import { ForceAtlas2Progress, ForceAtlas2Supervisor } from "../layout/forceAltas2Supervisor.ts";
 import { wheelOfFortune } from "../layout/circular.ts";
 import tidyTree from "../layout/tidyTree.ts";
-import { HelvegSigma, configureSigma, initializeGraph, initializeSigma, initializeSupervisor, styleGraph } from "./initializers.ts";
+import { HelvegSigma, configureSigma, hoveredNodeSymbol, initializeGraph, initializeSigma, initializeSupervisor, styleGraph } from "./initializers.ts";
 import { DEFAULT_GLYPH_PROGRAM_OPTIONS, GlyphProgramOptions, createGlyphProgram } from "../rendering/node.glyph.ts";
 import { DEFAULT_EXPORT_OPTIONS, ExportOptions, exportDiagram } from "../rendering/export.ts";
 import { SearchMode, buildNodeFilter, filterNodes } from "../model/filter.ts";
@@ -144,6 +144,8 @@ export class Diagram {
     private _selectedNode: string | null = null;
     get selectedNode(): string | null { return this._selectedNode; }
     set selectedNode(value: string | null) { this._selectedNode = value; this.events.nodeSelected.trigger(value); }
+
+    get hoveredNode(): string | null { return this._sigma?.[hoveredNodeSymbol] ?? null; }
 
     private _canDragNodes: boolean = false;
     get canDragNodes(): boolean { return this._canDragNodes; }
