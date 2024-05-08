@@ -39,25 +39,30 @@
         sizeY = element.offsetHeight;
     }
 
-    function onClicked(op: INodeOperation) {
+    function onClicked(op: INodeOperation, e: MouseEvent) {
         if (contextNode) {
+            state.operationExecutor.executeClick(op, contextNode, e);
         }
     }
 </script>
 
 {#if isVisible}
-<div use:onCreated class="context-menu" style="position: absolute; top: {posY}px; left: {posX}px;">
-    <ul>
-        {#each nodeOperations as operation}
-            <li>
-                {#if operation.icon}
-                    <Icon name={operation.icon} />
-                {/if}
-                <button on:click={() => onClicked(operation)}
-                    >{operation.name}</button
-                >
-            </li>
-        {/each}
-    </ul>
-</div>
+    <div
+        use:onCreated
+        class="context-menu"
+        style="position: absolute; top: {posY}px; left: {posX}px;"
+    >
+        <ul>
+            {#each nodeOperations as operation}
+                <li>
+                    <button on:click={(e) => onClicked(operation, e)}>
+                        {#if operation.icon}
+                            <Icon name={operation.icon} />
+                        {/if}
+                        <span>{operation.name}</span>
+                    </button>
+                </li>
+            {/each}
+        </ul>
+    </div>
 {/if}
