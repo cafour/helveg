@@ -7,7 +7,7 @@
     import AppearancePanel from "./AppearancePanel.svelte";
     import LayoutPanel from "./LayoutPanel.svelte";
     import GuidePanel from "./GuidePanel.svelte";
-    import { setContext } from "svelte";
+    import { onMount, setContext } from "svelte";
     import Toast from "./Toast.svelte";
     import ToolBox from "./ToolBox.svelte";
     import ToolsPanel from "./ToolsPanel.svelte";
@@ -18,10 +18,12 @@
     import { createExplorerState } from "../explorer-state.ts";
     import ContextMenu from "./ContextMenu.svelte";
 
+    export let rootElement: HTMLElement;
+    setContext("rootElement", rootElement);
     export let diagram: Diagram;
     setContext("diagram", diagram);
 
-    const state = createExplorerState(diagram);
+    const state = createExplorerState(rootElement, diagram);
     setContext("state", state);
     setContext("model", state.model);
     setContext("logger", state.logger);
@@ -107,6 +109,7 @@
 
 <div
     class="explorer-svelte flex flex-row-reverse h-100p relative pointer-events-none"
+    bind:this={rootElement}
 >
     <div class="diagram-background" />
 

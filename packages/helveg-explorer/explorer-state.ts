@@ -5,6 +5,7 @@ import * as Options from "./options.ts";
 import { OperationExecutor } from "./operation-executor.ts";
 
 export interface IExplorerState {
+    rootElement: HTMLElement,
     diagram: Diagram,
     model: Readable<DataModel>,
     status: Readable<DiagramStatus>,
@@ -21,7 +22,7 @@ export interface IExplorerState {
     toolOptions: Writable<Options.ToolOptions>,
 }
 
-export function createExplorerState(diagram: Diagram): IExplorerState {
+export function createExplorerState(rootElement: HTMLElement, diagram: Diagram): IExplorerState {
     const model = readable(diagram.model, (set) => {
         diagram.events.modelChanged.subscribe(set);
         return () => diagram.events.modelChanged.unsubscribe(set);
@@ -87,6 +88,7 @@ export function createExplorerState(diagram: Diagram): IExplorerState {
     );
 
     const state: IExplorerState = {
+        rootElement,
         diagram,
         model,
         logger,
