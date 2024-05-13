@@ -15,6 +15,7 @@
     import type { DataModel } from "../deps/helveg-diagram.ts";
     import type { DataOptions, LayoutOptions } from "../options.ts";
     import ToggleAllCheckbox from "./ToggleAllCheckbox.svelte";
+    import Hint from "./Hint.svelte";
 
     export let status: DiagramStatus;
     export let stats: DiagramStats;
@@ -45,7 +46,12 @@
         </button>
         <label>
             <div class="flex flex-row gap-8">
-                <span>ExpandedDepth</span>
+                <span>
+                    ExpandedDepth
+                </span>
+                <Hint
+                    text="The initial visible depth of the diagram. Press the Refresh button to reset the diagram to this depth."
+                />
                 <input
                     type="number"
                     min="-1"
@@ -55,7 +61,7 @@
         </label>
     </Subpanel>
 
-    <Subpanel name="TidyTree">
+    <Subpanel name="TidyTree" hint="An immediate algorithm that lays out the graph in a circular tree.">
         <div class="flex flex-row justify-content-center mb-8">
             <button on:click={() => dispatch("tidyTree")} class="button-icon">
                 <Icon name="vs:Run" title="Run" />
@@ -71,7 +77,7 @@
         </label>
     </Subpanel>
 
-    <Subpanel name="ForceAtlas2" indent={true}>
+    <Subpanel name="ForceAtlas2" indent={true} hint="A continous algorithm that simulates forces between the nodes.">
         <div class="flex flex-row justify-content-center">
             <button
                 on:click={() => dispatch("run", false)}
@@ -130,7 +136,8 @@
             <label>
                 <input
                     type="checkbox"
-                    bind:checked={$layoutOptions.forceAtlas2.outboundAttractionDistribution}
+                    bind:checked={$layoutOptions.forceAtlas2
+                        .outboundAttractionDistribution}
                 />
                 <span>OutboundAttractionDistribution</span>
             </label>
@@ -234,7 +241,7 @@
         <KeyValueList {items} />
     </Subpanel>
 
-    <Subpanel name="Relations">
+    <Subpanel name="Relations" hint="Allows you to pick which relationships are visualized.">
         <!-- svelte-ignore a11y-label-has-associated-control -->
         <label>
             <ToggleAllCheckbox
@@ -254,7 +261,7 @@
             </label>
         {/each}
     </Subpanel>
-    <Subpanel name="Node Kinds">
+    <Subpanel name="Node Kinds" hint="Allows you to include or exclude nodes based on their kind.">
         <!-- svelte-ignore a11y-label-has-associated-control -->
         <label>
             <ToggleAllCheckbox
