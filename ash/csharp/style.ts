@@ -1,6 +1,6 @@
-import { MultigraphNode } from "../model/data-model.ts";
-import { EdgeStyle, FALLBACK_EDGE_STYLE, FALLBACK_NODE_STYLE, FireStatus, NodeStyle, NodeStylist, OutlineStyle, RelationStylist } from "../model/style.ts";
-import { CSharpNode, DefaultRelationColors, EntityKind, MemberAccessibility, MethodKind, Relations, TypeKind, VSColor } from "./model.ts";
+import type { MultigraphNode } from "../model/data-model.ts";
+import { type EdgeStyle, FALLBACK_EDGE_STYLE, FALLBACK_NODE_STYLE, FireStatus, type NodeStyle, type NodeStylist, OutlineStyle, type RelationStylist } from "../model/style.ts";
+import { type CSharpNode, DefaultRelationColors, EntityKind, MemberAccessibility, MethodKind, Relations, TypeKind, VSColor } from "./model.ts";
 
 export const csharpNodeStylist: NodeStylist = (node: MultigraphNode) => {
     return { ...FALLBACK_NODE_STYLE, ...resolveNodeStyle(node as Partial<CSharpNode>) };

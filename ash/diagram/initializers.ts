@@ -1,10 +1,10 @@
-import forceAtlas2, { ForceAtlas2Settings, inferSettings } from "../deps/graphology-layout-forceatlas2.ts";
+import forceAtlas2, { type ForceAtlas2Settings, inferSettings } from "../deps/graphology-layout-forceatlas2.ts";
 import Graph from "../deps/graphology.ts";
-import { ForceAtlas2Progress, ForceAtlas2Supervisor } from "../layout/forceAltas2Supervisor.ts";
-import { DataModel, Multigraph, MultigraphRelation } from "../model/data-model.ts";
-import { HelvegEdgeAttributes, HelvegGraph, HelvegNodeAttributes, collapseNode, expandNode, findRoots, toggleNode } from "../model/graph.ts";
-import { ILogger, Logger, sublogger } from "../model/logger.ts";
-import { EdgeStylist, FALLBACK_EDGE_STYLE, FALLBACK_NODE_STYLE, NodeStylist, OutlineStyle, Outlines, RelationStylist, getOutlinesTotalWidth } from "../model/style.ts";
+import { type ForceAtlas2Progress, ForceAtlas2Supervisor } from "../layout/forceAltas2Supervisor.ts";
+import type { DataModel, Multigraph, MultigraphRelation } from "../model/data-model.ts";
+import { type HelvegEdgeAttributes, type HelvegGraph, type HelvegNodeAttributes, collapseNode, expandNode, findRoots, toggleNode } from "../model/graph.ts";
+import { type ILogger, Logger, sublogger } from "../model/logger.ts";
+import { type EdgeStylist, FALLBACK_EDGE_STYLE, FALLBACK_NODE_STYLE, type NodeStylist, OutlineStyle, type Outlines, type RelationStylist, getOutlinesTotalWidth } from "../model/style.ts";
 import { bfsGraph, bfsMultigraph } from "../model/traversal.ts";
 
 export function initializeSupervisor(

@@ -1,8 +1,9 @@
 import { readable, writable, type Readable, type Writable } from "svelte/store";
-import type { DataModel, Diagram, DiagramStats, DiagramStatus, ILogger } from "./deps/helveg-diagram";
-import { createCsharpRelationStylist, sublogger } from "./deps/helveg-diagram";
 import * as Options from "./options.ts";
 import { OperationExecutor } from "./operation-executor.ts";
+import type { Diagram, DiagramStats, DiagramStatus } from "./diagram/diagram.ts";
+import type { DataModel } from "./model/data-model.ts";
+import { sublogger, type ILogger } from "./model/logger.ts";
 
 export interface IExplorerState {
     rootElement: HTMLElement,
@@ -62,7 +63,7 @@ export function createExplorerState(rootElement: HTMLElement, diagram: Diagram):
     });
     layoutOptions.subscribe((v) => {
         diagram.mainRelation = v.tidyTree.relation;
-        diagram.forceAtlas2Options = v.forceAtlas2;
+        // diagram.forceAtlas2Options = v.forceAtlas2;
     });
 
     const appearanceOptions = createOptions<Options.AppearanceOptions>(
@@ -73,9 +74,9 @@ export function createExplorerState(rootElement: HTMLElement, diagram: Diagram):
         }
     );
     appearanceOptions.subscribe(o => {
-        diagram.relationStylist = createCsharpRelationStylist(
-            o.relationColors!
-        );
+        // diagram.relationStylist = createCsharpRelationStylist(
+        //     o.relationColors!
+        // );
     });
 
     const exportOptions = createOptions<Options.ExportOptions>(

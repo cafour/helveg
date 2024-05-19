@@ -11,7 +11,8 @@
   "pnpm": {
     "overrides": {
       "@cafour/helveg-diagram": "workspace:*",
-      "@cafour/helveg-explorer": "workspace:*"
+      "@cafour/helveg-explorer": "workspace:*",
+      "@cafour/helveg-ash": "workspace:*"
     }
   },
   "engines": {

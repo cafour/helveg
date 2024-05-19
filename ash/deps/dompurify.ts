@@ -1,2 +1,2 @@
-import dompurify from "npm:dompurify";
+import dompurify from "dompurify";
 export default dompurify;

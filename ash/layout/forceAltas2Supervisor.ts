@@ -1,10 +1,10 @@
 import { HelvegEvent } from "../common/event.ts";
-import { ForceAtlas2Settings, helpers } from "../deps/graphology-layout-forceatlas2.ts";
+import { type ForceAtlas2Settings, helpers } from "../deps/graphology-layout-forceatlas2.ts";
 import { createEdgeWeightGetter } from "../deps/graphology-utils.ts";
-import Graph, { Attributes, EdgeMapper } from "../deps/graphology.ts";
-import { HelvegGraph } from "../global.ts";
-import { ILogger } from "../model/logger.ts";
-import { MessageKind, StartMessage, Message, UpdateMessage, ProgressMessage } from "./forceAtlas2Messages.ts";
+import Graph, { type Attributes, type EdgeMapper } from "../deps/graphology.ts";
+import type { HelvegGraph } from "../global.ts";
+import type { ILogger } from "../model/logger.ts";
+import { MessageKind, type StartMessage, type Message, type UpdateMessage, type ProgressMessage } from "./forceAtlas2Messages.ts";
 import forceAtlas2WorkerCode from "inline-bundle:./forceAtlas2Worker.ts";
 
 type GraphMatrices = { nodes: Float32Array, edges: Float32Array };

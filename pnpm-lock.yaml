@@ -7,6 +7,7 @@ settings:
 overrides:
   '@cafour/helveg-diagram': workspace:*
   '@cafour/helveg-explorer': workspace:*
+  '@cafour/helveg-ash': workspace:*
 
 importers:
 
@@ -21,6 +22,108 @@ importers:
       turbo:
         specifier: ^1.13.3
         version: 1.13.3
+
+  ash:
+    devDependencies:
+      '@tsconfig/svelte':
+        specifier: ^5.0.4
+        version: 5.0.4
+      '@types/d3-hierarchy':
+        specifier: ^3.1.7
+        version: 3.1.7
+      '@types/dompurify':
+        specifier: ^3.0.5
+        version: 3.0.5
+      '@types/file-saver':
+        specifier: ^2.0.7
+        version: 2.0.7
+      '@types/node':
+        specifier: ^20.12.8
+        version: 20.12.8
+      '@types/yargs':
+        specifier: ^17.0.32
+        version: 17.0.32
+      autoprefixer:
+        specifier: ^10.4.19
+        version: 10.4.19(postcss@8.4.38)
+      browser-sync:
+        specifier: ^3.0.2
+        version: 3.0.2
+      concurrently:
+        specifier: ^8.2.2
+        version: 8.2.2
+      d3-hierarchy:
+        specifier: ^3.1.2
+        version: 3.1.2
+      dompurify:
+        specifier: ^3.1.2
+        version: 3.1.2
+      esbuild:
+        specifier: ^0.20.2
+        version: 0.20.2
+      esbuild-plugin-copy:
+        specifier: ^2.1.1
+        version: 2.1.1(esbuild@0.20.2)
+      esbuild-plugin-globals:
+        specifier: ^0.2.0
+        version: 0.2.0
+      esbuild-sass-plugin:
+        specifier: ^3.2.0
+        version: 3.2.0(esbuild@0.20.2)(sass-embedded@1.76.0)
+      esbuild-svelte:
+        specifier: ^0.8.0
+        version: 0.8.0(esbuild@0.20.2)(svelte@4.2.15)
+      file-saver:
+        specifier: ^2.0.5
+        version: 2.0.5
+      graphology:
+        specifier: ^0.25.4
+        version: 0.25.4(graphology-types@0.24.7)
+      graphology-layout:
+        specifier: ^0.6.1
+        version: 0.6.1(graphology-types@0.24.7)
+      graphology-layout-forceatlas2:
+        specifier: 0.10.1
+        version: 0.10.1(graphology-types@0.24.7)
+      graphology-types:
+        specifier: ^0.24.7
+        version: 0.24.7
+      graphology-utils:
+        specifier: ^2.5.2
+        version: 2.5.2(graphology-types@0.24.7)
+      marked:
+        specifier: ^12.0.2
+        version: 12.0.2
+      postcss:
+        specifier: ^8.4.38
+        version: 8.4.38
+      postcss-preset-env:
+        specifier: ^9.5.9
+        version: 9.5.9(postcss@8.4.38)
+      sass:
+        specifier: ^1.76.0
+        version: 1.76.0
+      svelte:
+        specifier: ^4.2.15
+        version: 4.2.15
+      svelte-check:
+        specifier: ^3.7.1
+        version: 3.7.1(postcss@8.4.38)(sass@1.76.0)(svelte@4.2.15)
+      svelte-preprocess:
+        specifier: ^5.1.4
+        version: 5.1.4(postcss@8.4.38)(sass@1.76.0)(svelte@4.2.15)(typescript@5.4.5)
+      tsx:
+        specifier: ^4.9.1
+        version: 4.9.1
+      typescript:
+        specifier: ^5.4.5
+        version: 5.4.5
+      uniformcss:
+        specifier: ^1.5.4
+        version: 1.5.4
+      yargs:
+        specifier: ^17.7.2
+        version: 17.7.2
 
   packages/helveg-diagram:
     devDependencies:

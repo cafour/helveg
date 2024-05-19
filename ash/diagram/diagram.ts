@@ -1,14 +1,14 @@
 import { HelvegEvent } from "../common/event.ts";
-import { HelvegGraph, expandPathsTo, findRoots, getNodeKinds, toggleNode } from "../model/graph.ts";
-import { LogSeverity, ILogger, consoleLogger } from "../model/logger.ts";
-import { ForceAtlas2Progress, ForceAtlas2Supervisor } from "../layout/forceAltas2Supervisor.ts";
+import type { HelvegGraph, expandPathsTo, findRoots, getNodeKinds, toggleNode } from "../model/graph.ts";
+import { LogSeverity, type ILogger, consoleLogger } from "../model/logger.ts";
+import type { ForceAtlas2Progress, ForceAtlas2Supervisor } from "../layout/forceAltas2Supervisor.ts";
 import { wheelOfFortune } from "../layout/circular.ts";
 import tidyTree from "../layout/tidyTree.ts";
 import { SearchMode, buildNodeFilter, filterNodes } from "../model/filter.ts";
 import { bfsGraph } from "../model/traversal.ts";
-import { EdgeStylist, NodeStylist, RelationStylist, fallbackEdgeStylist, fallbackNodeStylist, fallbackRelationStylist } from "../model/style.ts";
+import { type EdgeStylist, type NodeStylist, type RelationStylist, fallbackEdgeStylist, fallbackNodeStylist, fallbackRelationStylist } from "../model/style.ts";
 import { EMPTY_ICON_REGISTRY, IconRegistry } from "../global.ts";
-import { DataModel } from "../model/data-model.ts";
+import type { DataModel } from "../model/data-model.ts";
 import { Colors, EMPTY_DATA_MODEL } from "../model/const.ts";
 import { initializeGraph, styleGraph } from "./initializers.ts";
 

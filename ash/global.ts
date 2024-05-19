@@ -2,13 +2,13 @@ import { csharpNodeStylist, csharpRelationStylist } from "./csharp/style.ts";
 import { IconRegistry } from "./model/icons.ts";
 import { DEFAULT_ICON_ATLAS_OPTIONS } from "./rendering/iconAtlas.ts"
 import { LogSeverity, consoleLogger } from "./model/logger.ts";
-import { EdgeStylist, NodeStylist, RelationStylist } from "./model/style.ts";
+import type { EdgeStylist, NodeStylist, RelationStylist } from "./model/style.ts";
 import { IconAtlas } from "./rendering/iconAtlas.ts";
 import { requireJsonScript } from "./model/data.ts";
-import { DEFAULT_FORCE_ATLAS2_OPTIONS, Diagram, DiagramRefreshOptions, ForceAtlas2Options } from "./diagram/diagram.ts";
+import { DEFAULT_FORCE_ATLAS2_OPTIONS, Diagram, type DiagramRefreshOptions, type ForceAtlas2Options } from "./diagram/diagram.ts";
 import { EMPTY_DATA_MODEL } from "./model/const.ts";
-import { IconSetModel } from "./model/icon-set-model.ts";
-import { DataModel } from "./model/data-model.ts";
+import type { IconSetModel } from "./model/icon-set-model.ts";
+import type { DataModel } from "./model/data-model.ts";
 
 // TODO: be a little bit more selective about what to export
 export * from "./model/const.ts";

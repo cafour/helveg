@@ -1,5 +1,4 @@
 import * as esbuild from "esbuild";
-import { denoResolverPlugin, denoLoaderPlugin } from "esbuild_deno_loader";
 
 const InlineBundlePluginName = "inline-bundle";
 const InlineBundleFilter = /^inline-bundle:/;
@@ -36,11 +35,7 @@ export class InlineBundlePlugin {
                 platform: "browser",
                 bundle: true,
                 write: false,
-                entryPoints: [`file://${args.path}`],
-                plugins: [
-                    denoResolverPlugin(),
-                    denoLoaderPlugin(),
-                ]
+                entryPoints: [args.path]
             });
             return {
                 contents: inlineBundleCode.outputFiles[0].text,

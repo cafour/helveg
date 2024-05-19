@@ -7,6 +7,5 @@
         "titleBar.activeForeground": "#F8FAF8"
     },
     "workbench.colorTheme": "Default Dark Modern",
-    "deno.config": "./ash/deno.json",
-    "deno.enable": true,
+    "deno.enable": false
 }

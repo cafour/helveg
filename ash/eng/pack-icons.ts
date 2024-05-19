@@ -1,5 +1,6 @@
-import * as path from "std/path/mod.ts";
-import { encodeBase64 } from "std/encoding/base64.ts";
+import fs from "fs/promises";
+import { existsSync } from "fs";
+import path from "path";
 
 // TODO: make a JSON schema for these. In the meantime keep it in sync with icons.ts
 export type IconFormat = "svg" | "png";
@@ -20,23 +21,29 @@ export async function packIconSet(namespaceDir: string, outDir: string) {
         namespace: path.basename(namespaceDir),
         icons: []
     };
-    const iconEntries = Deno.readDir(namespaceDir);
-    for await (const icon of iconEntries) {
-        const iconPath = path.join(namespaceDir, icon.name);
+    const iconEntries = await fs.readdir(namespaceDir, { withFileTypes: true });
+    for (let icon of iconEntries) {
+        const iconPath = path.join(icon.path, icon.name);
         let contents: string | undefined;
         let format: IconFormat | undefined;
 
         switch (path.extname(icon.name)) {
             case ".svg":
                 format = "svg";
-                contents = await Deno.readTextFile(iconPath);
+                contents = await fs.readFile(iconPath, {
+                    encoding: "utf-8",
+                    flag: "r"
+                });
                 break;
             case ".png":
                 format = "png";
-                contents = encodeBase64(await Deno.readFile(iconPath));
+                let buffer = await fs.readFile(iconPath, {
+                    flag: "r"
+                })
+                contents = buffer.toString("base64");
                 break;
             default:
-                console.log(`Ignoring file at '${iconPath}'.`);
+                console.log(`Ignoring file '${iconPath}'.`);
                 break;
         }
         if (!format || !contents) {
@@ -49,17 +56,16 @@ export async function packIconSet(namespaceDir: string, outDir: string) {
             format: format
         });
     }
-    await Deno.writeTextFile(path.join(outDir, `./helveg-icons-${set.namespace}.json`), JSON.stringify(set));
+    await fs.writeFile(path.join(outDir, `./helveg-icons-${set.namespace}.json`), JSON.stringify(set));
 }
 
 export async function packIconSets(dirPath: string, outDir: string) {
-    if (!await Deno.lstat(outDir)) {
-        await Deno.mkdir(outDir);
+    if (!existsSync(outDir)) {
+        await fs.mkdir(outDir);
     }
-    
-    const setEntries = Deno.readDir(dirPath);
-    for await (const setEntry of setEntries) {
+
+    const setEntries = await fs.readdir(dirPath, { recursive: false, withFileTypes: true });
+    for (const setEntry of setEntries) {
         await packIconSet(path.join(dirPath, setEntry.name), outDir);
     }
 }
-

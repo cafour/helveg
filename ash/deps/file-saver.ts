@@ -1,2 +1,2 @@
-import FileSaver from "npm:file-saver";
+import FileSaver from "file-saver";
 export default FileSaver;

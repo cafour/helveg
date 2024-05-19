@@ -1,1 +1,1 @@
-export * from "npm:d3-hierarchy";
+export * from "d3-hierarchy";

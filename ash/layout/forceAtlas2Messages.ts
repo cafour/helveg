@@ -1,4 +1,4 @@
-import { ForceAtlas2Settings } from "../deps/graphology-layout-forceatlas2.ts";
+import type { ForceAtlas2Settings } from "../deps/graphology-layout-forceatlas2.ts";
 
 export enum MessageKind {
     Init = "init",

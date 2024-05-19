@@ -1,6 +1,6 @@
 import { HelvegEvent } from "../common/event.ts";
-import { Icon, IconSetModel } from "./icon-set-model.ts";
-import { ILogger } from "./logger.ts";
+import type { Icon, IconSetModel } from "./icon-set-model.ts";
+import type { ILogger } from "./logger.ts";
 
 export interface IconOptions {
     width?: number;

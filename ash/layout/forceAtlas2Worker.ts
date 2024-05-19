@@ -1,4 +1,4 @@
-import iterate from "npm:/graphology-layout-forceatlas2/iterate";
+import iterate from "graphology-layout-forceatlas2/iterate";
 import { MessageKind, type Message, type StartMessage, type StopMessage, type UpdateMessage, type InitMessage, type ProgressMessage } from "./forceAtlas2Messages.ts";
 
 let iterationCount = 0;

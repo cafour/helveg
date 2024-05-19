@@ -1,0 +1,48 @@
+{
+    "extends": "@tsconfig/svelte/tsconfig.json",
+    "compilerOptions": {
+        "target": "ESNext",
+        "module": "ESNext",
+        "moduleResolution": "Bundler",
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+        "strict": true,
+        "skipLibCheck": true,
+        "isolatedModules": true,
+        "allowJs": true,
+        "allowUnreachableCode": false,
+        "allowUnusedLabels": false,
+        "noImplicitAny": true,
+        "noImplicitReturns": false,
+        "noImplicitThis": true,
+        "strictBindCallApply": true,
+        "strictFunctionTypes": true,
+        "strictPropertyInitialization": true,
+        "strictNullChecks": true,
+        "allowImportingTsExtensions": true,
+        "emitDeclarationOnly": true,
+        "outDir": "build/types",
+        "composite": true,
+        "lib": [
+            "DOM",
+            "DOM.Iterable",
+            "ESNext",
+            "ESNext.AsyncIterable",
+        ],
+        "types": [
+            "svelte",
+            "./deps/graphology-layout-forceatlas2.d.ts"
+        ]
+    },
+    "include": [
+        "**/*.ts",
+        "**/*.svelte",
+        "**/*.d.ts",
+        "package.json"
+    ],
+    "exclude": [
+        "eng/**/*",
+        "node_modules/",
+        "build/",
+    ]
+}

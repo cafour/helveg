@@ -1,6 +1,6 @@
 import { PizzaIcons } from "../model/const.ts";
-import { MultigraphNode } from "../model/data-model.ts";
-import { NodeStyle, FireStatus } from "../model/style.ts";
+import type { MultigraphNode } from "../model/data-model.ts";
+import { type NodeStyle, FireStatus } from "../model/style.ts";
 
 export enum EntityKind {
     Solution = "Solution",

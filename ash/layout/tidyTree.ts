@@ -1,6 +1,6 @@
 import { hierarchy, tree } from "../deps/d3-hierarchy.ts";
-import { Coordinates } from "../deps/sigma.ts";
-import { HelvegGraph } from "../model/graph.ts";
+import type { Coordinates } from "../diagram/diagram.ts";
+import type { HelvegGraph } from "../model/graph.ts";
 
 export interface TidyTreeLayoutOptions {
     radius: number;

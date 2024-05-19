@@ -1,5 +1,5 @@
-import { DataModel } from "./data-model.ts";
-import { IconSetModel } from "./icon-set-model.ts";
+import type { DataModel } from "./data-model.ts";
+import type { IconSetModel } from "./icon-set-model.ts";
 
 export enum Colors {
     DarkGray = "#202020",

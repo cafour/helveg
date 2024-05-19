@@ -1,5 +1,5 @@
-import Graph, { Attributes } from "../deps/graphology.ts";
-import { Multigraph } from "./data-model.ts";
+import Graph, { type Attributes } from "../deps/graphology.ts";
+import type { Multigraph } from "./data-model.ts";
 
 export interface BfsOptions {
     maxDepth: number;

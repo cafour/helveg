@@ -1,2 +1,2 @@
-export * from "npm:graphology-utils";
-export * from "npm:graphology-utils/getters";
+export * from "graphology-utils";
+export * from "graphology-utils/getters";

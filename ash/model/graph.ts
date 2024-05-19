@@ -1,7 +1,7 @@
-import { Attributes, EdgeEntry } from "../deps/graphology.ts";
+import type { Attributes, EdgeEntry } from "../deps/graphology.ts";
 import Graph from "../deps/graphology.ts";
-import { Multigraph, MultigraphNodeDiffStatus } from "./data-model.ts";
-import { Outlines, FireStatus } from "./style.ts";
+import type { Multigraph, MultigraphNodeDiffStatus } from "./data-model.ts";
+import { type Outlines, FireStatus } from "./style.ts";
 
 export interface HelvegNodeAttributes extends Attributes {
     style?: string;

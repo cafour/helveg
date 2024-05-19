@@ -1,4 +1,4 @@
-import { MultigraphNode, Multigraph } from "./data-model.ts";
+import type { MultigraphNode, Multigraph } from "./data-model.ts";
 
 export enum SearchMode {
     Contains = "contains",

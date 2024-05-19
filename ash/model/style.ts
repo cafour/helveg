@@ -1,4 +1,4 @@
-import { MultigraphEdge, MultigraphNode } from "./data-model.ts";
+import type { MultigraphEdge, MultigraphNode } from "./data-model.ts";
 
 let INT8 = new Int8Array(4);
 let INT32 = new Int32Array(INT8.buffer);

@@ -1,5 +1,5 @@
-export * from "https://esm.sh/graphology";
-import Graph from "https://esm.sh/graphology";
+export * from "graphology";
+import Graph from "graphology";
 export default Graph;
 
-export type * from "npm:graphology-types";
+export type * from "graphology-types";
