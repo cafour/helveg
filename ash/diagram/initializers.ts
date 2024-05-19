@@ -1,13 +1,11 @@
 import forceAtlas2, { ForceAtlas2Settings, inferSettings } from "../deps/graphology-layout-forceatlas2.ts";
 import Graph from "../deps/graphology.ts";
-import { Sigma, Coordinates, DEFAULT_SETTINGS, NodeProgramConstructor, SigmaNodeEventPayload, SigmaStageEventPayload } from "../deps/sigma.ts";
 import { ForceAtlas2Progress, ForceAtlas2Supervisor } from "../layout/forceAltas2Supervisor.ts";
 import { DataModel, Multigraph, MultigraphRelation } from "../model/data-model.ts";
 import { HelvegEdgeAttributes, HelvegGraph, HelvegNodeAttributes, collapseNode, expandNode, findRoots, toggleNode } from "../model/graph.ts";
 import { ILogger, Logger, sublogger } from "../model/logger.ts";
 import { EdgeStylist, FALLBACK_EDGE_STYLE, FALLBACK_NODE_STYLE, NodeStylist, OutlineStyle, Outlines, RelationStylist, getOutlinesTotalWidth } from "../model/style.ts";
 import { bfsGraph, bfsMultigraph } from "../model/traversal.ts";
-import { GlyphProgramOptions, SizingMode } from "../rendering/node.glyph.ts";
 
 export function initializeSupervisor(
     graph: HelvegGraph,
@@ -20,112 +18,6 @@ export function initializeSupervisor(
     const supervisor = new ForceAtlas2Supervisor(graph, settings, logger ? sublogger(logger, "fa2") : undefined);
     supervisor.progress.subscribe(onSupervisorProgress);
     return supervisor;
-}
-
-// HACK: Sigma does not allow to disable hovering on nodes, so we have to track it ourselves.
-export const isHoverEnabledSymbol = Symbol("isHoverEnabled");
-export const hoveredNodeSymbol = Symbol("hoveredNode");
-
-export type HelvegSigma = Sigma<HelvegGraph> & { [isHoverEnabledSymbol]: boolean, [hoveredNodeSymbol]: string | null };
-
-export function initializeSigma(
-    element: HTMLElement,
-    graph: HelvegGraph,
-    glyphProgram: NodeProgramConstructor,
-    onClick?: (payload: SigmaNodeEventPayload) => void,
-    onNodeDown?: (payload: SigmaNodeEventPayload) => void,
-    onStageDown?: (payload: SigmaStageEventPayload) => void,
-    onDown?: (coords: Coordinates) => void,
-    onUp?: (coords: Coordinates) => void,
-    onMove?: (coords: Coordinates) => boolean | void
-): HelvegSigma {
-
-    const sigma = new Sigma(graph, element, {
-        nodeProgramClasses: {
-            glyph: glyphProgram,
-        },
-        labelFont: "'Cascadia Mono', 'Consolas', monospace",
-        edgeLabelFont: "'Cascadia Mono', 'Consolas', monospace",
-        itemSizesReference: "positions"
-    }) as HelvegSigma;
-    sigma[isHoverEnabledSymbol] = false;
-    sigma[hoveredNodeSymbol] = null;
-
-    if (onClick) {
-        sigma.on("clickNode", onClick);
-    }
-
-    if (onNodeDown) {
-        sigma.on("downNode", onNodeDown);
-    }
-
-    if (onStageDown) {
-        sigma.on("downStage", onStageDown);
-    }
-
-    if (onDown) {
-        sigma.getMouseCaptor().on("mousedown", e => onDown(e));
-        sigma.getTouchCaptor().on("touchdown", e => onDown(e.touches[0]));
-    }
-
-    if (onUp) {
-        sigma.getMouseCaptor().on("mouseup", onUp);
-        sigma.getTouchCaptor().on("touchup", e => onUp(e.touches[0]));
-    }
-
-    if (onMove) {
-        sigma.getMouseCaptor().on("mousemovebody", e => {
-            if (onMove(e) === false) {
-                // prevent Sigma from moving the camera
-                e.preventSigmaDefault();
-                e.original.preventDefault();
-                e.original.stopPropagation();
-            }
-
-        });
-        sigma.getTouchCaptor().on("touchmove", e => {
-            if (e.touches.length == 1) {
-                onMove(e.touches[0]);
-                e.original.preventDefault();
-            }
-        });
-    }
-
-    sigma.on("enterNode", e => {
-        if (sigma[isHoverEnabledSymbol]) {
-            sigma[hoveredNodeSymbol] = e.node;
-        } else {
-            sigma[hoveredNodeSymbol] = null;
-            // HACK: This is IMHO currently the only way to force Sigma *not to* render hovered nodes.
-            (sigma as any).hoveredNode = null;
-        }
-    })
-
-    sigma.on("leaveNode", e => {
-        if (sigma[isHoverEnabledSymbol]) {
-            sigma[hoveredNodeSymbol] = null;
-            // HACK: This is IMHO currently the only way to force Sigma *not to* render hovered nodes.
-            (sigma as any).hoveredNode = null;
-        }
-    })
-
-    return sigma;
-}
-
-export function configureSigma(
-    sigma: HelvegSigma,
-    options: GlyphProgramOptions
-) {
-    sigma.setSetting("renderLabels", options.showLabels);
-    if (options.isPizzaEnabled) {
-        sigma.setSetting("zoomToSizeRatioFunction", (cameraRatio) => cameraRatio);
-        sigma.setSetting("hoverRenderer", () => { });
-        sigma[isHoverEnabledSymbol] = false;
-    } else {
-        sigma.setSetting("zoomToSizeRatioFunction", DEFAULT_SETTINGS.zoomToSizeRatioFunction);
-        sigma.setSetting("hoverRenderer", DEFAULT_SETTINGS.hoverRenderer);
-        sigma[isHoverEnabledSymbol] = true;
-    }
 }
 
 export function initializeGraph(
@@ -242,7 +134,7 @@ function addTransitiveRelation(graph: HelvegGraph, multigraph: Multigraph, relat
 export function styleGraph(
     graph: HelvegGraph,
     model: DataModel,
-    glyphProgramOptions: GlyphProgramOptions,
+    // glyphProgramOptions: GlyphProgramOptions,
     nodeStylist?: NodeStylist,
     relationStylist?: RelationStylist,
     edgeStylist?: EdgeStylist,
@@ -265,27 +157,27 @@ export function styleGraph(
             ...nodeStyle.outlines.slice(0, 3),
         ] as Outlines;
 
-        attributes.size = glyphProgramOptions.showOutlines && outlines.length > 0
-            ? getOutlinesTotalWidth(outlines)
-            : nodeStyle.size;
+        // attributes.size = glyphProgramOptions.showOutlines && outlines.length > 0
+        //     ? getOutlinesTotalWidth(outlines)
+        //     : nodeStyle.size;
         attributes.iconSize = nodeStyle.size;
 
-        const getSize = (sizingMode: SizingMode, value: number) => {
-            switch (sizingMode) {
-                case "linear":
-                    // keep it as is
-                    return value;
-                case "sqrt":
-                    return Math.sqrt(value);
-                case "log":
-                    return Math.log(Math.max(value, 1));
-                default:
-                    return value;
-            }
-        }
+        // const getSize = (sizingMode: SizingMode, value: number) => {
+        //     switch (sizingMode) {
+        //         case "linear":
+        //             // keep it as is
+        //             return value;
+        //         case "sqrt":
+        //             return Math.sqrt(value);
+        //         case "log":
+        //             return Math.log(Math.max(value, 1));
+        //         default:
+        //             return value;
+        //     }
+        // }
 
-        attributes.size = getSize(glyphProgramOptions.sizingMode, attributes.size);
-        attributes.iconSize = getSize(glyphProgramOptions.sizingMode, attributes.iconSize);
+        // attributes.size = getSize(glyphProgramOptions.sizingMode, attributes.size);
+        // attributes.iconSize = getSize(glyphProgramOptions.sizingMode, attributes.iconSize);
         attributes.color = nodeStyle.color;
         attributes.type = "glyph";
         attributes.icon = nodeStyle.icon;

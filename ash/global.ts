@@ -4,7 +4,6 @@ import { DEFAULT_ICON_ATLAS_OPTIONS } from "./rendering/iconAtlas.ts"
 import { LogSeverity, consoleLogger } from "./model/logger.ts";
 import { EdgeStylist, NodeStylist, RelationStylist } from "./model/style.ts";
 import { IconAtlas } from "./rendering/iconAtlas.ts";
-import { DEFAULT_GLYPH_PROGRAM_OPTIONS } from "./rendering/node.glyph.ts";
 import { requireJsonScript } from "./model/data.ts";
 import { DEFAULT_FORCE_ATLAS2_OPTIONS, Diagram, DiagramRefreshOptions, ForceAtlas2Options } from "./diagram/diagram.ts";
 import { EMPTY_DATA_MODEL } from "./model/const.ts";
@@ -20,14 +19,12 @@ export * from "./model/icons.ts";
 export * from "./model/logger.ts";
 export * from "./model/style.ts";
 export * from "./model/traversal.ts";
-export * from "./rendering/export.ts";
 export * from "./diagram/diagram.ts";
 export * from "./model/data-model.ts";
 export * from "./model/icon-set-model.ts";
 export * from "./csharp/style.ts";
 export * from "./csharp/model.ts";
 export * from "./random.ts";
-export * from "./rendering/node.glyph.ts";
 
 export interface CreateDiagramOptions {
     element: HTMLElement | null,
@@ -75,10 +72,6 @@ export function createDiagram(options?: Partial<CreateDiagramOptions>): Diagram 
         relationStylist: opts.relationStylist,
         mainRelation: opts.mainRelation ?? Object.keys(opts.model.data?.relations ?? {}).sort()[0] ?? null,
         iconRegistry: iconRegistry,
-        glyphProgram: {
-            ...DEFAULT_GLYPH_PROGRAM_OPTIONS,
-            iconAtlas: new IconAtlas(iconRegistry, { iconSize: opts.iconSize })
-        },
         refresh: options?.refresh
     })
     diagram.model = opts.model;
@@ -90,7 +83,7 @@ export function loadIconSet(element: Element): Promise<IconSetModel> {
 }
 
 export async function loadIconSets(selector: string): Promise<IconSetModel[]> {
-    const scripts = document.querySelectorAll(selector);
+    const scripts = Array.from(document.querySelectorAll(selector));
     const results = [];
     for (const script of scripts) {
         results.push(await loadIconSet(script));

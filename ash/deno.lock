@@ -3,8 +3,14 @@
   "packages": {
     "specifiers": {
       "npm:@craftamap/esbuild-plugin-html": "npm:@craftamap/esbuild-plugin-html@0.6.1_esbuild@0.20.0",
+      "npm:@types/node": "npm:@types/node@18.16.19",
       "npm:@webgpu/types": "npm:@webgpu/types@0.1.40",
-      "npm:esbuild-plugin-copy": "npm:esbuild-plugin-copy@2.1.1_esbuild@0.20.0"
+      "npm:d3-hierarchy": "npm:d3-hierarchy@3.1.2",
+      "npm:esbuild-plugin-copy": "npm:esbuild-plugin-copy@2.1.1_esbuild@0.20.0",
+      "npm:file-saver": "npm:file-saver@2.0.5",
+      "npm:graphology-layout-forceatlas2": "npm:graphology-layout-forceatlas2@0.10.1_graphology-types@0.24.7",
+      "npm:graphology-types": "npm:graphology-types@0.24.7",
+      "npm:graphology-utils": "npm:graphology-utils@2.5.2_graphology-types@0.24.7"
     },
     "npm": {
       "@craftamap/esbuild-plugin-html@0.6.1_esbuild@0.20.0": {
@@ -129,6 +135,10 @@
         "integrity": "sha512-RbzJvlNzmRq5c3O09UipeuXno4tA1FE6ikOjxZK0tuxVv3412l64l5t1W5pj4+rJq9vpkm/kwiR07aZXnsKPxw==",
         "dependencies": {}
       },
+      "@types/node@18.16.19": {
+        "integrity": "sha512-IXl7o+R9iti9eBW4Wg2hx1xQDig183jj7YLn8F7udNceyfkbn1ZxmzZXuak20gR40D7pIkIY1kYGx5VIGbaHKA==",
+        "dependencies": {}
+      },
       "@webgpu/types@0.1.40": {
         "integrity": "sha512-/BBkHLS6/eQjyWhY2H7Dx5DHcVrS2ICj9owvSRdgtQT6KcafLZA86tPze0xAOsd4FbsYKCUBUQyNi87q7gV7kw==",
         "dependencies": {}
@@ -247,6 +257,10 @@
           "cssom": "cssom@0.3.8"
         }
       },
+      "d3-hierarchy@3.1.2": {
+        "integrity": "sha512-FX/9frcub54beBdugHjDCdikxThEqjnR93Qt7PvQTOHxyiNCAlvMrHhclk3cD5VeAaq9fxmfRp+CnWw9rEMBuA==",
+        "dependencies": {}
+      },
       "data-urls@3.0.2": {
         "integrity": "sha512-Jy/tj3ldjZJo63sVAvg6LHt2mHvl4V6AgRAmNDtLdm7faqtsx+aJG42rsyCo9JCoRVKwPFzKlIPx3DIibwSIaQ==",
         "dependencies": {
@@ -356,6 +370,10 @@
           "reusify": "reusify@1.0.4"
         }
       },
+      "file-saver@2.0.5": {
+        "integrity": "sha512-P9bmyZ3h/PRG+Nzga+rbdI4OEpNDzAVyy74uVO9ATgzLK6VtAsYybF/+TOCvrc0MO793d6+42lLyZTw7/ArVzA==",
+        "dependencies": {}
+      },
       "fill-range@7.0.1": {
         "integrity": "sha512-qOo9F+dMUmC2Lcb4BbVvnKJxTPjCm+RRpe4gDuGrzkL7mEVl/djYSu2OdQ2Pa302N4oqkSg9ir6jaLWJ2USVpQ==",
         "dependencies": {
@@ -402,6 +420,23 @@
       "graceful-fs@4.2.11": {
         "integrity": "sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==",
         "dependencies": {}
+      },
+      "graphology-layout-forceatlas2@0.10.1_graphology-types@0.24.7": {
+        "integrity": "sha512-ogzBeF1FvWzjkikrIFwxhlZXvD2+wlY54lqhsrWprcdPjopM2J9HoMweUmIgwaTvY4bUYVimpSsOdvDv1gPRFQ==",
+        "dependencies": {
+          "graphology-types": "graphology-types@0.24.7",
+          "graphology-utils": "graphology-utils@2.5.2_graphology-types@0.24.7"
+        }
+      },
+      "graphology-types@0.24.7": {
+        "integrity": "sha512-tdcqOOpwArNjEr0gNQKCXwaNCWnQJrog14nJNQPeemcLnXQUUGrsCWpWkVKt46zLjcS6/KGoayeJfHHyPDlvwA==",
+        "dependencies": {}
+      },
+      "graphology-utils@2.5.2_graphology-types@0.24.7": {
+        "integrity": "sha512-ckHg8MXrXJkOARk56ZaSCM1g1Wihe2d6iTmz1enGOz4W/l831MBCKSayeFQfowgF8wd+PQ4rlch/56Vs/VZLDQ==",
+        "dependencies": {
+          "graphology-types": "graphology-types@0.24.7"
+        }
       },
       "has-flag@4.0.0": {
         "integrity": "sha512-EykJT/Q1KjTWctppgIAgfSO0tKVuZUjhgMr17kqTumMl6Afv3EISleU7qZUzoXDFTAHTDC4NOoG/ZxU3EvlMPQ==",
@@ -734,6 +769,11 @@
         "dependencies": {}
       }
     }
+  },
+  "redirects": {
+    "https://esm.sh/graphology": "https://esm.sh/graphology@0.25.4",
+    "https://esm.sh/graphology-layout-forceatlas2": "https://esm.sh/graphology-layout-forceatlas2@0.10.1",
+    "https://esm.sh/graphology-layout-forceatlas2/helpers": "https://esm.sh/graphology-layout-forceatlas2@0.10.1/helpers"
   },
   "remote": {
     "https://deno.land/std@0.140.0/_util/assert.ts": "e94f2eb37cebd7f199952e242c77654e43333c1ac4c5c700e929ea3aa5489f74",

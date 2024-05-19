@@ -61,7 +61,7 @@ const buildContext = await esbuild.context({
   platform: "browser",
   format: "iife",
   bundle: true,
-  outdir: "./build/helveg-ash.js",
+  outfile: "./build/helveg-ash.js",
   sourcemap: true,
   metafile: true,
   plugins: [
