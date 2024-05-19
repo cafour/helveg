@@ -1,9 +1,9 @@
-import * as esbuild from 'https://deno.land/x/esbuild@v0.21.3/mod.js'
-import { denoResolverPlugin, denoLoaderPlugin } from "https://deno.land/x/esbuild_deno_loader@0.9.0/mod.ts";
+import * as esbuild from "esbuild";
+import { denoResolverPlugin, denoLoaderPlugin } from "esbuild_deno_loader";
 import { parseArgs } from "std/cli/parse_args.ts";
-import { HtmlFileConfiguration, htmlPlugin } from "npm:@craftamap/esbuild-plugin-html";
 import { copy } from "npm:esbuild-plugin-copy";
 import * as path from "std/path/posix/mod.ts";
+import inlineBundlePlugin from "./inline-bundle.ts";
 
 interface Args {
   watch: boolean;
@@ -65,6 +65,7 @@ const buildContext = await esbuild.context({
   sourcemap: true,
   metafile: true,
   plugins: [
+    inlineBundlePlugin(),
     denoResolverPlugin(),
     wgslLoader,
     pngLoader,

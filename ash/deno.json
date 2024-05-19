@@ -4,7 +4,9 @@
     "serve": "deno run -A --unstable-webgpu ./eng/build.ts --watch"
   },
   "imports": {
-    "std/": "https://deno.land/std@0.212.0/"
+    "std/": "https://deno.land/std@0.212.0/",
+    "esbuild": "https://deno.land/x/esbuild@v0.21.3/mod.js",
+    "esbuild_deno_loader": "https://deno.land/x/esbuild_deno_loader@0.9.0/mod.ts"
   },
   "compilerOptions": {
     "lib": [

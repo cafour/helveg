@@ -89,5 +89,20 @@
       "console": "internalConsole",
       "stopAtEntry": false
     },
+    {
+      "request": "launch",
+      "name": "Ash",
+      "type": "node",
+      "program": "${workspaceFolder}/ash/eng/build.ts",
+      "cwd": "${workspaceFolder}/ash",
+      "env": {},
+      "runtimeExecutable": "deno",
+      "runtimeArgs": [
+        "run",
+        "--inspect-wait",
+        "--allow-all"
+      ],
+      "attachSimplePort": 9229
+    }
   ]
 }

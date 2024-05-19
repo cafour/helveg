@@ -1,6 +1,5 @@
-import iterate from "graphology-layout-forceatlas2/iterate";
-import { MessageKind, type Message, type StartMessage, type StopMessage, type UpdateMessage, type InitMessage, type ProgressMessage } from "./forceAtlas2Messages";
-import type { ForceAtlas2Settings } from "graphology-layout-forceatlas2";
+import iterate from "npm:/graphology-layout-forceatlas2/iterate";
+import { MessageKind, type Message, type StartMessage, type StopMessage, type UpdateMessage, type InitMessage, type ProgressMessage } from "./forceAtlas2Messages.ts";
 
 let iterationCount = 0;
 let nodes: Float32Array;
@@ -8,7 +7,7 @@ let edges: Float32Array;
 let stopRequested: boolean = false;
 
 self.onmessage = e => {
-    let message = e.data as Message;
+    const message = e.data as Message;
     switch (message.kind) {
         case MessageKind.Init:
             init(message as InitMessage);
@@ -47,7 +46,7 @@ function start(message: StartMessage) {
 
 function runContinously(message: StartMessage)
 {
-    var mc = new MessageChannel();
+    const mc = new MessageChannel();
     mc.port1.onmessage = () => {
         if (stopRequested) {
             update();
