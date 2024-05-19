@@ -1,3 +1,4 @@
+import { HelvegEvent } from "./common/event.ts";
 import * as helvegGlobal from "./global.ts";
 export * from "./global.ts";
 
@@ -5,8 +6,7 @@ type HelvegGlobal = typeof helvegGlobal;
 
 declare global {
 
-    interface Helveg extends HelvegGlobal
-    {
+    interface Helveg extends HelvegGlobal {
     }
 
     interface Window {
@@ -16,5 +16,7 @@ declare global {
     const helveg: Helveg;
 }
 
-window.helveg = window.helveg ?? {};
-Object.assign(window.helveg, helvegGlobal);
+const globalThisExtended = globalThis as typeof globalThis & { helveg: Helveg }
+
+globalThisExtended.helveg = globalThisExtended.helveg ?? {};
+Object.assign(globalThisExtended.helveg, helvegGlobal);

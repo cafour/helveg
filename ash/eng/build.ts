@@ -4,6 +4,8 @@ import { parseArgs } from "std/cli/parse_args.ts";
 import { copy } from "npm:esbuild-plugin-copy";
 import * as path from "std/path/posix/mod.ts";
 import inlineBundlePlugin from "./inline-bundle.ts";
+import { packIconSets } from "./pack-icons.ts";
+import { __esModule } from "../../packages/helveg-diagram/dist/helveg-diagram.js";
 
 interface Args {
   watch: boolean;
@@ -80,6 +82,8 @@ const buildContext = await esbuild.context({
     })] : [])
   ]
 });
+
+await packIconSets("./icons", "./build");
 
 if (args.watch) {
   await buildContext.watch()
