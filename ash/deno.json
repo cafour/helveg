@@ -1,0 +1,22 @@
+{
+  "tasks": {
+    "build": "deno run -A --unstable-webgpu ./eng/build.ts",
+    "serve": "deno run -A --unstable-webgpu ./eng/build.ts --watch"
+  },
+  "imports": {
+    "std/": "https://deno.land/std@0.212.0/"
+  },
+  "compilerOptions": {
+    "lib": [
+      "deno.ns",
+      "dom",
+      "dom.asynciterable"
+    ],
+    "types": [
+      "npm:@webgpu/types"
+    ]
+  },
+  "exclude": [
+    "build/"
+  ]
+}
