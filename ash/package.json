@@ -12,7 +12,7 @@
         "watch:check": "concurrently --kill-others -r \"npm run watch:tsc-check\" \"npm run watch:svelte-check\"",
         "bundle": "tsx eng/build.ts",
         "watch:bundle": "npm run bundle -- --watch",
-        "serve": "concurrently --kill-others -r \"npm run bundle -- --serve --sourcemap\" \"npm run watch:check\"",
+        "serve": "concurrently --kill-others -r \"npm run bundle -- --watch --sourcemap\" \"npm run watch:check\"",
         "clean": "rimraf build/",
         "build": "npm run bundle",
         "rebuild": "npm run clean && npm run build",
