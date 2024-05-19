@@ -1,0 +1,11 @@
+.explorer .diagram-background {
+    position: absolute;
+    inset: 0 0 0 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    display: block;
+    z-index: -1;
+    background-color: var(--color-surface-45);
+}

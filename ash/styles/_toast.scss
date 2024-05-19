@@ -1,0 +1,61 @@
+@use "./variables.scss";
+
+.toast-wrapper {
+    position: fixed;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    justify-content: flex-end;
+    align-items: flex-end;
+
+    .toast {
+        margin-right: 3rem;
+        margin-bottom: 1rem;
+        width: 30rem;
+        max-width: calc(100vw - 5rem);
+        background-color: var(--color-surface-50);
+        display: flex;
+        flex-direction: column;
+        border: 1px solid var(--color-surface-100);
+        pointer-events: all;
+        color: var(--color-text);
+        font-size: 1rem;
+
+        .toast-header {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            outline: 1px solid var(--color-surface-100);
+            align-items: center;
+            height: 1.5rem;
+
+            .icon {
+                padding: 0.25rem;
+                height: 100%;
+                aspect-ratio: 1/1;
+            }
+
+            .title {
+                text-transform: uppercase;
+                font-weight: lighter;
+                line-height: 1.5rem;
+                flex-grow: 1;
+            }
+            
+            .button-icon {
+                height: 100%;
+                width: auto;
+                aspect-ratio: 1/1;
+            }
+        }
+
+        .toast-body {
+            padding: 0.25rem 0.5rem;
+        }
+    }
+}

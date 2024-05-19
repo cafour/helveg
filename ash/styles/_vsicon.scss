@@ -1,0 +1,48 @@
+@use "./variables.scss";
+
+$dark-grey: #212121;
+$vs-bg: #424242;
+$light-grey: #C5C5C5;
+
+.icon {
+    .theme-helveg &, &.theme-helveg {
+        svg {
+            .light-lightblue,
+            .light-lightblue-10,
+            .light-blue,
+            .light-blue-10 {
+                fill: var(--color-primary-500);
+            }
+        }
+    }
+
+    *:disabled & {
+        svg {
+            *:not(.canvas){
+                fill: var(--color-surface-400);
+            }
+        }
+    }
+    .theme-light &, &.theme-light {
+        svg {
+            color: var(--icon-light);
+
+            path, g#outline path {
+                fill: var(--icon-light);
+            }
+            
+            path:not(.canvas):not(.icon-vs-out) {
+                fill: var(--icon-dark);
+            }
+        }
+    
+    }
+    
+    .dark & {
+        svg {
+            .light-defaultgrey {
+                fill: $light-grey;
+            }
+        }
+    }
+}

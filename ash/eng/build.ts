@@ -5,7 +5,9 @@ import { copy } from "npm:esbuild-plugin-copy";
 import * as path from "std/path/posix/mod.ts";
 import inlineBundlePlugin from "./inline-bundle.ts";
 import { packIconSets } from "./pack-icons.ts";
-import { __esModule } from "../../packages/helveg-diagram/dist/helveg-diagram.js";
+import esbuildSvelte from "npm:esbuild-svelte";
+import { sassPlugin } from "npm:esbuild-sass-plugin"
+import sveltePreprocess from "npm:svelte-preprocess";
 
 interface Args {
   watch: boolean;
@@ -69,6 +71,14 @@ const buildContext = await esbuild.context({
   plugins: [
     inlineBundlePlugin(),
     denoResolverPlugin(),
+    (esbuildSvelte as any)({
+      preprocess: (sveltePreprocess as any)(),
+    }),
+    sassPlugin({
+      loadPaths: [
+        "./node_modules/uniformcss"
+      ]
+    }),
     wgslLoader,
     pngLoader,
     denoLoaderPlugin(),
