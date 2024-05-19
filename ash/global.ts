@@ -9,6 +9,7 @@ import { DEFAULT_FORCE_ATLAS2_OPTIONS, Diagram, type DiagramRefreshOptions, type
 import { EMPTY_DATA_MODEL } from "./model/const.ts";
 import type { IconSetModel } from "./model/icon-set-model.ts";
 import type { DataModel } from "./model/data-model.ts";
+import Explorer from "./components/Explorer.svelte";
 
 // TODO: be a little bit more selective about what to export
 export * from "./model/const.ts";

@@ -5,13 +5,10 @@
     import { createEventDispatcher, getContext } from "svelte";
     import { AppPanels } from "../const.ts";
     import type { Readable, Writable } from "svelte/store";
-    import {
-        type DataModel,
-        type Diagram,
-        saveAs,
-    } from "../deps/helveg-diagram.ts";
     import * as Options from "../options.ts";
-    import { version } from "../package.json";
+    import type { DataModel } from "../model/data-model.ts";
+    import type { Diagram } from "../diagram/diagram.ts";
+    import saveAs from "file-saver";
 
     $: metadataItems = [
         { key: "Name", value: $model.name },
@@ -21,10 +18,11 @@
         },
         { key: "AnalyzerName", value: $model.analyzer.name },
         { key: "AnalyzerVersion", value: $model.analyzer.version },
-        { key: "ExplorerVersion", value: version },
         {
             key: "NodeCount",
-            value: $model.data ? Object.keys($model.data.nodes).length.toString() : "0",
+            value: $model.data
+                ? Object.keys($model.data.nodes).length.toString()
+                : "0",
         },
     ];
 
@@ -51,9 +49,14 @@
     }
 
     async function resetOptions() {
-        dataOptions.set({...structuredClone(Options.DEFAULT_DATA_OPTIONS), ...diagram.options.refresh});
+        dataOptions.set({
+            ...structuredClone(Options.DEFAULT_DATA_OPTIONS),
+            ...diagram.options.refresh,
+        });
         exportOptions.set(structuredClone(Options.DEFAULT_EXPORT_OPTIONS));
-        appearanceOptions.set(structuredClone(Options.DEFAULT_APPEARANCE_OPTIONS));
+        appearanceOptions.set(
+            structuredClone(Options.DEFAULT_APPEARANCE_OPTIONS),
+        );
         layoutOptions.set(structuredClone(Options.DEFAULT_LAYOUT_OPTIONS));
         toolOptions.set(structuredClone(Options.DEFAULT_TOOL_OPTIONS));
         await diagram.reset();
@@ -108,7 +111,7 @@
             }),
             `${$model.name}.${new Date()
                 .toISOString()
-                .slice(0, 10)}.helveg-state.json`
+                .slice(0, 10)}.helveg-state.json`,
         );
     }
 </script>

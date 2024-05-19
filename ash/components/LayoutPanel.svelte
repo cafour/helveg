@@ -1,21 +1,17 @@
 <script lang="ts">
     import Panel from "./Panel.svelte";
-    import {
-        DiagramStatus,
-        type DiagramStats,
-        getRelations,
-        getNodeKinds,
-    } from "../deps/helveg-diagram.ts";
     import { createEventDispatcher, getContext } from "svelte";
     import Icon from "./Icon.svelte";
     import Subpanel from "./Subpanel.svelte";
     import KeyValueList from "./KeyValueList.svelte";
     import { AppPanels } from "../const.ts";
     import type { Readable, Writable } from "svelte/store";
-    import type { DataModel } from "../deps/helveg-diagram.ts";
     import type { DataOptions, LayoutOptions } from "../options.ts";
     import ToggleAllCheckbox from "./ToggleAllCheckbox.svelte";
     import Hint from "./Hint.svelte";
+    import type { DataModel } from "../model/data-model.ts";
+    import { getNodeKinds, getRelations } from "../model/graph.ts";
+    import { type DiagramStats, DiagramStatus } from "../diagram/diagram.ts";
 
     export let status: DiagramStatus;
     export let stats: DiagramStats;

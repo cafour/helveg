@@ -1,5 +1,4 @@
 <script lang="ts">
-    import type { DataModel, MultigraphDiagnostic, MultigraphNode } from "../deps/helveg-diagram.ts";
     import KeyValueList from "./KeyValueList.svelte";
     import Panel from "./Panel.svelte";
     import Subpanel from "./Subpanel.svelte";
@@ -7,6 +6,7 @@
     import Icon from "./Icon.svelte";
     import * as marked from "../deps/marked.ts";
     import dompurify from "../deps/dompurify.ts";
+    import type { MultigraphDiagnostic, MultigraphNode } from "../model/data-model.ts";
 
     export let node: MultigraphNode | null = null;
     $: nodeItems =

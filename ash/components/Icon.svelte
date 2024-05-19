@@ -1,7 +1,9 @@
 <script lang="ts">
-    import { type IconOptions, type Icon, type Diagram} from "../deps/helveg-diagram.ts";
     import { readable, type Readable } from "svelte/store";
     import { getContext } from "svelte";
+    import type { Diagram } from "../diagram/diagram.ts";
+    import { type IconOptions } from "../model/icons.ts";
+    import type { Icon } from "../model/icon-set-model.ts";
     export let name: string;
     export let title: string | null = null;
     export let theme: string | null = null;

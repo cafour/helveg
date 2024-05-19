@@ -5,13 +5,11 @@
     import Subpanel from "./Subpanel.svelte";
     import { AppIcons, AppPanels } from "../const.ts";
     import ResizingTextarea from "./ResizingTextarea.svelte";
-    import {
-        SearchMode,
-        type DataModel,
-        Diagram,
-    } from "../deps/helveg-diagram.ts";
+    import { Diagram } from "../diagram/diagram.ts";
     import type { Readable } from "svelte/store";
     import Icon from "./Icon.svelte";
+    import { SearchMode } from "../model/filter.ts";
+    import type { DataModel } from "../model/data-model.ts";
 
     let dispatch = createEventDispatcher();
 
@@ -51,7 +49,7 @@
                 dispatch("highlight", {
                     searchText: searchText,
                     searchMode: selectedSearchMode,
-                    expandedOnly: expandedOnly
+                    expandedOnly: expandedOnly,
                 })}
         >
             <div class="flex flex-row gap-4">
@@ -64,10 +62,7 @@
                 />
             </div>
             <label>
-                <input
-                    type="checkbox"
-                    bind:checked={expandedOnly}
-                />
+                <input type="checkbox" bind:checked={expandedOnly} />
                 <span>ExpandedOnly</span>
             </label>
             <input

@@ -5,13 +5,8 @@
     import { getContext, onMount } from "svelte";
     import type { Readable, Writable } from "svelte/store";
     import type { AppearanceOptions } from "../options.ts";
-    import {
-        getNodeKinds,
-        type DataModel,
-        cyrb53,
-        PizzaIcons,
-        getRelations,
-    } from "../deps/helveg-diagram.ts";
+    import type { DataModel } from "../model/data-model.ts";
+    import { getNodeKinds, getRelations } from "../model/graph.ts";
 
     let appearanceOptions =
         getContext<Writable<AppearanceOptions>>("appearanceOptions");
@@ -30,24 +25,24 @@
         return u;
     });
 
-    const allToppings = Object.entries(PizzaIcons);
+    // const allToppings = Object.entries(PizzaIcons);
 
     $: kinds = getNodeKinds($model.data);
     $: relations = getRelations($model.data);
 
     let seed = 42;
 
-    onMount(() => randomizeToppings());
+    // onMount(() => randomizeToppings());
 
-    function randomizeToppings() {
-        for (const kind of kinds) {
-            const [_, value] =
-                allToppings[cyrb53(kind, seed) % allToppings.length];
-            $appearanceOptions.codePizza.pizzaToppings![kind] = value;
-        }
+    // function randomizeToppings() {
+    //     for (const kind of kinds) {
+    //         const [_, value] =
+    //             allToppings[cyrb53(kind, seed) % allToppings.length];
+    //         $appearanceOptions.codePizza.pizzaToppings![kind] = value;
+    //     }
 
-        seed++;
-    }
+    //     seed++;
+    // }
 </script>
 
 <Panel name="Appearance" indent={false} id={AppPanels.Appearance}>
@@ -106,11 +101,11 @@
                 class="w-80 inline-block flex-shrink-0 ellipsis overflow-hidden"
                 title="SizingMode">SizingMode</span
             >
-            <select bind:value={$appearanceOptions.glyph.sizingMode}>
+            <!-- <select bind:value={$appearanceOptions.glyph.sizingMode}>
                 <option value="sqrt">sqrt</option>
                 <option value="linear">linear</option>
                 <option value="log">log</option>
-            </select>
+            </select> -->
         </label>
     </Subpanel>
     <Subpanel name="Relations">
@@ -150,12 +145,12 @@
 
         <hr />
 
-        <button
+        <!-- <button
             class="button-stretch mb-16"
             on:click={() => randomizeToppings()}>Randomize</button
-        >
+        > -->
 
-        {#each kinds as kind}
+        <!-- {#each kinds as kind}
             <label class="flex flex-row gap-8 align-items-center">
                 <span
                     class="w-80 inline-block flex-shrink-0 ellipsis overflow-hidden"
@@ -167,6 +162,6 @@
                     {/each}
                 </select>
             </label>
-        {/each}
+        {/each} -->
     </Subpanel>
 </Panel>

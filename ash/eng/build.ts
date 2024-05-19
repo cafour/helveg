@@ -61,13 +61,14 @@ const buildContext = await esbuild.context({
     format: "iife",
     bundle: true,
     outfile: "./build/helveg-ash.js",
+    mainFields: ["svelte", "browser", "module", "main"],
     sourcemap: true,
     metafile: true,
     plugins: [
-        inlineBundlePlugin(),
-        (esbuildSvelte as any)({
-            preprocess: (sveltePreprocess as any)(),
+        esbuildSvelte({
+            preprocess: sveltePreprocess(),
         }),
+        inlineBundlePlugin(),
         sassPlugin({
             loadPaths: [
                 "./node_modules/uniformcss"

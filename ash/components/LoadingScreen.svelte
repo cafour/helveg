@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { DiagramStatus } from "../deps/helveg-diagram.ts";
+    import { DiagramStatus } from "../diagram/diagram.ts";
     import Icon from "./Icon.svelte";
 
     export let status: DiagramStatus;

@@ -91,10 +91,11 @@
         type Updater,
     } from "svelte/store";
     import { getContext } from "svelte";
-    import { LogSeverity, type Diagram, type LogEntry } from "../deps/helveg-diagram.ts";
+    import { type Diagram } from "../diagram/diagram.ts";
     import { onDestroy } from "svelte";
     import { AppIcons } from "../const.ts";
     import Icon from "./Icon.svelte";
+    import { LogSeverity, type LogEntry } from "../model/logger.ts";
 
     function onLogged(entry: LogEntry) {
         toaster.putIn({
