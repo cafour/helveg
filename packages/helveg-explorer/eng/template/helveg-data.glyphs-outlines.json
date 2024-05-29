@@ -1,0 +1,100 @@
+{
+    "analyzer": {
+        "name": "helveg",
+        "version": "0.0.0"
+    },
+    "createdOn": "today",
+    "data": {
+        "nodes": {
+            "test:001": {
+                "name": "[A]",
+                "kind": "Type",
+                "typeKind": "Class",
+                "instanceMemberCount": 20,
+                "staticMemberCount": 5,
+                "isStatic": false
+            },
+            "test:002": {
+                "name": "[B]",
+                "kind": "Type",
+                "typeKind": "Class",
+                "instanceMemberCount": 0,
+                "staticMemberCount": 12,
+                "isStatic": true
+            },
+            "test:003": {
+                "name": "[C]",
+                "kind": "Type",
+                "typeKind": "Struct",
+                "instanceMemberCount": 10,
+                "staticMemberCount": 20,
+                "isStatic": false
+            },
+            "test:004": {
+                "name": "[D]",
+                "kind": "Type",
+                "typeKind": "Interface",
+                "instanceMemberCount": 2,
+                "isStatic": false
+            },
+            "test:005": {
+                "name": "[E]",
+                "kind": "Type",
+                "typeKind": "Interface",
+                "instanceMemberCount": 6,
+                "isStatic": false
+            },
+            "test:006": {
+                "name": "[F]",
+                "kind": "Type",
+                "typeKind": "Class",
+                "accessibility": "Private",
+                "instanceMemberCount": 4,
+                "isStatic": false
+            },
+            "test:007": {
+                "name": "[G]",
+                "kind": "Type",
+                "typeKind": "Class",
+                "accessibility": "Internal",
+                "staticMemberCount": 8,
+                "isStatic": false
+            },
+            "test:008": {
+                "name": "[H]",
+                "kind": "Type",
+                "typeKind": "Struct",
+                "accessibility": "Public",
+                "instanceMemberCount": 10,
+                "staticMemberCount": 2,
+                "isStatic": false
+            },
+            "test:009": {
+                "name": "[I]",
+                "kind": "Field",
+                "accessibility": "Public",
+                "isStatic": false
+            },
+            "test:010": {
+                "name": "[J]",
+                "kind": "Method",
+                "accessibility": "Public",
+                "isStatic": true
+            },
+            "test:011": {
+                "name": "[K]",
+                "kind": "Property",
+                "accessibility": "Public",
+                "isStatic": true
+            },
+            "test:012": {
+                "name": "[L]",
+                "kind": "Event",
+                "accessibility": "Public",
+                "isStatic": false
+            }
+        },
+        "relations": {}
+    },
+    "name": "glyphs"
+}
