@@ -1,0 +1,55 @@
+{
+    "analyzer": {
+        "name": "helveg",
+        "version": "0.0.0"
+    },
+    "createdOn": "today",
+    "data": {
+        "nodes": {
+            "test:001": {
+                "name": "[A]",
+                "kind": "Type",
+                "typeKind": "Class",
+                "instanceMemberCount": 10,
+                "staticMemberCount": 10,
+                "isStatic": false,
+                "diagnostics": [
+                    {
+                        "id": "0",
+                        "severity": "info"
+                    }
+                ]
+            },
+            "test:002": {
+                "name": "[B]",
+                "kind": "Type",
+                "typeKind": "Class",
+                "instanceMemberCount": 10,
+                "staticMemberCount": 10,
+                "isStatic": false,
+                "diagnostics": [
+                    {
+                        "id": "1",
+                        "severity": "error"
+                    }
+                ]
+            },
+            "test:003": {
+                "name": "[C]",
+                "kind": "Type",
+                "typeKind": "Class",
+                "instanceMemberCount": 10,
+                "staticMemberCount": 10,
+                "isStatic": false,
+                "diagnostics": [
+                    {
+                        "id": "2",
+                        "severity": "warning"
+                    }
+                ]
+            }
+        },
+        "relations": {}
+    },
+    "name": "glyphs"
+}
