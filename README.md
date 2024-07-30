@@ -35,8 +35,14 @@ This software has many dependencies. These are the most significant:
 * [Graphology](https://github.com/graphology/graphology)
 * [Svelte](https://svelte.dev/)
 * [Visual Studio Image Library](https://www.microsoft.com/en-us/download/details.aspx?id=35825)
-    > Please note that a different license applies to icons from this image library. See [VS_LICENSE.rtf](./packages/helveg-diagram/icons/vs/VS_LICENSE.rtf)
-    
+
 ## Other notes
 
 * The _CodePizza_ feature is possible due to many royalty-free images of pizza ingredients. A complete list can be found in [~/docs/codepizza.md](./docs/codepizza.md).
+
+
+## License
+
+- The source code is licensed under the [BSD 3-Clause License](./LICENSE).
+- Visual Studio Icons in `./packages/helveg-diagram/icons/vs` are licensed under the [Visual Studio Image Library License](./packages/helveg-diagram/icons/vs/VS_LICENSE.rtf), allowing their use in applications.
+- The NuGet icon in `./packages/helveg-diagram/icons/nuget/NuGet.svg` is licensed under [CC-BY License](https://creativecommons.org/licenses/by/2.0/). Also see https://github.com/NuGet/Media.
