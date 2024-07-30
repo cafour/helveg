@@ -1,0 +1,94 @@
+{
+    "analyzer": {
+        "name": "helveg",
+        "version": "0.0.0"
+    },
+    "createdOn": "today",
+    "data": {
+        "nodes": {
+            "test:001": {
+                "name": "[A]",
+                "kind": "Solution"
+            },
+            "test:002": {
+                "name": "[B]",
+                "kind": "Project"
+            },
+            "test:006": {
+                "name": "[C]",
+                "kind": "Package"
+            },
+            "test:007": {
+                "name": "[D]",
+                "kind": "Library"
+            },
+            "test:011": {
+                "name": "[E]",
+                "kind": "Namespace"
+            },
+            "test:012": {
+                "name": "[F]",
+                "kind": "Type",
+                "typeKind": "Class"
+            },
+            "test:020": {
+                "name": "[G]",
+                "kind": "Type",
+                "typeKind": "Struct"
+            },
+            "test:021": {
+                "name": "[H]",
+                "kind": "Type",
+                "typeKind": "Interface"
+            },
+            "test:022": {
+                "name": "[I]",
+                "kind": "Type",
+                "typeKind": "Delegate"
+            },
+            "test:013": {
+                "name": "[J]",
+                "kind": "Field" 
+            },
+            "test:014": {
+                "name": "[K]",
+                "kind": "Property"
+            },
+            "test:015": {
+                "name": "[L]",
+                "kind": "Event"
+            },
+            "test:016": {
+                "name": "[M]",
+                "kind": "Method"
+            },
+            "test:018": {
+                "name": "[N]",
+                "kind": "Parameter"
+            },
+            "test:030": {
+                "name": "[O]",
+                "kind": "Type",
+                "typeKind": "Class",
+                "accessibility": "Private"
+            },
+            "test:031": {
+                "name": "[P]",
+                "kind": "Property",
+                "accessibility": "Internal"
+            },
+            "test:032": {
+                "name": "[Q]",
+                "kind": "Method",
+                "accessibility": "Protected"
+            },
+            "test:034": {
+                "name": "[R]",
+                "kind": "Field",
+                "isConst": true
+            }
+        },
+        "relations": {}
+    },
+    "name": "glyphs"
+}
