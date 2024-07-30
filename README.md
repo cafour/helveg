@@ -21,7 +21,7 @@ A tool and an extensible API for the visualization of C# codebases.
 
 ## Dependencies
 
-This software has many dependencies. These are the most significant:
+This software has many dependencies. You do not need to install these explicitly. See Build Instructions above. These are the most significant dependencies:
 
 **Back-end**
 
@@ -36,13 +36,10 @@ This software has many dependencies. These are the most significant:
 * [Svelte](https://svelte.dev/)
 * [Visual Studio Image Library](https://www.microsoft.com/en-us/download/details.aspx?id=35825)
 
-## Other notes
-
-* The _CodePizza_ feature is possible due to many royalty-free images of pizza ingredients. A complete list can be found in [~/docs/codepizza.md](./docs/codepizza.md).
-
 
 ## License
 
-- The source code is licensed under the [BSD 3-Clause License](./LICENSE).
-- Visual Studio Icons in `./packages/helveg-diagram/icons/vs` are licensed under the [Visual Studio Image Library License](./packages/helveg-diagram/icons/vs/VS_LICENSE.rtf), allowing their use in applications.
-- The NuGet icon in `./packages/helveg-diagram/icons/nuget/NuGet.svg` is licensed under [CC-BY License](https://creativecommons.org/licenses/by/2.0/). Also see https://github.com/NuGet/Media.
+* The source code is licensed under the [BSD 3-Clause License](./LICENSE).
+* Visual Studio Icons in `./packages/helveg-diagram/icons/vs` are licensed under the [Visual Studio Image Library License](./packages/helveg-diagram/icons/vs/VS_LICENSE.rtf), allowing their use in applications.
+* The NuGet icon in `./packages/helveg-diagram/icons/nuget/NuGet.svg` is licensed under [CC-BY License](https://creativecommons.org/licenses/by/2.0/). Also see https://github.com/NuGet/Media.
+* The ingredients used in the _CodePizza_ feature are based on a number of royalty-free images. A complete list can be found in [~/docs/codepizza.md](./codepizza.md).
