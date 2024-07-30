@@ -19,6 +19,22 @@ A tool and an extensible API for the visualization of C# codebases.
 * **[Docs](https://helveg.net/docs/)**
 * **[Samples](https://helveg.net/samples/)**
 
+## Build Steps
+
+To build Helveg from source, do the following:
+
+1. Make sure .NET 6.0 or newer, Node 22.4.0 or newer, and an up-to-date web browser are installed.
+2. Make sure your computer is connected to the internet.
+3. Open a command-line or a terminal in the root of the repository.
+4. Restore .NET tools by running `dotnet tool restore`.
+5. Enable corepack by running `corepack enable`.
+6. Install the `pnpm` package manager by running `corepack prepare pnpm@latest --activate`.
+7. Install client dependencies: `pnpm install`.
+8. Build client scripts: `pnpm run build`.
+9. Pack the .NET solution: `dotnet pack Helveg.sln -o artifacts -c Release`.
+10. Make sure no prior version of Helveg is installed: `dotnet tool uninstall helveg`.
+11. Install the newly built Helveg: `dotnet tool install --add-source ./artifacts helveg`.
+
 ## Dependencies
 
 This software has many dependencies. You do not need to install these explicitly. See Build Instructions above. These are the most significant dependencies:
