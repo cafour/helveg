@@ -19,11 +19,45 @@ A tool and an extensible API for the visualization of C# codebases.
 * **[Docs](https://helveg.net/docs/)**
 * **[Samples](https://helveg.net/samples/)**
 
-## Build Steps
+## Installing
 
-To build Helveg from source, do the following:
+```bash
+dotnet tool install --global helveg
+```
 
-1. Make sure .NET 6.0 or newer, Node 22.4.0 or newer, and an up-to-date web browser are installed.
+## Usage
+
+To produce a diagram of a codebase, navigate into a directory with a Visual Studio Solution file or a MSBuild C# project file and run:
+
+```bash
+helveg
+```
+
+Alternatively, to produce a diagram of a solution in `C:\dev\my-code\MyCode.sln`, run:
+
+```bash
+helveg 'C:\dev\my-code\MyCode.sln'
+```
+
+For a complete list of command-line options, see:
+
+```bash
+helveg --help
+```
+
+## Building
+
+### Prerequisites
+
+* .NET 6.0 or newer
+* Node 22.4.0 or newer
+* an up-to-date web browser
+
+### Steps
+
+To build Helveg from its source code, do the following:
+
+1. Make sure you have installed the prerequisites listed above.
 2. Make sure your computer is connected to the internet.
 3. Open a command-line or a terminal in the root of the repository.
 4. Restore .NET tools by running `dotnet tool restore`.
@@ -34,6 +68,7 @@ To build Helveg from source, do the following:
 9. Pack the .NET solution: `dotnet pack Helveg.sln -o artifacts -c Release`.
 10. Make sure no prior version of Helveg is installed: `dotnet tool uninstall helveg`.
 11. Install the newly built Helveg: `dotnet tool install --add-source ./artifacts helveg`.
+
 
 ## Dependencies
 
@@ -57,5 +92,5 @@ This software has many dependencies. You do not need to install these explicitly
 
 * The source code is licensed under the [BSD 3-Clause License](./LICENSE).
 * Visual Studio Icons in `./packages/helveg-diagram/icons/vs` are licensed under the [Visual Studio Image Library License](./packages/helveg-diagram/icons/vs/VS_LICENSE.rtf), allowing their use in applications.
-* The NuGet icon in `./packages/helveg-diagram/icons/nuget/NuGet.svg` is licensed under [CC-BY License](https://creativecommons.org/licenses/by/2.0/). Also see https://github.com/NuGet/Media.
+* The NuGet icon in `./packages/helveg-diagram/icons/nuget/NuGet.svg` is licensed under the [CC-BY License](https://creativecommons.org/licenses/by/2.0/). Also see https://github.com/NuGet/Media.
 * The ingredients used in the _CodePizza_ feature are based on a number of royalty-free images. A complete list can be found in [~/docs/codepizza.md](./codepizza.md).
