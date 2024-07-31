@@ -12,6 +12,7 @@
     <ImplicitUsings>disable</ImplicitUsings>
     <TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>
     <NoWarn>$(NoWarn);NU1701</NoWarn>
+    <Version>0.0.0-local</Version>
   </PropertyGroup>
 
   <PropertyGroup>
