@@ -1,6 +1,6 @@
 using System;
 
-namespace Helveg.Sample.Data
+namespace Helveg.Sample.Factory.Data
 {
     public abstract class UnitBase : IData, ICheeseUnit
     {

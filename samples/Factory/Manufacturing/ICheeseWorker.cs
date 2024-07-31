@@ -1,4 +1,4 @@
-namespace Helveg.Sample.Manufacturing
+namespace Helveg.Sample.Factory.Manufacturing
 {
     public interface ICheeseWorker
     {

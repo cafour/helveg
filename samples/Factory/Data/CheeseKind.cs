@@ -1,4 +1,4 @@
-namespace Helveg.Sample.Data
+namespace Helveg.Sample.Factory.Data
 {
     public enum CheeseKind
     {
