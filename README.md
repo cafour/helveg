@@ -14,7 +14,7 @@
     <img src="https://img.shields.io/gitlab/license/helveg/helveg?style=flat-square&label=License" />
 </a>
 
-A tool and an extensible API for the visualization of C# codebases.
+A prototype of a tool and an extensible API for the visualization of C# codebases.
 
 * **[Docs](https://helveg.net/docs/)**
 * **[Samples](https://helveg.net/samples/)**
@@ -44,6 +44,12 @@ For a complete list of command-line options, see:
 ```bash
 helveg --help
 ```
+
+
+## Limitations
+
+The visualized codebase must be able to build using `dotnet build`. Codebases relying on .NET Core and .NET 5+ should be fine. However, you may encounter issues when visualizing projects relying on the old .NET Framework, such as old-style ASP.NET projects and WPF applications.
+
 
 ## Building
 
