@@ -1,6 +1,6 @@
 build:
   stage: build
-  image: mcr.microsoft.com/dotnet/sdk:7.0-alpine
+  image: mcr.microsoft.com/dotnet/sdk:6.0-alpine
   variables:
     NUGET_PACKAGES: $CI_PROJECT_DIR/.nuget
   cache:
@@ -34,7 +34,7 @@ build:
 
 publish:
   stage: deploy
-  image: mcr.microsoft.com/dotnet/sdk:7.0-alpine
+  image: mcr.microsoft.com/dotnet/sdk:6.0-alpine
   script:
     - dotnet nuget push "artifacts/*.nupkg" --source nuget.org --api-key $NUGET_API_KEY
   rules:
