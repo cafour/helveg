@@ -45,7 +45,12 @@ For a complete list of command-line options, see:
 helveg --help
 ```
 
-Tip: If you don't have any C# codebase at hand, run Helveg on itself or on one of the simple samples in the `./samples` directory!
+**Note:** If you don't have any C# codebase at hand, run Helveg on itself or on one of the simple samples in the `./samples` directory.
+
+Upon completion, Helveg produces a single `.html` file.
+This file contains the interactive diagram.
+Open it in an up-to-date browser.
+For information on how to use the user interface, see `supplementary_meterial.pdf` or the Help panel (denoted by an encircled question mark) within the interface itself.
 
 
 ## Limitations
@@ -57,7 +62,7 @@ The visualized codebase must be able to build using `dotnet build`. Codebases re
 
 ### Prerequisites
 
-* .NET 6.0 or newer
+* .NET 7.0 or newer
 * Node 22.4.0 or newer
 * an up-to-date web browser
 * git (optional)
