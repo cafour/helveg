@@ -16,7 +16,7 @@
 
 A prototype of a tool and an extensible API for the visualization of C# codebases.
 
-* **[Docs](https://helveg.net/docs/)**
+* **[Docs](https://helveg.net/)**
 * **[Samples](https://helveg.net/samples/)**
 
 ## Installing
