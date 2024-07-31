@@ -45,6 +45,8 @@ For a complete list of command-line options, see:
 helveg --help
 ```
 
+Tip: If you don't have any C# codebase at hand, run Helveg on itself or on one of the simple samples in the `./samples` directory!
+
 
 ## Limitations
 
