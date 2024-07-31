@@ -58,6 +58,7 @@ The visualized codebase must be able to build using `dotnet build`. Codebases re
 * .NET 6.0 or newer
 * Node 22.4.0 or newer
 * an up-to-date web browser
+* git (optional)
 
 ### Steps
 
@@ -66,14 +67,61 @@ To build Helveg from its source code, do the following:
 1. Make sure you have installed the prerequisites listed above.
 2. Make sure your computer is connected to the internet.
 3. Open a command-line or a terminal in the root of the repository.
-4. Restore .NET tools by running `dotnet tool restore`.
-5. Enable corepack by running `corepack enable`.
-6. Install the `pnpm` package manager by running `corepack prepare pnpm@latest --activate`.
-7. Install client dependencies: `pnpm install`.
-8. Build client scripts: `pnpm run build`.
-9. Pack the .NET solution: `dotnet pack Helveg.sln -o artifacts -c Release`.
-10. Make sure no prior version of Helveg is installed: `dotnet tool uninstall helveg`.
-11. Install the newly built Helveg: `dotnet tool install --add-source ./artifacts helveg`.
+4. Restore .NET tools:
+    ```bash
+    dotnet tool restore
+    ```
+5. Enable `corepack` (Node's manager of package managers):
+    ```bash
+    corepack enable
+    ```
+6. Install the `pnpm` package manager:
+    ```bash
+    corepack prepare pnpm@latest --activate
+    ```
+7. Install client dependencies: 
+    ```bash
+    pnpm install
+    ```
+8. Build client scripts:
+    ```bash
+    pnpm run build
+    ```
+9. Pack the .NET solution:
+    ```bash
+    dotnet pack Helveg.sln -o artifacts -c Release
+    ```
+10. Make sure no prior version of Helveg is installed:
+    ```bash
+    dotnet tool uninstall --global helveg
+    ```
+11. Install the newly built Helveg:
+    ```bash
+    dotnet tool install --global --add-source "./artifacts" --version "0.0.0-local" helveg
+    ```
+
+
+### About version strings
+
+This repository uses [GitVersion](https://gitversion.net/) to produce NuGet packages with correct semantic version strings.
+If you obtained Helveg's code repository without its history (i.e. the `.git` folder), you won't be able to use GitVersion and all packages will have the `0.0.0-local` fallback version.
+
+If the `.git` directory is present and you have `git` installed on your computer, you can generate NuGet packages with correct version strings by following steps 1. - 8. as above and then the following:
+
+9. Pack the .NET solution:
+    ```bash
+    dotnet pack Helveg.sln -o artifacts -c Release -p:AllowGitVersion=true
+    ```
+10. Make sure no prior version of Helveg is installed:
+    ```bash
+    dotnet tool uninstall --global helveg
+    ```
+11. Look into the `./artifacts` directory and make note of `<version>` in the filenames.
+    For example in `helveg.42.0.0-answer.nupkg`, `<version>` is `42.0.0-answer`.
+12. Install the newly built Helveg:
+    ```bash
+    dotnet tool install --global --add-source "./artifacts" --version "<version>" helveg
+    ```
 
 
 ## Dependencies
