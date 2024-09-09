@@ -19,6 +19,11 @@ A prototype of a tool and an extensible API for the visualization of C# codebase
 * **[Docs](https://helveg.net/)**
 * **[Samples](https://helveg.net/samples/)**
 
+<a href="./screenshots/helveg_node_with_metadata.png" title="Node with metadata"><img width="480" height="270" src="./screenshots/helveg_node_with_metadata_thumb.png" /></a>
+<a href="./screenshots/kafe_data_types.png" title="Kafe.Data types"><img width="480" height="270" src="./screenshots/kafe_data_types_thumb.png" /></a>
+<a href="./screenshots/kafe_solution.png" title="KAFE solution"><img width="480" height="270" src="./screenshots/kafe_solution_thumb.png" /></a>
+<a href="./screenshots/kafe_with_errors.png" title="KAFE with errors"><img width="480" height="270" src="./screenshots/kafe_with_errors_thumb.png" /></a>
+
 
 ## Installing
 
