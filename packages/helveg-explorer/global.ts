@@ -20,6 +20,7 @@ export function createExplorer(diagram: Diagram): Explorer {
     const app = new Explorer({
         target: explorerElement,
         props: {
+            rootElement: explorerElement,
             diagram: diagram
         }
     })

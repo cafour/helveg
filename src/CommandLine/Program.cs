@@ -8,17 +8,13 @@ using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.CommandLine.Builder;
 using System.CommandLine.Parsing;
-using System.Collections.Generic;
-using System.CommandLine.NamingConventionBinder;
 using Helveg.Visualization;
 using Helveg.CSharp;
 using System.Collections.Immutable;
 using Helveg.UI;
 using Helveg.CSharp.Symbols;
 using Helveg.CSharp.Projects;
-using Microsoft.Extensions.Logging.Console;
 using Helveg.CSharp.Packages;
-using Microsoft.Extensions.Options;
 
 namespace Helveg.CommandLine;
 
@@ -70,17 +66,7 @@ public static class Program
 
                 bool isVerbose = c.ParseResult.GetValueForOption(verboseOpt);
                 var minimumLevel = isVerbose ? LogLevel.Debug : LogLevel.Information;
-                loggerFactory = LoggerFactory.Create(b =>
-                {
-                    b.AddConsoleFormatter<BriefConsoleFormatter, BriefConsoleFormatterOptions>(d =>
-                    {
-                        d.TimestampFormat = "HH:mm:ss.fff";
-                        d.IncludeStacktraces = isVerbose;
-                    });
-                    b.AddConsole(d => d.FormatterName = "brief");
-                    b.SetMinimumLevel(minimumLevel);
-                });
-                logger = loggerFactory.CreateLogger("");
+                InitializeLogging(isVerbose, minimumLevel);
             })
             .UseExceptionHandler((e, c) =>
             {
@@ -91,6 +77,21 @@ public static class Program
         var errorCode = await cmdBuilder.InvokeAsync(args);
         loggerFactory.Dispose();
         return errorCode;
+    }
+
+    public static void InitializeLogging(bool isVerbose, LogLevel minimumLevel)
+    {
+        loggerFactory = LoggerFactory.Create(b =>
+        {
+            b.AddConsoleFormatter<BriefConsoleFormatter, BriefConsoleFormatterOptions>(d =>
+            {
+                d.TimestampFormat = "HH:mm:ss.fff";
+                d.IncludeStacktraces = isVerbose;
+            });
+            b.AddConsole(d => d.FormatterName = "brief");
+            b.SetMinimumLevel(minimumLevel);
+        });
+        logger = loggerFactory.CreateLogger("");
     }
 
     public static async Task<int> Run(Config config)

@@ -74,6 +74,20 @@
       "env": {
         "TS_NODE_PROJECT": "${workspaceFolder}/src/UI/App/eng/tsconfig.json"
       }
-    }
+    },
+    {
+      "name": "Docfx sample",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "docfx-template-build",
+      "program": "dotnet",
+      "args": [
+        "docfx",
+        "build"
+      ],
+      "cwd": "${workspaceFolder}/samples/Docfx",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
   ]
 }

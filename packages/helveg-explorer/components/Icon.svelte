@@ -5,6 +5,7 @@
     export let name: string;
     export let title: string | null = null;
     export let theme: string | null = null;
+    export let additionalClasses: string | null = "";
     
     let icons = getContext<Diagram>("diagram").options.iconRegistry;
 
@@ -26,9 +27,11 @@
         removeTitle: title != null,
         viewBox: "0 0 16 16",
     });
+    
+    export let element: HTMLElement | null = null;
 </script>
 
-<div class="icon {themeClass}" {title}>
+<div class="icon {themeClass} {additionalClasses}" {title} bind:this={element}>
     {#if $icon.format === "svg"}
         {@html $icon.data}
     {:else if $icon.format == "png"}
