@@ -28,8 +28,8 @@
     "schema": "turbo run schema"
   },
   "devDependencies": {
-    "quicktype": "^23.0.158",
-    "rimraf": "^5.0.5",
-    "turbo": "^1.13.3"
+    "quicktype": "^23.0.170",
+    "rimraf": "^5.0.10",
+    "turbo": "^1.13.4"
   }
 }
