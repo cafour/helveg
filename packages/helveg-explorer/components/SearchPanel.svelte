@@ -28,6 +28,10 @@
             value: SearchMode.JavaScript,
             icon: AppIcons.JavaScriptMode,
         },
+        {
+            value: SearchMode.FilterBuilder,
+            icon: AppIcons.JavaScriptMode,
+        },
     ];
     let selectedSearchMode = SearchMode.Contains;
     let searchText: string = "";

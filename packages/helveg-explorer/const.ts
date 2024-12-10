@@ -11,6 +11,7 @@ export enum AppIcons {
     ContainsMode = "vs:String",
     RegexMode = "vs:RegularExpression",
     JavaScriptMode = "vs:JSFileNode",
+    FIlterBuilderMode = "vs:Object",
 
     DebugToast = "vs:StatusRunning",
     InfoToast = "vs:StatusInformation",
