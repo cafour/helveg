@@ -17,6 +17,11 @@
     let contextNode: string | null = null;
 
     state.diagram.element.addEventListener("contextmenu", (e) => {
+        if ((e.target as HTMLElement | undefined)?.tagName !== "CANVAS") {
+            isVisible = false;
+            return;
+        }
+
         isVisible = true;
         posX = e.clientX;
         posY = e.clientY;
