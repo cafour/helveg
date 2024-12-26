@@ -17,7 +17,7 @@ build:
 
     - corepack enable && corepack prepare pnpm@latest --activate
     - pnpm config set store-dir .pnpm-store/
-    - pnpm install -w
+    - pnpm install
     - pnpm run git-version
     - pnpm run build
 
