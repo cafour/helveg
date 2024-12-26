@@ -129,30 +129,32 @@
         <KeyValueList items={metadataItems} />
     </Subpanel>
     <Subpanel name="State">
-        <button
-            class="button-stretch primary"
-            on:click|preventDefault={resetOptions}
-        >
-            Reset options
-        </button>
         <input
             type="file"
             bind:this={importStateInput}
             style="display: none"
             on:change={(e) => importState(e.target)}
         />
-        <button
-            class="button-stretch primary"
-            on:click|preventDefault={() => importStateInput?.click()}
-        >
-            Import state
-        </button>
-        <button
-            class="button-stretch primary"
-            on:click|preventDefault={() => exportState()}
-        >
-            Export state
-        </button>
+        <div class="flex flex-col gap-4">
+            <button
+                class="button-stretch primary"
+                on:click|preventDefault={resetOptions}
+            >
+                Reset options
+            </button>
+            <button
+                class="button-stretch primary"
+                on:click|preventDefault={() => importStateInput?.click()}
+            >
+                Import state
+            </button>
+            <button
+                class="button-stretch primary"
+                on:click|preventDefault={() => exportState()}
+            >
+                Export state
+            </button>
+        </div>
     </Subpanel>
     <Subpanel name="Export image">
         <label>

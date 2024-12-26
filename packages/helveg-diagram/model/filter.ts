@@ -3,8 +3,24 @@ import { MultigraphNode, Multigraph } from "./data-model.ts";
 export enum SearchMode {
     Contains = "contains",
     Regex = "regex",
-    JavaScript = "js",
-    FilterBuilder = "filterBuilder",
+    JavaScript = "js"
+}
+
+export enum FilterBuilderOperation {
+    Equals = "==",
+    NotEquals = "!=",
+    GreaterThan = ">",
+    GreterThanEquals = ">=",
+    LessThan = "<",
+    LessThanEquals = "<=",
+    Contains = "contains",
+    Matches = "matches"
+}
+
+export interface IFilterBuilderEntry {
+    property: string,
+    operation: FilterBuilderOperation,
+    value: string
 }
 
 export type NodeFilter = (node: MultigraphNode) => boolean;

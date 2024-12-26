@@ -197,6 +197,7 @@ export class Diagram {
     // used when building JS filters
     // TODO: likely move to its own place somewhere else
     private _nodeKeys: string[] = [];
+    get nodeKeys(): readonly string[] { return this._nodeKeys; }
 
     // used for refreshing
     private _lastRefreshOptions: DiagramRefreshOptions;
@@ -295,7 +296,7 @@ export class Diagram {
         }
 
         this._logger.debug("Running the layout.");
-        
+
         this._graph.forEachNode((n, a) => a.inInitialPosition = false);
 
         await this._supervisor.start(inBackground);

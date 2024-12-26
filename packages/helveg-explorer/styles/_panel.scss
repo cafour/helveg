@@ -9,12 +9,12 @@
             border-bottom: 1px solid var(--color-surface-100);
             font-weight: lighter;
             text-transform: uppercase;
-            padding: 0.5rem 1rem;
+            padding: 0.5rem 0.5rem;
         }
     }
 
     .indent {
-        padding: 0.5rem 1rem;
+        padding: 0.5rem 0.5rem;
     }
     
     .panel-body {
@@ -30,11 +30,11 @@
 
     .subpanel-header {
         font-weight: bold;
-        padding: 0.5rem 1rem;
+        padding: 0.5rem 0.5rem;
     }
 
     .indent {
-        padding: 0.5rem 1rem;
+        padding: 0.5rem 0.5rem;
     }
 }
 
@@ -138,8 +138,7 @@
         }
     }
     
-    p:not(:last-of-type),
-    button:not(:last-of-type) {
+    p:not(:last-of-type) {
         margin-bottom: 0.5rem;
     }
 

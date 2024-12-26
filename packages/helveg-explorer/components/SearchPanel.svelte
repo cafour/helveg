@@ -12,6 +12,7 @@
     } from "../deps/helveg-diagram.ts";
     import type { Readable } from "svelte/store";
     import Icon from "./Icon.svelte";
+    import FilterBuilder from "./FilterBuilder.svelte";
 
     let dispatch = createEventDispatcher();
 
@@ -26,10 +27,6 @@
         },
         {
             value: SearchMode.JavaScript,
-            icon: AppIcons.JavaScriptMode,
-        },
-        {
-            value: SearchMode.FilterBuilder,
             icon: AppIcons.JavaScriptMode,
         },
     ];
@@ -50,37 +47,38 @@
 
 <Panel name="Search" indent={false} id={AppPanels.Search}>
     <Subpanel>
-        <form
-            on:submit|preventDefault={() =>
-                dispatch("highlight", {
-                    searchText: searchText,
-                    searchMode: selectedSearchMode,
-                    expandedOnly: expandedOnly
-                })}
-        >
-            <div class="flex flex-row gap-4">
-                <ResizingTextarea bind:value={searchText} class="monospace" />
-                <RadioGroup
-                    groupName="searchMode"
-                    items={searchModes}
-                    bind:selected={selectedSearchMode}
-                    class="theme-light"
-                />
-            </div>
-            <label>
-                <input
-                    type="checkbox"
-                    bind:checked={expandedOnly}
-                />
-                <span>ExpandedOnly</span>
-            </label>
-            <input
-                type="submit"
-                class="button-stretch mt-8 primary"
-                value="Highlight"
+        <div class="flex flex-row gap-4">
+            <ResizingTextarea bind:value={searchText} class="monospace" />
+            <RadioGroup
+                groupName="searchMode"
+                items={searchModes}
+                bind:selected={selectedSearchMode}
+                class="theme-light"
             />
+        </div>
+        <label>
+            <input type="checkbox" bind:checked={expandedOnly} />
+            <span>ExpandedOnly</span>
+        </label>
+    </Subpanel>
+    <Subpanel name="Filters">
+        <FilterBuilder />
+    </Subpanel>
+    <Subpanel>
+        <div class="flex flex-row gap-4">
             <button
-                class="button-stretch mt-8 primary"
+                class="button-stretch primary"
+                on:click|preventDefault|stopPropagation={() =>
+                    dispatch("highlight", {
+                        searchText: searchText,
+                        searchMode: selectedSearchMode,
+                        expandedOnly: expandedOnly,
+                    })}
+            >
+                Highlight
+            </button>
+            <button
+                class="button-stretch primary"
                 on:click|preventDefault|stopPropagation={() =>
                     dispatch("isolate", {
                         searchText: searchText,
@@ -89,7 +87,7 @@
             >
                 Isolate
             </button>
-        </form>
+        </div>
     </Subpanel>
     {#if results.length > 0}
         <Subpanel name="Results" indent={false}>

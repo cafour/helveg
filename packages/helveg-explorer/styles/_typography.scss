@@ -37,3 +37,10 @@ a, p a {
         text-decoration: underline;
     }
 }
+
+input, button, select {
+    &:focus {
+        outline: 1px solid var(--color-primary-500);
+        z-index: 1000;
+    }
+}
