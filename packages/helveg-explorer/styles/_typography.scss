@@ -20,7 +20,12 @@ li {
     color: var(--color-text);
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
     font-weight: bold;
     color: var(--color-text);
 }
@@ -29,16 +34,20 @@ h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-family-monospace);
 }
 
-a, p a {
+a,
+p a {
     color: var(--color-link);
     text-decoration: none;
-    
+
     &:hover {
         text-decoration: underline;
     }
 }
 
-input, button, select {
+input,
+button,
+select,
+textarea {
     &:focus {
         outline: 1px solid var(--color-primary-500);
         z-index: 1000;
