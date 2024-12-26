@@ -10,12 +10,6 @@
         class="button-stretch primary"
         target="_blank">Documentation</a
     >
-    
-    <a
-        href="https://helveg.net/tutorial/"
-        class="button-stretch primary mt-8"
-        target="_blank">Video tutorial</a
-    >
 
     <h3>Panels</h3>
     <dl class="theme-helveg">
