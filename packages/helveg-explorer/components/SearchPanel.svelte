@@ -48,17 +48,16 @@
 </script>
 
 <Panel name="Search" indent={false} id={AppPanels.Search}>
-    <Subpanel>
-        <form
-            on:submit|preventDefault|stopPropagation={() => {
-                dispatch("highlight", {
-                    searchText: searchText,
-                    searchMode: selectedSearchMode,
-                    expandedOnly: expandedOnly,
-                    filterBuilder: filterBuilder,
-                });
-            }}
-        >
+    <form
+        on:submit|preventDefault|stopPropagation={() =>
+            dispatch("highlight", {
+                searchText: searchText,
+                searchMode: selectedSearchMode,
+                expandedOnly: expandedOnly,
+                filterBuilder: filterBuilder,
+            })}
+    >
+        <Subpanel>
             <div class="flex flex-row gap-4">
                 <ResizingTextarea bind:value={searchText} class="monospace" />
                 <RadioGroup
@@ -72,41 +71,35 @@
                 <input type="checkbox" bind:checked={expandedOnly} />
                 <span>ExpandedOnly</span>
             </label>
-        </form>
-    </Subpanel>
-    <Subpanel
-        name="Filters"
-        hint="Filters that must ALL be true for a node to appear among the results."
-    >
-        <FilterBuilder bind:filterBuilder={filterBuilder} />
-    </Subpanel>
-    <Subpanel>
-        <div class="flex flex-row gap-4">
-            <button
-                class="button-stretch primary"
-                on:click|preventDefault|stopPropagation={() =>
-                    dispatch("highlight", {
-                        searchText: searchText,
-                        searchMode: selectedSearchMode,
-                        expandedOnly: expandedOnly,
-                        filterBuilder: filterBuilder,
-                    })}
-            >
-                Highlight
-            </button>
-            <button
-                class="button-stretch primary"
-                on:click|preventDefault|stopPropagation={() =>
-                    dispatch("isolate", {
-                        searchText: searchText,
-                        searchMode: selectedSearchMode,
-                        filterBuilder: filterBuilder,
-                    })}
-            >
-                Isolate
-            </button>
-        </div>
-    </Subpanel>
+        </Subpanel>
+        <Subpanel
+            name="Filters"
+            hint="Filters that must ALL be true for a node to appear among the results."
+        >
+            <FilterBuilder bind:filterBuilder />
+        </Subpanel>
+        <Subpanel>
+            <div class="flex flex-row gap-4">
+                <input
+                    type="submit"
+                    class="button-stretch primary"
+                    value="Highlight"
+                />
+                <button
+                    class="button-stretch primary"
+                    type="button"
+                    on:click|preventDefault|stopPropagation={() =>
+                        dispatch("isolate", {
+                            searchText: searchText,
+                            searchMode: selectedSearchMode,
+                            filterBuilder: filterBuilder,
+                        })}
+                >
+                    Isolate
+                </button>
+            </div>
+        </Subpanel>
+    </form>
     {#if results.length > 0}
         <Subpanel name={"Results (" + results.length + ")"} indent={false}>
             <div class="flex flex-col">

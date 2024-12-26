@@ -99,7 +99,11 @@
                 size="5"
             />
         {/if}
-        <button on:click={() => removeEntry(i)} class="button-icon primary">
+        <button
+            on:click={(e) => e.type === "click" && removeEntry(i)}
+            type="button"
+            class="button-icon primary"
+        >
             ✕
         </button>
     </div>
