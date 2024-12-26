@@ -9,6 +9,7 @@
         SearchMode,
         type DataModel,
         Diagram,
+        type IFilterBuilderEntry,
     } from "../deps/helveg-diagram.ts";
     import type { Readable } from "svelte/store";
     import Icon from "./Icon.svelte";
@@ -33,6 +34,7 @@
     let selectedSearchMode = SearchMode.Contains;
     let searchText: string = "";
     let expandedOnly: boolean = false;
+    let filterBuilder: IFilterBuilderEntry[] = [];
 
     let model = getContext<Readable<DataModel>>("model");
     let diagram = getContext<Diagram>("diagram");
@@ -47,22 +49,36 @@
 
 <Panel name="Search" indent={false} id={AppPanels.Search}>
     <Subpanel>
-        <div class="flex flex-row gap-4">
-            <ResizingTextarea bind:value={searchText} class="monospace" />
-            <RadioGroup
-                groupName="searchMode"
-                items={searchModes}
-                bind:selected={selectedSearchMode}
-                class="theme-light"
-            />
-        </div>
-        <label>
-            <input type="checkbox" bind:checked={expandedOnly} />
-            <span>ExpandedOnly</span>
-        </label>
+        <form
+            on:submit|preventDefault|stopPropagation={() => {
+                dispatch("highlight", {
+                    searchText: searchText,
+                    searchMode: selectedSearchMode,
+                    expandedOnly: expandedOnly,
+                    filterBuilder: filterBuilder,
+                });
+            }}
+        >
+            <div class="flex flex-row gap-4">
+                <ResizingTextarea bind:value={searchText} class="monospace" />
+                <RadioGroup
+                    groupName="searchMode"
+                    items={searchModes}
+                    bind:selected={selectedSearchMode}
+                    class="theme-light"
+                />
+            </div>
+            <label>
+                <input type="checkbox" bind:checked={expandedOnly} />
+                <span>ExpandedOnly</span>
+            </label>
+        </form>
     </Subpanel>
-    <Subpanel name="Filters" hint="Filters that must ALL be true for a node to appear among the results.">
-        <FilterBuilder />
+    <Subpanel
+        name="Filters"
+        hint="Filters that must ALL be true for a node to appear among the results."
+    >
+        <FilterBuilder bind:filterBuilder={filterBuilder} />
     </Subpanel>
     <Subpanel>
         <div class="flex flex-row gap-4">
@@ -73,6 +89,7 @@
                         searchText: searchText,
                         searchMode: selectedSearchMode,
                         expandedOnly: expandedOnly,
+                        filterBuilder: filterBuilder,
                     })}
             >
                 Highlight
@@ -83,6 +100,7 @@
                     dispatch("isolate", {
                         searchText: searchText,
                         searchMode: selectedSearchMode,
+                        filterBuilder: filterBuilder,
                     })}
             >
                 Isolate
@@ -90,7 +108,7 @@
         </div>
     </Subpanel>
     {#if results.length > 0}
-        <Subpanel name="Results" indent={false}>
+        <Subpanel name={"Results (" + results.length + ")"} indent={false}>
             <div class="flex flex-col">
                 {#each nodeResults as node}
                     <!-- svelte-ignore a11y-click-events-have-key-events -->

@@ -8,7 +8,7 @@ import tidyTree from "../layout/tidyTree.ts";
 import { HelvegSigma, configureSigma, hoveredNodeSymbol, initializeGraph, initializeSigma, initializeSupervisor, styleGraph } from "./initializers.ts";
 import { DEFAULT_GLYPH_PROGRAM_OPTIONS, GlyphProgramOptions, createGlyphProgram } from "../rendering/node.glyph.ts";
 import { DEFAULT_EXPORT_OPTIONS, ExportOptions, exportDiagram } from "../rendering/export.ts";
-import { SearchMode, buildNodeFilter, filterNodes } from "../model/filter.ts";
+import { IFilterBuilderEntry, SearchMode, buildNodeFilter, filterNodes } from "../model/filter.ts";
 import { bfsGraph } from "../model/traversal.ts";
 import { EdgeStylist, NodeStylist, RelationStylist, fallbackEdgeStylist, fallbackNodeStylist, fallbackRelationStylist } from "../model/style.ts";
 import { EMPTY_ICON_REGISTRY, IconRegistry } from "../global.ts";
@@ -386,7 +386,12 @@ export class Diagram {
         });
     }
 
-    highlight(searchText: string | null, searchMode: SearchMode, expandedOnly: boolean = false): string[] {
+    highlight(
+        searchText: string | null,
+        searchMode: SearchMode,
+        expandedOnly: boolean = false,
+        filterBuilder?: IFilterBuilderEntry[]
+    ): string[] {
         if (!this._graph) {
             this._logger.warn("Cannot highlight nodes since the graph is not initialized.");
             return [];
@@ -394,7 +399,7 @@ export class Diagram {
 
         let results: string[] = [];
         try {
-            let filter = buildNodeFilter(searchText, searchMode, this._nodeKeys);
+            let filter = buildNodeFilter(searchText, searchMode, this._nodeKeys, filterBuilder);
             if (filter === null) {
                 this.mode = DiagramMode.Normal;
                 this._graph.forEachNode((_, a) => a.highlighted = undefined);
@@ -467,7 +472,11 @@ export class Diagram {
         this._sigma?.refresh();
     }
 
-    async isolate(searchText: string | null, searchMode: SearchMode): Promise<void> {
+    async isolate(
+        searchText: string | null,
+        searchMode: SearchMode,
+        filterBuilder?: IFilterBuilderEntry[]
+    ): Promise<void> {
         if (!this._graph) {
             this._logger.warn("Cannot isolate nodes since the graph is not initialized.");
             return;
@@ -479,7 +488,7 @@ export class Diagram {
         }
 
         try {
-            let filter = buildNodeFilter(searchText, searchMode, this._nodeKeys);
+            let filter = buildNodeFilter(searchText, searchMode, this._nodeKeys, filterBuilder);
             if (filter === null) {
                 return;
             }

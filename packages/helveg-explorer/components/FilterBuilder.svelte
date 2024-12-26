@@ -20,6 +20,8 @@
         )
         .toSorted();
     let entries = writable<IFilterBuilderEntry[]>([]);
+    export let filterBuilder = [];
+    $: filterBuilder = $entries;
 
     function createEntry(
         e: Event & { currentTarget: EventTarget & HTMLSelectElement },
@@ -30,13 +32,18 @@
                 {
                     property: e.currentTarget.value,
                     operation: FilterBuilderOperation.Equals,
-                    value: nodeKeyTypes[e.currentTarget.value] === "string" ? "" : 0
+                    value:
+                        nodeKeyTypes[e.currentTarget.value] === "string"
+                            ? ""
+                            : nodeKeyTypes[e.currentTarget.value] === "number"
+                              ? 0
+                              : false,
                 },
             ];
             e.currentTarget.value = "";
         }
     }
-    
+
     function onPropertyChanged(i: number) {
         if (nodeKeyTypes[$entries[i].property] === "boolean") {
             $entries[i].operation = FilterBuilderOperation.Equals;
@@ -69,7 +76,12 @@
             {/each}
         </select>
         {#if nodeKeyTypes[entry.property] === "boolean"}
-            <select class="flex-grow-1 flex-shrink-0 w-auto text-xs">
+            <select
+                class="flex-grow-1 flex-shrink-0 w-auto text-xs"
+                on:change={(e) =>
+                    (entry.value =
+                        e.currentTarget.value === "true" ? true : false)}
+            >
                 <option value="false">false</option>
                 <option value="true">true</option>
             </select>

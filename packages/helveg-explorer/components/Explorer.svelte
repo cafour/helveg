@@ -77,9 +77,9 @@
     }
     diagram.events.nodeClicked.subscribe(onNodeClicked);
 
-    selectedTool.subscribe(tool => {
+    selectedTool.subscribe((tool) => {
         diagram.canDragNodes = tool == AppTools.Move;
-    
+
         switch (tool) {
             case AppTools.Cut:
                 dock.setTab(AppPanels.Tools);
@@ -115,10 +115,7 @@
 
     <LoadingScreen status={$status} />
 
-    <ToolBox
-        bind:selectedTool={$selectedTool}
-        class="z-1"
-    />
+    <ToolBox bind:selectedTool={$selectedTool} class="z-1" />
 
     <Dock
         name="panels"
@@ -133,9 +130,14 @@
                         e.detail.searchText,
                         e.detail.searchMode,
                         e.detail.expandedOnly,
+                        e.detail.filterBuilder,
                     ))}
                 on:isolate={(e) =>
-                    diagram.isolate(e.detail.searchText, e.detail.searchMode)}
+                    diagram.isolate(
+                        e.detail.searchText,
+                        e.detail.searchMode,
+                        e.detail.filterBuilder,
+                    )}
                 on:selected={(e) => (diagram.selectedNode = e.detail)}
                 results={searchResults}
             />
