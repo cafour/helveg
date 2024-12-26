@@ -31,7 +31,8 @@
         ],
         "types": [
             "svelte"
-        ]
+        ],
+        "preserveWatchOutput": true
     },
     "include": [
         "**/*.ts",
