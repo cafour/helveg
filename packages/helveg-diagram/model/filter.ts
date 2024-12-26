@@ -20,7 +20,7 @@ export enum FilterBuilderOperation {
 export interface IFilterBuilderEntry {
     property: string,
     operation: FilterBuilderOperation,
-    value: string
+    value: string | number | boolean
 }
 
 export type NodeFilter = (node: MultigraphNode) => boolean;

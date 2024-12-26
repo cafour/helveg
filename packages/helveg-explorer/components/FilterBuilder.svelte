@@ -7,8 +7,17 @@
     import type { IExplorerState } from "../explorer-state";
     import { writable } from "svelte/store";
 
-    const nodeKeys =
-        getContext<IExplorerState>("state").diagram.nodeKeys.filter(k => !k.startsWith("$")).toSorted();
+    const nodeKeyTypes =
+        getContext<IExplorerState>("state").diagram.nodeKeyTypes;
+    const nodeKeys = getContext<IExplorerState>("state")
+        .diagram.nodeKeys.filter(
+            (k) =>
+                !k.startsWith("$") &&
+                (nodeKeyTypes[k] == "string" ||
+                    nodeKeyTypes[k] == "number" ||
+                    nodeKeyTypes[k] == "boolean"),
+        )
+        .toSorted();
     const operators = Object.values(FilterBuilderOperation);
     let entries = writable<IFilterBuilderEntry[]>([]);
 
@@ -16,15 +25,24 @@
         e: Event & { currentTarget: EventTarget & HTMLSelectElement },
     ) {
         if (e.currentTarget.value) {
-            $entries = [...$entries, {
-                property: e.currentTarget.value,
-                operation: FilterBuilderOperation.Equals,
-                value: "",
-            }];
+            $entries = [
+                ...$entries,
+                {
+                    property: e.currentTarget.value,
+                    operation: FilterBuilderOperation.Equals,
+                    value: nodeKeyTypes[e.currentTarget.value] === "string" ? "" : 0
+                },
+            ];
             e.currentTarget.value = "";
         }
     }
     
+    function onPropertyChanged(i: number) {
+        if (nodeKeyTypes[$entries[i].property] === "boolean") {
+            $entries[i].operation = FilterBuilderOperation.Equals;
+        }
+    }
+
     function removeEntry(index: number) {
         $entries = $entries.toSpliced(index, 1);
     }
@@ -32,17 +50,43 @@
 
 {#each $entries as entry, i}
     <div class="flex flex-row">
-        <select bind:value={entry.property} class="flex-grow-0 flex-shrink-0 w-auto text-xs">
+        <select
+            bind:value={entry.property}
+            on:change={() => onPropertyChanged(i)}
+            class="flex-grow-0 flex-shrink-0 w-auto text-xs"
+        >
             {#each nodeKeys as key}
                 <option value={key}>{key}</option>
             {/each}
         </select>
-        <select bind:value={entry.operation} class="flex-grow-0 flex-shrink-0 w-auto text-xs">
+        <select
+            bind:value={entry.operation}
+            disabled={nodeKeyTypes[entry.property] == "boolean"}
+            class="flex-grow-0 flex-shrink-0 w-auto text-xs"
+        >
             {#each operators as operator}
                 <option value={operator}>{operator}</option>
             {/each}
         </select>
-        <input bind:value={entry.value} class="flex-grow-1 flex-shrink-0 w-auto text-xs" size="5"/>
+        {#if nodeKeyTypes[entry.property] === "boolean"}
+            <select class="flex-grow-1 flex-shrink-0 w-auto text-xs">
+                <option value="false">false</option>
+                <option value="true">true</option>
+            </select>
+        {:else if nodeKeyTypes[entry.property] === "number"}
+            <input
+                bind:value={entry.value}
+                type="number"
+                class="flex-grow-1 flex-shrink-0 w-auto text-xs"
+                size="5"
+            />
+        {:else}
+            <input
+                bind:value={entry.value}
+                class="flex-grow-1 flex-shrink-0 w-auto text-xs"
+                size="5"
+            />
+        {/if}
         <button on:click={() => removeEntry(i)} class="button-icon primary">
             ✕
         </button>
@@ -50,7 +94,7 @@
 {/each}
 
 <div>
-    <select on:change={createEntry} class="text-sm">
+    <select on:change={createEntry} class="text-xs">
         <option value="">Select a property</option>
         {#each nodeKeys as key}
             <option value={key}>{key}</option>
