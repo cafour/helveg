@@ -1,6 +1,7 @@
 <script lang="ts">
     import {
         FilterBuilderOperation,
+        OPERATORS_BY_TYPE,
         type IFilterBuilderEntry,
     } from "@cafour/helveg-diagram";
     import { getContext } from "svelte";
@@ -18,7 +19,6 @@
                     nodeKeyTypes[k] == "boolean"),
         )
         .toSorted();
-    const operators = Object.values(FilterBuilderOperation);
     let entries = writable<IFilterBuilderEntry[]>([]);
 
     function createEntry(
@@ -62,9 +62,9 @@
         <select
             bind:value={entry.operation}
             disabled={nodeKeyTypes[entry.property] == "boolean"}
-            class="flex-grow-0 flex-shrink-0 w-auto text-xs"
+            class="flex-grow-0 flex-shrink-0 w-64 text-xs"
         >
-            {#each operators as operator}
+            {#each OPERATORS_BY_TYPE[nodeKeyTypes[entry.property]] as operator}
                 <option value={operator}>{operator}</option>
             {/each}
         </select>

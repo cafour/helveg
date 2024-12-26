@@ -10,11 +10,32 @@ export enum FilterBuilderOperation {
     Equals = "==",
     NotEquals = "!=",
     GreaterThan = ">",
-    GreterThanEquals = ">=",
+    GreaterThanEquals = ">=",
     LessThan = "<",
     LessThanEquals = "<=",
     Contains = "contains",
     Matches = "matches"
+}
+
+export const OPERATORS_BY_TYPE: Record<string, FilterBuilderOperation[]> = {
+    "string": [
+        FilterBuilderOperation.Equals,
+        FilterBuilderOperation.NotEquals,
+        FilterBuilderOperation.Contains,
+        FilterBuilderOperation.Matches,
+    ],
+    "number": [
+        FilterBuilderOperation.Equals,
+        FilterBuilderOperation.NotEquals,
+        FilterBuilderOperation.GreaterThan,
+        FilterBuilderOperation.GreaterThanEquals,
+        FilterBuilderOperation.LessThan,
+        FilterBuilderOperation.LessThanEquals
+    ],
+    "boolean": [
+        FilterBuilderOperation.Equals,
+        FilterBuilderOperation.NotEquals
+    ]
 }
 
 export interface IFilterBuilderEntry {
