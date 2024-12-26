@@ -61,7 +61,7 @@
             <span>ExpandedOnly</span>
         </label>
     </Subpanel>
-    <Subpanel name="Filters">
+    <Subpanel name="Filters" hint="Filters that must ALL be true for a node to appear among the results.">
         <FilterBuilder />
     </Subpanel>
     <Subpanel>
