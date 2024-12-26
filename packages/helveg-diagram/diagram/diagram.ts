@@ -110,6 +110,18 @@ export class Diagram {
             this._nodeKeys = Object.values(this._model.data.nodes)
                 .flatMap(n => Object.keys(n))
                 .filter((v, i, a) => a.indexOf(v) === i);
+            this._nodeKeyTypes = {};
+            this._nodeKeys.forEach(k => {
+                this._nodeKeyTypes[k] = "string";
+                const propTypes = new Set(
+                    Object.values(this.model.data!.nodes)
+                        .filter(n => n[k] !== undefined)
+                        .map(n => typeof n[k])
+                );
+                if (propTypes.size == 1) {
+                    this._nodeKeyTypes[k] = propTypes.values().next().value ?? "string";
+                }
+            });
         }
         this.events.modelChanged.trigger(value);
 
@@ -198,6 +210,9 @@ export class Diagram {
     // TODO: likely move to its own place somewhere else
     private _nodeKeys: string[] = [];
     get nodeKeys(): readonly string[] { return this._nodeKeys; }
+
+    private _nodeKeyTypes: Record<string, string> = {};
+    get nodeKeyTypes(): Record<string, string> { return this._nodeKeyTypes; }
 
     // used for refreshing
     private _lastRefreshOptions: DiagramRefreshOptions;
