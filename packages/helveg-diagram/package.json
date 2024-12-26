@@ -20,7 +20,7 @@
         "watch:types": "npm run types -- --watch",
         "check": "npm run types -- --noEmit --emitDeclarationOnly false",
         "watch:check": "npm run check -- --watch",
-        "bundle": "tsx eng/bundle.ts",
+        "bundle": "tsx eng/bundle.ts --sourcemap",
         "watch:bundle": "npm run bundle -- --watch",
         "watch": "concurrently --kill-others -r \"npm run watch:bundle\" \"npm run watch:types\"",
         "serve": "concurrently --kill-others -r \"npm run bundle -- --serve --sourcemap\" \"npm run watch:types\"",

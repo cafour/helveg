@@ -54,7 +54,7 @@ const mod = await esbuild.context({
                     to: ["./dist"]
                 },
                 {
-                    from: [argv.diagramPath, `${path.dirname(argv.diagramPath)}/*.json`],
+                    from: [argv.diagramPath, `${argv.diagramPath}.map`, `${path.dirname(argv.diagramPath)}/*.json`],
                     to: ["./dist"]
                 }
             ],
