@@ -76,6 +76,23 @@ export function createExplorerState(rootElement: HTMLElement, diagram: Diagram):
         diagram.relationStylist = createCsharpRelationStylist(
             o.relationColors!
         );
+
+        const glyphOptions = diagram.glyphProgramOptions;
+        glyphOptions.isFireAnimated = o.glyph.isFireAnimated;
+        glyphOptions.showFire = o.glyph.showFire;
+        glyphOptions.showIcons = o.glyph.showIcons;
+        glyphOptions.showLabels = o.glyph.showLabels;
+        glyphOptions.showOutlines = o.glyph.showOutlines;
+        glyphOptions.showDiffs = o.glyph.showDiffs;
+        glyphOptions.dimCollapsedNodes = o.glyph.dimCollapsedNodes;
+        glyphOptions.sizingMode = o.glyph.sizingMode;
+
+        glyphOptions.crustWidth = o.codePizza.crustWidth;
+        glyphOptions.sauceWidth = o.codePizza.sauceWidth;
+        glyphOptions.isPizzaEnabled = o.codePizza.isEnabled;
+        glyphOptions.pizzaToppings =
+            o.codePizza.pizzaToppings ?? glyphOptions.pizzaToppings;
+        diagram.glyphProgramOptions = glyphOptions;
     });
 
     const exportOptions = createOptions<Options.ExportOptions>(

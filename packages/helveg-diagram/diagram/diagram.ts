@@ -15,6 +15,7 @@ import { EMPTY_ICON_REGISTRY, IconRegistry } from "../global.ts";
 import { DataModel } from "../model/data-model.ts";
 import { EMPTY_DATA_MODEL } from "../model/const.ts";
 import { inferSettings } from "graphology-layout-forceatlas2";
+import { deepCompare } from "../common/deep-compare.ts";
 
 export interface DiagramRefreshOptions {
     selectedRelations?: string[],
@@ -201,7 +202,13 @@ export class Diagram {
 
     get glyphProgramOptions(): GlyphProgramOptions { return this.options.glyphProgram; }
     set glyphProgramOptions(value: GlyphProgramOptions) {
+        const lastOptions = this._options.glyphProgram;
         this._options.glyphProgram = value;
+
+        if (deepCompare(lastOptions, value)) {
+            return;
+        }
+
         this.reconfigureSigma();
         this.restyleGraph();
     }

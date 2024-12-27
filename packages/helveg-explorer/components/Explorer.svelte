@@ -86,25 +86,6 @@
                 break;
         }
     });
-
-    state.appearanceOptions.subscribe((v) => {
-        const glyphOptions = diagram.glyphProgramOptions;
-        glyphOptions.isFireAnimated = v.glyph.isFireAnimated;
-        glyphOptions.showFire = v.glyph.showFire;
-        glyphOptions.showIcons = v.glyph.showIcons;
-        glyphOptions.showLabels = v.glyph.showLabels;
-        glyphOptions.showOutlines = v.glyph.showOutlines;
-        glyphOptions.showDiffs = v.glyph.showDiffs;
-        glyphOptions.dimCollapsedNodes = v.glyph.dimCollapsedNodes;
-        glyphOptions.sizingMode = v.glyph.sizingMode;
-
-        glyphOptions.crustWidth = v.codePizza.crustWidth;
-        glyphOptions.sauceWidth = v.codePizza.sauceWidth;
-        glyphOptions.isPizzaEnabled = v.codePizza.isEnabled;
-        glyphOptions.pizzaToppings =
-            v.codePizza.pizzaToppings ?? glyphOptions.pizzaToppings;
-        diagram.glyphProgramOptions = glyphOptions;
-    });
 </script>
 
 <div
