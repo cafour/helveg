@@ -1,9 +1,9 @@
-import { Sigma, NodeProgram, ProgramDefinition, RenderParams, floatColor, ProgramInfo } from "../deps/sigma.ts";
+import { Sigma, ProgramDefinition, RenderParams, floatColor, ProgramInfo } from "../deps/sigma.ts";
 import { HelvegNodeAttributes } from "../model/graph.ts";
 import { FALLBACK_NODE_STYLE, floatOutlineWidths, floatOutlineStyles } from "../model/style.ts";
 import vertSrc from "./shaders/node.outlines.vert";
 import fragSrc from "./shaders/node.outlines.frag";
-import { HelvegNodeProgramType } from "../diagram/initializers.ts";
+import { HelvegNodeProgram, HelvegNodeProgramType } from "../diagram/initializers.ts";
 
 const { UNSIGNED_BYTE, FLOAT } = WebGLRenderingContext;
 
@@ -35,7 +35,7 @@ export default function createOutlinesProgram(options?: Partial<OutlinesProgramO
     };
 }
 
-export class OutlinesProgram extends NodeProgram<typeof UNIFORMS[number]> {
+export class OutlinesProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
     constructor(
         gl: WebGLRenderingContext,
         pickingBuffer: WebGLFramebuffer,

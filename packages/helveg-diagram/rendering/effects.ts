@@ -59,7 +59,7 @@ export class SigmaEffectsExtension {
     constructor(private options: GlyphProgramOptions, private logger?: ILogger) {
         let self = this;
         this._reportingProgram = class extends ParamsReportingProgram {
-            constructor(gl: WebGLRenderingContext, renderer: Sigma) {
+            constructor(gl: WebGLRenderingContext, pickingBuffer: WebGLFramebuffer, renderer: Sigma) {
                 self.initialize(renderer);
                 super({
                     process: self.fireProgram.process.bind(self.fireProgram),
@@ -70,7 +70,7 @@ export class SigmaEffectsExtension {
         }
     }
 
-    get program() {
+    get program(): HelvegNodeProgramType {
         return this._reportingProgram;
     }
 

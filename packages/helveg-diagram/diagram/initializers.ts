@@ -1,6 +1,6 @@
 import forceAtlas2, { ForceAtlas2Settings, inferSettings } from "../deps/graphology-layout-forceatlas2.ts";
 import Graph from "../deps/graphology.ts";
-import { Sigma, Coordinates, DEFAULT_SETTINGS, NodeProgramType, SigmaNodeEventPayload, SigmaStageEventPayload, NodeProgram } from "../deps/sigma.ts";
+import { Sigma, Coordinates, DEFAULT_SETTINGS, NodeProgramType, SigmaNodeEventPayload, SigmaStageEventPayload } from "../deps/sigma.ts";
 import { ForceAtlas2Progress, ForceAtlas2Supervisor } from "../layout/forceAltas2Supervisor.ts";
 import { DataModel, Multigraph, MultigraphRelation } from "../model/data-model.ts";
 import { HelvegEdgeAttributes, HelvegGraph, HelvegNodeAttributes, collapseNode, expandNode, findRoots, toggleNode } from "../model/graph.ts";
@@ -8,6 +8,7 @@ import { ILogger, Logger, sublogger } from "../model/logger.ts";
 import { EdgeStylist, FALLBACK_EDGE_STYLE, FALLBACK_NODE_STYLE, NodeStylist, OutlineStyle, Outlines, RelationStylist, getOutlinesTotalWidth } from "../model/style.ts";
 import { bfsGraph, bfsMultigraph } from "../model/traversal.ts";
 import { GlyphProgramOptions, SizingMode } from "../rendering/node.glyph.ts";
+import { WorkaroundNodeProgram } from "../rendering/workaround_node.ts";
 
 export function initializeSupervisor(
     graph: HelvegGraph,
@@ -32,7 +33,7 @@ export type HelvegSigma = Sigma<HelvegNodeAttributes, HelvegEdgeAttributes>
 export type HelvegNodeProgramType = NodeProgramType<HelvegNodeAttributes, HelvegEdgeAttributes>;
 
 export abstract class HelvegNodeProgram<Uniform extends string>
-    extends NodeProgram<Uniform, HelvegNodeAttributes, HelvegEdgeAttributes> { };
+    extends WorkaroundNodeProgram<Uniform, HelvegNodeAttributes, HelvegEdgeAttributes> { };
 
 export function initializeSigma(
     element: HTMLElement,
