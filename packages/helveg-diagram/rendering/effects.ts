@@ -102,6 +102,7 @@ export class SigmaEffectsExtension {
 
         this.gl = context;
         this.fireProgram = new FireProgram(this.gl, null!, this.sigma, this.options);
+        this.onSigmaResize();
     }
 
     private onSigmaResize() {
