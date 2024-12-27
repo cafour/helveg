@@ -119,7 +119,10 @@
                         e.detail.searchMode,
                         e.detail.filterBuilder,
                     )}
-                on:selected={(e) => (diagram.selectedNode = e.detail)}
+                on:selected={(e) => {
+                    $selectedTool = AppTools.ShowProperties;
+                    diagram.selectedNode = e.detail;
+                }}
                 results={searchResults}
             />
         </Tab>

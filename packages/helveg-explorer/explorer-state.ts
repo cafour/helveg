@@ -3,6 +3,7 @@ import type { DataModel, Diagram, DiagramStats, DiagramStatus, ILogger } from ".
 import { createCsharpRelationStylist, sublogger } from "./deps/helveg-diagram";
 import * as Options from "./options.ts";
 import { OperationExecutor } from "./operation-executor.ts";
+import { AppTools } from "./const.ts";
 
 export interface IExplorerState {
     rootElement: HTMLElement,
@@ -40,7 +41,7 @@ export function createExplorerState(rootElement: HTMLElement, diagram: Diagram):
         return () => diagram.events.statsChanged.unsubscribe(set);
     });
 
-    const selectedTool = writable<string>("show-properties");
+    const selectedTool = writable<string>(AppTools.ShowProperties);
 
     const selectedNode = writable<string | null>(null);
 
