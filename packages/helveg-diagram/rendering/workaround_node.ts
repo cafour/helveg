@@ -1,5 +1,7 @@
 /**
  * This file duplicated Sigma's Program and NodeProgram classes to work around an issue preventing use of GLSL 3.0 ES.
+ * 
+ * https://github.com/jacomyal/sigma.js/issues/1499
  */
 import { Attributes } from "graphology-types";
 
