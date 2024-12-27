@@ -63,4 +63,8 @@ a.button-icon {
     &:hover {
         background-color: var(--color-primary-600);
     }
+    
+    &:focus {
+        outline: 2px solid var(--color-primary-900);
+    }
 }
