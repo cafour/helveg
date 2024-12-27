@@ -41,7 +41,8 @@ export class PizzaToppingProgram extends HelvegNodeProgram<typeof UNIFORMS[numbe
             ATTRIBUTES: [
                 { name: "a_position", size: 2, type: FLOAT },
                 { name: "a_size", size: 1, type: FLOAT },
-                { name: "a_texture", size: 4, type: FLOAT }
+                { name: "a_texture", size: 4, type: FLOAT },
+                { name: "a_id", size: 4, type: UNSIGNED_BYTE, normalized: true },
             ],
         };
     }
@@ -72,6 +73,7 @@ export class PizzaToppingProgram extends HelvegNodeProgram<typeof UNIFORMS[numbe
             array[offset++] = 0;
             array[offset++] = 0;
         }
+        array[offset++] = nodeIndex;
     }
 
     setUniforms(params: RenderParams, programInfo: ProgramInfo): void {

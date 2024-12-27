@@ -50,4 +50,12 @@ export class PizzaDoughProgram extends HelvegNodeProgram<typeof UNIFORMS[number]
         gl.uniform1f(u_crustWidth, this.options.crustWidth);
         gl.uniform1f(u_sauceWidth, this.options.sauceWidth);
     }
+
+    protected renderProgram(params: RenderParams, programInfo: ProgramInfo): void {
+        if (programInfo.isPicking) {
+            return;
+        }
+
+        super.renderProgram(params, programInfo);
+    }
 }

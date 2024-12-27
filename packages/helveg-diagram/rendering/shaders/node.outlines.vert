@@ -8,6 +8,7 @@ in vec4 a_color;
 in vec4 a_outlineWidths;
 in vec4 a_outlineStyles;
 in float a_collapsed;
+in vec4 a_id;
 
 uniform float u_sizeRatio;
 uniform float u_pixelRatio;
@@ -33,6 +34,12 @@ void main() {
   //  - x 2 to correct the formulae
   gl_PointSize = a_size / u_sizeRatio * u_pixelRatio * 2.0;
 
+  #ifdef PICKING_MODE
+
+  v_color = a_id;
+
+  #else
+
   // Extract the color:
   v_color = a_color;
   v_color.a *= bias;
@@ -40,6 +47,8 @@ void main() {
   if (a_collapsed > 0.0) {
     v_color *= 0.33;
   }
+  
+  #endif
 
   float gap = u_gap / a_size;
   v_outlineStarts = vec4(

@@ -6,6 +6,7 @@ in vec2 a_position;
 in float a_size;
 in vec4 a_texture;
 in vec4 a_outlines;
+in vec4 a_id;
 
 uniform float u_sizeRatio;
 uniform float u_pixelRatio;
@@ -14,6 +15,7 @@ uniform mat3 u_matrix;
 out vec4 v_texture;
 out float v_size;
 out vec2 v_rotation;
+out vec4 v_id;
 
 const float bias = 255.0 / 254.0;
 
@@ -35,4 +37,5 @@ void main() {
 
   v_size = a_size;
   v_rotation = vec2((gl_VertexID / 2) % 2 == 0 ? -1.0 : 1.0, gl_VertexID % 2 == 0 ? 1.0 : -1.0 );
+  v_id = a_id;
 }

@@ -58,7 +58,8 @@ export class OutlinesProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> 
                 { name: "a_color", size: 4, type: UNSIGNED_BYTE, normalized: true },
                 { name: "a_outlineWidths", size: 4, type: UNSIGNED_BYTE, normalized: true },
                 { name: "a_outlineStyles", size: 4, type: UNSIGNED_BYTE, normalized: false },
-                { name: "a_collapsed", size: 1, type: FLOAT }
+                { name: "a_collapsed", size: 1, type: FLOAT },
+                { name: "a_id", size: 4, type: UNSIGNED_BYTE, normalized: true },
             ],
         };
     }
@@ -75,6 +76,7 @@ export class OutlinesProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> 
         array[offset++] = floatOutlineWidths(data.outlines ?? FALLBACK_NODE_STYLE.outlines);
         array[offset++] = floatOutlineStyles(data.outlines ?? FALLBACK_NODE_STYLE.outlines);
         array[offset++] = +!!(useColor && this.options.dimCollapsedNodes && data.collapsed);
+        array[offset++] = nodeIndex;
     }
 
     setUniforms(params: RenderParams, programInfo: ProgramInfo): void {

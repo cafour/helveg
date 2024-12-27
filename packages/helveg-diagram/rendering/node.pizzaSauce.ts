@@ -67,9 +67,16 @@ export class PizzaSauceProgram extends HelvegNodeProgram<typeof UNIFORMS[number]
         let offset = this.renderer.graphToViewport(this.renderer.getCamera());
         gl.uniform2f(u_offset, -offset.x, offset.y);
         gl.uniform2f(u_resolution, params.width, params.height);
-    
+
         // TODO: Figure out how all these Sigma ratios work together.
         gl.uniform1f(u_zoomRatio, params.zoomRatio);
+    }
 
+    protected renderProgram(params: RenderParams, programInfo: ProgramInfo): void {
+        if (programInfo.isPicking) {
+            return;
+        }
+
+        super.renderProgram(params, programInfo);
     }
 }

@@ -88,16 +88,24 @@ export class IconProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
     }
 
     setUniforms(params: RenderParams, programInfo: ProgramInfo): void {
-        const {gl, uniformLocations} = programInfo;
+        const { gl, uniformLocations } = programInfo;
         const { u_sizeRatio, u_pixelRatio, u_matrix, u_atlas } = uniformLocations;
 
         gl.uniform1f(u_sizeRatio, params.sizeRatio);
         gl.uniform1f(u_pixelRatio, params.pixelRatio);
         gl.uniformMatrix3fv(u_matrix, false, params.matrix);
         gl.uniform1i(u_atlas, 0);
+    }
 
+    protected renderProgram(params: RenderParams, programInfo: ProgramInfo): void {
+        if (programInfo.isPicking) {
+            return;
+        }
+
+        const { gl } = programInfo;
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this.texture);
+        super.renderProgram(params, programInfo);
     }
 
 

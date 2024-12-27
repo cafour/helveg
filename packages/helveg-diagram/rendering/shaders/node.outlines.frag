@@ -27,6 +27,15 @@ void main(void) {
   vec2 m = gl_PointCoord - vec2(0.5, 0.5);
   float dist = length(m) * 2.0;
 
+  #ifdef PICKING_MODE
+  if (dist < v_outlineEnds.w) {
+    f_color = v_color;
+  } else {
+    f_color = vec4(0.0, 0.0, 0.0, 0.0);
+  }
+  return;
+  #endif
+
   float a = f_color.a;
 
   float style = 0.0;

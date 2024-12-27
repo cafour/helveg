@@ -5,6 +5,7 @@ precision mediump float;
 in vec4 v_texture;
 in float v_size;
 in vec2 v_rotation;
+in vec4 v_id;
 
 out vec4 f_color;
 
@@ -17,5 +18,9 @@ void main(void) {
         discard;
     }
     vec4 texel = texture(u_atlas, v_texture.xy + texCoord * v_texture.zw);
+    #ifdef PICKING_MODE
+    f_color = v_id * texel.a;
+    #else
     f_color = texel;
+    #endif
 }
