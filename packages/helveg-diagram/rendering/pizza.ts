@@ -97,6 +97,7 @@ export class PizzaProgram implements AbstractNodeProgram {
         this.sauceProgram = new PizzaSauceProgram(this.doughContext, pickingBuffer, sigma, options);
         // NB: toppings are rendered in the regular `nodes` layer
         this.toppingProgram = new PizzaToppingProgram(gl, pickingBuffer, sigma, options);
+        this.onSigmaResize();
     }
 
     process(nodeIndex: number, offset: number, data: NodeDisplayData): void {
