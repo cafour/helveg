@@ -87,4 +87,15 @@ export class OutlinesProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> 
         gl.uniformMatrix3fv(u_matrix, false, params.matrix);
         gl.uniform1f(u_gap, this.options.gap);
     }
+    
+    drawWebGL(method: number, programInfo: ProgramInfo): void {
+        const {gl} = programInfo;
+        if (programInfo.isPicking) {
+            gl.blendFunc(gl.ONE, gl.ZERO);
+        } else {
+            gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+        }
+
+        super.drawWebGL(method, programInfo);
+    }
 }

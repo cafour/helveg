@@ -68,7 +68,7 @@ export function createGlyphProgram(options: GlyphProgramOptions, logger?: ILogge
             this.iconProgram.process(nodeIndex, offset, data);
             this.effectsProgram.process(nodeIndex, offset, data);
             this.pizzaProgram.process(nodeIndex, offset, data);
-            this.diffProgram.process(nodeIndex, offset, data);
+            // this.diffProgram.process(nodeIndex, offset, data);
         }
 
         reallocate(capacity: number): void {
@@ -76,7 +76,7 @@ export function createGlyphProgram(options: GlyphProgramOptions, logger?: ILogge
             this.iconProgram.reallocate(capacity);
             this.effectsProgram.reallocate(capacity);
             this.pizzaProgram.reallocate(capacity);
-            this.diffProgram.reallocate(capacity);
+            // this.diffProgram.reallocate(capacity);
         }
 
         render(params: RenderParams): void {
@@ -94,9 +94,9 @@ export function createGlyphProgram(options: GlyphProgramOptions, logger?: ILogge
                     this.iconProgram.render(params);
                 }
 
-                if (options.showDiffs) {
-                    this.diffProgram.render(params);
-                }
+                // if (options.showDiffs) {
+                //     this.diffProgram.render(params);
+                // }
             }
         }
 
@@ -108,7 +108,7 @@ export function createGlyphProgram(options: GlyphProgramOptions, logger?: ILogge
             this.iconProgram.kill();
             this.effectsProgram.kill();
             this.pizzaProgram.kill();
-            this.diffProgram.kill();
+            // this.diffProgram.kill();
         }
     };
 }

@@ -82,4 +82,12 @@ export class DiffProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
         super.drawWebGL(method, programInfo);
         gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     }
+    
+    protected renderProgram(params: RenderParams, programInfo: ProgramInfo): void {
+        if (programInfo.isPicking) {
+            return;
+        }
+
+        super.renderProgram(params, programInfo);
+    }
 }

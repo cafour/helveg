@@ -90,4 +90,12 @@ export class FireProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
         const gl = programInfo.gl as WebGL2RenderingContext;
         gl.drawArraysInstanced(method, 0, this.verticesCount, this.options.particleCount);
     }
+    
+    protected renderProgram(params: RenderParams, programInfo: ProgramInfo): void {
+        if (programInfo.isPicking) {
+            return;
+        }
+
+        super.renderProgram(params, programInfo);
+    }
 }

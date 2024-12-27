@@ -31,7 +31,7 @@ void main(void) {
   if (dist < v_outlineEnds.w) {
     f_color = v_color;
   } else {
-    f_color = vec4(0.0, 0.0, 0.0, 0.0);
+    discard;
   }
   return;
   #endif
