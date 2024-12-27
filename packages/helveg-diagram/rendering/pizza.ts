@@ -1,4 +1,6 @@
-import { NodeProgramConstructor, Sigma, AbstractNodeProgram, NodeDisplayData, RenderParams, getPixelRatio } from "../deps/sigma.ts";
+import { Attributes } from "graphology-types";
+import { Sigma, AbstractNodeProgram, NodeDisplayData, RenderParams, getPixelRatio, NodeHoverDrawingFunction, NodeLabelDrawingFunction } from "../deps/sigma.ts";
+import { HelvegNodeProgramType } from "../diagram/initializers.ts";
 import { ILogger } from "../model/logger.ts";
 import { EMPTY_ICON_ATLAS, IconAtlas } from "./iconAtlas.ts";
 import { PizzaDoughProgram } from "./node.pizzaDough.ts";
@@ -53,16 +55,16 @@ export const DEFAULT_PIZZA_PROGRAM_OPTIONS: PizzaProgramOptions = {
     pizzaToppings: {}
 };
 
-export default function createPizzaProgram(options: PizzaProgramOptions): NodeProgramConstructor {
+export default function createPizzaProgram(options: PizzaProgramOptions): HelvegNodeProgramType {
 
     return class extends PizzaProgram {
-        constructor(gl: WebGLRenderingContext, renderer: Sigma) {
-            super(gl, renderer, options);
+        constructor(gl: WebGLRenderingContext, pickingBuffer: WebGLFramebuffer, renderer: Sigma) {
+            super(gl, pickingBuffer, renderer, options);
         }
     };
 }
 
-export class PizzaProgram extends AbstractNodeProgram {
+export class PizzaProgram implements AbstractNodeProgram {
     doughProgram: AbstractNodeProgram;
     sauceProgram: AbstractNodeProgram;
     toppingProgram: AbstractNodeProgram;
@@ -71,10 +73,10 @@ export class PizzaProgram extends AbstractNodeProgram {
 
     constructor(
         gl: WebGLRenderingContext,
+        pickingBuffer: WebGLFramebuffer,
         private sigma: Sigma,
         private options: PizzaProgramOptions,
         private logger?: ILogger) {
-        super(gl, sigma);
 
         this.doughCanvas = document.createElement("canvas");
         this.doughCanvas.classList.add("helveg-codepizza");
@@ -91,16 +93,16 @@ export class PizzaProgram extends AbstractNodeProgram {
         sigma.addListener("kill", this.onSigmaKill.bind(this));
         sigma.addListener("resize", this.onSigmaResize.bind(this));
 
-        this.doughProgram = new PizzaDoughProgram(this.doughContext, sigma, options);
-        this.sauceProgram = new PizzaSauceProgram(this.doughContext, sigma, options);
+        this.doughProgram = new PizzaDoughProgram(this.doughContext, pickingBuffer, sigma, options);
+        this.sauceProgram = new PizzaSauceProgram(this.doughContext, pickingBuffer, sigma, options);
         // NB: toppings are rendered in the regular `nodes` layer
-        this.toppingProgram = new PizzaToppingProgram(gl, sigma, options);
+        this.toppingProgram = new PizzaToppingProgram(gl, pickingBuffer, sigma, options);
     }
 
-    process(offset: number, data: NodeDisplayData): void {
-        this.doughProgram.process(offset, data);
-        this.sauceProgram.process(offset, data);
-        this.toppingProgram.process(offset, data);
+    process(nodeIndex: number, offset: number, data: NodeDisplayData): void {
+        this.doughProgram.process(nodeIndex, offset, data);
+        this.sauceProgram.process(nodeIndex, offset, data);
+        this.toppingProgram.process(nodeIndex, offset, data);
     }
 
     reallocate(capacity: number): void {
@@ -118,6 +120,15 @@ export class PizzaProgram extends AbstractNodeProgram {
         this.doughProgram.render(params);
         this.sauceProgram.render(params);
         this.toppingProgram.render(params);
+    }
+
+    drawLabel: NodeLabelDrawingFunction<Attributes, Attributes, Attributes> | undefined = undefined;
+    drawHover: NodeHoverDrawingFunction<Attributes, Attributes, Attributes> | undefined = undefined;
+
+    kill(): void {
+        this.doughProgram.kill();
+        this.sauceProgram.kill();
+        this.toppingProgram.kill();
     }
     
     private onSigmaResize() {

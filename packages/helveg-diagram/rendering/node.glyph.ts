@@ -1,4 +1,6 @@
-import { NodeProgramConstructor, AbstractNodeProgram, Sigma, NodeDisplayData, RenderParams } from "../deps/sigma.ts";
+import { Attributes } from "graphology-types";
+import { AbstractNodeProgram, Sigma, NodeDisplayData, RenderParams, NodeHoverDrawingFunction, NodeLabelDrawingFunction } from "../deps/sigma.ts";
+import { HelvegNodeProgramType } from "../diagram/initializers.ts";
 import { ILogger, sublogger } from "../model/logger.ts";
 import { SigmaEffectsExtension } from "./effects.ts";
 import createDiffProgram, { DEFAULT_DIFF_PROGRAM_OPTIONS, DiffProgramOptions } from "./node.diff.ts";
@@ -35,8 +37,8 @@ export const DEFAULT_GLYPH_PROGRAM_OPTIONS: GlyphProgramOptions =
     ...DEFAULT_DIFF_PROGRAM_OPTIONS
 };
 
-export function createGlyphProgram(options: GlyphProgramOptions, logger?: ILogger): NodeProgramConstructor {
-    return class extends AbstractNodeProgram {
+export function createGlyphProgram(options: GlyphProgramOptions, logger?: ILogger): HelvegNodeProgramType {
+    return class implements AbstractNodeProgram {
         private effects: SigmaEffectsExtension;
         private iconProgram: AbstractNodeProgram;
         private outlinesProgram: AbstractNodeProgram;
@@ -44,31 +46,29 @@ export function createGlyphProgram(options: GlyphProgramOptions, logger?: ILogge
         private pizzaProgram: AbstractNodeProgram;
         private diffProgram: AbstractNodeProgram;
 
-        constructor(gl: WebGLRenderingContext, renderer: Sigma) {
-            super(gl, renderer);
-
+        constructor(gl: WebGLRenderingContext, pickingBuffer: WebGLFramebuffer, renderer: Sigma) {
 
             // NB: The effects extension's lifetime is as long as of this program.
             //     This is done on purpose since Sigma creates one instance of each program for "regular" nodes
             //     and one for "hovered" nodes. A separate effects canvas must exist for each kind.
             this.effects = new SigmaEffectsExtension(options, logger ? sublogger(logger, "effects") : undefined);
 
-            this.iconProgram = new (createIconProgram(options))(gl, renderer);
-            this.outlinesProgram = new (createOutlinesProgram(options))(gl, renderer);
-            this.effectsProgram = new this.effects.program(gl, renderer);
+            this.iconProgram = new (createIconProgram(options))(gl, pickingBuffer, renderer);
+            this.outlinesProgram = new (createOutlinesProgram(options))(gl, pickingBuffer, renderer);
+            this.effectsProgram = new this.effects.program(gl, pickingBuffer, renderer);
 
             // NB: Pizza needs to be initialized after the effects program so that its canvas is below effects.
-            this.pizzaProgram = new (createPizzaProgram(options))(gl, renderer);
+            this.pizzaProgram = new (createPizzaProgram(options))(gl, pickingBuffer, renderer);
 
-            this.diffProgram = new (createDiffProgram(options))(gl, renderer);
+            this.diffProgram = new (createDiffProgram(options))(gl, pickingBuffer, renderer);
         }
 
-        process(offset: number, data: NodeDisplayData): void {
-            this.outlinesProgram.process(offset, data);
-            this.iconProgram.process(offset, data);
-            this.effectsProgram.process(offset, data);
-            this.pizzaProgram.process(offset, data);
-            this.diffProgram.process(offset, data);
+        process(nodeIndex: number, offset: number, data: NodeDisplayData): void {
+            this.outlinesProgram.process(nodeIndex, offset, data);
+            this.iconProgram.process(nodeIndex, offset, data);
+            this.effectsProgram.process(nodeIndex, offset, data);
+            this.pizzaProgram.process(nodeIndex, offset, data);
+            this.diffProgram.process(nodeIndex, offset, data);
         }
 
         reallocate(capacity: number): void {
@@ -98,7 +98,17 @@ export function createGlyphProgram(options: GlyphProgramOptions, logger?: ILogge
                     this.diffProgram.render(params);
                 }
             }
+        }
 
+        drawLabel: NodeLabelDrawingFunction<Attributes, Attributes, Attributes> | undefined = undefined;
+        drawHover: NodeHoverDrawingFunction<Attributes, Attributes, Attributes> | undefined = undefined;
+
+        kill(): void {
+            this.outlinesProgram.kill();
+            this.iconProgram.kill();
+            this.effectsProgram.kill();
+            this.pizzaProgram.kill();
+            this.diffProgram.kill();
         }
     };
 }

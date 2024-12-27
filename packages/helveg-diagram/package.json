@@ -35,10 +35,11 @@
     },
     "devDependencies": {
         "@types/d3-hierarchy": "^3.1.7",
+        "@types/events": "^3.0.3",
         "@types/file-saver": "^2.0.7",
-        "@types/node": "^20.12.8",
-        "@types/yargs": "^17.0.32",
-        "browser-sync": "^3.0.2",
+        "@types/node": "^20.17.10",
+        "@types/yargs": "^17.0.33",
+        "browser-sync": "^3.0.3",
         "concurrently": "^8.2.2",
         "d3-hierarchy": "^3.1.2",
         "esbuild": "^0.20.2",
@@ -47,11 +48,11 @@
         "graphology": "^0.25.4",
         "graphology-layout": "^0.6.1",
         "graphology-layout-forceatlas2": "^0.10.1",
-        "graphology-types": "^0.24.7",
+        "graphology-types": "^0.24.8",
         "graphology-utils": "^2.5.2",
-        "sigma": "3.0.0-alpha3",
-        "tsx": "^4.9.1",
-        "typescript": "^5.4.5",
+        "sigma": "3.0.0",
+        "tsx": "^4.19.2",
+        "typescript": "^5.7.2",
         "yargs": "^17.7.2"
     }
 }

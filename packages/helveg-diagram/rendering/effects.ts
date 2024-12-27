@@ -1,21 +1,27 @@
-import { NodeDisplayData, RenderParams, AbstractNodeProgram, Sigma, NodeProgramConstructor, getPixelRatio } from "../deps/sigma.ts";
+import { Attributes } from "graphology-types";
+import { NodeDisplayData, RenderParams, AbstractNodeProgram, Sigma, getPixelRatio, NodeHoverDrawingFunction, NodeLabelDrawingFunction } from "../deps/sigma.ts";
+import { HelvegNodeProgramType } from "../diagram/initializers.ts";
 import { ILogger } from "../model/logger.ts";
 import { FireProgram } from "./node.fire.ts";
 import { GlyphProgramOptions } from "./node.glyph.ts";
 
 interface ProgramCallbacks {
-    process(offset: number, data: NodeDisplayData): void;
+    process(nodeIndex: number, offset: number, data: NodeDisplayData): void;
     reallocate(capacity: number): void;
     render(params: RenderParams): void;
+    kill(): void;
 }
 
 class ParamsReportingProgram implements AbstractNodeProgram {
     constructor(private callbacks: Partial<ProgramCallbacks>) {
     }
 
-    process(offset: number, data: NodeDisplayData): void {
+    drawLabel: NodeLabelDrawingFunction<Attributes, Attributes, Attributes> | undefined = undefined;
+    drawHover: NodeHoverDrawingFunction<Attributes, Attributes, Attributes> | undefined = undefined;
+
+    process(nodeIndex: number, offset: number, data: NodeDisplayData): void {
         if (this.callbacks.process) {
-            this.callbacks.process(offset, data);
+            this.callbacks.process(nodeIndex, offset, data);
         }
     }
 
@@ -30,6 +36,12 @@ class ParamsReportingProgram implements AbstractNodeProgram {
             this.callbacks.render(params);
         }
     }
+
+    kill(): void {
+        if (this.callbacks.kill) {
+            this.callbacks.kill();
+        }
+    }
 }
 
 export class SigmaEffectsExtension {
@@ -41,7 +53,7 @@ export class SigmaEffectsExtension {
     private gl: WebGL2RenderingContext = null!;
     private renderParams: RenderParams | null = null;
     private renderFrame: number = 0;
-    private _reportingProgram: NodeProgramConstructor;
+    private _reportingProgram: HelvegNodeProgramType;
     private fireProgram: FireProgram = null!;
 
     constructor(private options: GlyphProgramOptions, private logger?: ILogger) {
@@ -62,7 +74,7 @@ export class SigmaEffectsExtension {
         return this._reportingProgram;
     }
 
-    private initialize(sigma: Sigma)  {
+    private initialize(sigma: Sigma) {
         if (this.sigma) {
             this.logger?.debug("The effects extension has already been initialized.");
             return;
@@ -89,9 +101,9 @@ export class SigmaEffectsExtension {
         }
 
         this.gl = context;
-        this.fireProgram = new FireProgram(this.gl, this.sigma, this.options);
+        this.fireProgram = new FireProgram(this.gl, null!, this.sigma, this.options);
     }
-    
+
     private onSigmaResize() {
         let width = this.sigma.getContainer().offsetWidth;
         let height = this.sigma.getContainer().offsetHeight;

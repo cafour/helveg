@@ -1,6 +1,6 @@
 import forceAtlas2, { ForceAtlas2Settings, inferSettings } from "../deps/graphology-layout-forceatlas2.ts";
 import Graph from "../deps/graphology.ts";
-import { Sigma, Coordinates, DEFAULT_SETTINGS, NodeProgramConstructor, SigmaNodeEventPayload, SigmaStageEventPayload } from "../deps/sigma.ts";
+import { Sigma, Coordinates, DEFAULT_SETTINGS, NodeProgramType, SigmaNodeEventPayload, SigmaStageEventPayload, NodeProgram } from "../deps/sigma.ts";
 import { ForceAtlas2Progress, ForceAtlas2Supervisor } from "../layout/forceAltas2Supervisor.ts";
 import { DataModel, Multigraph, MultigraphRelation } from "../model/data-model.ts";
 import { HelvegEdgeAttributes, HelvegGraph, HelvegNodeAttributes, collapseNode, expandNode, findRoots, toggleNode } from "../model/graph.ts";
@@ -26,12 +26,18 @@ export function initializeSupervisor(
 export const isHoverEnabledSymbol = Symbol("isHoverEnabled");
 export const hoveredNodeSymbol = Symbol("hoveredNode");
 
-export type HelvegSigma = Sigma<HelvegGraph> & { [isHoverEnabledSymbol]: boolean, [hoveredNodeSymbol]: string | null };
+export type HelvegSigma = Sigma<HelvegNodeAttributes, HelvegEdgeAttributes>
+    & { [isHoverEnabledSymbol]: boolean, [hoveredNodeSymbol]: string | null };
+
+export type HelvegNodeProgramType = NodeProgramType<HelvegNodeAttributes, HelvegEdgeAttributes>;
+
+export abstract class HelvegNodeProgram<Uniform extends string>
+    extends NodeProgram<Uniform, HelvegNodeAttributes, HelvegEdgeAttributes> { };
 
 export function initializeSigma(
     element: HTMLElement,
     graph: HelvegGraph,
-    glyphProgram: NodeProgramConstructor,
+    glyphProgram: HelvegNodeProgramType,
     onClick?: (payload: SigmaNodeEventPayload) => void,
     onNodeDown?: (payload: SigmaNodeEventPayload) => void,
     onStageDown?: (payload: SigmaStageEventPayload) => void,
@@ -46,7 +52,7 @@ export function initializeSigma(
         },
         labelFont: "'Cascadia Mono', 'Consolas', monospace",
         edgeLabelFont: "'Cascadia Mono', 'Consolas', monospace",
-        itemSizesReference: "positions"
+        itemSizesReference: "positions",
     }) as HelvegSigma;
     sigma[isHoverEnabledSymbol] = false;
     sigma[hoveredNodeSymbol] = null;
@@ -119,11 +125,11 @@ export function configureSigma(
     sigma.setSetting("renderLabels", options.showLabels);
     if (options.isPizzaEnabled) {
         sigma.setSetting("zoomToSizeRatioFunction", (cameraRatio) => cameraRatio);
-        sigma.setSetting("hoverRenderer", () => { });
+        sigma.setSetting("nodeHoverProgramClasses", {});
         sigma[isHoverEnabledSymbol] = false;
     } else {
         sigma.setSetting("zoomToSizeRatioFunction", DEFAULT_SETTINGS.zoomToSizeRatioFunction);
-        sigma.setSetting("hoverRenderer", DEFAULT_SETTINGS.hoverRenderer);
+        sigma.setSetting("nodeHoverProgramClasses", DEFAULT_SETTINGS.nodeHoverProgramClasses);
         sigma[isHoverEnabledSymbol] = true;
     }
 }

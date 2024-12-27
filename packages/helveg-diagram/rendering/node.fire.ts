@@ -1,12 +1,9 @@
-import { ProgramDefinition, NodeProgramConstructor, Sigma, NodeProgram, RenderParams } from "../deps/sigma.ts";
+import { ProgramDefinition, Sigma, RenderParams, ProgramInfo } from "../deps/sigma.ts";
 import { HelvegNodeAttributes } from "../model/graph.ts";
 import { FireStatus } from "../model/style.ts";
 import vertSrc from "./shaders/node.fire.vert";
 import fragSrc from "./shaders/node.fire.frag";
-
-const { UNSIGNED_BYTE, FLOAT } = WebGLRenderingContext;
-
-const UNIFORMS = ["u_sizeRatio", "u_pixelRatio", "u_matrix", "u_time", "u_normalizationRatio"];
+import { HelvegNodeProgramType, HelvegNodeProgram } from "../diagram/initializers.ts";
 
 export interface FireProgramOptions {
     showOnlyHighlighted: boolean;
@@ -20,7 +17,7 @@ export const DEFAULT_FIRE_PROGRAM_OPTIONS: FireProgramOptions = {
     isFireAnimated: true,
 };
 
-export default function createFireProgram(options?: Partial<FireProgramOptions>): NodeProgramConstructor {
+export default function createFireProgram(options?: Partial<FireProgramOptions>): HelvegNodeProgramType {
     if (options === undefined) {
         options = DEFAULT_FIRE_PROGRAM_OPTIONS;
     } else {
@@ -28,23 +25,31 @@ export default function createFireProgram(options?: Partial<FireProgramOptions>)
     }
 
     return class extends FireProgram {
-        constructor(gl: WebGLRenderingContext, renderer: Sigma) {
-            super(gl, renderer, options as FireProgramOptions);
+        constructor(gl: WebGLRenderingContext, pickingBuffer: WebGLFramebuffer, renderer: Sigma) {
+            super(gl, pickingBuffer, renderer, options as FireProgramOptions);
         }
     };
 }
 
-export class FireProgram extends NodeProgram<typeof UNIFORMS[number]> {
-    constructor(gl: WebGLRenderingContext, renderer: Sigma, private options: FireProgramOptions) {
-        super(gl, renderer);
+const { UNSIGNED_BYTE, FLOAT } = WebGL2RenderingContext;
+const UNIFORMS = ["u_sizeRatio", "u_pixelRatio", "u_matrix", "u_time", "u_normalizationRatio"];
+
+export class FireProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
+    constructor(
+        gl: WebGLRenderingContext,
+        pickingBuffer: WebGLFramebuffer,
+        renderer: Sigma,
+        private options: FireProgramOptions
+    ) {
+        super(gl, pickingBuffer, renderer);
     }
 
     getDefinition(): ProgramDefinition<typeof UNIFORMS[number]> {
         return {
             VERTICES: 1,
-            ARRAY_ITEMS_PER_VERTEX: 4,
             VERTEX_SHADER_SOURCE: vertSrc,
             FRAGMENT_SHADER_SOURCE: fragSrc,
+            METHOD: WebGL2RenderingContext.POINTS,
             UNIFORMS,
             ATTRIBUTES: [
                 { name: "a_position", size: 2, type: FLOAT },
@@ -54,7 +59,7 @@ export class FireProgram extends NodeProgram<typeof UNIFORMS[number]> {
         };
     }
 
-    processVisibleItem(i: number, data: HelvegNodeAttributes): void {
+    processVisibleItem(nodeIndex: number, offset: number, data: HelvegNodeAttributes): void {
         const array = this.array;
 
         const useIntensity = !this.options.showOnlyHighlighted || data.highlighted === true;
@@ -63,25 +68,26 @@ export class FireProgram extends NodeProgram<typeof UNIFORMS[number]> {
             : data.fire === FireStatus.Flame ? 1
                 : 0;
 
-        array[i++] = data.x ?? 0;
-        array[i++] = data.y ?? 0;
-        array[i++] = data.size ?? 2;
-        array[i++] = useIntensity ? intensity : 0;
+        array[offset++] = data.x ?? 0;
+        array[offset++] = data.y ?? 0;
+        array[offset++] = data.size ?? 2;
+        array[offset++] = useIntensity ? intensity : 0;
     }
 
-    draw(params: RenderParams): void {
-        const gl = this.gl as WebGL2RenderingContext;
-
-        const { u_sizeRatio, u_pixelRatio, u_matrix, u_time, u_normalizationRatio } = this.uniformLocations;
-
+    setUniforms(params: RenderParams, programInfo: ProgramInfo): void {
+        const { gl, uniformLocations } = programInfo;
+        const { u_sizeRatio, u_pixelRatio, u_matrix, u_time, u_normalizationRatio } = uniformLocations;
         gl.uniform1f(u_sizeRatio, params.sizeRatio);
         gl.uniform1f(u_pixelRatio, params.pixelRatio);
         gl.uniformMatrix3fv(u_matrix, false, params.matrix);
         gl.uniform1f(u_time, this.options.isFireAnimated ? performance.now() / 1000.0 : 42.0);
         gl.uniform1f(u_normalizationRatio,
             (1.0 / this.renderer.getGraphToViewportRatio())
-                / (this.renderer as any).normalizationFunction.ratio * 0.90);
+            / (this.renderer as any).normalizationFunction.ratio * 0.90);
+    }
 
-        gl.drawArraysInstanced(gl.POINTS, 0, this.verticesCount, this.options.particleCount);
+    drawWebGL(method: number, programInfo: ProgramInfo): void {
+        const gl = programInfo.gl as WebGL2RenderingContext;
+        gl.drawArraysInstanced(method, 0, this.verticesCount, this.options.particleCount);
     }
 }

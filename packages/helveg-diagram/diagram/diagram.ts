@@ -1,11 +1,11 @@
 import { HelvegEvent } from "../common/event.ts";
 import { HelvegGraph, expandPathsTo, findRoots, getNodeKinds, toggleNode } from "../model/graph.ts";
-import { Coordinates, NodeProgramConstructor, Sigma, SigmaNodeEventPayload } from "../deps/sigma.ts";
+import { Coordinates, SigmaNodeEventPayload } from "../deps/sigma.ts";
 import { LogSeverity, ILogger, consoleLogger } from "../model/logger.ts";
 import { ForceAtlas2Progress, ForceAtlas2Supervisor } from "../layout/forceAltas2Supervisor.ts";
 import { wheelOfFortune } from "../layout/circular.ts";
 import tidyTree from "../layout/tidyTree.ts";
-import { HelvegSigma, configureSigma, hoveredNodeSymbol, initializeGraph, initializeSigma, initializeSupervisor, styleGraph } from "./initializers.ts";
+import { HelvegSigma, HelvegNodeProgramType, configureSigma, hoveredNodeSymbol, initializeGraph, initializeSigma, initializeSupervisor, styleGraph } from "./initializers.ts";
 import { DEFAULT_GLYPH_PROGRAM_OPTIONS, GlyphProgramOptions, createGlyphProgram } from "../rendering/node.glyph.ts";
 import { DEFAULT_EXPORT_OPTIONS, ExportOptions, exportDiagram } from "../rendering/export.ts";
 import { IFilterBuilderEntry, SearchMode, buildNodeFilter, filterNodes } from "../model/filter.ts";
@@ -197,7 +197,7 @@ export class Diagram {
     private _graph?: HelvegGraph;
     private _sigma?: HelvegSigma;
     private _supervisor?: ForceAtlas2Supervisor;
-    private _glyphProgram: NodeProgramConstructor;
+    private _glyphProgram: HelvegNodeProgramType;
 
     get glyphProgramOptions(): GlyphProgramOptions { return this.options.glyphProgram; }
     set glyphProgramOptions(value: GlyphProgramOptions) {

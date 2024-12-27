@@ -1,8 +1,9 @@
-import { NodeProgramConstructor, Sigma, NodeProgram, ProgramDefinition, RenderParams, floatColor } from "../deps/sigma.ts";
+import { Sigma, NodeProgram, ProgramDefinition, RenderParams, floatColor, ProgramInfo } from "../deps/sigma.ts";
 import { HelvegNodeAttributes } from "../model/graph.ts";
 import { FALLBACK_NODE_STYLE, floatOutlineWidths, floatOutlineStyles } from "../model/style.ts";
 import vertSrc from "./shaders/node.outlines.vert";
 import fragSrc from "./shaders/node.outlines.frag";
+import { HelvegNodeProgramType } from "../diagram/initializers.ts";
 
 const { UNSIGNED_BYTE, FLOAT } = WebGLRenderingContext;
 
@@ -20,7 +21,7 @@ export const DEFAULT_OUTLINES_PROGRAM_OPTIONS: OutlinesProgramOptions = {
     dimCollapsedNodes: true
 };
 
-export default function createOutlinesProgram(options?: Partial<OutlinesProgramOptions>): NodeProgramConstructor {
+export default function createOutlinesProgram(options?: Partial<OutlinesProgramOptions>): HelvegNodeProgramType {
     if (options === undefined) {
         options = DEFAULT_OUTLINES_PROGRAM_OPTIONS;
     } else {
@@ -28,23 +29,28 @@ export default function createOutlinesProgram(options?: Partial<OutlinesProgramO
     }
 
     return class extends OutlinesProgram {
-        constructor(gl: WebGLRenderingContext, renderer: Sigma) {
-            super(gl, renderer, options as OutlinesProgramOptions);
+        constructor(gl: WebGLRenderingContext, pickingBuffer: WebGLFramebuffer, renderer: Sigma) {
+            super(gl, pickingBuffer, renderer, options as OutlinesProgramOptions);
         }
     };
 }
 
 export class OutlinesProgram extends NodeProgram<typeof UNIFORMS[number]> {
-    constructor(gl: WebGLRenderingContext, renderer: Sigma, private options: OutlinesProgramOptions) {
-        super(gl, renderer);
+    constructor(
+        gl: WebGLRenderingContext,
+        pickingBuffer: WebGLFramebuffer,
+        renderer: Sigma,
+        private options: OutlinesProgramOptions
+    ) {
+        super(gl, pickingBuffer, renderer);
     }
 
     getDefinition(): ProgramDefinition<typeof UNIFORMS[number]> {
         return {
             VERTICES: 1,
-            ARRAY_ITEMS_PER_VERTEX: 7,
             VERTEX_SHADER_SOURCE: vertSrc,
             FRAGMENT_SHADER_SOURCE: fragSrc,
+            METHOD: WebGL2RenderingContext.POINTS,
             UNIFORMS,
             ATTRIBUTES: [
                 { name: "a_position", size: 2, type: FLOAT },
@@ -57,30 +63,26 @@ export class OutlinesProgram extends NodeProgram<typeof UNIFORMS[number]> {
         };
     }
 
-    processVisibleItem(i: number, data: HelvegNodeAttributes): void {
+    processVisibleItem(nodeIndex: number, offset: number, data: HelvegNodeAttributes): void {
         const array = this.array;
 
         const useColor = !this.options.showOnlyHighlighted || data.highlighted === true;
 
-        array[i++] = data.x ?? 0;
-        array[i++] = data.y ?? 0;
-        array[i++] = data.size ?? 2;
-        array[i++] = floatColor(useColor ? data.color ?? FALLBACK_NODE_STYLE.color : "#aaaaaa");
-        array[i++] = floatOutlineWidths(data.outlines ?? FALLBACK_NODE_STYLE.outlines);
-        array[i++] = floatOutlineStyles(data.outlines ?? FALLBACK_NODE_STYLE.outlines);
-        array[i++] = +!!(useColor && this.options.dimCollapsedNodes && data.collapsed);
+        array[offset++] = data.x ?? 0;
+        array[offset++] = data.y ?? 0;
+        array[offset++] = data.size ?? 2;
+        array[offset++] = floatColor(useColor ? data.color ?? FALLBACK_NODE_STYLE.color : "#aaaaaa");
+        array[offset++] = floatOutlineWidths(data.outlines ?? FALLBACK_NODE_STYLE.outlines);
+        array[offset++] = floatOutlineStyles(data.outlines ?? FALLBACK_NODE_STYLE.outlines);
+        array[offset++] = +!!(useColor && this.options.dimCollapsedNodes && data.collapsed);
     }
 
-    draw(params: RenderParams): void {
-        const gl = this.gl;
-
-        const { u_sizeRatio, u_pixelRatio, u_matrix, u_gap } = this.uniformLocations;
-
+    setUniforms(params: RenderParams, programInfo: ProgramInfo): void {
+        const {gl, uniformLocations} = programInfo;
+        const { u_sizeRatio, u_pixelRatio, u_matrix, u_gap } = uniformLocations;
         gl.uniform1f(u_sizeRatio, params.sizeRatio);
         gl.uniform1f(u_pixelRatio, params.pixelRatio);
         gl.uniformMatrix3fv(u_matrix, false, params.matrix);
         gl.uniform1f(u_gap, this.options.gap);
-
-        gl.drawArrays(gl.POINTS, 0, this.verticesCount);
     }
 }

@@ -1,8 +1,9 @@
-import { NodeProgram, Sigma, ProgramDefinition, RenderParams } from "../deps/sigma.ts";
+import { Sigma, ProgramDefinition, RenderParams, ProgramInfo } from "../deps/sigma.ts";
 import { HelvegNodeAttributes } from "../model/graph.ts";
 import { PizzaProgramOptions } from "./pizza.ts";
 import vertSrc from "./shaders/node.pizzaSauce.vert";
 import fragSrc from "./shaders/node.pizzaSauce.frag";
+import { HelvegNodeProgram } from "../diagram/initializers.ts";
 
 /*
 ** PIZZA TERMINOLOGY **
@@ -16,17 +17,22 @@ const { UNSIGNED_BYTE, FLOAT } = WebGLRenderingContext;
 
 const UNIFORMS = ["u_sizeRatio", "u_pixelRatio", "u_matrix", "u_sauceWidth", "u_offset", "u_resolution", "u_zoomRatio"];
 
-export class PizzaSauceProgram extends NodeProgram<typeof UNIFORMS[number]> {
-    constructor(gl: WebGLRenderingContext, renderer: Sigma, private options: PizzaProgramOptions) {
-        super(gl, renderer);
+export class PizzaSauceProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
+    constructor(
+        gl: WebGLRenderingContext,
+        pickingBuffer: WebGLFramebuffer,
+        renderer: Sigma,
+        private options: PizzaProgramOptions
+    ) {
+        super(gl, pickingBuffer, renderer);
     }
 
     getDefinition(): ProgramDefinition<typeof UNIFORMS[number]> {
         return {
             VERTICES: 1,
-            ARRAY_ITEMS_PER_VERTEX: 3,
             VERTEX_SHADER_SOURCE: vertSrc,
             FRAGMENT_SHADER_SOURCE: fragSrc,
+            METHOD: WebGL2RenderingContext.POINTS,
             UNIFORMS,
             ATTRIBUTES: [
                 { name: "a_position", size: 2, type: FLOAT },
@@ -35,19 +41,25 @@ export class PizzaSauceProgram extends NodeProgram<typeof UNIFORMS[number]> {
         };
     }
 
-    processVisibleItem(i: number, data: HelvegNodeAttributes): void {
+    processVisibleItem(nodeIndex: number, offset: number, data: HelvegNodeAttributes): void {
         const array = this.array;
 
-        array[i++] = data.x ?? 0;
-        array[i++] = data.y ?? 0;
-        array[i++] = data.size ?? 2;
+        array[offset++] = data.x ?? 0;
+        array[offset++] = data.y ?? 0;
+        array[offset++] = data.size ?? 2;
     }
 
-    draw(params: RenderParams): void {
-        const gl = this.gl as WebGL2RenderingContext;
-
-        const { u_sizeRatio, u_pixelRatio, u_matrix, u_sauceWidth, u_offset, u_resolution, u_zoomRatio } = this.uniformLocations;
-
+    setUniforms(params: RenderParams, programInfo: ProgramInfo): void {
+        const { gl, uniformLocations } = programInfo;
+        const {
+            u_sizeRatio,
+            u_pixelRatio,
+            u_matrix,
+            u_sauceWidth,
+            u_offset,
+            u_resolution,
+            u_zoomRatio
+        } = uniformLocations;
         gl.uniform1f(u_sizeRatio, params.sizeRatio);
         gl.uniform1f(u_pixelRatio, params.pixelRatio);
         gl.uniformMatrix3fv(u_matrix, false, params.matrix);
@@ -55,10 +67,9 @@ export class PizzaSauceProgram extends NodeProgram<typeof UNIFORMS[number]> {
         let offset = this.renderer.graphToViewport(this.renderer.getCamera());
         gl.uniform2f(u_offset, -offset.x, offset.y);
         gl.uniform2f(u_resolution, params.width, params.height);
-        
+    
         // TODO: Figure out how all these Sigma ratios work together.
         gl.uniform1f(u_zoomRatio, params.zoomRatio);
 
-        gl.drawArrays(gl.POINTS, 0, this.verticesCount);
     }
 }

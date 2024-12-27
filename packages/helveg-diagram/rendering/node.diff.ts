@@ -1,12 +1,9 @@
-import { NodeProgramConstructor, Sigma, NodeProgram, ProgramDefinition, RenderParams, floatColor } from "../deps/sigma.ts";
+import { Sigma, ProgramDefinition, RenderParams, floatColor, ProgramInfo } from "../deps/sigma.ts";
 import { HelvegNodeAttributes } from "../model/graph.ts";
 import vertSrc from "./shaders/node.diff.vert";
 import fragSrc from "./shaders/node.diff.frag";
 import { MultigraphNodeDiffStatus } from "../global.ts";
-
-const { UNSIGNED_BYTE, FLOAT } = WebGLRenderingContext;
-
-const UNIFORMS = ["u_sizeRatio", "u_pixelRatio", "u_matrix"];
+import { HelvegNodeProgramType, HelvegNodeProgram } from "../diagram/initializers.ts";
 
 export interface DiffProgramOptions {
     colors: Record<MultigraphNodeDiffStatus, string>;
@@ -23,26 +20,34 @@ export const DEFAULT_DIFF_PROGRAM_OPTIONS: DiffProgramOptions = {
     showOnlyHighlighted: false
 };
 
-export default function createDiffProgram(options: DiffProgramOptions): NodeProgramConstructor {
+export default function createDiffProgram(options: DiffProgramOptions): HelvegNodeProgramType {
     return class extends DiffProgram {
-        constructor(gl: WebGLRenderingContext, renderer: Sigma) {
-            super(gl, renderer, options);
+        constructor(gl: WebGLRenderingContext, pickingBuffer: WebGLFramebuffer, renderer: Sigma) {
+            super(gl, pickingBuffer, renderer, options);
         }
     };
 }
 
-export class DiffProgram extends NodeProgram<typeof UNIFORMS[number]> {
+const { UNSIGNED_BYTE, FLOAT } = WebGL2RenderingContext;
+const UNIFORMS = ["u_sizeRatio", "u_pixelRatio", "u_matrix"];
 
-    constructor(gl: WebGLRenderingContext, renderer: Sigma, private options: DiffProgramOptions) {
-        super(gl, renderer);
+export class DiffProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
+
+    constructor(
+        gl: WebGLRenderingContext,
+        pickingBuffer: WebGLFramebuffer,
+        renderer: Sigma,
+        private options: DiffProgramOptions,
+    ) {
+        super(gl, pickingBuffer, renderer);
     }
 
     getDefinition(): ProgramDefinition<typeof UNIFORMS[number]> {
         return {
             VERTICES: 1,
-            ARRAY_ITEMS_PER_VERTEX: 4,
             VERTEX_SHADER_SOURCE: vertSrc,
             FRAGMENT_SHADER_SOURCE: fragSrc,
+            METHOD: WebGLRenderingContext.POINTS,
             UNIFORMS,
             ATTRIBUTES: [
                 { name: "a_position", size: 2, type: FLOAT },
@@ -52,29 +57,29 @@ export class DiffProgram extends NodeProgram<typeof UNIFORMS[number]> {
         };
     }
 
-    processVisibleItem(i: number, data: HelvegNodeAttributes): void {
+    processVisibleItem(nodeIndex: number, offset: number, data: HelvegNodeAttributes): void {
         const isEnabled = !this.options.showOnlyHighlighted || data.highlighted === true;
 
         const array = this.array;
-        array[i++] = data.x ?? 0;
-        array[i++] = data.y ?? 0;
-        array[i++] = isEnabled ? (data.size ?? 1) : 0;
-        array[i++] = floatColor(this.options.colors[data.diff ?? "unmodified"]);
+        array[offset++] = data.x ?? 0;
+        array[offset++] = data.y ?? 0;
+        array[offset++] = isEnabled ? (data.size ?? 1) : 0;
+        array[offset++] = floatColor(this.options.colors[data.diff ?? "unmodified"]);
     }
 
-    draw(params: RenderParams): void {
-        const gl = this.gl;
-
-        const { u_sizeRatio, u_pixelRatio, u_matrix } = this.uniformLocations;
-
+    setUniforms(params: RenderParams, programInfo: ProgramInfo): void {
+        const { gl, uniformLocations } = programInfo;
+        const { u_sizeRatio, u_pixelRatio, u_matrix } = uniformLocations;
         gl.uniform1f(u_sizeRatio, params.sizeRatio);
         gl.uniform1f(u_pixelRatio, params.pixelRatio);
         gl.uniformMatrix3fv(u_matrix, false, params.matrix);
+    }
+
+    drawWebGL(method: number, programInfo: ProgramInfo): void {
+        const { gl } = programInfo;
 
         gl.blendFunc(gl.SRC_ALPHA, gl.DST_ALPHA);
-
-        gl.drawArrays(gl.POINTS, 0, this.verticesCount);
-
+        super.drawWebGL(method, programInfo);
         gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     }
 }

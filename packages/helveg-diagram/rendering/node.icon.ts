@@ -1,9 +1,10 @@
-import { NodeProgramConstructor, Sigma, NodeProgram, ProgramDefinition, RenderParams } from "../deps/sigma.ts";
+import { Sigma, ProgramDefinition, RenderParams, ProgramInfo } from "../deps/sigma.ts";
 import { HelvegNodeAttributes } from "../model/graph.ts";
 import { FALLBACK_NODE_ICON } from "../model/style.ts";
 import { EMPTY_ICON_ATLAS, IconAtlas, IconAtlasEntryStatus } from "./iconAtlas.ts";
 import vertSrc from "./shaders/node.icon.vert";
 import fragSrc from "./shaders/node.icon.frag";
+import { HelvegNodeProgram, HelvegNodeProgramType } from "../diagram/initializers.ts";
 
 const { UNSIGNED_BYTE, FLOAT } = WebGLRenderingContext;
 
@@ -19,34 +20,39 @@ export const DEFAULT_ICON_PROGRAM_OPTIONS: IconProgramOptions = {
     showOnlyHighlighted: false
 };
 
-export default function createIconProgram(options: IconProgramOptions): NodeProgramConstructor {
+export default function createIconProgram(options: IconProgramOptions): HelvegNodeProgramType {
     return class extends IconProgram {
-        constructor(gl: WebGLRenderingContext, renderer: Sigma) {
-            super(gl, renderer, options);
+        constructor(gl: WebGLRenderingContext, pickingBuffer: WebGLFramebuffer, renderer: Sigma) {
+            super(gl, pickingBuffer, renderer, options);
         }
     };
 }
 
-export class IconProgram extends NodeProgram<typeof UNIFORMS[number]> {
+export class IconProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
     texture: WebGLTexture;
 
-    constructor(gl: WebGLRenderingContext, renderer: Sigma, private options: IconProgramOptions) {
-        super(gl, renderer);
+    constructor(
+        gl: WebGLRenderingContext,
+        pickingBuffer: WebGLFramebuffer,
+        renderer: Sigma,
+        private options: IconProgramOptions
+    ) {
+        super(gl, pickingBuffer, renderer);
 
         this.texture = gl.createTexture() as WebGLTexture;
         options.iconAtlas.redrawn.subscribe(a => {
-            this.rebindTexture(a);
+            this.rebindTexture(a, gl);
             this.renderer.scheduleRefresh();
         });
-        this.rebindTexture(options.iconAtlas);
+        this.rebindTexture(options.iconAtlas, gl);
     }
 
     getDefinition(): ProgramDefinition<typeof UNIFORMS[number]> {
         return {
             VERTICES: 1,
-            ARRAY_ITEMS_PER_VERTEX: 7,
             VERTEX_SHADER_SOURCE: vertSrc,
             FRAGMENT_SHADER_SOURCE: fragSrc,
+            METHOD: WebGL2RenderingContext.POINTS,
             UNIFORMS,
             ATTRIBUTES: [
                 { name: "a_position", size: 2, type: FLOAT },
@@ -56,50 +62,46 @@ export class IconProgram extends NodeProgram<typeof UNIFORMS[number]> {
         };
     }
 
-    processVisibleItem(i: number, data: HelvegNodeAttributes): void {
+    processVisibleItem(nodeIndex: number, offset: number, data: HelvegNodeAttributes): void {
         const array = this.array;
         this.options.iconAtlas.tryAddIcon(data.icon ?? FALLBACK_NODE_ICON);
 
         const isVisible = (!this.options.showOnlyHighlighted || data.highlighted === true);
 
-        array[i++] = data.x ?? 0;
-        array[i++] = data.y ?? 0;
-        array[i++] = isVisible ? data.iconSize ?? data.size ?? 1 : 0;
+        array[offset++] = data.x ?? 0;
+        array[offset++] = data.y ?? 0;
+        array[offset++] = isVisible ? data.iconSize ?? data.size ?? 1 : 0;
 
         let atlasEntry = this.options.iconAtlas.entries[data.icon ?? FALLBACK_NODE_ICON];
         if (atlasEntry && atlasEntry.status === IconAtlasEntryStatus.Rendered) {
-            array[i++] = atlasEntry.x / this.options.iconAtlas.width;
-            array[i++] = atlasEntry.y / this.options.iconAtlas.height;
-            array[i++] = this.options.iconAtlas.iconSize / this.options.iconAtlas.width;
-            array[i++] = this.options.iconAtlas.iconSize / this.options.iconAtlas.height;
+            array[offset++] = atlasEntry.x / this.options.iconAtlas.width;
+            array[offset++] = atlasEntry.y / this.options.iconAtlas.height;
+            array[offset++] = this.options.iconAtlas.iconSize / this.options.iconAtlas.width;
+            array[offset++] = this.options.iconAtlas.iconSize / this.options.iconAtlas.height;
         } else {
             // the icon is not ready yet, so don't render it
-            array[i++] = 0;
-            array[i++] = 0;
-            array[i++] = 0;
-            array[i++] = 0;
+            array[offset++] = 0;
+            array[offset++] = 0;
+            array[offset++] = 0;
+            array[offset++] = 0;
         }
     }
 
-    draw(params: RenderParams): void {
-        const gl = this.gl;
+    setUniforms(params: RenderParams, programInfo: ProgramInfo): void {
+        const {gl, uniformLocations} = programInfo;
+        const { u_sizeRatio, u_pixelRatio, u_matrix, u_atlas } = uniformLocations;
 
-        const { u_sizeRatio, u_pixelRatio, u_matrix, u_atlas } = this.uniformLocations;
-
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, this.texture);
         gl.uniform1f(u_sizeRatio, params.sizeRatio);
         gl.uniform1f(u_pixelRatio, params.pixelRatio);
         gl.uniformMatrix3fv(u_matrix, false, params.matrix);
         gl.uniform1i(u_atlas, 0);
 
-        gl.drawArrays(gl.POINTS, 0, this.verticesCount);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this.texture);
     }
 
 
-    private rebindTexture(iconAtlas: Readonly<IconAtlas>) {
-        const gl = this.gl;
-
+    private rebindTexture(iconAtlas: Readonly<IconAtlas>, gl: WebGLRenderingContext) {
         gl.bindTexture(gl.TEXTURE_2D, this.texture);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, iconAtlas.texture);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
