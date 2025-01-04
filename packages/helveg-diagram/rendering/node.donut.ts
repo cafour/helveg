@@ -16,10 +16,16 @@ export const DEFAULT_DONUT_PROGRAM_OPTIONS: DonutProgramOptions = {
 };
 
 export default function createDonutProgram(options?: Partial<DonutProgramOptions>): HelvegNodeProgramType {
-    const opts = { ...DEFAULT_DONUT_PROGRAM_OPTIONS, ...options };
+    // NB: Cannot use options = {...DEFAULT_DONUT_PROGRAM_OPTIONS, ...options} because we need to keep the original
+    //     object.
+    if (options === undefined) {
+        options = DEFAULT_DONUT_PROGRAM_OPTIONS;
+    } else {
+        Object.assign(options, DEFAULT_DONUT_PROGRAM_OPTIONS);
+    }
     return class extends DonutProgram {
         constructor(gl: WebGLRenderingContext, pickingBuffer: WebGLFramebuffer, renderer: Sigma) {
-            super(gl, pickingBuffer, renderer, opts);
+            super(gl, pickingBuffer, renderer, options as DonutProgramOptions);
         }
     }
 }

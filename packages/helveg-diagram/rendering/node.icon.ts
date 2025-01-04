@@ -57,7 +57,8 @@ export class IconProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
             ATTRIBUTES: [
                 { name: "a_position", size: 2, type: FLOAT },
                 { name: "a_iconSize", size: 1, type: FLOAT },
-                { name: "a_texture", size: 4, type: FLOAT }
+                { name: "a_grayscale", size: 1, type: FLOAT },
+                { name: "a_texture", size: 4, type: FLOAT },
             ],
             // NB: Data for an equilateral triangle that the donut is carved from.
             CONSTANT_ATTRIBUTES: [{ name: "a_angle", size: 1, type: FLOAT }],
@@ -69,11 +70,12 @@ export class IconProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
         const array = this.array;
         this.options.iconAtlas.tryAddIcon(data.icon ?? FALLBACK_NODE_ICON);
 
-        const isVisible = (!this.options.showOnlyHighlighted || data.highlighted === true);
+        const useColor = (!this.options.showOnlyHighlighted || data.highlighted === true);
 
         array[offset++] = data.x ?? 0;
         array[offset++] = data.y ?? 0;
-        array[offset++] = isVisible ? data.iconSize ?? data.size ?? 1 : 0;
+        array[offset++] = data.iconSize ?? data.baseSize ?? data.size ?? 1;
+        array[offset++] = useColor ? 0 : 1;
 
         let atlasEntry = this.options.iconAtlas.entries[data.icon ?? FALLBACK_NODE_ICON];
         if (atlasEntry && atlasEntry.status === IconAtlasEntryStatus.Rendered) {
