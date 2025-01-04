@@ -92,7 +92,7 @@ export const FALLBACK_NODE_STYLE: NodeStyle = {
     color: "#202020",
     icon: FALLBACK_NODE_ICON,
     outlines: [],
-    slices: { stroked: 1, solid: 0, width: 10 },
+    slices: { stroked: 0, solid: 1, width: 0 },
     fire: FireStatus.None
 };
 

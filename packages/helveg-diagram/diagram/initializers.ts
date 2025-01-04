@@ -273,12 +273,13 @@ export function styleGraph(
         ] as Outlines;
 
         attributes.baseSize = nodeStyle.size;
-        attributes.size = glyphProgramOptions.showOutlines && outlines.length > 0
-            ? getOutlinesTotalWidth(outlines)
-            : nodeStyle.size;
+        attributes.size = attributes.baseSize;
+        // attributes.size = glyphProgramOptions.showOutlines && outlines.length > 0
+        //     ? getOutlinesTotalWidth(outlines)
+        //     : nodeStyle.size;
         if (nodeStyle.slices?.width > 0)
         {
-            attributes.size += 2 * nodeStyle.slices.width + glyphProgramOptions.gap;
+            attributes.size += nodeStyle.slices.width + glyphProgramOptions.gap;
         }
         attributes.iconSize = nodeStyle.size;
 
@@ -303,6 +304,7 @@ export function styleGraph(
         attributes.type = "glyph";
         attributes.icon = nodeStyle.icon;
         attributes.outlines = outlines;
+        attributes.slices = nodeStyle.slices;
         attributes.fire = nodeStyle.fire;
     });
 
