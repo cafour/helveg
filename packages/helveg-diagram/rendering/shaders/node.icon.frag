@@ -3,27 +3,23 @@
 precision mediump float;
 
 in vec4 v_texture;
-in float v_iconSize;
+in vec2 v_texCoord;
 
 out vec4 f_color;
 
 uniform sampler2D u_atlas;
 
-const float radius = 0.5;
-const float sqrt2 = sqrt(2.0);
+const float radius = 0.5f;
+const float sqrt2 = sqrt(2.0f);
 
 void main(void) {
-  float dist = length(gl_PointCoord - vec2(0.5, 0.5));
+    if (v_texCoord.x < 0.0f || v_texCoord.y < 0.0f || v_texCoord.x > 1.0f || v_texCoord.y > 1.0f) {
+        discard;
+    }
 
-  vec2 texCoord = (gl_PointCoord - vec2(0.5, 0.5)) * sqrt2 + vec2(0.5, 0.5);
-
-  if (dist > radius) {
-    discard;
-  }
-
-  // NB: the 2% is a hack to avoid artifacts at the edges of icons in an atlas
-  if (texCoord.x > 0.01 && texCoord.x < 0.99 && texCoord.y > 0.01 && texCoord.y < 0.99) {
-    vec4 texel = texture(u_atlas, v_texture.xy + texCoord * v_texture.zw);
-    f_color = texel;
-  }
+    // NB: the 2% is a hack to avoid artifacts at the edges of icons in an atlas
+    if (v_texCoord.x > 0.01f && v_texCoord.x < 0.99f && v_texCoord.y > 0.01f && v_texCoord.y < 0.99f) {
+        vec4 texel = texture(u_atlas, v_texture.xy + v_texCoord * v_texture.zw);
+        f_color = texel;
+    }
 }
