@@ -64,7 +64,7 @@ export class DonutProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
         array[offset++] = nodeIndex;
         array[offset++] = data.x ?? 0;
         array[offset++] = data.y ?? 0;
-        array[offset++] = data.size ?? 2;
+        array[offset++] = data.baseSize ?? 2;
         array[offset++] = data.slices?.stroked ?? FALLBACK_NODE_STYLE.slices.solid;
         array[offset++] = data.slices?.solid ?? FALLBACK_NODE_STYLE.slices.stroked;
         array[offset++] = data.slices?.width ?? FALLBACK_NODE_STYLE.slices.width;
@@ -78,7 +78,7 @@ export class DonutProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
         gl.uniform1f(u_pixelRatio, params.pixelRatio);
         gl.uniform1f(u_correctionRatio, params.correctionRatio);
         gl.uniformMatrix3fv(u_matrix, false, params.matrix);
-        gl.uniform1f(u_gap, this.options.gap);
+        gl.uniform1f(u_gap, 1);
     }
 
     drawWebGL(method: number, programInfo: ProgramInfo): void {

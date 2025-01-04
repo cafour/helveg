@@ -8,6 +8,7 @@ export interface HelvegNodeAttributes extends Partial<NodeDisplayData>, Attribut
     style?: string;
     kind?: string;
     icon?: string;
+    baseSize?: number;
     iconSize?: number;
     outlines?: Outlines;
     slices?: Slices;

@@ -168,7 +168,7 @@ export const FALLBACK_STYLE: NodeStyle = {
     color: VSColor.DarkGray,
     size: 5,
     outlines: [],
-    slices: { stroked: 1, solid: 0, width: 0 },
+    slices: { stroked: 1, solid: 0, width: 10 },
     fire: FireStatus.None
 };
 

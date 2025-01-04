@@ -272,9 +272,14 @@ export function styleGraph(
             ...nodeStyle.outlines.slice(0, 3),
         ] as Outlines;
 
+        attributes.baseSize = nodeStyle.size;
         attributes.size = glyphProgramOptions.showOutlines && outlines.length > 0
             ? getOutlinesTotalWidth(outlines)
             : nodeStyle.size;
+        if (nodeStyle.slices?.width > 0)
+        {
+            attributes.size += 2 * nodeStyle.slices.width + glyphProgramOptions.gap;
+        }
         attributes.iconSize = nodeStyle.size;
 
         const getSize = (sizingMode: SizingMode, value: number) => {
@@ -293,6 +298,7 @@ export function styleGraph(
 
         attributes.size = getSize(glyphProgramOptions.sizingMode, attributes.size);
         attributes.iconSize = getSize(glyphProgramOptions.sizingMode, attributes.iconSize);
+        attributes.baseSize = getSize(glyphProgramOptions.sizingMode, attributes.baseSize);
         attributes.color = nodeStyle.color;
         attributes.type = "glyph";
         attributes.icon = nodeStyle.icon;

@@ -18,22 +18,20 @@ uniform float u_gap;
 out vec4 v_color;
 out vec2 v_diffVector;
 out vec2 v_radii;
+out float v_gap;
 
-const float bias = 255.0 / 254.0;
+const float bias = 255.0f / 254.0f;
 
 void main() {
-    float innerRadius = (a_baseSize / 2.0) * u_correctionRatio / u_sizeRatio * 4.0;
-    float outerRadius = (a_baseSize / 2.0 + a_slices.z) * u_correctionRatio / u_sizeRatio * 4.0;
-    vec2 diffVector = outerRadius * 2.0 * vec2(cos(a_angle), sin(a_angle));
+    float innerRadius = (a_baseSize / 2.0f) * u_correctionRatio / u_sizeRatio * 4.0f;
+    float outerRadius = (a_baseSize / 2.0f + a_slices.z) * u_correctionRatio / u_sizeRatio * 4.0f;
+    vec2 diffVector = outerRadius * 2.0f * vec2(cos(a_angle), sin(a_angle));
     vec2 position = a_position + diffVector;
-    gl_Position = vec4(
-        (u_matrix * vec3(position, 1)).xy,
-        0,
-        1
-    );
+    gl_Position = vec4((u_matrix * vec3(position, 1)).xy, 0, 1);
 
     v_diffVector = diffVector;
     v_radii = vec2(innerRadius, outerRadius);
+    v_gap = u_gap * u_correctionRatio / u_sizeRatio * 4.0f;
 
     #ifdef PICKING_MODE
     v_color = a_id;
