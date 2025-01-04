@@ -14,6 +14,12 @@ export interface Outline {
     width: number;
 }
 
+export interface Slices {
+    stroked: number,
+    solid: number,
+    width: number,
+}
+
 export type Outlines = []
     | [Outline]
     | [Outline, Outline]
@@ -75,6 +81,7 @@ export interface NodeStyle {
     color: string;
     size: number;
     outlines: Outlines;
+    slices: Slices;
     fire: FireStatus;
 }
 
@@ -85,6 +92,7 @@ export const FALLBACK_NODE_STYLE: NodeStyle = {
     color: "#202020",
     icon: FALLBACK_NODE_ICON,
     outlines: [],
+    slices: { stroked: 1, solid: 0, width: 0 },
     fire: FireStatus.None
 };
 
@@ -104,17 +112,14 @@ export type NodeStylist = (node: MultigraphNode) => NodeStyle;
 export type RelationStylist = (relation: string) => EdgeStyle;
 export type EdgeStylist = (relation: string, edge: MultigraphEdge) => EdgeStyle;
 
-export function fallbackNodeStylist(_node: MultigraphNode): NodeStyle
-{
+export function fallbackNodeStylist(_node: MultigraphNode): NodeStyle {
     return FALLBACK_NODE_STYLE;
 }
 
-export function fallbackRelationStylist(_relation: string)
-{
+export function fallbackRelationStylist(_relation: string) {
     return FALLBACK_EDGE_STYLE;
 }
 
-export function fallbackEdgeStylist(_relation: string, _edge: MultigraphEdge)
-{
+export function fallbackEdgeStylist(_relation: string, _edge: MultigraphEdge) {
     return FALLBACK_EDGE_STYLE;
 }
