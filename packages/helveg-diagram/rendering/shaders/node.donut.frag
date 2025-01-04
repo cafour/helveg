@@ -34,10 +34,14 @@ float circle(float radius, float dist) {
     return t;
 }
 
-float sector(float sectorHalfAngle, float halfAngle) {
+float sector(float sectorHalfAngle, float halfAngle, float dist) {
     float t = 1.0f;
     float halfAngleDelta = fwidth(halfAngle);
-    float edge = halfAngle - sectorHalfAngle + halfAngleDelta + u_gap * halfAngleDelta;
+    // NB: The 4.0f below is magic. It just kinda looks good.
+    float angularGap = 4.0f * v_gap / (2.0f * pi * dist);
+    // NB: ...the 2.0f below is also magic.
+    angularGap = max(angularGap, halfAngleDelta / 2.0f);
+    float edge = halfAngle - sectorHalfAngle + halfAngleDelta + angularGap;
     if (edge > halfAngleDelta)
         t = 0.0f;
     else if (edge > 0.0f)
@@ -58,9 +62,8 @@ void main(void) {
     return;
     #endif
 
-    float distDelta = fwidth(dist);
     f_color = transparent;
-    f_color = f_color + mix(transparent, v_color * 0.2f, circle(v_radii.x - u_gap * distDelta, dist));
+    f_color = f_color + mix(transparent, v_color * 0.2f, circle(v_radii.x, dist));
 
     // NB: x and y are switched on purpose (and y flipped as well) to emulate a rotation by 90 deg clockwise
     float halfAngle = abs(atan(v_diffVector.x, -v_diffVector.y));
@@ -71,10 +74,12 @@ void main(void) {
     } else if (pi - v_strokedSlice < eps) {
         sector_factor = strokedFactor;
     } else {
-        sector_factor += mix(0.0f, strokedFactor, sector(v_strokedSlice, halfAngle));
-        sector_factor += mix(0.0f, solidFactor, sector(pi - v_strokedSlice, pi - halfAngle));
+        sector_factor += mix(0.0f, strokedFactor, sector(v_strokedSlice, halfAngle, dist));
+        sector_factor += mix(0.0f, solidFactor, sector(pi - v_strokedSlice, pi - halfAngle, dist));
     }
 
-    f_color = f_color + mix(transparent, v_color * sector_factor, circle(v_radii.y, dist) - circle(v_radii.x + u_gap * distDelta, dist));
+    if (v_radii.y > 0.0f) {
+        f_color = f_color + mix(transparent, v_color * sector_factor, circle(v_radii.y, dist) - circle(v_radii.x + v_gap, dist));
+    }
 
 }

@@ -19,6 +19,7 @@ out vec4 v_color;
 out vec2 v_diffVector;
 out vec2 v_radii;
 out float v_strokedSlice;
+out float v_gap;
 
 const float pi = 3.14159f;
 const float bias = 255.0f / 254.0f;
@@ -27,7 +28,12 @@ void main() {
     // I'm not sure why I have to multiply radii by 2.0, but Sigma's node-circle does it as well to get the same
     // sizes as in node-point. Maybe it's because of multisampling but who knows.
     float innerRadius = a_baseSize * u_correctionRatio / u_sizeRatio * 2.0;
-    float outerRadius = (a_baseSize + a_slices.z) * u_correctionRatio / u_sizeRatio * 2.0;
+    float outerRadius = innerRadius;
+    v_gap = 0.0f;
+    if (a_slices.z > 0.0f) {
+        v_gap = u_gap * u_correctionRatio / u_sizeRatio;
+        outerRadius = (a_baseSize + a_slices.z + v_gap) * u_correctionRatio / u_sizeRatio * 2.0;
+    }
 
     // x2 because the triangle reaches only -0.5 on the left side and we want the triangle to contain the unit circle
     vec2 diffVector = outerRadius * 2.0f * vec2(cos(a_angle), sin(a_angle));

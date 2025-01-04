@@ -54,6 +54,7 @@ export function initializeSigma(
         labelFont: "'Cascadia Mono', 'Consolas', monospace",
         edgeLabelFont: "'Cascadia Mono', 'Consolas', monospace",
         itemSizesReference: "positions",
+        zoomToSizeRatioFunction: (ratio) => ratio,
     }) as HelvegSigma;
     sigma[isHoverEnabledSymbol] = false;
     sigma[hoveredNodeSymbol] = null;
@@ -125,11 +126,11 @@ export function configureSigma(
 ) {
     sigma.setSetting("renderLabels", options.showLabels);
     if (options.isPizzaEnabled) {
-        sigma.setSetting("zoomToSizeRatioFunction", (cameraRatio) => cameraRatio);
+        // sigma.setSetting("zoomToSizeRatioFunction", (cameraRatio) => cameraRatio);
         sigma.setSetting("nodeHoverProgramClasses", {});
         sigma[isHoverEnabledSymbol] = false;
     } else {
-        sigma.setSetting("zoomToSizeRatioFunction", DEFAULT_SETTINGS.zoomToSizeRatioFunction);
+        // sigma.setSetting("zoomToSizeRatioFunction", DEFAULT_SETTINGS.zoomToSizeRatioFunction);
         sigma.setSetting("nodeHoverProgramClasses", DEFAULT_SETTINGS.nodeHoverProgramClasses);
         sigma[isHoverEnabledSymbol] = true;
     }
