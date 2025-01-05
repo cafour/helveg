@@ -138,7 +138,7 @@ export const DEFAULT_OPERATIONS: Array<IOperation<any>> = [
     <IGlobalOperation>{
         id: "toggle-show-properties-tool",
         name: "Toggle the Show properties tool",
-        hint: "Tohhle the Show properties tool from the Toolbox",
+        hint: "Toggle the Show properties tool from the Toolbox",
         shortcut: {
             key: "p"
         },
@@ -194,43 +194,43 @@ export const DEFAULT_OPERATIONS: Array<IOperation<any>> = [
         },
     },
     <INodeOperation>{
-        id: "cut",
-        name: "Cut",
-        hint: "Cuts nodes and (optionally) its descendants.",
+        id: "remove",
+        name: "Remove",
+        hint: "Removes nodes and (optionally) its descendants.",
         shortcut: {
-            key: "c"
+            key: "r"
         },
         gesture: {
             button: MouseButton.MAIN
         },
-        icon: AppIcons.CutTool,
+        icon: AppIcons.RemoveTool,
         scope: OperationScope.NODE,
 
         async keyUp(state, node) {
             if (!node) {
-                state.logger.warn("Select a node to Cut.");
+                state.logger.warn("Select a node to be removed.");
                 return;
             }
 
-            await state.diagram.cut(node);
+            await state.diagram.remove(node);
         },
         async mouseUp(state, node) {
             if (!node) {
-                state.logger.warn("Select a node to Cut.");
+                state.logger.warn("Select a node to be removed.");
                 return;
             }
 
-            await state.diagram.cut(node);
+            await state.diagram.remove(node);
         }
     },
     <IGlobalOperation>{
-        id: "tool-cut",
-        name: "Switch to the Cut tool",
-        hint: "Cuts nodes and (optionally) its descendants.",
+        id: "tool-remove",
+        name: "Switch to the Remove tool",
+        hint: "Removes nodes and (optionally) its descendants.",
         shortcut: {
-            key: "c"
+            key: "r"
         },
-        icon: AppIcons.CutTool,
+        icon: AppIcons.RemoveTool,
         scope: OperationScope.TOOLBOX,
 
         keyUp(state) {

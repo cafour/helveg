@@ -95,14 +95,14 @@
         </dd>
 
         <dt>
-            <Icon name={AppIcons.CutTool} /> Cut
+            <Icon name={AppIcons.RemoveTool} /> Remove
         </dt>
         <dd>
             <p>
-                Cuts the selected node and its descendants from the diagram. The
-                child relation is the <code>Relation</code> setting in the Tools
-                panel. If <code>IsTransitive</code> is false, only the node under
-                the cursor is removed.
+                Removes the selected node and its descendants from the diagram.
+                The child relation is the <code>Relation</code> setting in the
+                Tools panel. If <code>IsTransitive</code> is false, only the node
+                under the cursor is removed.
             </p>
         </dd>
     </dl>

@@ -21,7 +21,7 @@ export enum AppIcons {
     MoveTool = "vscode:move",
     ShowPropertiesTool = "vscode:note",
     ToggleTool = "vscode:source-control",
-    CutTool = "vscode:trash",
+    RemoveTool = "vscode:trash",
 
     UnknownDiagnostic = "vscode:question",
     HiddenDiagnostic = "vscode:circle-large",
@@ -48,5 +48,5 @@ export enum AppTools {
     Move = "move",
     ShowProperties = "showProperties",
     Toggle = "expand",
-    Cut = "cut",
+    Remove = "remove",
 }
