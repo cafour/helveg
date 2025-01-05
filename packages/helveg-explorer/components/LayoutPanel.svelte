@@ -64,7 +64,7 @@
     <Subpanel name="TidyTree" hint="An immediate algorithm that lays out the graph in a circular tree.">
         <div class="flex flex-row justify-content-center mb-8">
             <button on:click={() => dispatch("tidyTree")} class="button-icon">
-                <Icon name="vs:Run" title="Run" />
+                <Icon name="vscode:play" title="Run" />
             </button>
         </div>
         <label class="flex flex-row gap-8 align-items-center">
@@ -84,21 +84,21 @@
                 disabled={status == DiagramStatus.Running}
                 class="button-icon"
             >
-                <Icon name="vs:Run" title="Run" />
+                <Icon name="vscode:play" title="Run" />
             </button>
             <button
                 on:click={() => dispatch("run", true)}
                 disabled={status == DiagramStatus.RunningInBackground}
                 class="button-icon"
             >
-                <Icon name="vs:RunAll" title="Run in background" />
+                <Icon name="vscode:run-all" title="Run in background" />
             </button>
             <button
                 on:click={() => dispatch("stop")}
                 disabled={status == DiagramStatus.Stopped}
                 class="button-icon"
             >
-                <Icon name="vs:Stop" title="Stop" />
+                <Icon name="vscode:debug-stop" title="Stop" />
             </button>
         </div>
 

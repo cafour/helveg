@@ -1,17 +1,15 @@
 export enum AppIcons {
-    DataPanel = "vs:Database",
-    LayoutPanel = "vs:Diagram",
-    AppearancePanel = "vs:ColorPalette",
-    ToolsPanel = "vs:Toolbox",
-    PropertiesPanel = "vs:ShowAllConfigurations",
-    DocumentPanel = "vs:Document",
-    GuidePanel = "vs:StatusHelpOutline",
-    SearchPanel = "vs:Search",
+    LayoutPanel = "vscode:type-hierarchy",
+    AppearancePanel = "vscode:symbol-color",
+    ToolsPanel = "vscode:tools",
+    PropertiesPanel = "vscode:note",
+    DocumentPanel = "vscode:symbol-file",
+    GuidePanel = "vscode:question",
+    SearchPanel = "vscode:search",
 
-    ContainsMode = "vs:String",
-    RegexMode = "vs:RegularExpression",
+    ContainsMode = "vscode:preserve-case",
+    RegexMode = "vscode:regex",
     JavaScriptMode = "vs:JSFileNode",
-    FIlterBuilderMode = "vs:Object",
 
     DebugToast = "vs:StatusRunning",
     InfoToast = "vs:StatusInformation",
@@ -20,10 +18,10 @@ export enum AppIcons {
     SuccessToast = "vs:StatusSuccess",
     MessageToast = "vs:Message",
 
-    MoveTool = "vs:MoveGlyph",
-    ShowPropertiesTool = "vs:ShowAllConfigurations",
-    ToggleTool = "vs:Branch",
-    CutTool = "vs:Cut",
+    MoveTool = "vscode:move",
+    ShowPropertiesTool = "vscode:note",
+    ToggleTool = "vscode:source-control",
+    CutTool = "vscode:trash",
 
     UnknownDiagnostic = "vs:StatusHelp",
     HiddenDiagnostic = "vs:StatusHidden",
@@ -31,7 +29,7 @@ export enum AppIcons {
     WarningDiagnostic = "vs:StatusWarning",
     ErrorDiagnostic = "vs:StatusError",
     
-    Hint = "vs:StatusHelpOutline",
+    Hint = "vscode:question",
 }
 
 export enum AppPanels {
