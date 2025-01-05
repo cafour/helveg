@@ -448,8 +448,8 @@ export class Diagram {
         if (nodeId === null) {
             this._logger.debug("Clearing node highlights.");
             this._graph?.forEachNode((_, a) => a.highlighted = undefined);
-            this._sigma?.refresh();
             this.mode = DiagramMode.Normal;
+            this._sigma?.refresh();
             return;
         }
 
