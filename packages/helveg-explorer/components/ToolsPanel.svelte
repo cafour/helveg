@@ -14,23 +14,25 @@
         <label>
             <input
                 type="checkbox"
-                bind:checked={$toolOptions.showProperties.shouldHighlightSubtree}
+                bind:checked={$toolOptions.showProperties
+                    .shouldHighlightSubtree}
             />
             ShouldHighlightSubtree
         </label>
         <label>
             <input
                 type="checkbox"
-                bind:checked={$toolOptions.showProperties.shouldHighlightNeighbors}
+                bind:checked={$toolOptions.showProperties
+                    .shouldHighlightNeighbors}
             />
             ShouldHighlightNeighbors
         </label>
     </Subpanel>
-    <Subpanel name="Cut" icon={AppIcons.CutTool}>
+    <Subpanel name="Remove" icon={AppIcons.RemoveTool}>
         <label>
             <input
                 type="checkbox"
-                bind:checked={$toolOptions.cut.isTransitive}
+                bind:checked={$toolOptions.remove.isTransitive}
             />
             IsTransitive
         </label>

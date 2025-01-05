@@ -1,5 +1,5 @@
-import { DEFAULT_CUT_OPTIONS, type CutOptions, type ExportOptions, DEFAULT_EXPORT_OPTIONS, PizzaIcons, DEFAULT_CSHARP_RELATION_COLORS, type ForceAtlas2Options, DEFAULT_FORCE_ATLAS2_OPTIONS, type SizingMode } from "./deps/helveg-diagram.ts";
-export { type CutOptions, type ExportOptions, DEFAULT_EXPORT_OPTIONS };
+import { DEFAULT_REMOVE_OPTIONS, type RemoveOptions, type ExportOptions, DEFAULT_EXPORT_OPTIONS, PizzaIcons, DEFAULT_CSHARP_RELATION_COLORS, type ForceAtlas2Options, DEFAULT_FORCE_ATLAS2_OPTIONS, type SizingMode } from "./deps/helveg-diagram.ts";
+export { type RemoveOptions, type ExportOptions, DEFAULT_EXPORT_OPTIONS };
 
 export interface ShowPropertiesToolOptions {
     shouldHighlightSubtree: boolean;
@@ -12,12 +12,12 @@ export const DEFAULT_SHOW_PROPERTIES_TOOL_OPTIONS: Readonly<ShowPropertiesToolOp
 };
 
 export interface ToolOptions {
-    cut: CutOptions;
+    remove: RemoveOptions;
     showProperties: ShowPropertiesToolOptions;
 }
 
 export const DEFAULT_TOOL_OPTIONS: Readonly<ToolOptions> = {
-    cut: DEFAULT_CUT_OPTIONS,
+    remove: DEFAULT_REMOVE_OPTIONS,
     showProperties: DEFAULT_SHOW_PROPERTIES_TOOL_OPTIONS
 }
 

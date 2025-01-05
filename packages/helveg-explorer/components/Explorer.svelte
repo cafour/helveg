@@ -70,8 +70,8 @@
             case AppTools.Toggle:
                 diagram.toggleNode(nodeId);
                 break;
-            case AppTools.Cut:
-                diagram.cut(nodeId, get(state.toolOptions).cut);
+            case AppTools.Remove:
+                diagram.remove(nodeId, get(state.toolOptions).remove);
                 break;
         }
     }

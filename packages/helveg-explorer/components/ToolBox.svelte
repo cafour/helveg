@@ -22,16 +22,16 @@
             hideLabel: true,
         },
         {
-            value: AppTools.Cut,
-            label: "Cut",
-            icon: AppIcons.CutTool,
+            value: AppTools.Remove,
+            label: "Remove",
+            icon: AppIcons.RemoveTool,
             hideLabel: true,
         },
     ];
 
     export let selectedTool = tools[0].value;
     let className: string | undefined;
-    export {className as class};
+    export { className as class };
 </script>
 
 <div class="toolbox {className}">

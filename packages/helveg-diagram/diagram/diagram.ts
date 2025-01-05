@@ -85,11 +85,11 @@ export interface DiagramStats {
     speed: number;
 }
 
-export interface CutOptions {
+export interface RemoveOptions {
     isTransitive: boolean;
 }
 
-export const DEFAULT_CUT_OPTIONS: CutOptions = {
+export const DEFAULT_REMOVE_OPTIONS: RemoveOptions = {
     isTransitive: true
 };
 
@@ -535,16 +535,16 @@ export class Diagram {
         return this.refresh(this.options.refresh);
     }
 
-    async cut(nodeId: string, options?: CutOptions): Promise<void> {
-        options = { ...DEFAULT_CUT_OPTIONS, ...options };
+    async remove(nodeId: string, options?: RemoveOptions): Promise<void> {
+        options = { ...DEFAULT_REMOVE_OPTIONS, ...options };
 
         if (!this._graph) {
-            this._logger.warn("Cannot cut nodes since the graph is not initialized.");
+            this._logger.warn("Cannot remove nodes since the graph is not initialized.");
             return;
         }
 
         if (!this._graph.hasNode(nodeId)) {
-            throw new Error(`Cannot cut node '${nodeId}' since it does not exist in the graph.`);
+            throw new Error(`Cannot remove node '${nodeId}' since it does not exist in the graph.`);
         }
 
         if (!options.isTransitive) {
@@ -560,7 +560,7 @@ export class Diagram {
             reachable.forEach(id => this._graph?.dropNode(id));
         })
 
-        this._logger.info(`Cut ${reachable.size} nodes.`);
+        this._logger.info(`Removed ${reachable.size} nodes.`);
     }
 
     async toggleNode(nodeId: string): Promise<void> {
