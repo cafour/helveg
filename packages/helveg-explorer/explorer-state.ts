@@ -78,7 +78,7 @@ export function createExplorerState(rootElement: HTMLElement, diagram: Diagram):
             o.relationColors!
         );
 
-        const glyphOptions = diagram.glyphProgramOptions;
+        const glyphOptions = {...diagram.glyphProgramOptions};
         glyphOptions.isFireAnimated = o.glyph.isFireAnimated;
         glyphOptions.showFire = o.glyph.showFire;
         glyphOptions.showIcons = o.glyph.showIcons;

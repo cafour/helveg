@@ -203,11 +203,12 @@ export class Diagram {
     get glyphProgramOptions(): GlyphProgramOptions { return this.options.glyphProgram; }
     set glyphProgramOptions(value: GlyphProgramOptions) {
         const lastOptions = this._options.glyphProgram;
-        this._options.glyphProgram = value;
 
         if (deepCompare(lastOptions, value)) {
             return;
         }
+
+        Object.assign(this._options.glyphProgram, value);
 
         this.reconfigureSigma();
         this.restyleGraph();
