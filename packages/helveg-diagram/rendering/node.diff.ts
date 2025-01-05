@@ -2,7 +2,7 @@ import { Sigma, ProgramDefinition, RenderParams, floatColor, ProgramInfo } from 
 import { HelvegNodeAttributes } from "../model/graph.ts";
 import vertSrc from "./shaders/node.diff.vert";
 import fragSrc from "./shaders/node.diff.frag";
-import { MultigraphNodeDiffStatus } from "../global.ts";
+import { MultigraphNodeDiffStatus } from "../model/data-model.ts";
 import { HelvegNodeProgramType, HelvegNodeProgram } from "../diagram/initializers.ts";
 
 export interface DiffProgramOptions {

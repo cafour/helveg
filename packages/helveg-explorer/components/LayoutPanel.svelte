@@ -1,10 +1,12 @@
 <script lang="ts">
     import Panel from "./Panel.svelte";
     import {
+        Diagram,
         DiagramStatus,
         type DiagramStats,
         getRelations,
         getNodeKinds,
+        FALLBACK_NODE_STYLE,
     } from "../deps/helveg-diagram.ts";
     import { createEventDispatcher, getContext } from "svelte";
     import Icon from "./Icon.svelte";
@@ -29,11 +31,19 @@
 
     let dispatch = createEventDispatcher();
 
+    let diagram = getContext<Diagram>("diagram");
     let model = getContext<Readable<DataModel>>("model");
     let layoutOptions = getContext<Writable<LayoutOptions>>("layoutOptions");
     let dataOptions = getContext<Writable<DataOptions>>("dataOptions");
 
     $: kinds = getNodeKinds($model.data);
+
+    function getNodeKindIcon(kind: string): string {
+        const style = diagram.nodeStylist({
+            kind: kind,
+        });
+        return style.icon ?? FALLBACK_NODE_STYLE.icon;
+    }
 </script>
 
 <Panel name="Layout" indent={false} id={AppPanels.Layout}>
@@ -277,6 +287,7 @@
                     bind:group={$dataOptions.selectedKinds}
                     value={kind}
                 />
+                <Icon title={kind} name={getNodeKindIcon(kind)} />
                 <span>{kind}</span>
             </label>
         {/each}

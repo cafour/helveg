@@ -16,7 +16,7 @@
         "icons": {
             "type": "array",
             "items": {
-                "title": "Icon",
+                "title": "IconModel",
                 "description": "An icon.",
                 "type": "object",
                 "required": [
