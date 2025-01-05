@@ -8,6 +8,7 @@ in vec2 v_radii;
 in float v_gap;
 in float v_strokedSlice;
 in float v_stroke;
+in float v_hatchingWidth;
 
 out vec4 f_color;
 
@@ -16,6 +17,7 @@ const float pi = 3.14159f;
 const float eps = 0.00001f;
 const float strokedFactor = 0.2f;
 const float solidFactor = 0.4f;
+
 
 // Returns:
 // * 1 if inside the circle
@@ -47,9 +49,15 @@ float sector(float sectorHalfAngle, float halfAngle, float dist, float gap) {
     return t;
 }
 
+float hatch() {
+    float pos = v_diffVector.x + v_diffVector.y;
+    float diffPos = fwidth(pos);
+    float pattern = fract(pos / max(2.0f * diffPos, v_hatchingWidth));
+    return pattern < 0.5f ? 1.0f : 0.0f;
+}
+
 void main(void) {
     float dist = length(v_diffVector);
-    float diffDist = fwidth(dist);
 
     #ifdef PICKING_MODE
     // renders a simple circle into the pickingBuffer
@@ -76,6 +84,7 @@ void main(void) {
         // full stroked
         sectorFactor = strokedFactor;
         sectorFactor = max(sectorFactor, mix(0.0f, solidFactor, circle(v_radii.x + v_gap + margin, dist) + 1.0f - circle(v_radii.y - margin, dist)));
+        sectorFactor = max(sectorFactor, mix(0.0f, solidFactor, hatch()));
     } else {
         // margin = is the line lining the stroked sector, it should be always at least two "pixels" wide
         float strokedSector = sector(v_strokedSlice, halfAngle, dist, v_gap);
@@ -87,6 +96,8 @@ void main(void) {
         sectorFactor = max(sectorFactor, mix(0.0f, solidFactor, strokedSector * (circle(v_radii.x + v_gap + margin, dist) + 1.0f - circle(v_radii.y - margin, dist))));
         // left and right line of the stroked sector
         sectorFactor = max(sectorFactor, mix(0.0f, solidFactor, strokedSector * (1.0f - sector(v_strokedSlice, halfAngle, dist, v_gap + 2.0f * margin))));
+        // hatching
+        sectorFactor = max(sectorFactor, mix(0.0f, solidFactor, strokedSector * hatch()));
 
         sectorFactor = max(sectorFactor, mix(0.0f, solidFactor, solidSector));
     }

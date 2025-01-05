@@ -21,10 +21,12 @@ out vec2 v_radii;
 out float v_strokedSlice;
 out float v_gap;
 out float v_stroke;
+out float v_hatchingWidth;
 
 const float pi = 3.14159f;
 const float bias = 255.0f / 254.0f;
 const float stroke = 10.0f;
+const float hatchingWidth = 16.0f;
 
 void main() {
     // I'm not sure why I have to multiply radii by 2.0, but Sigma's node-circle does it as well to get the same
@@ -48,6 +50,8 @@ void main() {
 
     // the stroke must never obscure the true color of the stroked sector
     v_stroke = min(stroke, a_slices.z / 3.0f) * u_correctionRatio / u_sizeRatio;
+    
+    v_hatchingWidth = hatchingWidth * u_correctionRatio / u_sizeRatio;
 
     #ifdef PICKING_MODE
     v_color = a_id;
