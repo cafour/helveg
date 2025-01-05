@@ -117,6 +117,13 @@ export function initializeSigma(
         }
     })
 
+    sigma.getMouseCaptor().on("doubleClick", e => {
+        e.preventSigmaDefault();
+    });
+    sigma.getTouchCaptor().on("doubletap", e => {
+        e.preventSigmaDefault();
+    });
+
     return sigma;
 }
 
@@ -278,8 +285,7 @@ export function styleGraph(
         // attributes.size = glyphProgramOptions.showOutlines && outlines.length > 0
         //     ? getOutlinesTotalWidth(outlines)
         //     : nodeStyle.size;
-        if (nodeStyle.slices?.width > 0)
-        {
+        if (nodeStyle.slices?.width > 0) {
             attributes.size += nodeStyle.slices.width + glyphProgramOptions.gap;
         }
         attributes.iconSize = nodeStyle.size;
