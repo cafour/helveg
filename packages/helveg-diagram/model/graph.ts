@@ -169,7 +169,11 @@ export function getForest(graph: HelvegGraph | undefined, relation: string): Hel
             return {
                 id: node.data,
                 node: graph!.getNodeAttributes(node.data),
-                children: node.children ? node.children.map(convertD3Node) : undefined
+                children: node.children
+                    ? node.children
+                        .map(convertD3Node)
+                        .sort((a, b) => (a.node.label ?? "").localeCompare(b.node.label ?? ""))
+                    : undefined
             };
         }
 

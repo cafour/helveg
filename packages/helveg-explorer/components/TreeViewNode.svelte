@@ -10,7 +10,7 @@
     export let onNodeClicked: (nodeId: string) => void;
 </script>
 
-<div class="flex flex-col gap-2">
+<div class="tree-view-node flex flex-col gap-2">
     <div class="flex flex-row gap-4 align-items-center">
         {#if node.children === undefined || node.children.length == 0}
             <Icon title="" name="vscode:blank" />

@@ -5,12 +5,11 @@
     background-color: var(--color-surface-50);
 
     > .panel {
-        display: none;
         width: 20rem;
     }
 
-    &.open > .panel {
-        display: block;
+    &:not(.open) > .panel {
+        display: none;
     }
     
     > button.toggle {
@@ -24,5 +23,9 @@
         .icon {
             width: 1rem;
         }
+    }
+    
+    .tree-view-node {
+        width: max-content;
     }
 }
