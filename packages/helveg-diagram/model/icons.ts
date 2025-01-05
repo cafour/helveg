@@ -1,5 +1,5 @@
 import { HelvegEvent } from "../common/event.ts";
-import { Icon, IconSetModel } from "./icon-set-model.ts";
+import { IconModel, IconSetModel } from "./icon-set-model.ts";
 import { ILogger } from "./logger.ts";
 
 export interface IconOptions {
@@ -20,16 +20,21 @@ const FALLBACK_ICON_SOURCE =
     `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="4" cy="12" r="3" fill="currentColor"><animate id="svgSpinners3DotsBounce0" attributeName="cy" begin="0;svgSpinners3DotsBounce1.end+0.25s" calcMode="spline" dur="0.6s" keySplines=".33,.66,.66,1;.33,0,.66,.33" values="12;6;12"/></circle><circle cx="12" cy="12" r="3" fill="currentColor"><animate attributeName="cy" begin="svgSpinners3DotsBounce0.begin+0.1s" calcMode="spline" dur="0.6s" keySplines=".33,.66,.66,1;.33,0,.66,.33" values="12;6;12"/></circle><circle cx="20" cy="12" r="3" fill="currentColor"><animate id="svgSpinners3DotsBounce1" attributeName="cy" begin="svgSpinners3DotsBounce0.begin+0.2s" calcMode="spline" dur="0.6s" keySplines=".33,.66,.66,1;.33,0,.66,.33" values="12;6;12"/></circle></svg>
 `
 
+export interface Icon extends IconModel {
+    namespace: string;
+};
+
 export const FALLBACK_ICON: Icon = {
     name: "Fallback",
     data: FALLBACK_ICON_SOURCE,
-    format: "svg"
+    format: "svg",
+    namespace: "core"
 };
 
 export class IconRegistry {
-    private sets: Record<string, Record<string, Icon>> = {};
+    private sets: Record<string, Record<string, IconModel>> = {};
     private _setAdded = new HelvegEvent<string>("helveg.IconRegistry.setAdded", true);
-    
+
     constructor(public logger?: ILogger) {
     }
 
@@ -61,7 +66,7 @@ export class IconRegistry {
             icon = FALLBACK_ICON;
         }
         else {
-            icon = structuredClone(iconSet[iconName]);
+            icon = { ...structuredClone(iconSet[iconName]), namespace: namespace };
             if (!icon) {
                 this.logger?.warn(`Icon '${name}' could not be found. Using fallback icon.`);
                 icon = FALLBACK_ICON;
@@ -85,7 +90,7 @@ export class IconRegistry {
                 throw new Error(`IconFormat '${icon.format}' is not supported.`);
         }
     }
-    
+
     get setAdded() {
         return this._setAdded;
     }

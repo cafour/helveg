@@ -2,7 +2,7 @@
  * Icons used by Helveg, a software visualization toolkit.
  */
 export interface IconSetModel {
-    icons: Icon[];
+    icons: IconModel[];
     /**
      * The name of the set that will become the namespace of each of its icons.
      */
@@ -13,7 +13,7 @@ export interface IconSetModel {
 /**
  * An icon.
  */
-export interface Icon {
+export interface IconModel {
     data:   string;
     format: Format;
     name:   string;
