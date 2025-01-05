@@ -85,7 +85,7 @@ export interface NodeStyle {
     fire: FireStatus;
 }
 
-export const FALLBACK_NODE_ICON = "base:PolarChart";
+export const FALLBACK_NODE_ICON = "vscode:pie-chart";
 
 export const FALLBACK_NODE_STYLE: NodeStyle = {
     size: 5,
