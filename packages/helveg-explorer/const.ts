@@ -9,7 +9,7 @@ export enum AppIcons {
 
     ContainsMode = "vscode:symbol-key",
     RegexMode = "vscode:regex",
-    JavaScriptMode = "vs:JSFileNode",
+    JavaScriptMode = "helveg:filter-js",
 
     DebugToast = "vscode:play-circle",
     InfoToast = "vscode:info",
