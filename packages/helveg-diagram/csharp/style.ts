@@ -136,13 +136,18 @@ function resolveNodeStyle(node: Partial<CSharpNode>): Partial<NodeStyle> {
                     base.color = VSColor.Blue;
                     break;
             }
-            let instanceCount = node.instanceMemberCount ?? 0;
-            let staticCount = node.staticMemberCount ?? 0;
+            const instanceMemberCount = node.instanceMemberCount ?? 0;
+            const staticMemberCount = node.staticMemberCount ?? 0;
             base.outlines = [
                 { style: node.isStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 2 },
-                { style: OutlineStyle.Solid, width: instanceCount },
-                { style: OutlineStyle.Dashed, width: staticCount }
+                { style: OutlineStyle.Solid, width: instanceMemberCount },
+                { style: OutlineStyle.Dashed, width: staticMemberCount }
             ];
+            base.slices = {
+                solid: staticMemberCount,
+                stroked: instanceMemberCount,
+                width: staticMemberCount + instanceMemberCount
+            };
             break;
         case EntityKind.TypeParameter:
             return {

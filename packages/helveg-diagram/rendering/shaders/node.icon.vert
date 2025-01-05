@@ -5,33 +5,30 @@ precision mediump float;
 in vec2 a_position;
 in float a_iconSize;
 in vec4 a_texture;
-in vec4 a_outlines;
+in float a_angle;
+in float a_grayscale;
 
 uniform float u_sizeRatio;
-uniform float u_pixelRatio;
+uniform float u_correctionRatio;
 uniform mat3 u_matrix;
 
-out float v_border;
 out vec4 v_texture;
-out float v_iconSize;
+out vec2 v_texCoord;
+flat out float v_grayscale;
 
-const float bias = 255.0 / 254.0;
+const float sqrt2 = sqrt(2.0f);
 
 void main() {
-  gl_Position = vec4(
-    (u_matrix * vec3(a_position, 1)).xy,
-    0,
-    1
-  );
+    float size = a_iconSize * u_correctionRatio / u_sizeRatio * 4.0f;
+    vec2 normalizedDiffVector = vec2(cos(a_angle), sin(a_angle));
+    vec2 diffVector = size * normalizedDiffVector;
+    vec2 position = a_position + diffVector;
+    gl_Position = vec4((u_matrix * vec3(position, 1)).xy, 0, 1);
 
-  // Multiply the point size twice:
-  //  - x SCALING_RATIO to correct the canvas scaling
-  //  - x 2 to correct the formulae
-  gl_PointSize = a_iconSize / u_sizeRatio * u_pixelRatio * 2.0;
-
-  // Pass the texture coordinates:
-  // NOTE: multiply a_texture by a constant and you get a pattern
-  v_texture = a_texture;
-
-  v_iconSize = a_iconSize;
+    // v_texCoord = vec2(normalizedDiffVector.x + 0.5f, -(normalizedDiffVector + 0.5f));
+    v_texCoord = vec2(normalizedDiffVector.x, -normalizedDiffVector.y) * sqrt2 + 0.5f;
+    // Pass the texture coordinates:
+    // NOTE: multiply a_texture by a constant and you get a pattern
+    v_texture = a_texture;
+    v_grayscale = a_grayscale;
 }

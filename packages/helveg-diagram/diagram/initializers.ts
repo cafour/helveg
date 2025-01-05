@@ -54,6 +54,7 @@ export function initializeSigma(
         labelFont: "'Cascadia Mono', 'Consolas', monospace",
         edgeLabelFont: "'Cascadia Mono', 'Consolas', monospace",
         itemSizesReference: "positions",
+        zoomToSizeRatioFunction: (ratio) => ratio,
     }) as HelvegSigma;
     sigma[isHoverEnabledSymbol] = false;
     sigma[hoveredNodeSymbol] = null;
@@ -125,11 +126,11 @@ export function configureSigma(
 ) {
     sigma.setSetting("renderLabels", options.showLabels);
     if (options.isPizzaEnabled) {
-        sigma.setSetting("zoomToSizeRatioFunction", (cameraRatio) => cameraRatio);
+        // sigma.setSetting("zoomToSizeRatioFunction", (cameraRatio) => cameraRatio);
         sigma.setSetting("nodeHoverProgramClasses", {});
         sigma[isHoverEnabledSymbol] = false;
     } else {
-        sigma.setSetting("zoomToSizeRatioFunction", DEFAULT_SETTINGS.zoomToSizeRatioFunction);
+        // sigma.setSetting("zoomToSizeRatioFunction", DEFAULT_SETTINGS.zoomToSizeRatioFunction);
         sigma.setSetting("nodeHoverProgramClasses", DEFAULT_SETTINGS.nodeHoverProgramClasses);
         sigma[isHoverEnabledSymbol] = true;
     }
@@ -272,9 +273,15 @@ export function styleGraph(
             ...nodeStyle.outlines.slice(0, 3),
         ] as Outlines;
 
-        attributes.size = glyphProgramOptions.showOutlines && outlines.length > 0
-            ? getOutlinesTotalWidth(outlines)
-            : nodeStyle.size;
+        attributes.baseSize = nodeStyle.size;
+        attributes.size = attributes.baseSize;
+        // attributes.size = glyphProgramOptions.showOutlines && outlines.length > 0
+        //     ? getOutlinesTotalWidth(outlines)
+        //     : nodeStyle.size;
+        if (nodeStyle.slices?.width > 0)
+        {
+            attributes.size += nodeStyle.slices.width + glyphProgramOptions.gap;
+        }
         attributes.iconSize = nodeStyle.size;
 
         const getSize = (sizingMode: SizingMode, value: number) => {
@@ -293,10 +300,12 @@ export function styleGraph(
 
         attributes.size = getSize(glyphProgramOptions.sizingMode, attributes.size);
         attributes.iconSize = getSize(glyphProgramOptions.sizingMode, attributes.iconSize);
+        attributes.baseSize = getSize(glyphProgramOptions.sizingMode, attributes.baseSize);
         attributes.color = nodeStyle.color;
         attributes.type = "glyph";
         attributes.icon = nodeStyle.icon;
         attributes.outlines = outlines;
+        attributes.slices = nodeStyle.slices;
         attributes.fire = nodeStyle.fire;
     });
 

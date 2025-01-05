@@ -1,4 +1,4 @@
-import { Sigma, ProgramDefinition, RenderParams, ProgramInfo } from "../deps/sigma.ts";
+import { Sigma, RenderParams, ProgramInfo, InstancedProgramDefinition } from "../deps/sigma.ts";
 import { HelvegNodeAttributes } from "../model/graph.ts";
 import { FALLBACK_NODE_ICON } from "../model/style.ts";
 import { EMPTY_ICON_ATLAS, IconAtlas, IconAtlasEntryStatus } from "./iconAtlas.ts";
@@ -8,7 +8,7 @@ import { HelvegNodeProgram, HelvegNodeProgramType } from "../diagram/initializer
 
 const { UNSIGNED_BYTE, FLOAT } = WebGLRenderingContext;
 
-const UNIFORMS = ["u_sizeRatio", "u_pixelRatio", "u_matrix", "u_atlas"];
+const UNIFORMS = ["u_sizeRatio", "u_pixelRatio", "u_correctionRatio", "u_matrix", "u_atlas"];
 
 export interface IconProgramOptions {
     iconAtlas: Readonly<IconAtlas>;
@@ -47,18 +47,22 @@ export class IconProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
         this.rebindTexture(options.iconAtlas, gl);
     }
 
-    getDefinition(): ProgramDefinition<typeof UNIFORMS[number]> {
+    getDefinition(): InstancedProgramDefinition<typeof UNIFORMS[number]> {
         return {
-            VERTICES: 1,
+            VERTICES: 3,
             VERTEX_SHADER_SOURCE: vertSrc,
             FRAGMENT_SHADER_SOURCE: fragSrc,
-            METHOD: WebGL2RenderingContext.POINTS,
+            METHOD: WebGL2RenderingContext.TRIANGLES,
             UNIFORMS,
             ATTRIBUTES: [
                 { name: "a_position", size: 2, type: FLOAT },
                 { name: "a_iconSize", size: 1, type: FLOAT },
-                { name: "a_texture", size: 4, type: FLOAT }
+                { name: "a_grayscale", size: 1, type: FLOAT },
+                { name: "a_texture", size: 4, type: FLOAT },
             ],
+            // NB: Data for an equilateral triangle that the donut is carved from.
+            CONSTANT_ATTRIBUTES: [{ name: "a_angle", size: 1, type: FLOAT }],
+            CONSTANT_DATA: [[(0 * Math.PI) / 3], [(2 * Math.PI) / 3], [(4 * Math.PI) / 3]],
         };
     }
 
@@ -66,11 +70,12 @@ export class IconProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
         const array = this.array;
         this.options.iconAtlas.tryAddIcon(data.icon ?? FALLBACK_NODE_ICON);
 
-        const isVisible = (!this.options.showOnlyHighlighted || data.highlighted === true);
+        const useColor = (!this.options.showOnlyHighlighted || data.highlighted === true);
 
         array[offset++] = data.x ?? 0;
         array[offset++] = data.y ?? 0;
-        array[offset++] = isVisible ? data.iconSize ?? data.size ?? 1 : 0;
+        array[offset++] = data.iconSize ?? data.baseSize ?? data.size ?? 1;
+        array[offset++] = useColor ? 0 : 1;
 
         let atlasEntry = this.options.iconAtlas.entries[data.icon ?? FALLBACK_NODE_ICON];
         if (atlasEntry && atlasEntry.status === IconAtlasEntryStatus.Rendered) {
@@ -89,10 +94,11 @@ export class IconProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
 
     setUniforms(params: RenderParams, programInfo: ProgramInfo): void {
         const { gl, uniformLocations } = programInfo;
-        const { u_sizeRatio, u_pixelRatio, u_matrix, u_atlas } = uniformLocations;
+        const { u_sizeRatio, u_pixelRatio, u_correctionRatio, u_matrix, u_atlas } = uniformLocations;
 
         gl.uniform1f(u_sizeRatio, params.sizeRatio);
         gl.uniform1f(u_pixelRatio, params.pixelRatio);
+        gl.uniform1f(u_correctionRatio, params.correctionRatio);
         gl.uniformMatrix3fv(u_matrix, false, params.matrix);
         gl.uniform1i(u_atlas, 0);
     }

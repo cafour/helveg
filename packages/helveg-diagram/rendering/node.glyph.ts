@@ -8,11 +8,12 @@ import { DEFAULT_FIRE_PROGRAM_OPTIONS, FireProgramOptions } from "./node.fire.ts
 import createIconProgram, { DEFAULT_ICON_PROGRAM_OPTIONS, IconProgramOptions } from "./node.icon.ts";
 import createOutlinesProgram, { DEFAULT_OUTLINES_PROGRAM_OPTIONS, OutlinesProgramOptions } from "./node.outlines.ts";
 import createPizzaProgram, { DEFAULT_PIZZA_PROGRAM_OPTIONS, PizzaProgramOptions } from "./pizza.ts";
+import createDonutProgram, { DEFAULT_DONUT_PROGRAM_OPTIONS, DonutProgramOptions } from "./node.donut.ts";
 
 export type SizingMode = "linear" | "sqrt" | "log";
 
 export interface GlyphProgramOptions
-    extends IconProgramOptions, OutlinesProgramOptions, FireProgramOptions, PizzaProgramOptions, DiffProgramOptions {
+    extends IconProgramOptions, OutlinesProgramOptions, FireProgramOptions, PizzaProgramOptions, DiffProgramOptions, DonutProgramOptions {
 
     showIcons: boolean;
     showOutlines: boolean;
@@ -32,9 +33,10 @@ export const DEFAULT_GLYPH_PROGRAM_OPTIONS: GlyphProgramOptions =
     sizingMode: "linear",
     ...DEFAULT_ICON_PROGRAM_OPTIONS,
     ...DEFAULT_OUTLINES_PROGRAM_OPTIONS,
+    ...DEFAULT_DONUT_PROGRAM_OPTIONS,
     ...DEFAULT_FIRE_PROGRAM_OPTIONS,
     ...DEFAULT_PIZZA_PROGRAM_OPTIONS,
-    ...DEFAULT_DIFF_PROGRAM_OPTIONS
+    ...DEFAULT_DIFF_PROGRAM_OPTIONS,
 };
 
 export function createGlyphProgram(options: GlyphProgramOptions, logger?: ILogger): HelvegNodeProgramType {
@@ -42,6 +44,7 @@ export function createGlyphProgram(options: GlyphProgramOptions, logger?: ILogge
         private effects: SigmaEffectsExtension;
         private iconProgram: AbstractNodeProgram;
         private outlinesProgram: AbstractNodeProgram;
+        private donutProgram: AbstractNodeProgram;
         private effectsProgram: AbstractNodeProgram;
         private pizzaProgram: AbstractNodeProgram;
         private diffProgram: AbstractNodeProgram;
@@ -55,6 +58,7 @@ export function createGlyphProgram(options: GlyphProgramOptions, logger?: ILogge
 
             this.iconProgram = new (createIconProgram(options))(gl, pickingBuffer, renderer);
             this.outlinesProgram = new (createOutlinesProgram(options))(gl, pickingBuffer, renderer);
+            this.donutProgram = new (createDonutProgram(options))(gl, pickingBuffer, renderer);
             this.effectsProgram = new this.effects.program(gl, pickingBuffer, renderer);
 
             // NB: Pizza needs to be initialized after the effects program so that its canvas is below effects.
@@ -64,7 +68,8 @@ export function createGlyphProgram(options: GlyphProgramOptions, logger?: ILogge
         }
 
         process(nodeIndex: number, offset: number, data: NodeDisplayData): void {
-            this.outlinesProgram.process(nodeIndex, offset, data);
+            // this.outlinesProgram.process(nodeIndex, offset, data);
+            this.donutProgram.process(nodeIndex, offset, data);
             this.iconProgram.process(nodeIndex, offset, data);
             this.effectsProgram.process(nodeIndex, offset, data);
             this.pizzaProgram.process(nodeIndex, offset, data);
@@ -72,7 +77,8 @@ export function createGlyphProgram(options: GlyphProgramOptions, logger?: ILogge
         }
 
         reallocate(capacity: number): void {
-            this.outlinesProgram.reallocate(capacity);
+            // this.outlinesProgram.reallocate(capacity);
+            this.donutProgram.reallocate(capacity);
             this.iconProgram.reallocate(capacity);
             this.effectsProgram.reallocate(capacity);
             this.pizzaProgram.reallocate(capacity);
@@ -86,9 +92,10 @@ export function createGlyphProgram(options: GlyphProgramOptions, logger?: ILogge
             // NB: let the effects extension handle this on its own since it manages its own canvas
             this.effectsProgram.render(params);
             if (!options.isPizzaEnabled) {
-                if (options.showOutlines) {
-                    this.outlinesProgram.render(params);
-                }
+                // if (options.showOutlines) {
+                //     this.outlinesProgram.render(params);
+                // }
+                this.donutProgram.render(params);
 
                 if (options.showIcons) {
                     this.iconProgram.render(params);
@@ -105,6 +112,7 @@ export function createGlyphProgram(options: GlyphProgramOptions, logger?: ILogge
 
         kill(): void {
             this.outlinesProgram.kill();
+            this.donutProgram.kill();
             this.iconProgram.kill();
             this.effectsProgram.kill();
             this.pizzaProgram.kill();
