@@ -35,6 +35,8 @@ $colors: (
     ),
     text-on-primary: #F2EEEE,
     text-on-primary-inverted: #262525,
+    text-on-success: #F2EEEE,
+    text-on-success-inverted: #262525,
     success: ( //
         50: #ddecdd,
         100: #d2e6d2,
@@ -104,6 +106,8 @@ $colors: (
         --color-text-inverted: #{map.get($colors, "text")};
         --color-text-on-primary: #{map.get($colors, "text-on-primary-inverted")};
         --color-text-on-primary-inverted: #{map.get($colors, "text-on-primary")};
+        --color-text-on-success: #{map.get($colors, "text-on-success-inverted")};
+        --color-text-on-success-inverted: #{map.get($colors, "text-on-success")};
 
         @each $key, $value in $colors {
             @if type-of($value)==map {

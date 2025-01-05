@@ -25,8 +25,8 @@
         </dt>
         <dd>
             <p>
-                Contains settings affecting what nodes are shown and how they are
-                laid out.
+                Contains settings affecting what nodes are shown and how they
+                are laid out.
             </p>
             <p>
                 Allows to pause, restart, or run the layout in the background.
@@ -68,7 +68,7 @@
     <h3>Tools</h3>
     <dl class="theme-helveg">
         <dt>
-            <Icon name="vs:ShowAllConfigurations" /> ShowProperties
+            <Icon name={AppIcons.ShowPropertiesTool} /> ShowProperties
         </dt>
         <dd>
             <p>
@@ -78,14 +78,14 @@
         </dd>
 
         <dt>
-            <Icon name="vs:MoveGlyph" /> Move
+            <Icon name={AppIcons.MoveTool} /> Move
         </dt>
         <dd>
             <p>Moves the node under the cursor.</p>
         </dd>
 
         <dt>
-            <Icon name="vs:Branch" /> Toggle
+            <Icon name={AppIcons.ToggleTool} /> Toggle
         </dt>
         <dd>
             <p>
@@ -95,7 +95,7 @@
         </dd>
 
         <dt>
-            <Icon name="vs:Cut" /> Cut
+            <Icon name={AppIcons.CutTool} /> Cut
         </dt>
         <dd>
             <p>
@@ -162,6 +162,20 @@
         Helveg uses Visual Studio Icons by Microsoft. These are licensed under <a
             href="https://www.microsoft.com/en-us/download/details.aspx?id=35825"
             target="_blank">Microsoft Software License Terms</a
+        >.
+    </p>
+    <p>
+        Helveg uses <code
+            ><a
+                href="https://github.com/microsoft/vscode-codicons"
+                target="_blank">vscode-codicons</a
+            ></code
+        >
+        by Microsoft, which are licensed under the
+        <a
+            href="https://creativecommons.org/licenses/by/4.0/legalcode"
+            target="_blank"
+            >Creative Commons Attribution 4.0 International Public License</a
         >.
     </p>
     <p>

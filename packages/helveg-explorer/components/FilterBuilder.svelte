@@ -90,13 +90,13 @@
                 bind:value={entry.value}
                 type="number"
                 class="flex-grow-1 flex-shrink-0 w-auto text-xs"
-                size="5"
+                size="1"
             />
         {:else}
             <input
                 bind:value={entry.value}
                 class="flex-grow-1 flex-shrink-0 w-auto text-xs"
-                size="5"
+                size="1"
             />
         {/if}
         <button

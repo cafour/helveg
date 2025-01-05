@@ -34,6 +34,10 @@
         
         &.active {
             border-right: 0.25rem solid var(--color-primary-500);
+            
+            .icon svg {
+                color: var(--color-primary-500);
+            }
         }
         
         .icon {
@@ -41,6 +45,7 @@
             svg {
                 width: 100%;
                 height: 100%;
+                color: var(--color-text);
             }
         }
     }

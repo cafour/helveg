@@ -31,7 +31,7 @@
     export let element: HTMLElement | null = null;
 </script>
 
-<div class="icon {themeClass} {additionalClasses}" {title} bind:this={element}>
+<div class="icon {themeClass} {$icon.namespace} {additionalClasses}" {title} bind:this={element}>
     {#if $icon.format === "svg"}
         {@html $icon.data}
     {:else if $icon.format == "png"}

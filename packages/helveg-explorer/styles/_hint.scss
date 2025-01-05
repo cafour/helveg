@@ -1,6 +1,6 @@
 .hint {
     display: inline;
-    
+
     .icon {
         width: 1em;
         height: 1em;
@@ -11,13 +11,22 @@
         .light-blue-10 {
             fill: var(--color-primary-500);
         }
-        
+
         &:hover {
+
             .light-lightblue,
             .light-lightblue-10,
             .light-blue,
             .light-blue-10 {
                 fill: var(--color-primary-900);
+            }
+        }
+
+        svg {
+            color: var(--color-primary-500);
+
+            &:hover {
+                color: var(--color-primary-900);
             }
         }
     }

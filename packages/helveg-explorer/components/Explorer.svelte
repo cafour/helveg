@@ -79,12 +79,6 @@
 
     selectedTool.subscribe((tool) => {
         diagram.canDragNodes = tool == AppTools.Move;
-
-        switch (tool) {
-            case AppTools.Cut:
-                dock.setTab(AppPanels.Tools);
-                break;
-        }
     });
 </script>
 

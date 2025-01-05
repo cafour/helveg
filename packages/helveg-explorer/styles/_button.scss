@@ -11,7 +11,7 @@ a.button-stretch {
     color: var(--color-text);
     outline: 1px solid var(--color-surface-200);
     border: none;
-    
+
     &:hover {
         background-color: var(--color-surface-200);
     }
@@ -54,17 +54,56 @@ a.button-icon {
     }
 }
 
-:is(.button-stretch, .button-icon).primary {
-    background-color: var(--color-primary-500);
-    color: var(--color-text-on-primary);
-    outline: 1px solid var(--color-primary-600);
-    border: none;
-    
-    &:hover {
-        background-color: var(--color-primary-600);
+:is(.button-stretch, .button-icon) {
+    &.primary {
+        background-color: var(--color-primary-500);
+        color: var(--color-text-on-primary);
+        outline: 1px solid var(--color-primary-600);
+        border: none;
+
+        &:hover {
+            background-color: var(--color-primary-600);
+        }
+
+        &:focus {
+            outline: 2px solid var(--color-primary-900);
+        }
+    }
+
+    &.success {
+        background-color: var(--color-success-500);
+        color: var(--color-text-on-success);
+        outline: 1px solid var(--color-success-600);
+        border: none;
+
+        &:hover {
+            background-color: var(--color-success-600);
+        }
+
+        &:focus {
+            outline: 2px solid var(--color-success-900);
+        }
+    }
+}
+
+.button-icon {
+    &.primary-stroke {
+        svg {
+            color: var(--color-primary-500);
+
+            &:hover {
+                color: var(--color-primary-600);
+            }
+        }
     }
     
-    &:focus {
-        outline: 2px solid var(--color-primary-900);
+    &.success-stroke {
+        svg {
+            color: var(--color-success-500);
+
+            &:hover {
+                color: var(--color-success-600);
+            }
+        }
     }
 }
