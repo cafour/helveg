@@ -1,0 +1,28 @@
+.tree-view {
+    height: 100%;
+    pointer-events: all;
+
+    background-color: var(--color-surface-50);
+
+    > .panel {
+        display: none;
+        width: 20rem;
+    }
+
+    &.open > .panel {
+        display: block;
+    }
+    
+    > button.toggle {
+        border: 1px solid var(--color-surface-100);
+        background-color: var(--color-surface-50);
+
+        &:hover {
+            background-color: var(--color-surface-100);
+        }
+        
+        .icon {
+            width: 1rem;
+        }
+    }
+}

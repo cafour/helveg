@@ -17,6 +17,7 @@
     import SearchPanel from "./SearchPanel.svelte";
     import { createExplorerState } from "../explorer-state.ts";
     import ContextMenu from "./ContextMenu.svelte";
+    import TreeView from "./TreeView.svelte";
 
     export let rootElement: HTMLElement;
     setContext("rootElement", rootElement);
@@ -65,7 +66,7 @@
     }
     diagram.events.nodeSelected.subscribe(onNodeSelected);
 
-    function onNodeClicked(nodeId: string) {
+    function onDiagramNodeClicked(nodeId: string) {
         switch ($selectedTool) {
             case AppTools.Toggle:
                 diagram.toggleNode(nodeId);
@@ -75,7 +76,7 @@
                 break;
         }
     }
-    diagram.events.nodeClicked.subscribe(onNodeClicked);
+    diagram.events.nodeClicked.subscribe(onDiagramNodeClicked);
 
     selectedTool.subscribe((tool) => {
         diagram.canDragNodes = tool == AppTools.Move;
@@ -83,7 +84,7 @@
 </script>
 
 <div
-    class="explorer-svelte flex flex-row-reverse h-100p relative pointer-events-none"
+    class="explorer-svelte flex flex-row h-100p relative pointer-events-none justify-content-between "
     bind:this={rootElement}
 >
     <div class="diagram-background" />
@@ -92,6 +93,8 @@
 
     <ToolBox bind:selectedTool={$selectedTool} class="z-1" />
 
+    <TreeView class="z-2" on:nodeClicked={(e) => onNodeSelected(e.detail.nodeId)} />
+    
     <Dock
         name="panels"
         bind:this={dock}

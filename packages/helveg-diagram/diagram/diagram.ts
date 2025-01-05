@@ -196,6 +196,7 @@ export class Diagram {
     }
 
     private _graph?: HelvegGraph;
+    get graph() { return this._graph; }
     private _sigma?: HelvegSigma;
     private _supervisor?: ForceAtlas2Supervisor;
     private _glyphProgram: HelvegNodeProgramType;
@@ -249,6 +250,7 @@ export class Diagram {
         statusChanged: new HelvegEvent<DiagramStatus>("helveg.diagram.statusChanged"),
         modeChanged: new HelvegEvent<DiagramMode>("helveg.diagram.modeChanged"),
         modelChanged: new HelvegEvent<DataModel>("helveg.diagram.modelChanged"),
+        graphChanged: new HelvegEvent<HelvegGraph | undefined>("helveg.diagram.graphChanged"),
         statsChanged: new HelvegEvent<DiagramStats>("helveg.diagram.statsChanged"),
         nodeSelected: new HelvegEvent<string | null>("helveg.diagram.nodeSelected"),
         nodeClicked: new HelvegEvent<string>("helveg.diagram.nodeClicked"),
@@ -495,6 +497,7 @@ export class Diagram {
             return;
         }
 
+        let changed = false;
         try {
             let filter = buildNodeFilter(searchText, searchMode, this._nodeKeys, filterBuilder);
             if (filter === null) {
@@ -509,6 +512,7 @@ export class Diagram {
                 for (let id of filterNodes(this._model.data!, filter, true)) {
                     if (this._graph.hasNode(id)) {
                         this._graph.dropNode(id);
+                        changed = true;
                     }
                 }
             });
@@ -522,6 +526,7 @@ export class Diagram {
         }
 
         this._logger.info(`Isolated ${this._graph.nodes().length} nodes.`);
+        this.events.graphChanged.trigger(this._graph);
     }
 
 
@@ -547,20 +552,26 @@ export class Diagram {
             throw new Error(`Cannot remove node '${nodeId}' since it does not exist in the graph.`);
         }
 
+        let removedCount = 0;
         if (!options.isTransitive) {
             this._graph.dropNode(nodeId);
-            return;
+            removedCount = 1;
+        } else {
+            let reachable = bfsGraph(this._graph, nodeId, {
+                relation: this.mainRelation
+            });
+    
+            await this.refreshSupervisor(true, () => {
+                reachable.forEach(id => this._graph?.dropNode(id));
+            })
+            removedCount = reachable.size;
+        }
+        
+        if (removedCount > 0) {
+            this.events.graphChanged.trigger(this._graph);
         }
 
-        let reachable = bfsGraph(this._graph, nodeId, {
-            relation: this.mainRelation
-        });
-
-        await this.refreshSupervisor(true, () => {
-            reachable.forEach(id => this._graph?.dropNode(id));
-        })
-
-        this._logger.info(`Removed ${reachable.size} nodes.`);
+        this._logger.info(`Removed ${removedCount} nodes.`);
     }
 
     async toggleNode(nodeId: string): Promise<void> {
@@ -678,6 +689,7 @@ export class Diagram {
             options.selectedRelations ?? (this.mainRelation ? [this.mainRelation] : []),
             options.selectedKinds,
             options.expandedDepth);
+        this.events.graphChanged.trigger(this._graph);
         this.restyleGraph();
 
         await this.refreshSupervisor(false, () => this._graph && this._sigma?.setGraph(this._graph));

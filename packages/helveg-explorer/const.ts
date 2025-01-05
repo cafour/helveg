@@ -41,7 +41,8 @@ export enum AppPanels {
     Properties = "properties-panel",
     Document = "document-panel",
     Guide = "guide-panel",
-    Search = "search-panel"
+    Search = "search-panel",
+    TreeView = "tree-view",
 }
 
 export enum AppTools {

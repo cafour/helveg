@@ -1,3 +1,4 @@
+import { hierarchy, HierarchyNode } from "../deps/d3-hierarchy.ts";
 import { Attributes, EdgeEntry } from "../deps/graphology.ts";
 import Graph from "../deps/graphology.ts";
 import { NodeDisplayData, EdgeDisplayData } from "../deps/sigma.ts";
@@ -139,4 +140,41 @@ export function getNodeKinds(graph: Multigraph | null | undefined): string[] {
         .map(n => n.kind!)
         .filter((v, i, a) => a.indexOf(v) === i)
         .sort();
+}
+
+export interface HelvegTree {
+    id: string;
+    node: HelvegNodeAttributes;
+    children?: HelvegTree[];
+}
+
+export interface HelvegForest {
+    roots: HelvegTree[]
+}
+
+export function getForest(graph: HelvegGraph | undefined, relation: string): HelvegForest {
+    if (graph === undefined) {
+        return { roots: [] };
+    }
+
+    const rootIds = findRoots(graph, relation);
+    const roots: HelvegTree[] = [];
+    for (const rootId of rootIds) {
+        const root = hierarchy(rootId, nodeId =>
+            <string[]>graph.mapOutboundEdges(nodeId, (_edge, attr, _src, dst, _srcAttr, _dstAttr) =>
+                attr.relation && attr.relation === relation ? dst : undefined)
+                .filter(dst => dst != undefined));
+
+        function convertD3Node(node: HierarchyNode<string>): HelvegTree {
+            return {
+                id: node.data,
+                node: graph!.getNodeAttributes(node.data),
+                children: node.children ? node.children.map(convertD3Node) : undefined
+            };
+        }
+
+        roots.push(convertD3Node(root));
+    }
+
+    return { roots };
 }
