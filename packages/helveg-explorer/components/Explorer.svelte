@@ -97,6 +97,7 @@
     <TreeView
         class="z-2"
         bind:selectedNode={$selectedNode}
+        on:nodeClicked={() => ($selectedTool = AppTools.ShowProperties)}
     />
 
     <ToolBox bind:selectedTool={$selectedTool} class="z-1" />

@@ -1,35 +1,20 @@
 <script lang="ts">
-    import { get, writable, type Writable } from "svelte/store";
     import type { TreeViewItem } from "./TreeView.svelte";
     import Icon from "./Icon.svelte";
     import { FALLBACK_NODE_ICON } from "../deps/helveg-diagram";
 
     export let node: TreeViewItem;
-    let isExpanded: Writable<boolean> = node.isExpanded;
-    let isParentExpanded: Writable<boolean> = node.parent?.isExpanded ?? writable(true);
+    export let isExpanded: boolean;
+    export let isParentExpanded: boolean;
     export let isSelected: boolean;
     export let onNodeClicked: (nodeId: string) => void;
-
-    function toggleItem(item: TreeViewItem, value?: boolean) {
-        if (value === undefined) {
-            value = !get(item.isExpanded);
-        }
-
-        item.isExpanded?.set(value);
-        if (!value) {
-            for (const child of item.children ?? []) {
-                if (get(child.isExpanded)) {
-                    toggleItem(child, false);
-                }
-            }
-        }
-    }
+    export let onNodeToggled: (item: TreeViewItem) => void;
 </script>
 
-{#if node.depth == 0 || $isParentExpanded}
+{#if node.depth == 0 || isParentExpanded}
 <div
     class="tree-view-node flex flex-col gap-2"
-    class:item-hidden={node.parent && !$isParentExpanded}
+    class:item-hidden={!isParentExpanded}
     class:selected={isSelected}
 >
     <div
@@ -40,12 +25,12 @@
             <Icon title="" name="vscode:blank" />
         {:else}
             <button
-                on:click={() => toggleItem(node)}
+                on:click={() => onNodeToggled(node)}
                 class="flex flex-row align-items-center"
             >
                 <Icon
-                    title={$isExpanded ? "Collapse" : "Expand"}
-                    name={$isExpanded
+                    title={isExpanded ? "Collapse" : "Expand"}
+                    name={isExpanded
                         ? "vscode:chevron-down"
                         : "vscode:chevron-right"}
                 />

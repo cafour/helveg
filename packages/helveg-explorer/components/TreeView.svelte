@@ -1,6 +1,5 @@
 <script lang="ts" context="module">
     export type TreeViewItem = HelvegForestItem & {
-        isExpanded: Writable<boolean>;
         parent?: TreeViewItem;
         children?: TreeViewItem[];
     };
@@ -34,18 +33,16 @@
     let additionalClass: string | undefined = undefined;
     export { additionalClass as class };
 
-    let items: TreeViewItem[] = [];
+    let items: TreeViewItem[];
     $: {
         items = getForestItems(
             getForest($graph, $layoutOptions.tidyTree.relation ?? "declares"),
         ) as TreeViewItem[];
-        for (const item of items) {
-            item.isExpanded = writable(false);
-        }
     }
 
-    let isOpen = false;
+    const expanded = writable(new Set<string>());
 
+    let isOpen = false;
     onMount(() => {
         isOpen = localStorage.getItem(`TreeView.isOpen`) === "true";
     });
@@ -57,31 +54,56 @@
 
     let dispatch = createEventDispatcher();
 
-    function onNodeClicked(nodeId: string | null) {
+    export let selectedNode: string | null = null;
+
+    function onNodeClicked(nodeId: string) {
         dispatch("nodeClicked", { nodeId: nodeId });
         selectedNode = nodeId;
     }
 
-    export let selectedNode: string | null = null;
+    function onNodeToggled(item: TreeViewItem, value?: boolean) {
+        if (value === undefined) {
+            value = !$expanded.has(item.id);
+        }
+
+        if (value) {
+            $expanded = $expanded.add(item.id);
+        } else {
+            $expanded = (() => {
+                $expanded.delete(item.id);
+                return $expanded;
+            })();
+            for (const child of item.children ?? []) {
+                if ($expanded.has(child.id)) {
+                    onNodeToggled(child, false);
+                }
+            }
+        }
+    }
 </script>
 
 <div class="tree-view {additionalClass} flex flex-row" class:open={isOpen}>
     <Panel
         id={AppPanels.TreeView}
         name="Tree View"
-        class="flex-grow-1"
+        class="flex flex-col flex-grow-1"
         indent={false}
     >
         {#if items.length > 0}
-            {#each items as node}
+            {#each items as item (item.id)}
                 <TreeViewEntry
-                    isSelected={node.id === selectedNode}
-                    {node}
+                    isSelected={item.id === selectedNode}
+                    isExpanded={$expanded.has(item.id)}
+                    isParentExpanded={item.depth == 0 ||
+                        (item.parent !== undefined &&
+                            $expanded.has(item.parent?.id))}
+                    node={item}
                     {onNodeClicked}
+                    {onNodeToggled}
                 />
             {/each}
         {:else}
-            <i
+            <i class="p-16"
                 >The displayed graph is empty or no relation is selected. Use
                 the Layout panel to refresh the graph.</i
             >
