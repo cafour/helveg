@@ -27,9 +27,19 @@
     
     .tree-view-node {
         width: max-content;
+        background-color: var(--color-surface-50);
+        min-width: 100%;
+
+        &:hover {
+            background-color: var(--color-surface-100);
+        }
         
         &.item-hidden {
             display: none;
+        }
+        
+        &.selected {
+            background-color: var(--color-surface-200);
         }
     }
     

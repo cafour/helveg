@@ -1,6 +1,6 @@
 import { readable, writable, type Readable, type Writable } from "svelte/store";
 import type { DataModel, Diagram, DiagramStats, DiagramStatus, HelvegGraph, ILogger } from "./deps/helveg-diagram";
-import { createCsharpRelationStylist, sublogger } from "./deps/helveg-diagram";
+import { createCsharpRelationStylist, sublogger, type HelvegEvent } from "./deps/helveg-diagram";
 import * as Options from "./options.ts";
 import { OperationExecutor } from "./operation-executor.ts";
 import { AppTools } from "./const.ts";
@@ -23,6 +23,22 @@ export interface IExplorerState {
     exportOptions: Writable<Options.ExportOptions>,
     toolOptions: Writable<Options.ToolOptions>,
 }
+
+function wrapVariable<T>(get: () => T, set: (value: T) => void, event: HelvegEvent<T>): Writable<T> {
+    const store: Writable<T> = {
+        set,
+        update(updater) {
+            set(updater(get()))
+        },
+        subscribe(run) {
+            event.subscribe(run);
+            run(get());
+            return () => event.unsubscribe(run);
+        },
+    };
+    return store;
+}
+
 
 export function createExplorerState(rootElement: HTMLElement, diagram: Diagram): IExplorerState {
     const model = readable(diagram.model, (set) => {
@@ -49,7 +65,10 @@ export function createExplorerState(rootElement: HTMLElement, diagram: Diagram):
 
     const selectedTool = writable<string>(AppTools.ShowProperties);
 
-    const selectedNode = writable<string | null>(null);
+    const selectedNode = wrapVariable(
+        () => diagram.selectedNode,
+        (value) => diagram.selectedNode = value,
+        diagram.events.nodeSelected);
 
     const dataOptions = createOptions<Options.DataOptions>(
         "data",
@@ -84,7 +103,7 @@ export function createExplorerState(rootElement: HTMLElement, diagram: Diagram):
             o.relationColors!
         );
 
-        const glyphOptions = {...diagram.glyphProgramOptions};
+        const glyphOptions = { ...diagram.glyphProgramOptions };
         glyphOptions.isFireAnimated = o.glyph.isFireAnimated;
         glyphOptions.showFire = o.glyph.showFire;
         glyphOptions.showIcons = o.glyph.showIcons;

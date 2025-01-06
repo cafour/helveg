@@ -12,6 +12,7 @@ import { IconSetModel } from "./model/icon-set-model.ts";
 import { DataModel } from "./model/data-model.ts";
 
 // TODO: be a little bit more selective about what to export
+export * from "./common/event.ts";
 export * from "./model/const.ts";
 export * from "./model/data.ts";
 export * from "./model/filter.ts";

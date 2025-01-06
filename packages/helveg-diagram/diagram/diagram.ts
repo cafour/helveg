@@ -447,7 +447,7 @@ export class Diagram {
         return results;
     }
 
-    highlightNode(nodeId: string | null, includeSubtree: boolean, includeNeighbors: boolean) {
+    async highlightNode(nodeId: string | null, includeSubtree: boolean, includeNeighbors: boolean): Promise<void> {
         if (nodeId === null) {
             this._logger.debug("Clearing node highlights.");
             this._graph?.forEachNode((_, a) => a.highlighted = undefined);
@@ -476,6 +476,12 @@ export class Diagram {
             for (let neighbor of this._graph.neighbors(nodeId)) {
                 this._graph.setNodeAttribute(neighbor, "highlighted", true);
             }
+        }
+
+        const nodeAttributes = this._graph.getNodeAttributes(nodeId);
+        if (nodeAttributes.collapsed) {
+            await this.refreshSupervisor(true, () =>
+                expandPathsTo(this._graph!, nodeId, this.options.mainRelation ?? undefined));
         }
 
         this.mode = DiagramMode.Highlighting;
@@ -560,13 +566,13 @@ export class Diagram {
             let reachable = bfsGraph(this._graph, nodeId, {
                 relation: this.mainRelation
             });
-    
+
             await this.refreshSupervisor(true, () => {
                 reachable.forEach(id => this._graph?.dropNode(id));
             })
             removedCount = reachable.size;
         }
-        
+
         if (removedCount > 0) {
             this.events.graphChanged.trigger(this._graph);
         }

@@ -1,3 +1,11 @@
+<script lang="ts" context="module">
+    export type TreeViewItem = HelvegForestItem & {
+        isExpanded: Writable<boolean>;
+        parent?: TreeViewItem;
+        children?: TreeViewItem[];
+    };
+</script>
+
 <script lang="ts">
     import { createEventDispatcher, getContext, onMount } from "svelte";
     import { AppPanels } from "../const";
@@ -10,6 +18,14 @@
         type HelvegForestItem,
     } from "../deps/helveg-diagram.ts";
     import Icon from "./Icon.svelte";
+    import {
+        get,
+        readable,
+        writable,
+        type Readable,
+        type Writable,
+    } from "svelte/store";
+    import TreeViewEntry from "./TreeViewEntry.svelte";
 
     const state = getContext<IExplorerState>("state");
     const graph = state.graph;
@@ -18,15 +34,15 @@
     let additionalClass: string | undefined = undefined;
     export { additionalClass as class };
 
-    type TreeViewItem = HelvegForestItem & {
-        isExpanded?: boolean;
-        parent?: TreeViewItem;
-        children?: TreeViewItem[];
-    };
-
-    $: items = getForestItems(
-        getForest($graph, $layoutOptions.tidyTree.relation ?? "declares"),
-    ) as TreeViewItem[];
+    let items: TreeViewItem[] = [];
+    $: {
+        items = getForestItems(
+            getForest($graph, $layoutOptions.tidyTree.relation ?? "declares"),
+        ) as TreeViewItem[];
+        for (const item of items) {
+            item.isExpanded = writable(false);
+        }
+    }
 
     let isOpen = false;
 
@@ -41,75 +57,28 @@
 
     let dispatch = createEventDispatcher();
 
-    function onNodeClicked(nodeId: string | undefined) {
+    function onNodeClicked(nodeId: string | null) {
         dispatch("nodeClicked", { nodeId: nodeId });
+        selectedNode = nodeId;
     }
 
-    export function selectNode(nodeId: string | undefined) {}
-
-    function getItemHeight(index: number) {
-        const item = items[index];
-        // 24 = 1.5rem which _should_ be the item height
-        return item.depth == 0 ||
-            item.parent === undefined ||
-            item.parent.isExpanded
-            ? 24
-            : 1;
-    }
-
-    let virtualList: VirtualList;
-
-    function toggleItem(index: number) {
-        items[index].isExpanded = !items[index].isExpanded;
-        // virtualList.recomputeSizes(index + 1);
-    }
+    export let selectedNode: string | null = null;
 </script>
 
 <div class="tree-view {additionalClass} flex flex-row" class:open={isOpen}>
-    <Panel id={AppPanels.TreeView} name="Tree View" class="flex-grow-1">
+    <Panel
+        id={AppPanels.TreeView}
+        name="Tree View"
+        class="flex-grow-1"
+        indent={false}
+    >
         {#if items.length > 0}
             {#each items as node}
-                {#if node.depth == 0 || (node.parent && node.parent?.isExpanded)}
-                    <div
-                        class="tree-view-node flex flex-col gap-2"
-                        class:item-hidden={node.parent &&
-                            !node.parent?.isExpanded}
-                    >
-                        <div
-                            class="flex flex-row gap-4 align-items-center"
-                            style="padding-left: {node.depth * 0.5}rem;"
-                        >
-                            {#if node.children === undefined || node.children?.length == 0}
-                                <Icon title="" name="vscode:blank" />
-                            {:else}
-                                <button
-                                    on:click={() =>
-                                        (node.isExpanded = !node.isExpanded)}
-                                    class="flex flex-row align-items-center"
-                                >
-                                    <Icon
-                                        title={node.isExpanded
-                                            ? "Collapse"
-                                            : "Expand"}
-                                        name={node.isExpanded
-                                            ? "vscode:chevron-down"
-                                            : "vscode:chevron-right"}
-                                    />
-                                </button>
-                            {/if}
-                            <button
-                                class="flex flex-row gap-4 align-items-center"
-                                on:click={() => onNodeClicked(node.id)}
-                            >
-                                <Icon
-                                    title={node.node.kind}
-                                    name={node.node.icon ?? FALLBACK_NODE_ICON}
-                                />
-                                <span>{node.node.label}</span>
-                            </button>
-                        </div>
-                    </div>
-                {/if}
+                <TreeViewEntry
+                    isSelected={node.id === selectedNode}
+                    {node}
+                    {onNodeClicked}
+                />
             {/each}
         {:else}
             <i

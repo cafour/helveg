@@ -33,18 +33,22 @@
     setContext("appearanceOptions", state.appearanceOptions);
     setContext("exportOptions", state.exportOptions);
     setContext("toolOptions", state.toolOptions);
-    const { status, stats, selectedTool, dataOptions } = state;
+    const { status, stats, selectedTool, selectedNode, dataOptions } = state;
 
     let dock: Dock;
     let propertiesPanel: PropertiesPanel;
     let searchResults: string[];
 
-    function onNodeSelected(nodeId: string | null) {
+    selectedNode.subscribe(async (nodeId) => {
+        if (!propertiesPanel || !dock) {
+            return;
+        }
+
         if (nodeId === null) {
             propertiesPanel.$set({
                 node: null,
             });
-            diagram.highlightNode(null, false, false);
+            await diagram.highlightNode(null, false, false);
             return;
         }
 
@@ -54,7 +58,7 @@
                     node: diagram.model.data?.nodes[nodeId] ?? null,
                 });
                 dock.setTab(AppPanels.Properties);
-                diagram.highlightNode(
+                await diagram.highlightNode(
                     nodeId,
                     get(state.toolOptions).showProperties
                         .shouldHighlightSubtree,
@@ -63,8 +67,7 @@
                 );
                 break;
         }
-    }
-    diagram.events.nodeSelected.subscribe(onNodeSelected);
+    });
 
     function onDiagramNodeClicked(nodeId: string) {
         switch ($selectedTool) {
@@ -84,20 +87,23 @@
 </script>
 
 <div
-    class="explorer-svelte flex flex-row h-100p relative pointer-events-none justify-content-between "
+    class="explorer-svelte flex flex-row h-100p relative pointer-events-none justify-content-between"
     bind:this={rootElement}
 >
     <div class="diagram-background" />
 
     <LoadingScreen status={$status} />
 
-    <TreeView class="z-2" on:nodeClicked={(e) => onNodeSelected(e.detail.nodeId)} />
+    <TreeView
+        class="z-2"
+        bind:selectedNode={$selectedNode}
+    />
 
     <ToolBox bind:selectedTool={$selectedTool} class="z-1" />
-    
+
     <!-- filler element -->
     <div class="filler flex-grow-1"></div>
-    
+
     <Dock
         name="panels"
         bind:this={dock}
