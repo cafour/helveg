@@ -17,6 +17,7 @@
     import SearchPanel from "./SearchPanel.svelte";
     import { createExplorerState } from "../explorer-state.ts";
     import ContextMenu from "./ContextMenu.svelte";
+    import TreeView from "./TreeView.svelte";
 
     export let rootElement: HTMLElement;
     setContext("rootElement", rootElement);
@@ -32,18 +33,22 @@
     setContext("appearanceOptions", state.appearanceOptions);
     setContext("exportOptions", state.exportOptions);
     setContext("toolOptions", state.toolOptions);
-    const { status, stats, selectedTool, dataOptions } = state;
+    const { status, stats, selectedTool, selectedNode, dataOptions } = state;
 
     let dock: Dock;
     let propertiesPanel: PropertiesPanel;
     let searchResults: string[];
 
-    function onNodeSelected(nodeId: string | null) {
+    selectedNode.subscribe(async (nodeId) => {
+        if (!propertiesPanel || !dock) {
+            return;
+        }
+
         if (nodeId === null) {
             propertiesPanel.$set({
                 node: null,
             });
-            diagram.highlightNode(null, false, false);
+            await diagram.highlightNode(null, false, false);
             return;
         }
 
@@ -53,7 +58,7 @@
                     node: diagram.model.data?.nodes[nodeId] ?? null,
                 });
                 dock.setTab(AppPanels.Properties);
-                diagram.highlightNode(
+                await diagram.highlightNode(
                     nodeId,
                     get(state.toolOptions).showProperties
                         .shouldHighlightSubtree,
@@ -62,10 +67,9 @@
                 );
                 break;
         }
-    }
-    diagram.events.nodeSelected.subscribe(onNodeSelected);
+    });
 
-    function onNodeClicked(nodeId: string) {
+    function onDiagramNodeClicked(nodeId: string) {
         switch ($selectedTool) {
             case AppTools.Toggle:
                 diagram.toggleNode(nodeId);
@@ -75,7 +79,7 @@
                 break;
         }
     }
-    diagram.events.nodeClicked.subscribe(onNodeClicked);
+    diagram.events.nodeClicked.subscribe(onDiagramNodeClicked);
 
     selectedTool.subscribe((tool) => {
         diagram.canDragNodes = tool == AppTools.Move;
@@ -83,14 +87,23 @@
 </script>
 
 <div
-    class="explorer-svelte flex flex-row-reverse h-100p relative pointer-events-none"
+    class="explorer-svelte flex flex-row h-100p relative pointer-events-none justify-content-between"
     bind:this={rootElement}
 >
     <div class="diagram-background" />
 
     <LoadingScreen status={$status} />
 
+    <TreeView
+        class="z-2"
+        bind:selectedNode={$selectedNode}
+        on:nodeClicked={() => ($selectedTool = AppTools.ShowProperties)}
+    />
+
     <ToolBox bind:selectedTool={$selectedTool} class="z-1" />
+
+    <!-- filler element -->
+    <div class="filler flex-grow-1"></div>
 
     <Dock
         name="panels"

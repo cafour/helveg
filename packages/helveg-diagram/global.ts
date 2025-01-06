@@ -10,8 +10,10 @@ import { DEFAULT_FORCE_ATLAS2_OPTIONS, Diagram, DiagramRefreshOptions, ForceAtla
 import { EMPTY_DATA_MODEL } from "./model/const.ts";
 import { IconSetModel } from "./model/icon-set-model.ts";
 import { DataModel } from "./model/data-model.ts";
+import { csharpNodeKindOrder } from "./csharp/model.ts";
 
 // TODO: be a little bit more selective about what to export
+export * from "./common/event.ts";
 export * from "./model/const.ts";
 export * from "./model/data.ts";
 export * from "./model/filter.ts";
@@ -73,6 +75,7 @@ export function createDiagram(options?: Partial<CreateDiagramOptions>): Diagram 
         nodeStylist: opts.nodeStylist,
         edgeStylist: opts.edgeStylist,
         relationStylist: opts.relationStylist,
+        nodeKindOrder: [...csharpNodeKindOrder],
         mainRelation: opts.mainRelation ?? Object.keys(opts.model.data?.relations ?? {}).sort()[0] ?? null,
         iconRegistry: iconRegistry,
         glyphProgram: {

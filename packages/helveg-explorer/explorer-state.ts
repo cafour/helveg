@@ -1,6 +1,6 @@
 import { readable, writable, type Readable, type Writable } from "svelte/store";
-import type { DataModel, Diagram, DiagramStats, DiagramStatus, ILogger } from "./deps/helveg-diagram";
-import { createCsharpRelationStylist, sublogger } from "./deps/helveg-diagram";
+import type { DataModel, Diagram, DiagramStats, DiagramStatus, HelvegGraph, ILogger } from "./deps/helveg-diagram";
+import { createCsharpRelationStylist, sublogger, type HelvegEvent } from "./deps/helveg-diagram";
 import * as Options from "./options.ts";
 import { OperationExecutor } from "./operation-executor.ts";
 import { AppTools } from "./const.ts";
@@ -9,6 +9,7 @@ export interface IExplorerState {
     rootElement: HTMLElement,
     diagram: Diagram,
     model: Readable<DataModel>,
+    graph: Readable<HelvegGraph | undefined>,
     status: Readable<DiagramStatus>,
     stats: Readable<DiagramStats>,
     logger: ILogger,
@@ -23,10 +24,31 @@ export interface IExplorerState {
     toolOptions: Writable<Options.ToolOptions>,
 }
 
+function wrapVariable<T>(get: () => T, set: (value: T) => void, event: HelvegEvent<T>): Writable<T> {
+    const store: Writable<T> = {
+        set,
+        update(updater) {
+            set(updater(get()))
+        },
+        subscribe(run) {
+            event.subscribe(run);
+            run(get());
+            return () => event.unsubscribe(run);
+        },
+    };
+    return store;
+}
+
+
 export function createExplorerState(rootElement: HTMLElement, diagram: Diagram): IExplorerState {
     const model = readable(diagram.model, (set) => {
         diagram.events.modelChanged.subscribe(set);
         return () => diagram.events.modelChanged.unsubscribe(set);
+    });
+
+    const graph = readable<HelvegGraph | undefined>(diagram.graph, (set) => {
+        diagram.events.graphChanged.subscribe(set);
+        return () => diagram.events.graphChanged.unsubscribe(set);
     });
 
     const logger = sublogger(diagram.logger, "explorer");
@@ -43,7 +65,10 @@ export function createExplorerState(rootElement: HTMLElement, diagram: Diagram):
 
     const selectedTool = writable<string>(AppTools.ShowProperties);
 
-    const selectedNode = writable<string | null>(null);
+    const selectedNode = wrapVariable(
+        () => diagram.selectedNode,
+        (value) => diagram.selectedNode = value,
+        diagram.events.nodeSelected);
 
     const dataOptions = createOptions<Options.DataOptions>(
         "data",
@@ -78,7 +103,7 @@ export function createExplorerState(rootElement: HTMLElement, diagram: Diagram):
             o.relationColors!
         );
 
-        const glyphOptions = {...diagram.glyphProgramOptions};
+        const glyphOptions = { ...diagram.glyphProgramOptions };
         glyphOptions.isFireAnimated = o.glyph.isFireAnimated;
         glyphOptions.showFire = o.glyph.showFire;
         glyphOptions.showIcons = o.glyph.showIcons;
@@ -109,6 +134,7 @@ export function createExplorerState(rootElement: HTMLElement, diagram: Diagram):
         rootElement,
         diagram,
         model,
+        graph,
         logger,
         status,
         stats,

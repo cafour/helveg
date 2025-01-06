@@ -22,6 +22,32 @@ export enum EntityKind {
     Parameter = "Parameter"
 }
 
+export const csharpNodeKindOrder: readonly string[] = [
+    EntityKind.Solution,
+    EntityKind.PackageRepository,
+    EntityKind.ExternalDependencySource,
+
+    EntityKind.Project,
+    EntityKind.Framework,
+    EntityKind.Package,
+    
+    EntityKind.Library,
+    EntityKind.Assembly,
+    EntityKind.Module,
+    
+    EntityKind.Namespace,
+    
+    EntityKind.Type,
+    EntityKind.TypeParameter,
+    
+    EntityKind.Field,
+    EntityKind.Property,
+    EntityKind.Event,
+    EntityKind.Method,
+    
+    EntityKind.Parameter
+];
+
 export enum DefaultIcons {
     Solution = "csharp:Solution",
     Project = "csharp:CSProjectNode",

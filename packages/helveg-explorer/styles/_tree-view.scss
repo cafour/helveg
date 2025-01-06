@@ -1,0 +1,50 @@
+.tree-view {
+    height: 100%;
+    pointer-events: all;
+
+    background-color: var(--color-surface-50);
+
+    > .panel {
+        width: 20rem;
+    }
+
+    &:not(.open) > .panel {
+        display: none;
+    }
+    
+    > button.toggle {
+        border: 1px solid var(--color-surface-100);
+        background-color: var(--color-surface-50);
+
+        &:hover {
+            background-color: var(--color-surface-100);
+        }
+        
+        .icon {
+            width: 1rem;
+        }
+    }
+    
+    .tree-view-node {
+        width: max-content;
+        background-color: var(--color-surface-50);
+        min-width: 100%;
+
+        &:hover {
+            background-color: var(--color-surface-100);
+        }
+        
+        &.item-hidden {
+            display: none;
+        }
+        
+        &.selected {
+            background-color: var(--color-surface-200);
+        }
+    }
+    
+    .virtual-list-wrapper {
+        min-width: 100%;
+        width: max-content !important;
+    }
+}

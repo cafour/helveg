@@ -4,9 +4,12 @@
     export let name: string | null = null;
     export let id: AppPanels;
     export let indent: boolean = true;
+
+    let additionalClass: string | undefined = undefined;
+    export { additionalClass as class };
 </script>
 
-<div class="panel flex flex-col overflow-hidden" {id}>
+<div class="panel flex flex-col overflow-hidden {additionalClass}" {id}>
     {#if name}
         <div class="panel-header">
             <h3>{name}</h3>
