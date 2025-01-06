@@ -27,5 +27,14 @@
     
     .tree-view-node {
         width: max-content;
+        
+        &.item-hidden {
+            display: none;
+        }
+    }
+    
+    .virtual-list-wrapper {
+        min-width: 100%;
+        width: max-content !important;
     }
 }

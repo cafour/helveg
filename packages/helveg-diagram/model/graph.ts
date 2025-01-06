@@ -182,3 +182,31 @@ export function getForest(graph: HelvegGraph | undefined, relation: string): Hel
 
     return { roots };
 }
+
+export interface HelvegForestItem {
+    id: string;
+    node: HelvegNodeAttributes;
+    parent?: HelvegForestItem;
+    children?: HelvegForestItem[];
+    depth: number;
+}
+
+export function getForestItems(forest: HelvegForest): HelvegForestItem[] {
+    const items: HelvegForestItem[] = [];
+
+    function visit(node: HelvegTree, depth: number = 0): HelvegForestItem {
+        const item: HelvegForestItem = {
+            id: node.id,
+            node: node.node,
+            depth: depth
+        };
+        items.push(item);
+        item.children = node.children === undefined ? undefined
+            : node.children.map(c => visit(c, depth + 1));
+        item.children?.forEach(c => c.parent = item);
+        return item;
+    }
+
+    forest.roots.forEach(t => visit(t));
+    return items;
+}
