@@ -122,6 +122,8 @@ export function toggleNode(graph: HelvegGraph, nodeId: string, relation?: string
     }
 }
 
+export const MULTIGRAPH_NODE_KEY = Symbol();
+
 export function getRelations(graph: Multigraph | null | undefined): string[] {
     if (!graph || !graph.relations) {
         return [];

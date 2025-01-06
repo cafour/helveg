@@ -1,3 +1,4 @@
+import { MULTIGRAPH_NODE_KEY } from "../global.ts";
 import { PizzaIcons } from "../model/const.ts";
 import { MultigraphNode } from "../model/data-model.ts";
 import { NodeStyle, FireStatus } from "../model/style.ts";

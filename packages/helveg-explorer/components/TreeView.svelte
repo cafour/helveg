@@ -34,13 +34,14 @@
     export { additionalClass as class };
 
     let items: TreeViewItem[];
+    const expanded = writable(new Set<string>());
     $: {
         items = getForestItems(
             getForest($graph, $layoutOptions.tidyTree.relation ?? "declares", state.diagram.options.nodeKindOrder),
         ) as TreeViewItem[];
+        items.filter(i => i.depth == 0).forEach(i => get(expanded).add(i.id));
     }
 
-    const expanded = writable(new Set<string>());
 
     let isOpen = false;
     onMount(() => {

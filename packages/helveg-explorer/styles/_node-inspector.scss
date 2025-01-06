@@ -1,0 +1,16 @@
+.node-inspector {
+    .expression {
+        code {
+            line-height: 1.5;
+            color: var(--color-text);
+            
+            &.keyword {
+                color: var(--color-keyword-600);
+            }
+            
+            &.identifier {
+                color: var(--color-identifier-600);
+            }
+        }
+    }
+}
