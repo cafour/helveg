@@ -10,7 +10,6 @@
         type HelvegForestItem,
     } from "../deps/helveg-diagram.ts";
     import Icon from "./Icon.svelte";
-    import VirtualList from "svelte-tiny-virtual-list";
 
     const state = getContext<IExplorerState>("state");
     const graph = state.graph;
