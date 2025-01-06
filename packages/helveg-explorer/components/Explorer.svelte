@@ -91,9 +91,12 @@
 
     <LoadingScreen status={$status} />
 
-    <ToolBox bind:selectedTool={$selectedTool} class="z-1" />
-
     <TreeView class="z-2" on:nodeClicked={(e) => onNodeSelected(e.detail.nodeId)} />
+
+    <ToolBox bind:selectedTool={$selectedTool} class="z-1" />
+    
+    <!-- filler element -->
+    <div class="filler flex-grow-1"></div>
     
     <Dock
         name="panels"
