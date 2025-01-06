@@ -10,7 +10,9 @@ import { DEFAULT_FORCE_ATLAS2_OPTIONS, Diagram, DiagramRefreshOptions, ForceAtla
 import { EMPTY_DATA_MODEL } from "./model/const.ts";
 import { IconSetModel } from "./model/icon-set-model.ts";
 import { DataModel } from "./model/data-model.ts";
-import { csharpNodeKindOrder } from "./csharp/model.ts";
+import { csharpNodeKindOrder as CSHARP_NODE_KIND_ORDER } from "./csharp/model.ts";
+import { CSHARP_INSPECTOR as CSHARP_INSPECTOR } from "./csharp/inspect.ts";
+import { Inspector } from "./model/inspect.ts";
 
 // TODO: be a little bit more selective about what to export
 export * from "./common/event.ts";
@@ -26,8 +28,10 @@ export * from "./rendering/export.ts";
 export * from "./diagram/diagram.ts";
 export * from "./model/data-model.ts";
 export * from "./model/icon-set-model.ts";
+export * from "./model/inspect.ts";
 export * from "./csharp/style.ts";
 export * from "./csharp/model.ts";
+export * from "./csharp/inspect.ts";
 export * from "./random.ts";
 export * from "./rendering/node.glyph.ts";
 
@@ -39,6 +43,8 @@ export interface CreateDiagramOptions {
     nodeStylist?: NodeStylist,
     relationStylist?: RelationStylist,
     edgeStylist?: EdgeStylist,
+    nodeKindOrder: string[],
+    inspector: Inspector,
     mainRelation: string | null,
     iconSize: number,
     refresh: DiagramRefreshOptions,
@@ -52,6 +58,8 @@ export const DEFAULT_CREATE_DIAGRAM_OPTIONS: Readonly<CreateDiagramOptions> = {
     element: null,
     nodeStylist: csharpNodeStylist,
     relationStylist: csharpRelationStylist,
+    nodeKindOrder: [...CSHARP_NODE_KIND_ORDER],
+    inspector: CSHARP_INSPECTOR,
     mainRelation: null,
     iconSize: DEFAULT_ICON_ATLAS_OPTIONS.iconSize,
     refresh: {},
@@ -75,7 +83,8 @@ export function createDiagram(options?: Partial<CreateDiagramOptions>): Diagram 
         nodeStylist: opts.nodeStylist,
         edgeStylist: opts.edgeStylist,
         relationStylist: opts.relationStylist,
-        nodeKindOrder: [...csharpNodeKindOrder],
+        nodeKindOrder: opts.nodeKindOrder,
+        inspector: opts.inspector,
         mainRelation: opts.mainRelation ?? Object.keys(opts.model.data?.relations ?? {}).sort()[0] ?? null,
         iconRegistry: iconRegistry,
         glyphProgram: {

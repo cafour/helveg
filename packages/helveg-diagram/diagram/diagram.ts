@@ -1,5 +1,5 @@
 import { HelvegEvent } from "../common/event.ts";
-import { HelvegGraph, expandPathsTo, findRoots, getNodeKinds, toggleNode } from "../model/graph.ts";
+import { HelvegGraph, MULTIGRAPH_NODE_KEY, expandPathsTo, findRoots, getNodeKinds, toggleNode } from "../model/graph.ts";
 import { Coordinates, SigmaNodeEventPayload } from "../deps/sigma.ts";
 import { LogSeverity, ILogger, consoleLogger } from "../model/logger.ts";
 import { ForceAtlas2Progress, ForceAtlas2Supervisor } from "../layout/forceAltas2Supervisor.ts";
@@ -16,6 +16,7 @@ import { DataModel } from "../model/data-model.ts";
 import { EMPTY_DATA_MODEL } from "../model/const.ts";
 import { inferSettings } from "graphology-layout-forceatlas2";
 import { deepCompare } from "../common/deep-compare.ts";
+import { FALLBACK_INSPECTOR, Inspector } from "../model/inspect.ts";
 
 export interface DiagramRefreshOptions {
     selectedRelations?: string[],
@@ -30,6 +31,7 @@ export interface DiagramOptions {
     nodeStylist: NodeStylist,
     relationStylist: RelationStylist,
     edgeStylist?: EdgeStylist,
+    inspector: Inspector,
     nodeKindOrder: string[],
     iconRegistry: Readonly<IconRegistry>,
     refresh: DiagramRefreshOptions,
@@ -66,6 +68,7 @@ export const DEFAULT_DIAGRAM_OPTIONS: Readonly<DiagramOptions> = {
     nodeStylist: fallbackNodeStylist,
     relationStylist: fallbackRelationStylist,
     nodeKindOrder: [],
+    inspector: FALLBACK_INSPECTOR,
     iconRegistry: EMPTY_ICON_REGISTRY,
     refresh: {},
     forceAtlas2: DEFAULT_FORCE_ATLAS2_OPTIONS
@@ -125,6 +128,7 @@ export class Diagram {
                     this._nodeKeyTypes[k] = propTypes.values().next().value ?? "string";
                 }
             });
+            Object.entries(this._model.data.nodes).forEach(([key, value]) => (value as any)[MULTIGRAPH_NODE_KEY] = key);
         }
         this.events.modelChanged.trigger(value);
 

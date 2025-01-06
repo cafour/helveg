@@ -1,3 +1,4 @@
+import { MULTIGRAPH_NODE_KEY } from "../global.ts";
 import { PizzaIcons } from "../model/const.ts";
 import { MultigraphNode } from "../model/data-model.ts";
 import { NodeStyle, FireStatus } from "../model/style.ts";
@@ -187,6 +188,7 @@ export interface CSharpNode extends MultigraphNode {
     instanceMemberCount?: number,
     staticMemberCount?: number,
     isStatic?: boolean
+    [MULTIGRAPH_NODE_KEY]: string;
 }
 
 export const FALLBACK_STYLE: NodeStyle = {
