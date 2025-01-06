@@ -36,7 +36,8 @@
     let layoutOptions = getContext<Writable<LayoutOptions>>("layoutOptions");
     let dataOptions = getContext<Writable<DataOptions>>("dataOptions");
 
-    $: kinds = getNodeKinds($model.data);
+    $: kinds = getNodeKinds($model.data)
+        .sort((a, b) => diagram.options.nodeKindOrder.indexOf(a) - diagram.options.nodeKindOrder.indexOf(b));
 
     function getNodeKindIcon(kind: string): string {
         const style = diagram.nodeStylist({

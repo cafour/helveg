@@ -36,7 +36,7 @@
     let items: TreeViewItem[];
     $: {
         items = getForestItems(
-            getForest($graph, $layoutOptions.tidyTree.relation ?? "declares"),
+            getForest($graph, $layoutOptions.tidyTree.relation ?? "declares", state.diagram.options.nodeKindOrder),
         ) as TreeViewItem[];
     }
 

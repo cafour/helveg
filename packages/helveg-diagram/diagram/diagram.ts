@@ -30,6 +30,7 @@ export interface DiagramOptions {
     nodeStylist: NodeStylist,
     relationStylist: RelationStylist,
     edgeStylist?: EdgeStylist,
+    nodeKindOrder: string[],
     iconRegistry: Readonly<IconRegistry>,
     refresh: DiagramRefreshOptions,
     forceAtlas2: ForceAtlas2Options
@@ -64,6 +65,7 @@ export const DEFAULT_DIAGRAM_OPTIONS: Readonly<DiagramOptions> = {
     glyphProgram: DEFAULT_GLYPH_PROGRAM_OPTIONS,
     nodeStylist: fallbackNodeStylist,
     relationStylist: fallbackRelationStylist,
+    nodeKindOrder: [],
     iconRegistry: EMPTY_ICON_REGISTRY,
     refresh: {},
     forceAtlas2: DEFAULT_FORCE_ATLAS2_OPTIONS

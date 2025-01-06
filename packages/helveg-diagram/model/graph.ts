@@ -152,7 +152,7 @@ export interface HelvegForest {
     roots: HelvegTree[]
 }
 
-export function getForest(graph: HelvegGraph | undefined, relation: string): HelvegForest {
+export function getForest(graph: HelvegGraph | undefined, relation: string, nodeKindOrder?: string[]): HelvegForest {
     if (graph === undefined) {
         return { roots: [] };
     }
@@ -166,14 +166,19 @@ export function getForest(graph: HelvegGraph | undefined, relation: string): Hel
                 .filter(dst => dst != undefined));
 
         function convertD3Node(node: HierarchyNode<string>): HelvegTree {
+            let children = undefined;
+            if (node.children) {
+                children = node.children
+                    .map(convertD3Node)
+                    .sort((a, b) => (a.node.label ?? "").localeCompare(b.node.label ?? ""));
+                if (nodeKindOrder && nodeKindOrder.length > 0) {
+                    children.sort((a, b) => nodeKindOrder.indexOf(a.node.kind!) - nodeKindOrder.indexOf(b.node.kind!));
+                }
+            }
             return {
                 id: node.data,
                 node: graph!.getNodeAttributes(node.data),
-                children: node.children
-                    ? node.children
-                        .map(convertD3Node)
-                        .sort((a, b) => (a.node.label ?? "").localeCompare(b.node.label ?? ""))
-                    : undefined
+                children: children
             };
         }
 
