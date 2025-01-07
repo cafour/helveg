@@ -9,7 +9,7 @@
 </script>
 
 <div class="node-inspector flex flex-col gap-4">
-    <div class="expression flex flex-row flex-wrap">
+    <div class="expression flex flex-row flex-wrap text-sm">
         {#each inspection.expression.tokens as token}
             <code class="monospace {token.kind}">{token.text.replaceAll(/\s+/g, '\xa0')}</code>
         {/each}
