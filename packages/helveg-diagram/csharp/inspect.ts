@@ -1,13 +1,16 @@
 import { MULTIGRAPH_NODE_KEY } from "../global.ts";
 import { Multigraph } from "../model/data-model.ts";
-import { FALLBACK_INSPECTOR, Inspection, InspectionExpression, InspectionTokenKind, Inspector } from "../model/inspect.ts";
-import { CSharpNode, EntityKind } from "./model.ts";
+import { FALLBACK_INSPECTOR, Inspection, InspectionExpression, InspectionToken, InspectionTokenKind, Inspector, keyword, SPACE, trivia, type } from "../model/inspect.ts";
+import { CSharpNode, EntityKind, MemberAccessibility, TypeKind } from "./model.ts";
 
 export const CSHARP_INSPECTOR: Inspector = (graph, node) => {
     const result: Inspection = FALLBACK_INSPECTOR(graph, node);
     switch (node.kind) {
         case EntityKind.Namespace:
             result.expression = inspectNamespace(graph, node as CSharpNode);
+            break;
+        case EntityKind.Type:
+            result.expression = inspectType(graph, node as CSharpNode);
             break;
     }
 
@@ -33,7 +36,7 @@ function inspectNamespace(graph: Multigraph, node: CSharpNode): InspectionExpres
             ]
         }
     }
-    
+
     const expression = {
         tokens: [
             {
@@ -73,5 +76,91 @@ function inspectNamespace(graph: Multigraph, node: CSharpNode): InspectionExpres
     }
     appendNamespaceName(node);
 
+    return expression;
+}
+
+const ACCESSIBILITY_SYNTAX: Record<MemberAccessibility, readonly InspectionToken[]> = {
+    Invalid: [keyword("<invalid>")],
+    Internal: [keyword("internal")],
+    Private: [keyword("private")],
+    Protected: [keyword("protected")],
+    ProtectedAndInternal: [keyword("private"), SPACE, keyword("protected")],
+    ProtectedOrInternal: [keyword("protected"), SPACE, keyword("internal")],
+    Public: [keyword("public")],
+};
+
+type RemoveIndex<T> = {
+    [K in keyof T as
+    string extends K
+    ? never
+    : number extends K
+    ? never
+    : symbol extends K
+    ? never
+    : K
+    ]: T[K];
+};
+
+function modifier(
+    node: CSharpNode,
+    property: keyof RemoveIndex<CSharpNode> & string,
+    keywordName: string,
+    appendSpace: boolean = true
+): InspectionToken[] {
+    if (!node[property]) {
+        return [];
+    }
+    const keywordToken = keyword(keywordName, property);
+    if (appendSpace) {
+        return [keywordToken, SPACE];
+    }
+
+    return [keywordToken];
+}
+
+function inspectType(graph: Multigraph, node: CSharpNode): InspectionExpression {
+    const expression: InspectionExpression = {
+        tokens: []
+    };
+
+    if (node.accessibility) {
+        expression.tokens.push(...ACCESSIBILITY_SYNTAX[node.accessibility]
+            .map(t => { return { ...t, associatedPropertyName: "accessibility" }; }));
+        expression.tokens.push(SPACE);
+    }
+
+    expression.tokens.push(...modifier(node, "isStatic", "static"));
+    if (node.typeKind === TypeKind.Class) {
+        expression.tokens.push(...modifier(node, "isSealed", "sealed"));
+    }
+    expression.tokens.push(...modifier(node, "isReadOnly", "readonly"));
+    expression.tokens.push(...modifier(node, "isVirtual", "virtual"));
+    expression.tokens.push(...modifier(node, "isAbstract", "abstract"));
+    
+    switch(node.typeKind) {
+        case TypeKind.Class:
+            if (node.isRecord) {
+                expression.tokens.push(keyword("record", "isRecord"));
+            } else {
+                expression.tokens.push(keyword("class", "typeKind"));
+            }
+            expression.tokens.push(SPACE);
+            break;
+        case TypeKind.Struct:
+            expression.tokens.push(...modifier(node, "isRecord", "record"));
+            expression.tokens.push(keyword("struct", "typeKind"), SPACE);
+            break;
+        case TypeKind.Enum:
+            expression.tokens.push(keyword("enum", "typeKind"), SPACE);
+            break;
+        case TypeKind.Delegate:
+            expression.tokens.push(keyword("delegate", "typeKind"), SPACE);
+            break;
+        case TypeKind.Interface:
+            expression.tokens.push(keyword("interface", "typeKind"), SPACE);
+            break;
+    }
+
+    expression.tokens.push(type(node.name ?? "<unknown>", "name"));
     return expression;
 }

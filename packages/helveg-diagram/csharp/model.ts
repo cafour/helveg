@@ -188,6 +188,11 @@ export interface CSharpNode extends MultigraphNode {
     instanceMemberCount?: number,
     staticMemberCount?: number,
     isStatic?: boolean
+    isSealed?: boolean;
+    isVirtual?: boolean;
+    isReadOnly?: boolean;
+    isAbstract?: boolean;
+    isRecord?: boolean;
     [MULTIGRAPH_NODE_KEY]: string;
 }
 

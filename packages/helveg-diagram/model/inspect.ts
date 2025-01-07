@@ -38,3 +38,37 @@ export const FALLBACK_INSPECTOR: Inspector = (_graph, node) => {
         }
     };
 }
+
+export const SPACE: Readonly<InspectionToken> = trivia(" ");
+
+export function trivia(text: string, associatedPropertyName?: string): InspectionToken {
+    return {
+        kind: InspectionTokenKind.Trivia,
+        text: text,
+        associatedPropertyName: associatedPropertyName
+    };
+}
+
+export function keyword(text: string, associatedPropertyName?: string): InspectionToken {
+    return {
+        kind: InspectionTokenKind.Keyword,
+        text: text,
+        associatedPropertyName: associatedPropertyName
+    };
+}
+
+export function identifier(text: string, associatedPropertyName?: string): InspectionToken {
+    return {
+        kind: InspectionTokenKind.Identifier,
+        text: text,
+        associatedPropertyName: associatedPropertyName
+    };
+}
+
+export function type(text: string, associatedPropertyName?: string): InspectionToken {
+    return {
+        kind: InspectionTokenKind.Type,
+        text: text,
+        associatedPropertyName: associatedPropertyName
+    };
+}
