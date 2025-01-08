@@ -195,6 +195,7 @@ export interface CSharpNode extends MultigraphNode {
     isAbstract?: boolean;
     isRecord?: boolean;
     isNested?: boolean;
+    arity?: number;
     [MULTIGRAPH_NODE_KEY]: string;
 }
 

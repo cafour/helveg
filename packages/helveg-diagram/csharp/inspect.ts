@@ -17,6 +17,8 @@ export const CSHARP_INSPECTOR: Inspector = (graph, node) => {
     return result;
 };
 
+export const MISSING_NAME = "<missing>";
+
 function walkBackwards(
     graph: Multigraph,
     node: CSharpNode,
@@ -24,7 +26,7 @@ function walkBackwards(
     relation: string,
     stopCondition: (node: CSharpNode) => boolean,
     tokenFactory: TokenFactory = identifier,
-    textGetter = (node: CSharpNode) => node.name ?? "<missing>",
+    textGetter = (node: CSharpNode) => node.name ?? MISSING_NAME,
 ): InspectionToken[] {
     const tokens: InspectionToken[] = [];
 
@@ -164,6 +166,25 @@ function inspectType(graph: Multigraph, node: CSharpNode): InspectionExpression 
         ));
     } else {
         expression.tokens.push(type(node.name ?? "<unknown>", "name"));
+    }
+
+    if (node.arity !== undefined && node.arity > 0) {
+        expression.tokens.push(trivia("<"));
+
+        const typeParameters = Object.values(graph.relations["declares"].edges ?? {})
+            .filter(e => e.src === node[MULTIGRAPH_NODE_KEY] && graph.nodes[e.dst!].kind === EntityKind.TypeParameter)
+            .map(e => graph.nodes[e.dst!] as CSharpNode);
+        for (let i = 0; i < typeParameters.length; ++i) {
+            const typeParameter = typeParameters[i];
+
+            expression.tokens.push(type(typeParameter.name ?? MISSING_NAME));
+
+            if (i != typeParameters.length - 1) {
+                expression.tokens.push(trivia(", "));
+            }
+        }
+
+        expression.tokens.push(trivia(">"));
     }
     return expression;
 }
