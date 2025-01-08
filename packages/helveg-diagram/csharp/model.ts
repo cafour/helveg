@@ -193,6 +193,7 @@ export interface CSharpNode extends MultigraphNode {
     isReadOnly?: boolean;
     isAbstract?: boolean;
     isRecord?: boolean;
+    isNested?: boolean;
     [MULTIGRAPH_NODE_KEY]: string;
 }
 

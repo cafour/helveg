@@ -41,6 +41,8 @@ export const FALLBACK_INSPECTOR: Inspector = (_graph, node) => {
 
 export const SPACE: Readonly<InspectionToken> = trivia(" ");
 
+export type TokenFactory = (text: string, associatedPropertyName?: string) => InspectionToken;
+
 export function trivia(text: string, associatedPropertyName?: string): InspectionToken {
     return {
         kind: InspectionTokenKind.Trivia,
