@@ -266,7 +266,7 @@
             </label>
         {/each}
     </Subpanel>
-    <Subpanel name="Node Kinds" hint="Allows you to include or exclude nodes based on their kind.">
+    <Subpanel name="Node Kinds" hint="Allows you to include or exclude nodes based on their kind. The list is sorted hierarchically with the 'largest' nodes at the top.">
         <!-- svelte-ignore a11y-label-has-associated-control -->
         <label>
             <ToggleAllCheckbox
