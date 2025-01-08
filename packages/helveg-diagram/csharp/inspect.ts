@@ -1,6 +1,6 @@
 import { MULTIGRAPH_NODE_KEY } from "../global.ts";
 import { Multigraph } from "../model/data-model.ts";
-import { FALLBACK_INSPECTOR, Inspection, InspectionExpression, InspectionToken, InspectionTokenKind, Inspector, keyword, SPACE, trivia, type } from "../model/inspect.ts";
+import { FALLBACK_INSPECTOR, identifier, Inspection, InspectionExpression, InspectionToken, InspectionTokenKind, Inspector, keyword, SPACE, TokenFactory, trivia, type } from "../model/inspect.ts";
 import { CSharpNode, EntityKind, MemberAccessibility, TypeKind } from "./model.ts";
 
 export const CSHARP_INSPECTOR: Inspector = (graph, node) => {
@@ -17,64 +17,56 @@ export const CSHARP_INSPECTOR: Inspector = (graph, node) => {
     return result;
 };
 
-function inspectNamespace(graph: Multigraph, node: CSharpNode): InspectionExpression {
-    if (node.name === "global") {
-        return {
-            tokens: [
-                {
-                    text: "global",
-                    kind: InspectionTokenKind.Keyword
-                },
-                {
-                    text: " ",
-                    kind: InspectionTokenKind.Trivia
-                },
-                {
-                    text: "namespace",
-                    kind: InspectionTokenKind.Keyword
-                },
-            ]
-        }
-    }
+function walkBackwards(
+    graph: Multigraph,
+    node: CSharpNode,
+    separator: string,
+    relation: string,
+    stopCondition: (node: CSharpNode) => boolean,
+    tokenFactory: TokenFactory = identifier,
+    textGetter = (node: CSharpNode) => node.name ?? "<missing>",
+): InspectionToken[] {
+    const tokens: InspectionToken[] = [];
 
-    const expression = {
-        tokens: [
-            {
-                text: "namespace",
-                kind: InspectionTokenKind.Keyword
-            },
-            {
-                text: " ",
-                kind: InspectionTokenKind.Trivia
-            }
-        ]
-    };
-
-    function appendNamespaceName(current: CSharpNode, depth: number = 0) {
-        if (current.name === "global") {
+    function appendName(current: CSharpNode, depth: number = 0) {
+        if (stopCondition(current)) {
             return;
         }
 
-        const parent = Object.values(graph.relations["declares"].edges ?? {})
+        const parent = Object.values(graph.relations[relation].edges ?? {})
             .filter(e => e.dst === current[MULTIGRAPH_NODE_KEY])[0]?.src;
         if (parent) {
-            appendNamespaceName(graph.nodes[parent] as CSharpNode, depth + 1);
+            appendName(graph.nodes[parent] as CSharpNode, depth + 1);
         }
 
-        expression.tokens.push({
-            kind: InspectionTokenKind.Identifier,
-            text: current.name ?? "<missing>"
-        });
+        tokens.push(tokenFactory(textGetter(current)));
 
         if (depth !== 0) {
-            expression.tokens.push({
+            tokens.push({
                 kind: InspectionTokenKind.Trivia,
-                text: "."
+                text: separator
             });
         }
 
     }
-    appendNamespaceName(node);
+
+    appendName(node);
+    return tokens;
+}
+
+function inspectNamespace(graph: Multigraph, node: CSharpNode): InspectionExpression {
+    if (node.name === "global") {
+        return {
+            tokens: [keyword("global", "isGlobal"), trivia(" "), keyword("namespace", "kind")]
+        }
+    }
+
+    const expression = {
+        tokens: [keyword("namespace", "kind"), trivia(" ")]
+    };
+
+    expression.tokens.push(
+        ...walkBackwards(graph, node, ".", "declares", n => n.kind != EntityKind.Namespace || n.name == "global"));
 
     return expression;
 }
@@ -136,8 +128,8 @@ function inspectType(graph: Multigraph, node: CSharpNode): InspectionExpression 
     expression.tokens.push(...modifier(node, "isReadOnly", "readonly"));
     expression.tokens.push(...modifier(node, "isVirtual", "virtual"));
     expression.tokens.push(...modifier(node, "isAbstract", "abstract"));
-    
-    switch(node.typeKind) {
+
+    switch (node.typeKind) {
         case TypeKind.Class:
             if (node.isRecord) {
                 expression.tokens.push(keyword("record", "isRecord"));
@@ -161,6 +153,17 @@ function inspectType(graph: Multigraph, node: CSharpNode): InspectionExpression 
             break;
     }
 
-    expression.tokens.push(type(node.name ?? "<unknown>", "name"));
+    if (node.isNested) {
+        expression.tokens.push(...walkBackwards(
+            graph,
+            node,
+            ".",
+            "declares",
+            n => n.kind != EntityKind.Type,
+            type
+        ));
+    } else {
+        expression.tokens.push(type(node.name ?? "<unknown>", "name"));
+    }
     return expression;
 }
