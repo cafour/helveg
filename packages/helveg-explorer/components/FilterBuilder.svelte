@@ -37,7 +37,7 @@
                             ? ""
                             : nodeKeyTypes[e.currentTarget.value] === "number"
                               ? 0
-                              : false,
+                              : true,
                 },
             ];
             e.currentTarget.value = "";
@@ -82,8 +82,8 @@
                     (entry.value =
                         e.currentTarget.value === "true" ? true : false)}
             >
-                <option value="false">false</option>
                 <option value="true">true</option>
+                <option value="false">false</option>
             </select>
         {:else if nodeKeyTypes[entry.property] === "number"}
             <input
