@@ -15,6 +15,9 @@ export const CSHARP_INSPECTOR: Inspector = (graph, node) => {
         case EntityKind.Field:
             result.expression = inspectField(graph, node as CSharpNode);
             break;
+        case EntityKind.Property:
+            result.expression = inspectProperty(graph, node as CSharpNode);
+            break;
     }
 
     return result;
@@ -219,6 +222,46 @@ function inspectField(graph: Multigraph, node: CSharpNode): InspectionExpression
 
     expression.tokens.push(name(node));
     expression.tokens.push(trivia(";"));
+
+    return expression;
+}
+
+function inspectProperty(graph: Multigraph, node: CSharpNode): InspectionExpression {
+    const expression: InspectionExpression = {
+        tokens: []
+    };
+
+    if (node.accessibility) {
+        expression.tokens.push(...ACCESSIBILITY_SYNTAX[node.accessibility]
+            .map(t => { return { ...t, associatedPropertyName: "accessibility" }; }));
+        expression.tokens.push(SPACE);
+    }
+
+    expression.tokens.push(...modifier(node, "isStatic", "static"));
+    expression.tokens.push(...modifier(node, "isVirtual", "virtual"));
+    expression.tokens.push(...modifier(node, "isSealed", "sealed"));
+    expression.tokens.push(...modifier(node, "isOverride", "override"));
+    expression.tokens.push(...modifier(node, "isReadOnly", "readonly"));
+    expression.tokens.push(...modifier(node, "isAbstract", "abstract"));
+    expression.tokens.push(...modifier(node, "isExtern", "extern"));
+
+    // TODO: look up the type through typeof instead of relying on the hint
+    expression.tokens.push(type(node.propertyType ?? MISSING_NAME, "propertyType"));
+
+    expression.tokens.push(trivia(" "));
+
+    expression.tokens.push(name(node));
+    
+    expression.tokens.push(trivia(" { "));
+    if (node.isWriteOnly !== true) {
+        expression.tokens.push(keyword("get"));
+        expression.tokens.push(trivia("; "));
+    }
+    if (node.isReadOnly !== true) {
+        expression.tokens.push(keyword("set"));
+        expression.tokens.push(trivia("; "));
+    }
+    expression.tokens.push(trivia("}"));
 
     return expression;
 }
