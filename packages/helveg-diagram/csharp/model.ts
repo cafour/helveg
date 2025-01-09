@@ -208,6 +208,7 @@ export interface CSharpNode extends MultigraphNode {
     parameterType?: string;
     arity?: number;
     parameterCount?: number;
+    path?: string,
     [MULTIGRAPH_NODE_KEY]: string;
 }
 
