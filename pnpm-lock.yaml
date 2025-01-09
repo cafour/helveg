@@ -103,9 +103,6 @@ importers:
       '@types/node':
         specifier: ^20.12.8
         version: 20.12.8
-      '@types/path-parse':
-        specifier: ^1.0.22
-        version: 1.0.22
       '@types/yargs':
         specifier: ^17.0.32
         version: 17.0.32
@@ -139,9 +136,6 @@ importers:
       marked:
         specifier: ^12.0.2
         version: 12.0.2
-      path-parse:
-        specifier: ^1.0.7
-        version: 1.0.7
       postcss:
         specifier: ^8.4.38
         version: 8.4.38
@@ -974,9 +968,6 @@ packages:
 
   '@types/normalize-package-data@2.4.4':
     resolution: {integrity: sha512-37i+OaWTh9qeK4LSHPsyRC7NahnGotNuZvjLSgcPzblpHB3rrCJxAOgI5gCdKm7coonsaX1Of0ILiTcnZjbfxA==}
-
-  '@types/path-parse@1.0.22':
-    resolution: {integrity: sha512-x4XVzFMVpRfuN4AWhEeCaPi3+LwK3lYEpedIYILfF8oHD1b6Jx0GRin8UTFdm+GsHMrmQUZiSMK2fZG6mmBWeA==}
 
   '@types/pug@2.0.10':
     resolution: {integrity: sha512-Sk/uYFOBAB7mb74XcpizmH0KOR2Pv3D2Hmrh1Dmy5BmK3MpdSa5kqZcg6EKBdklU0bFXX9gCfzvpnyUehrPIuA==}
@@ -3401,10 +3392,6 @@ snapshots:
       undici-types: 6.19.8
 
   '@types/normalize-package-data@2.4.4': {}
-
-  '@types/path-parse@1.0.22':
-    dependencies:
-      '@types/node': 20.17.10
 
   '@types/pug@2.0.10': {}
 

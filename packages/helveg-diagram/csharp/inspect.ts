@@ -1,11 +1,15 @@
 import { MULTIGRAPH_NODE_KEY } from "../global.ts";
 import { Multigraph } from "../model/data-model.ts";
-import { FALLBACK_INSPECTOR, identifier, Inspection, InspectionExpression, InspectionToken, InspectionTokenKind, Inspector, keyword, MISSING_TEXT as MISSING_TEXT, name, SPACE, TokenFactory, trivia, type } from "../model/inspect.ts";
+import { FALLBACK_INSPECTOR, identifier, Inspection, InspectionExpression, InspectionToken, InspectionTokenKind, Inspector, keyword, MISSING_TEXT as MISSING_TEXT, name, fullPath, SPACE, TokenFactory, trivia, type } from "../model/inspect.ts";
 import { CSharpNode, EntityKind, MemberAccessibility, TypeKind } from "./model.ts";
 
 export const CSHARP_INSPECTOR: Inspector = (graph, node) => {
     const result: Inspection = FALLBACK_INSPECTOR(graph, node);
     switch (node.kind) {
+        case EntityKind.Solution:
+        case EntityKind.Project:
+            result.expression.tokens = fullPath(node.path, InspectionTokenKind.Identifier, "path");
+            break;
         case EntityKind.Namespace:
             result.expression = inspectNamespace(graph, node as CSharpNode);
             break;
