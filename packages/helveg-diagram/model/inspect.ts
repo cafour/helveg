@@ -25,15 +25,13 @@ export enum InspectionTokenKind {
 export type Inspector = (graph: Multigraph, node: MultigraphNode) => Inspection;
 
 export const FALLBACK_INSPECTOR: Inspector = (_graph, node) => {
-    const name = node.name ?? (node as any)[MULTIGRAPH_NODE_KEY] ?? "Unknown";
     return {
         expression: {
             tokens: [
-                {
-                    kind: InspectionTokenKind.Identifier,
-                    text: name,
-                    associatedPropertyName: node.name ? "name" : undefined
-                }
+                name(node, InspectionTokenKind.Identifier, "name"),
+                trivia(" ("),
+                keyword(node.kind ?? "unknown", "kind"),
+                trivia(")")
             ]
         }
     };
@@ -71,6 +69,20 @@ export function type(text: string, associatedPropertyName?: string): InspectionT
     return {
         kind: InspectionTokenKind.Type,
         text: text,
+        associatedPropertyName: associatedPropertyName
+    };
+}
+
+export const MISSING_NAME = "<missing>";
+
+export function name(
+    node: MultigraphNode,
+    kind: InspectionTokenKind = InspectionTokenKind.Identifier,
+    associatedPropertyName: string = "name"
+): InspectionToken {
+    return {
+        text: node.name ?? MISSING_NAME,
+        kind: kind,
         associatedPropertyName: associatedPropertyName
     };
 }

@@ -1,6 +1,6 @@
 import { MULTIGRAPH_NODE_KEY } from "../global.ts";
 import { Multigraph } from "../model/data-model.ts";
-import { FALLBACK_INSPECTOR, identifier, Inspection, InspectionExpression, InspectionToken, InspectionTokenKind, Inspector, keyword, SPACE, TokenFactory, trivia, type } from "../model/inspect.ts";
+import { FALLBACK_INSPECTOR, identifier, Inspection, InspectionExpression, InspectionToken, InspectionTokenKind, Inspector, keyword, MISSING_NAME, name, SPACE, TokenFactory, trivia, type } from "../model/inspect.ts";
 import { CSharpNode, EntityKind, MemberAccessibility, TypeKind } from "./model.ts";
 
 export const CSHARP_INSPECTOR: Inspector = (graph, node) => {
@@ -12,12 +12,13 @@ export const CSHARP_INSPECTOR: Inspector = (graph, node) => {
         case EntityKind.Type:
             result.expression = inspectType(graph, node as CSharpNode);
             break;
+        case EntityKind.Field:
+            result.expression = inspectField(graph, node as CSharpNode);
+            break;
     }
 
     return result;
 };
-
-export const MISSING_NAME = "<missing>";
 
 function walkBackwards(
     graph: Multigraph,
@@ -112,6 +113,23 @@ function modifier(
     return [keywordToken];
 }
 
+function typeName(graph: Multigraph, node: CSharpNode): InspectionToken[] {
+    const tokens = [];
+    if (node.isNested) {
+        tokens.push(...walkBackwards(
+            graph,
+            node,
+            ".",
+            "declares",
+            n => n.kind != EntityKind.Type,
+            type
+        ));
+    } else {
+        tokens.push(name(node, InspectionTokenKind.Type));
+    }
+    return tokens;
+}
+
 function inspectType(graph: Multigraph, node: CSharpNode): InspectionExpression {
     const expression: InspectionExpression = {
         tokens: []
@@ -155,18 +173,7 @@ function inspectType(graph: Multigraph, node: CSharpNode): InspectionExpression 
             break;
     }
 
-    if (node.isNested) {
-        expression.tokens.push(...walkBackwards(
-            graph,
-            node,
-            ".",
-            "declares",
-            n => n.kind != EntityKind.Type,
-            type
-        ));
-    } else {
-        expression.tokens.push(type(node.name ?? "<unknown>", "name"));
-    }
+    expression.tokens.push(...typeName(graph, node));
 
     if (node.arity !== undefined && node.arity > 0) {
         expression.tokens.push(trivia("<"));
@@ -186,5 +193,32 @@ function inspectType(graph: Multigraph, node: CSharpNode): InspectionExpression 
 
         expression.tokens.push(trivia(">"));
     }
+    return expression;
+}
+
+function inspectField(graph: Multigraph, node: CSharpNode): InspectionExpression {
+    const expression: InspectionExpression = {
+        tokens: []
+    };
+
+    if (node.accessibility) {
+        expression.tokens.push(...ACCESSIBILITY_SYNTAX[node.accessibility]
+            .map(t => { return { ...t, associatedPropertyName: "accessibility" }; }));
+        expression.tokens.push(SPACE);
+    }
+
+    expression.tokens.push(...modifier(node, "isStatic", "static"));
+    expression.tokens.push(...modifier(node, "isReadOnly", "readonly"));
+    expression.tokens.push(...modifier(node, "isVolatile", "volatile"));
+    expression.tokens.push(...modifier(node, "isConst", "const"));
+
+    // TODO: look up the type through typeof instead of relying on the hint
+    expression.tokens.push(type(node.fieldType ?? MISSING_NAME, "fieldType"));
+
+    expression.tokens.push(trivia(" "));
+
+    expression.tokens.push(name(node));
+    expression.tokens.push(trivia(";"));
+
     return expression;
 }
