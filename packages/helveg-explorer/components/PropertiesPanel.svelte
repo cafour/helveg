@@ -21,10 +21,12 @@
                     k !== "comments" &&
                     !k.startsWith("$"),
             ),
-        ].map((p) => ({
-            key: p[0]!,
-            value: p[1],
-        })) ?? [];
+        ]
+            .map((p) => ({
+                key: p[0]!,
+                value: p[1],
+            }))
+            .sort((a, b) => a.key.localeCompare(b.key)) ?? [];
     $: diagnostics = node?.diagnostics ?? [];
     $: comments = node?.comments ?? [];
 
@@ -70,9 +72,6 @@
                 {/each}
             </Subpanel>
         {/if}
-        <Subpanel>
-            <KeyValueList bind:items={nodeItems} />
-        </Subpanel>
         {#if diagnostics.length > 0}
             <Subpanel name="Diagnostics" indent={true} bodyClass="gap-8">
                 {#each diagnostics as diagnostic}
@@ -89,5 +88,8 @@
                 {/each}
             </Subpanel>
         {/if}
+        <Subpanel name="Details">
+            <KeyValueList bind:items={nodeItems} />
+        </Subpanel>
     {/if}
 </Panel>

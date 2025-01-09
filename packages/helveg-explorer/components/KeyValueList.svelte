@@ -5,7 +5,7 @@
 </script>
 
 <dl class="flex flex-col overflow-hidden {additionalClass}">
-    {#each items as item}
+    {#each items as item (item.key)}
         {#if item.value !== null}
             <div
                 class="flex flex-row flex-wrap space-nowrap gap-1 justify-content-between"
