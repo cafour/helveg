@@ -9,11 +9,27 @@
     export let bodyClass: string = "";
     export let icon: string | null = null;
     export let hint: string | null = null!;
+    export let isCollapsible: boolean = true;
+    export let collapsed: boolean = false;
 </script>
 
 <div class="subpanel flex flex-col {additionalClass}">
     {#if name !== null}
-        <div class="subpanel-header">
+        <button
+            class="subpanel-header px-4 flex flex-row align-items-center gap-4"
+            on:click={() => (collapsed = !collapsed)}
+            title={collapsed ? "Expand" : "Collapse"}
+            disabled={!isCollapsible}
+        >
+            {#if isCollapsible}
+                <button>
+                    <Icon
+                        name={collapsed
+                            ? "vscode:chevron-right"
+                            : "vscode:chevron-down"}
+                    />
+                </button>
+            {/if}
             {#if icon !== null}
                 <Icon name={icon} title={name} />
             {/if}
@@ -21,9 +37,13 @@
             {#if hint !== null}
                 <Hint text={hint} />
             {/if}
-        </div>
+        </button>
     {/if}
-    <div class="subpanel-body flex flex-col {bodyClass}" class:indent>
+    <div
+        class="subpanel-body flex flex-col {bodyClass}"
+        class:indent
+        class:hidden={collapsed}
+    >
         <slot />
     </div>
 </div>
