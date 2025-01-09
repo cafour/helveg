@@ -141,7 +141,7 @@ public class RoslynMiner : IMiner
         string? path,
         CancellationToken cancellationToken = default)
     {
-        var msbuildWorkspace = MCA.MSBuild.MSBuildWorkspace.Create(Options.MSBuildProperties);
+        var msbuildWorkspace = MSBuildWorkspace.Create(Options.MSBuildProperties);
 
         if (string.IsNullOrEmpty(path))
         {
