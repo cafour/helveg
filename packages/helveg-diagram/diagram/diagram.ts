@@ -694,6 +694,8 @@ export class Diagram {
                 return;
             }
 
+            this._sigma?.refresh();
+
             this._supervisor = initializeSupervisor(
                 this._graph,
                 this.onSupervisorProgress.bind(this),
