@@ -35,7 +35,8 @@ export interface DiagramOptions {
     nodeKindOrder: string[],
     iconRegistry: Readonly<IconRegistry>,
     refresh: DiagramRefreshOptions,
-    forceAtlas2: ForceAtlas2Options
+    forceAtlas2: ForceAtlas2Options,
+    cursor: CursorOptions,
 }
 
 export interface ForceAtlas2Options {
@@ -51,6 +52,14 @@ export interface ForceAtlas2Options {
     barnesHutTheta?: number;
 }
 
+export interface CursorOptions {
+    defaultCursor: string,
+    hoverCursor: string,
+    shiftHoverCursor?: string,
+    controlHoverCursor?: string;
+    altHoverCursor?: string;
+}
+
 export const DEFAULT_FORCE_ATLAS2_OPTIONS: Readonly<ForceAtlas2Options> = {
     ...inferSettings(1024),
     adjustSizes: true,
@@ -60,6 +69,11 @@ export const DEFAULT_FORCE_ATLAS2_OPTIONS: Readonly<ForceAtlas2Options> = {
     linLogMode: false,
     outboundAttractionDistribution: false,
 };
+
+export const DEFAULT_CURSOR_OPTIONS: Readonly<CursorOptions> = {
+    defaultCursor: "default",
+    hoverCursor: "pointer",
+}
 
 export const DEFAULT_DIAGRAM_OPTIONS: Readonly<DiagramOptions> = {
     logLevel: LogSeverity.Info,
@@ -71,7 +85,8 @@ export const DEFAULT_DIAGRAM_OPTIONS: Readonly<DiagramOptions> = {
     inspector: FALLBACK_INSPECTOR,
     iconRegistry: EMPTY_ICON_REGISTRY,
     refresh: {},
-    forceAtlas2: DEFAULT_FORCE_ATLAS2_OPTIONS
+    forceAtlas2: DEFAULT_FORCE_ATLAS2_OPTIONS,
+    cursor: DEFAULT_CURSOR_OPTIONS
 };
 
 export enum DiagramMode {
@@ -107,6 +122,12 @@ export const DEFAULT_AUTO_LAYOUT_OPTIONS: AutoLayoutOptions = {
     roughIterationFactor: 1.5,
     adjustIterationFactor: 10,
 };
+
+export interface ModifierKeyState {
+    control: boolean;
+    alt: boolean;
+    shift: boolean;
+}
 
 export class Diagram {
     private _element: HTMLElement;
@@ -231,6 +252,9 @@ export class Diagram {
         this.restyleGraph();
     }
 
+    get cursorOptions(): Readonly<CursorOptions> { return this.options.cursor; }
+    set cursorOptions(value: CursorOptions) { this._options.cursor = value; }
+
     // used when building JS filters
     // TODO: likely move to its own place somewhere else
     private _nodeKeys: string[] = [];
@@ -242,6 +266,13 @@ export class Diagram {
     // used for refreshing
     private _lastRefreshOptions: DiagramRefreshOptions;
 
+    private _modifierKeyState: ModifierKeyState = {
+        alt: false,
+        control: false,
+        shift: false
+    };
+    get modifierKeyState(): Readonly<ModifierKeyState> { return this._modifierKeyState; }
+
     constructor(element: HTMLElement, options?: Partial<DiagramOptions>) {
         this._element = element;
         this._element.style.position = "relative";
@@ -251,6 +282,8 @@ export class Diagram {
         this._sigmaElement.style.width = "100%";
         this._sigmaElement.style.height = "100%";
         this._element.appendChild(this._sigmaElement);
+        window.addEventListener("keydown", this.onKeyUpDown.bind(this));
+        window.addEventListener("keyup", this.onKeyUpDown.bind(this));
 
         this._options = { ...DEFAULT_DIAGRAM_OPTIONS, ...options };
         this._logger = consoleLogger("diagram", this._options.logLevel);
@@ -759,6 +792,8 @@ export class Diagram {
             this.onUp.bind(this),
             this.onMove.bind(this)
         );
+        this._sigma.on("enterNode", this.onNodeEnter.bind(this));
+        this._sigma.on("leaveNode", this.onNodeLeave.bind(this));
         this.reconfigureSigma();
     }
 
@@ -828,6 +863,22 @@ export class Diagram {
         }
     }
 
+    private onNodeEnter(): void {
+        if (this.cursorOptions.altHoverCursor && this._modifierKeyState.alt) {
+            this.element.style.cursor = this.cursorOptions.altHoverCursor;
+        } else if (this.cursorOptions.controlHoverCursor && this._modifierKeyState.control) {
+            this.element.style.cursor = this.cursorOptions.controlHoverCursor;
+        } else if (this.cursorOptions.shiftHoverCursor && this._modifierKeyState.shift) {
+            this.element.style.cursor = this.cursorOptions.shiftHoverCursor;
+        } else {
+            this.element.style.cursor = this.cursorOptions.hoverCursor;
+        }
+    }
+
+    private onNodeLeave(event: SigmaNodeEventPayload): void {
+        this.element.style.cursor = this.cursorOptions.defaultCursor;
+    }
+
     private onDown(_event: Coordinates): void {
         this._gestures.isCaptorDown = true;
         this._gestures.hasPanned = false;
@@ -863,5 +914,17 @@ export class Diagram {
         this._graph.setNodeAttribute(this.draggedNode, "x", pos.x);
         this._graph.setNodeAttribute(this.draggedNode, "y", pos.y);
         return false;
+    }
+
+    private onKeyUpDown(event: KeyboardEvent) {
+        this._modifierKeyState.control = event.getModifierState("Control");
+        this._modifierKeyState.alt = event.getModifierState("Alt");
+        this._modifierKeyState.shift = event.getModifierState("Shift");
+        if (event.key === "Alt") {
+            event.preventDefault();
+        }
+        if (this.hoveredNode) {
+            this.onNodeEnter();
+        }
     }
 }
