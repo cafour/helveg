@@ -24,6 +24,13 @@
     export let diagram: Diagram;
     setContext("diagram", diagram);
 
+    diagram.cursorOptions = {
+        defaultCursor: "default",
+        hoverCursor: "pointer",
+        shiftHoverCursor: "move",
+        altHoverCursor: `url("${diagram.options.iconRegistry.getIconDataUrl("vscode:trash")}"), not-allowed`,
+    };
+
     const state = createExplorerState(rootElement, diagram);
     setContext("state", state);
     setContext("model", state.model);
