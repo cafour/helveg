@@ -36,7 +36,7 @@ void main() {
     v_gap = 0.0f;
     if (a_slices.z > 0.0f) {
         v_gap = u_gap * u_correctionRatio / u_sizeRatio;
-        outerRadius = (a_baseSize + a_slices.z + v_gap) * u_correctionRatio / u_sizeRatio * 2.0;
+        outerRadius = (a_baseSize + a_slices.z + u_gap) * u_correctionRatio / u_sizeRatio * 2.0;
     }
 
     // x2 because the triangle reaches only -0.5 on the left side and we want the triangle to contain the unit circle

@@ -26,6 +26,7 @@ export * from "./model/style.ts";
 export * from "./model/traversal.ts";
 export * from "./rendering/export.ts";
 export * from "./diagram/diagram.ts";
+export * from "./diagram/initializers.ts";
 export * from "./model/data-model.ts";
 export * from "./model/icon-set-model.ts";
 export * from "./model/inspect.ts";
@@ -34,6 +35,11 @@ export * from "./csharp/model.ts";
 export * from "./csharp/inspect.ts";
 export * from "./random.ts";
 export * from "./rendering/node.glyph.ts";
+export * from "./rendering/node.donut.ts";
+export { default as createDonutProgram } from "./rendering/node.donut.ts";
+
+// TODO: This is not the best...
+export type * from "./deps/sigma.ts";
 
 export interface CreateDiagramOptions {
     element: HTMLElement | null,
