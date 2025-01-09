@@ -199,9 +199,15 @@ export interface CSharpNode extends MultigraphNode {
     isVolatile?: boolean;
     isOverride?: boolean;
     isExtern?: boolean;
+    isPartial?: boolean;
+    isAsync?: boolean;
     fieldType?: string;
     propertyType?: string;
+    eventType?: string;
+    returnType?: string;
+    parameterType?: string;
     arity?: number;
+    parameterCount?: number;
     [MULTIGRAPH_NODE_KEY]: string;
 }
 

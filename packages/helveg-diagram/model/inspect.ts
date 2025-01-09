@@ -13,6 +13,7 @@ export interface InspectionToken {
     kind: InspectionTokenKind;
     text: string;
     associatedPropertyName?: string;
+    hint?: string;
 }
 
 export enum InspectionTokenKind {
@@ -73,7 +74,7 @@ export function type(text: string, associatedPropertyName?: string): InspectionT
     };
 }
 
-export const MISSING_NAME = "<missing>";
+export const MISSING_TEXT = "<missing>";
 
 export function name(
     node: MultigraphNode,
@@ -81,7 +82,7 @@ export function name(
     associatedPropertyName: string = "name"
 ): InspectionToken {
     return {
-        text: node.name ?? MISSING_NAME,
+        text: node.name ?? MISSING_TEXT,
         kind: kind,
         associatedPropertyName: associatedPropertyName
     };
