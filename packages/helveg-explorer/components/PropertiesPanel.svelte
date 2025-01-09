@@ -47,6 +47,10 @@
 </script>
 
 <Panel name="Properties" indent={false} id={AppPanels.Properties}>
+    <!-- NB: The inspector is not in the `if` below because of performance. There is a `canvas` in the inspector. -->
+    <Subpanel class={node == null ? "hidden" : undefined}>
+        <NodeInspector {node} />
+    </Subpanel>
     {#if node == null}
         <span class="indent"
             >Click on a node with the <Icon
@@ -54,9 +58,6 @@
             /> tool or in the Tree View to view its properties.</span
         >
     {:else}
-        <Subpanel>
-            <NodeInspector {node} />
-        </Subpanel>
         {#if comments.length > 0}
             <Subpanel name="Comments" indent={false}>
                 {#each comments as comment}
