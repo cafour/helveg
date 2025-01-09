@@ -90,7 +90,7 @@
     class="explorer-svelte flex flex-row h-100p relative pointer-events-none justify-content-between"
     bind:this={rootElement}
 >
-    <div class="diagram-background" />
+    <div class="diagram-background"></div>
 
     <LoadingScreen status={$status} />
 
