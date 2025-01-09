@@ -1,0 +1,8 @@
+<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g transform="matrix(2,0,0,1.98946,0.995068,1.05814)">
+        <rect x="3.002" y="2.987" width="9.001" height="10.053" style="fill:white;"/>
+    </g>
+    <g transform="matrix(2,0,0,2,1,1)">
+        <path d="M10,3L13,3L13,4L12,4L12,13L11,14L4,14L3,13L3,4L2,4L2,3L5,3L5,2C5,1.451 5.451,1 6,1L9,1C9.549,1 10,1.451 10,2L10,3ZM9,2L6,2L6,3L9,3L9,2ZM4,13L11,13L11,4L4,4L4,13ZM6,5L5,5L5,12L6,12L6,5ZM7,5L8,5L8,12L7,12L7,5ZM9,5L10,5L10,12L9,12L9,5Z"/>
+    </g>
+</svg>

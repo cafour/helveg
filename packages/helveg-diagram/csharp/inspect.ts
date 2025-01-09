@@ -28,6 +28,8 @@ export const CSHARP_INSPECTOR: Inspector = (graph, node) => {
             break;
         case EntityKind.Method:
             result.expression = inspectMethod(graph, node as CSharpNode);
+            // TODO: Special case: constructors, static constructors, destructors
+            // TODO: Special case: getters and setters?
             break;
         case EntityKind.Parameter:
             result.expression = inspectParameter(graph, node as CSharpNode);
@@ -220,13 +222,15 @@ function inspectType(graph: Multigraph, node: CSharpNode): InspectionExpression 
     return expression;
 }
 
+const KEYWORD_TYPES = new Set<string>(["string", "int", "long", "float", "double", "void", "byte", "char", "short"]);
+
 function externalType(fullName: string | null | undefined, associatedPropertyName?: string): InspectionToken {
     fullName ??= MISSING_TEXT;
     const lastSeparatorIndex = fullName.lastIndexOf(".");
     // NB: Doesn't work because of generics. :( Needs a parser.
     // const shortName = lastSeparatorIndex !== -1 ? fullName.slice(lastSeparatorIndex + 1) : fullName;
     return {
-        kind: InspectionTokenKind.Type,
+        kind: KEYWORD_TYPES.has(fullName) ? InspectionTokenKind.Keyword : InspectionTokenKind.Type,
         text: fullName,
         associatedPropertyName: associatedPropertyName,
         hint: fullName

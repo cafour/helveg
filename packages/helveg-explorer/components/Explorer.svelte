@@ -28,7 +28,7 @@
         defaultCursor: "default",
         hoverCursor: "pointer",
         shiftHoverCursor: "move",
-        altHoverCursor: `url("${diagram.options.iconRegistry.getIconDataUrl("vscode:trash")}"), not-allowed`,
+        altHoverCursor: `url("${diagram.options.iconRegistry.getIconDataUrl("helveg:cursor-trash")}"), not-allowed`,
     };
 
     const state = createExplorerState(rootElement, diagram);
