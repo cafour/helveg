@@ -284,6 +284,7 @@ export class Diagram {
         this._element.appendChild(this._sigmaElement);
         window.addEventListener("keydown", this.onKeyUpDown.bind(this));
         window.addEventListener("keyup", this.onKeyUpDown.bind(this));
+        window.addEventListener("mousemove", this.updateModifierKeyState.bind(this));
 
         this._options = { ...DEFAULT_DIAGRAM_OPTIONS, ...options };
         this._logger = consoleLogger("diagram", this._options.logLevel);
@@ -863,6 +864,12 @@ export class Diagram {
         }
     }
 
+    private updateModifierKeyState(e: MouseEvent | KeyboardEvent) {
+        this._modifierKeyState.control = e.ctrlKey;
+        this._modifierKeyState.alt = e.altKey;
+        this._modifierKeyState.shift = e.shiftKey;
+    }
+    
     private onNodeEnter(): void {
         if (this.cursorOptions.altHoverCursor && this._modifierKeyState.alt) {
             this.element.style.cursor = this.cursorOptions.altHoverCursor;
@@ -917,12 +924,12 @@ export class Diagram {
     }
 
     private onKeyUpDown(event: KeyboardEvent) {
-        this._modifierKeyState.control = event.getModifierState("Control");
-        this._modifierKeyState.alt = event.getModifierState("Alt");
-        this._modifierKeyState.shift = event.getModifierState("Shift");
+        this.updateModifierKeyState(event);
+
         if (event.key === "Alt") {
             event.preventDefault();
         }
+
         if (this.hoveredNode) {
             this.onNodeEnter();
         }
