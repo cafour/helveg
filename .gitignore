@@ -1,5 +1,6 @@
 *
 !.gitignore
+!.gitattributes
 
 # directories
 !*/
@@ -67,6 +68,7 @@
 
 # images
 !*.png
+!*.afdesign
 
 # cmake
 !*.cmake
