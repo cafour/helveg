@@ -12,11 +12,13 @@ in float v_hatchingWidth;
 
 out vec4 f_color;
 
+uniform float u_pixelRatio;
+
 const vec4 transparent = vec4(0.0f, 0.0f, 0.0f, 0.0f);
 const float pi = 3.14159f;
 const float eps = 0.00001f;
 const float strokedFactor = 0.2f;
-const float solidFactor = 0.4f;
+const float solidFactor = 0.5f;
 
 
 // Returns:
@@ -51,7 +53,7 @@ float sector(float sectorHalfAngle, float halfAngle, float dist, float gap) {
 
 float hatch() {
     float pos = v_diffVector.x + v_diffVector.y;
-    float diffPos = fwidth(pos);
+    float diffPos = fwidth(pos) * u_pixelRatio * 2.0;
     float pattern = fract(pos / max(2.0f * diffPos, v_hatchingWidth));
     return pattern < 0.5f ? 1.0f : 0.0f;
 }
@@ -83,7 +85,7 @@ void main(void) {
     } else if (pi - v_strokedSlice < eps) {
         // full stroked
         sectorFactor = strokedFactor;
-        sectorFactor = max(sectorFactor, mix(0.0f, solidFactor, circle(v_radii.x + v_gap + margin, dist) + 1.0f - circle(v_radii.y - margin, dist)));
+        // sectorFactor = max(sectorFactor, mix(0.0f, solidFactor, circle(v_radii.x + v_gap + margin, dist) + 1.0f - circle(v_radii.y - margin, dist)));
         sectorFactor = max(sectorFactor, mix(0.0f, solidFactor, hatch()));
     } else {
         // margin = is the line lining the stroked sector, it should be always at least two "pixels" wide
@@ -93,9 +95,9 @@ void main(void) {
 
         sectorFactor = mix(0.0f, strokedFactor, strokedSector);
         // top and bottom line of the stroked sector
-        sectorFactor = max(sectorFactor, mix(0.0f, solidFactor, strokedSector * (circle(v_radii.x + v_gap + margin, dist) + 1.0f - circle(v_radii.y - margin, dist))));
+        // sectorFactor = max(sectorFactor, mix(0.0f, solidFactor, strokedSector * (circle(v_radii.x + v_gap + margin, dist) + 1.0f - circle(v_radii.y - margin, dist))));
         // left and right line of the stroked sector
-        sectorFactor = max(sectorFactor, mix(0.0f, solidFactor, strokedSector * (1.0f - sector(v_strokedSlice, halfAngle, dist, v_gap + 2.0f * margin))));
+        // sectorFactor = max(sectorFactor, mix(0.0f, solidFactor, strokedSector * (1.0f - sector(v_strokedSlice, halfAngle, dist, v_gap + 2.0f * margin))));
         // hatching
         sectorFactor = max(sectorFactor, mix(0.0f, solidFactor, strokedSector * hatch()));
 
