@@ -186,7 +186,8 @@ export interface CSharpNode extends MultigraphNode {
     declaringKind?: EntityKind,
     instanceMemberCount?: number,
     staticMemberCount?: number,
-    isStatic?: boolean
+    isStatic?: boolean,
+    isRecord?: boolean,
 }
 
 export const FALLBACK_STYLE: NodeStyle = {

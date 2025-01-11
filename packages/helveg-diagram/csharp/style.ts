@@ -19,14 +19,14 @@ export const DEFAULT_CSHARP_RELATION_COLORS: Record<string, string> =
 };
 
 export function createCsharpRelationStylist(colors: Record<string, string>): RelationStylist {
-    return (r) => { return {...FALLBACK_EDGE_STYLE, ...resolveRelationStyle(r, colors)}};
+    return (r) => { return { ...FALLBACK_EDGE_STYLE, ...resolveRelationStyle(r, colors) } };
 }
 
 export const csharpRelationStylist: RelationStylist = createCsharpRelationStylist(DEFAULT_CSHARP_RELATION_COLORS);
 
 function resolveNodeStyle(node: Partial<CSharpNode>): Partial<NodeStyle> {
     let base: Partial<NodeStyle> = {};
-    
+
     const hasErrors = (node.diagnostics ?? [])
         ?.filter(d => d.severity === "error")
         .length > 0;
@@ -35,8 +35,8 @@ function resolveNodeStyle(node: Partial<CSharpNode>): Partial<NodeStyle> {
         .length > 0;
     base.fire = hasErrors ? FireStatus.Flame
         : hasWarnings ? FireStatus.Smoke
-        : FireStatus.None;
-    
+            : FireStatus.None;
+
     switch (node.kind) {
         case EntityKind.Solution:
             return {
@@ -112,7 +112,7 @@ function resolveNodeStyle(node: Partial<CSharpNode>): Partial<NodeStyle> {
             base.size = 15;
             switch (node.typeKind) {
                 case TypeKind.Class:
-                    base.icon = "helveg:Class";
+                    base.icon = node.isRecord ? "helveg:RecordClass" : "helveg:Class";
                     base.color = VSColor.DarkYellow;
                     break;
                 case TypeKind.Interface:
@@ -124,7 +124,7 @@ function resolveNodeStyle(node: Partial<CSharpNode>): Partial<NodeStyle> {
                     base.color = VSColor.DarkYellow;
                     break;
                 case TypeKind.Struct:
-                    base.icon = "helveg:Struct";
+                    base.icon = node.isRecord ? "helveg:RecordStruct" : "helveg:Struct";
                     base.color = VSColor.Blue;
                     break;
                 case TypeKind.Delegate:
@@ -217,6 +217,17 @@ function resolveNodeStyle(node: Partial<CSharpNode>): Partial<NodeStyle> {
             };
     }
 
+    if (node.isStatic && (
+        node.typeKind === "Class"
+        || node.typeKind === "Struct"
+        || (node.kind === "Field" && !node.isConst)
+        || node.kind === "Property"
+        || node.kind === "Event"
+        || node.kind === "Method"
+    )) {
+        base.icon += "Static";
+    }
+
     switch (node.accessibility) {
         case MemberAccessibility.Internal:
             base.icon += "Internal";
@@ -234,7 +245,7 @@ function resolveNodeStyle(node: Partial<CSharpNode>): Partial<NodeStyle> {
 }
 
 function resolveRelationStyle(relation: string, colors?: Record<string, string>): EdgeStyle {
-    colors = {...DEFAULT_CSHARP_RELATION_COLORS, ...colors};
+    colors = { ...DEFAULT_CSHARP_RELATION_COLORS, ...colors };
     switch (relation) {
         case Relations.Declares:
             return {
