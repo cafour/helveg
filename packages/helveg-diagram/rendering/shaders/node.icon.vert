@@ -6,7 +6,7 @@ in vec2 a_position;
 in float a_iconSize;
 in vec4 a_texture;
 in float a_angle;
-in float a_grayscale;
+in vec4 a_color;
 
 uniform float u_sizeRatio;
 uniform float u_correctionRatio;
@@ -14,7 +14,7 @@ uniform mat3 u_matrix;
 
 out vec4 v_texture;
 out vec2 v_texCoord;
-flat out float v_grayscale;
+out vec4 v_color;
 
 const float sqrt2 = sqrt(2.0f);
 
@@ -30,5 +30,5 @@ void main() {
     // Pass the texture coordinates:
     // NOTE: multiply a_texture by a constant and you get a pattern
     v_texture = a_texture;
-    v_grayscale = a_grayscale;
+    v_color = a_color;
 }
