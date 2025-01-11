@@ -40,70 +40,70 @@ function resolveNodeStyle(node: Partial<CSharpNode>): Partial<NodeStyle> {
     switch (node.kind) {
         case EntityKind.Solution:
             return {
-                icon: "vs:Solution",
+                icon: "helveg:Solution",
                 size: 55,
                 color: VSColor.DarkPurple,
                 outlines: []
             };
         case EntityKind.Project:
             return {
-                icon: "vs:CSProjectNode",
+                icon: "helveg:Project",
                 size: 45,
                 color: VSColor.DarkGray,
                 outlines: []
             };
         case EntityKind.Framework:
             return {
-                icon: "vs:Framework",
+                icon: "helveg:Framework",
                 size: 50,
                 color: VSColor.DarkGray,
                 outlines: []
             };
         case EntityKind.ExternalDependencySource:
             return {
-                icon: "vs:ReferenceGroup",
+                icon: "helveg:ExternalDependencySource",
                 size: 50,
                 color: VSColor.DarkGray,
                 outlines: []
             };
         case EntityKind.PackageRepository:
             return {
-                icon: "nuget:NuGet",
+                icon: "helveg:PackageRepository",
                 size: 50,
                 color: VSColor.NuGetBlue,
                 outlines: []
             };
         case EntityKind.Package:
             return {
-                icon: "vs:Package",
+                icon: "helveg:Package",
                 size: 45,
                 color: VSColor.DarkGray,
                 outlines: []
             };
         case EntityKind.Library:
             return {
-                icon: "vs:Library",
+                icon: "helveg:Library",
                 size: 40,
                 color: VSColor.DarkGray,
                 outlines: []
             };
         case EntityKind.Assembly:
             return {
-                icon: "vs:Assembly",
+                icon: "helveg:Assembly",
                 size: 40,
                 color: VSColor.DarkGray,
                 outlines: []
             };
         case EntityKind.Module:
             return {
-                icon: "vs:Module",
+                icon: "helveg:Module",
                 size: 35,
                 color: VSColor.Purple,
                 outlines: []
             };
         case EntityKind.Namespace:
             return {
-                icon: "vs:Namespace",
+                icon: "helveg:Namespace",
                 size: 30,
                 color: VSColor.DarkGray,
                 outlines: []
@@ -112,27 +112,27 @@ function resolveNodeStyle(node: Partial<CSharpNode>): Partial<NodeStyle> {
             base.size = 15;
             switch (node.typeKind) {
                 case TypeKind.Class:
-                    base.icon = "vs:Class";
+                    base.icon = "helveg:Class";
                     base.color = VSColor.DarkYellow;
                     break;
                 case TypeKind.Interface:
-                    base.icon = "vs:Interface";
+                    base.icon = "helveg:Interface";
                     base.color = VSColor.Blue;
                     break;
                 case TypeKind.Enum:
-                    base.icon = "vs:Enumeration";
+                    base.icon = "helveg:Enum";
                     base.color = VSColor.DarkYellow;
                     break;
                 case TypeKind.Struct:
-                    base.icon = "vs:Structure";
+                    base.icon = "helveg:Struct";
                     base.color = VSColor.Blue;
                     break;
                 case TypeKind.Delegate:
-                    base.icon = "vs:Delegate";
+                    base.icon = "helveg:Delegate";
                     base.color = VSColor.Purple;
                     break;
                 default:
-                    base.icon = "vs:Type";
+                    base.icon = "helveg:Type";
                     base.color = VSColor.Blue;
                     break;
             }
@@ -151,7 +151,7 @@ function resolveNodeStyle(node: Partial<CSharpNode>): Partial<NodeStyle> {
             break;
         case EntityKind.TypeParameter:
             return {
-                icon: "vs:Type",
+                icon: "helveg:TypeParameter",
                 size: node.declaringKind === EntityKind.Method ? 5 : 10,
                 color: VSColor.Blue,
                 outlines: []
@@ -159,7 +159,7 @@ function resolveNodeStyle(node: Partial<CSharpNode>): Partial<NodeStyle> {
         case EntityKind.Field:
             if (node.isEnumItem) {
                 return {
-                    icon: "vs:EnumerationItem",
+                    icon: "helveg:EnumItem",
                     size: 10,
                     color: VSColor.Blue
                 }
@@ -168,21 +168,21 @@ function resolveNodeStyle(node: Partial<CSharpNode>): Partial<NodeStyle> {
             base.outlines = [{ style: node.isStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 2 }];
             base.size = 10;
             if (node.isConst) {
-                base.icon = "vs:Constant";
+                base.icon = "helveg:Constant";
                 base.color = VSColor.DarkGray;
             } else {
-                base.icon = "vs:Field";
+                base.icon = "helveg:Field";
                 base.color = VSColor.Blue;
             }
             break;
         case EntityKind.Method:
             if (node.methodKind === MethodKind.BuiltinOperator
                 || node.methodKind === MethodKind.UserDefinedOperator) {
-                base.icon = "vs:Operator";
+                base.icon = "helveg:Operator";
                 base.color = VSColor.Blue;
             }
             else {
-                base.icon = "vs:Method";
+                base.icon = "helveg:Method";
                 base.color = VSColor.Purple;
             }
 
@@ -190,27 +190,27 @@ function resolveNodeStyle(node: Partial<CSharpNode>): Partial<NodeStyle> {
             base.outlines = [{ style: node.isStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 2 }];
             break;
         case EntityKind.Property:
-            base.icon = "vs:Property";
+            base.icon = "helveg:Property";
             base.size = 10;
             base.color = VSColor.DarkGray;
             base.outlines = [{ style: node.isStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 2 }];
             break;
         case EntityKind.Event:
-            base.icon = "vs:Event";
+            base.icon = "helveg:Event";
             base.size = 10;
             base.color = VSColor.DarkYellow;
             base.outlines = [{ style: node.isStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 2 }];
             break;
         case EntityKind.Parameter:
             return {
-                icon: "vs:LocalVariable",
+                icon: "helveg:Parameter",
                 color: VSColor.Blue,
                 size: 5,
                 outlines: []
             };
         default:
             return {
-                icon: "vs:ExplodedDoughnutChart",
+                icon: "vscode:pie-chart",
                 size: 5,
                 color: VSColor.DarkGray,
                 outlines: []
