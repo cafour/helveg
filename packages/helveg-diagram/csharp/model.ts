@@ -189,6 +189,7 @@ export interface CSharpNode extends MultigraphNode {
     staticMemberCount?: number,
     isStatic?: boolean,
     isRecord?: boolean,
+    isIndexer?: boolean,
 }
 
 export const FALLBACK_STYLE: NodeStyle = {

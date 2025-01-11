@@ -183,6 +183,9 @@ function resolveNodeStyle(node: Partial<CSharpNode>): Partial<NodeStyle> {
             else if (node.methodKind === MethodKind.Constructor) {
                 base.icon = "helveg:Constructor";
             }
+            else if (node.methodKind === MethodKind.Destructor) {
+                base.icon = "helveg:Destructor";
+            }
             else {
                 base.icon = "helveg:Method";
             }
@@ -192,7 +195,7 @@ function resolveNodeStyle(node: Partial<CSharpNode>): Partial<NodeStyle> {
             base.outlines = [{ style: node.isStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 2 }];
             break;
         case EntityKind.Property:
-            base.icon = "helveg:Property";
+            base.icon = node.isIndexer ? "helveg:Indexer" : "helveg:Property";
             base.size = 10;
             base.color = VSColor.DarkGray;
             base.outlines = [{ style: node.isStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 2 }];
