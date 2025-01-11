@@ -87,7 +87,7 @@ export class IconRegistry {
             case "png":
                 return `data:image/png;base64,${icon.data}`;
             default:
-                throw new Error(`IconFormat '${icon.format}' is not supported.`);
+                throw new Error(`IconFormat '${icon.format}' of icon '${name}' is not supported.`);
         }
     }
 
