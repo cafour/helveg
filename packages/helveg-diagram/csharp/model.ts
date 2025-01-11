@@ -173,7 +173,8 @@ export enum VSColor {
     Purple = "#6936aa",
     DarkYellow = "#996f00",
     Blue = "#005dba",
-    NuGetBlue = "#004880"
+    NuGetBlue = "#004880",
+    Green = "#1f801f"
 }
 
 export interface CSharpNode extends MultigraphNode {

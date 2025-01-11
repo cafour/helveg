@@ -42,14 +42,14 @@ function resolveNodeStyle(node: Partial<CSharpNode>): Partial<NodeStyle> {
             return {
                 icon: "helveg:Solution",
                 size: 55,
-                color: VSColor.DarkPurple,
+                color: VSColor.DarkGray,
                 outlines: []
             };
         case EntityKind.Project:
             return {
                 icon: "helveg:Project",
                 size: 45,
-                color: VSColor.DarkGray,
+                color: VSColor.Green,
                 outlines: []
             };
         case EntityKind.Framework:
@@ -179,13 +179,15 @@ function resolveNodeStyle(node: Partial<CSharpNode>): Partial<NodeStyle> {
             if (node.methodKind === MethodKind.BuiltinOperator
                 || node.methodKind === MethodKind.UserDefinedOperator) {
                 base.icon = "helveg:Operator";
-                base.color = VSColor.Blue;
+            }
+            else if (node.methodKind === MethodKind.Constructor) {
+                base.icon = "helveg:Constructor";
             }
             else {
                 base.icon = "helveg:Method";
-                base.color = VSColor.Purple;
             }
 
+            base.color = VSColor.Purple;
             base.size = 10;
             base.outlines = [{ style: node.isStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 2 }];
             break;
