@@ -14,15 +14,15 @@ public static class UIConst
     public const string ExplorerCssResourceName = "helveg-explorer.css";
     public const string DiagramJsResourceName = "helveg-diagram.js";
     public const string ExplorerJsResourceName = "helveg-explorer.js";
-    public const string VsIconSetResourceName = "helveg-icons-vs.json";
-    public const string NugetIconSetResourceName = "helveg-icons-nuget.json";
+    public const string VscodeIconSetResourceName = "helveg-icons-vscode.json";
+    public const string HelvegIconSetResourceName = "helveg-icons-helveg.json";
     public const string PizzaIconSetResourceName = "helveg-icons-pizza.json";
 
     public static readonly Lazy<string> ExplorerCss = new(() => GetBaseResource(ExplorerCssResourceName));
     public static readonly Lazy<string> DiagramJs = new(() => GetBaseResource(DiagramJsResourceName));
     public static readonly Lazy<string> ExplorerJs = new(() => GetBaseResource(ExplorerJsResourceName));
-    public static readonly Lazy<string> VsIconSet = new(() => GetBaseResource(VsIconSetResourceName));
-    public static readonly Lazy<string> NugetIconSet = new(() => GetBaseResource(NugetIconSetResourceName));
+    public static readonly Lazy<string> VsIconSet = new(() => GetBaseResource(VscodeIconSetResourceName));
+    public static readonly Lazy<string> NugetIconSet = new(() => GetBaseResource(HelvegIconSetResourceName));
     public static readonly Lazy<string> PizzaIconSet = new(() => GetBaseResource(PizzaIconSetResourceName));
 
     private static string GetBaseResource(string name)

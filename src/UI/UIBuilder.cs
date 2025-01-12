@@ -100,7 +100,7 @@ public class UIBuilder
             .AddScript(UIConst.DiagramJsResourceName, UIConst.DiagramJs.Value)
             .AddScript(UIConst.ExplorerJsResourceName, UIConst.ExplorerJs.Value)
             .AddScript(
-                UIConst.VsIconSetResourceName,
+                UIConst.VscodeIconSetResourceName,
                 UIConst.VsIconSet.Value,
                 "application/json",
                 "helveg-icons")
@@ -110,7 +110,7 @@ public class UIBuilder
                 "application/json",
                 "helveg-icons")
             .AddScript(
-                UIConst.NugetIconSetResourceName,
+                UIConst.HelvegIconSetResourceName,
                 UIConst.NugetIconSet.Value,
                 "application/json",
                 "helveg-icons");
