@@ -26,7 +26,7 @@ export interface InitMessage extends Message {
 export interface StartMessage extends Message {
     kind: MessageKind.Start;
     settings: ForceAtlas2Settings;
-    isSingleIteration: boolean;
+    iterationCount?: number;
     reportInterval: number;
     nodes: ArrayBufferLike;
 }

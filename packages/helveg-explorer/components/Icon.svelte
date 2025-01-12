@@ -9,7 +9,7 @@
     export let name: string;
     export let title: string | undefined = undefined;
     export let theme: string | undefined = undefined;
-    export let additionalClasses: string | undefined = undefined;
+    export let additionalClasses: string | undefined = ""
     export let color: string | undefined = undefined;
 
     let icons = getContext<Diagram>("diagram").options.iconRegistry;

@@ -24,10 +24,12 @@ export class PizzaToppingProgram extends HelvegNodeProgram<typeof UNIFORMS[numbe
         super(gl, pickingBuffer, renderer);
 
         this.texture = gl.createTexture() as WebGLTexture;
-        options.iconAtlas.redrawn.subscribe(a => {
+        const refreshTexture = (a: IconAtlas) => {
             this.rebindTexture(a, gl);
-            renderer.scheduleRefresh();
-        });
+            this.renderer.scheduleRefresh();
+        };
+        options.iconAtlas.redrawn.subscribe(refreshTexture);
+        this.renderer.on("kill", () => options.iconAtlas.redrawn.unsubscribe(refreshTexture));
         this.rebindTexture(options.iconAtlas, gl);
     }
 

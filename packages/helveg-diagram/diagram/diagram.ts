@@ -95,6 +95,16 @@ export const DEFAULT_REMOVE_OPTIONS: RemoveOptions = {
     isTransitive: true
 };
 
+export interface AutoLayoutOptions {
+    roughIterationFactor: number;
+    adjustIterationFactor: number;
+};
+
+export const DEFAULT_AUTO_LAYOUT_OPTIONS: AutoLayoutOptions = {
+    roughIterationFactor: 1.5,
+    adjustIterationFactor: 10,
+};
+
 export class Diagram {
     private _element: HTMLElement;
     get element(): HTMLElement { return this._element; }
@@ -265,6 +275,11 @@ export class Diagram {
         isCaptorDown: false
     };
 
+    private _finiteBackgroundLayoutExecutor: {
+        resolve: () => void,
+        reject: (reason?: any) => void
+    } | undefined;
+
     async resetLayout(): Promise<void> {
         if (!this._graph) {
             this._logger.debug("Cannot reset layout since the graph is not initialized.");
@@ -311,7 +326,7 @@ export class Diagram {
         }
     }
 
-    async runLayout(inBackground: boolean): Promise<void> {
+    async runLayout(inBackground: boolean, iterationCount?: number, options?: ForceAtlas2Options): Promise<void> {
         if (!this._graph) {
             this._logger.debug("Cannot run since the graph is not initialized.");
             return;
@@ -326,13 +341,22 @@ export class Diagram {
 
         this._graph.forEachNode((n, a) => a.inInitialPosition = false);
 
-        await this._supervisor.start(inBackground);
+        await this._supervisor.start(inBackground, iterationCount, options);
 
         this.refreshStatus();
 
         if (inBackground) {
             this._sigma?.kill();
             this._sigma = undefined;
+
+            if (iterationCount && iterationCount >= 0) {
+                await new Promise<void>((resolve, reject) => {
+                    this._finiteBackgroundLayoutExecutor = {
+                        resolve, reject
+                    };
+                });
+            }
+
         } else if (!this._sigma) {
             this.refreshSigma();
         }
@@ -354,6 +378,56 @@ export class Diagram {
                 this.refreshSigma();
             }
         }
+
+        if (this._finiteBackgroundLayoutExecutor) {
+            this._finiteBackgroundLayoutExecutor.reject("stopLayout");
+        }
+    }
+
+    async autoLayout(options?: AutoLayoutOptions): Promise<void> {
+        options = { ...DEFAULT_AUTO_LAYOUT_OPTIONS, ...options };
+
+        if (!this._graph) {
+            this._logger.debug("Cannot auto-layout since the graph is not initialized.");
+            return;
+        }
+
+        let visibleNodeCount = 0;
+        this._graph.forEachNode((_n, na) => {
+            if (!na.hidden) {
+                visibleNodeCount++;
+            }
+        });
+
+        await this.resetLayout();
+
+        // rough phase: strong gravity, barnes-hut optimize
+        const roughIterationCount = Math.max(100, Math.sqrt(visibleNodeCount) * options.roughIterationFactor);
+        this.logger?.debug(`AutoLayout: Running ${Math.floor(roughIterationCount)} rough iterations.`);
+        await this.runLayout(
+            true,
+            roughIterationCount,
+            {
+                adjustSizes: false,
+                strongGravityMode: true,
+                barnesHutOptimize: true,
+                slowDown: 1
+            }
+        );
+
+        // adjust phase: weak gravity, adjust sizes
+        const adjustIterationCount = Math.max(300, Math.sqrt(visibleNodeCount) * options.adjustIterationFactor);
+        this.logger?.debug(`AutoLayout: Running ${Math.floor(adjustIterationCount)} adjust iterations.`);
+        await this.runLayout(
+            true,
+            adjustIterationCount,
+            {
+                adjustSizes: true,
+                strongGravityMode: false,
+                barnesHutOptimize: false,
+                slowDown: 2
+            }
+        );
     }
 
     save(options?: ExportOptions): void {
@@ -540,7 +614,7 @@ export class Diagram {
 
     async refresh(options?: DiagramRefreshOptions): Promise<void> {
         await this.refreshGraph(options ?? this._lastRefreshOptions);
-        await this.resetLayout();
+        await this.autoLayout();
     }
 
     reset(): Promise<void> {
@@ -619,6 +693,7 @@ export class Diagram {
             this._supervisor = initializeSupervisor(
                 this._graph,
                 this.onSupervisorProgress.bind(this),
+                this.onSupervisorStopped.bind(this),
                 this.options.forceAtlas2,
                 this.logger);
             if (shouldLayoutContinue
@@ -642,6 +717,18 @@ export class Diagram {
             iterationCount: message.iterationCount,
             speed: message.speed
         };
+    }
+
+    private onSupervisorStopped() {
+        if (this._finiteBackgroundLayoutExecutor) {
+            this._finiteBackgroundLayoutExecutor.resolve();
+        }
+
+        this.refreshStatus();
+        if (!this._sigma) {
+            this.refreshSigma();
+        }
+
     }
 
     private refreshSigma(): void {
