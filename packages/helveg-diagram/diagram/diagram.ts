@@ -693,6 +693,7 @@ export class Diagram {
 
                 reachable.forEach(id => this._graph!.dropNode(id));
                 this._sigma?.setGraph(this._graph);
+                (this._sigma as any)["hoveredNode"] = null;
             })
             // setAllGraphListeners(this._graph, allGraphListeners);
 
