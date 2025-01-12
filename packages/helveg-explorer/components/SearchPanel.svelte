@@ -12,8 +12,8 @@
         type IFilterBuilderEntry,
     } from "../deps/helveg-diagram.ts";
     import type { Readable } from "svelte/store";
-    import Icon from "./Icon.svelte";
     import FilterBuilder from "./FilterBuilder.svelte";
+    import NodeIcon from "./NodeIcon.svelte";
 
     let dispatch = createEventDispatcher();
 
@@ -111,7 +111,7 @@
                         class:selected={node.id == diagram.selectedNode}
                         on:click={() => dispatch("selected", node.id)}
                     >
-                        <Icon name={diagram.nodeStylist(node).icon} />
+                        <NodeIcon node={node} />
                         <span>{node.name}</span>
                     </div>
                 {/each}
