@@ -1,19 +1,24 @@
 <script lang="ts">
-    import { type IconOptions, type Icon, type Diagram} from "../deps/helveg-diagram.ts";
+    import {
+        type IconOptions,
+        type Icon,
+        type Diagram,
+    } from "../deps/helveg-diagram.ts";
     import { readable, type Readable } from "svelte/store";
     import { getContext } from "svelte";
     export let name: string;
-    export let title: string | null = null;
-    export let theme: string | null = null;
-    export let additionalClasses: string | null = "";
-    
+    export let title: string | undefined = undefined;
+    export let theme: string | undefined = undefined;
+    export let additionalClasses: string | undefined = undefined;
+    export let color: string | undefined = undefined;
+
     let icons = getContext<Diagram>("diagram").options.iconRegistry;
 
     function getIconReadable(
         name: string,
-        options?: IconOptions
+        options?: IconOptions,
     ): Readable<Icon> {
-        return readable(icons.get(name, options), set => {
+        return readable(icons.get(name, options), (set) => {
             let update = () => set(icons.get(name, options));
             icons.setAdded.subscribe(update);
             return () => icons.setAdded.unsubscribe(update);
@@ -21,17 +26,22 @@
     }
 
     $: themeClass = theme != null ? `theme-${theme}` : "";
-    
+
     $: icon = getIconReadable(name, {
         viewBoxOnly: true,
         removeTitle: title != null,
         viewBox: "0 0 16 16",
+        fill: color,
     });
-    
+
     export let element: HTMLElement | null = null;
 </script>
 
-<div class="icon {themeClass} {$icon.namespace} {additionalClasses}" {title} bind:this={element}>
+<div
+    class="icon {themeClass} {$icon.namespace} {additionalClasses}"
+    {title}
+    bind:this={element}
+>
     {#if $icon.format === "svg"}
         {@html $icon.data}
     {:else if $icon.format == "png"}

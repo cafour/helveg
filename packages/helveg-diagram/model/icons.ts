@@ -8,6 +8,7 @@ export interface IconOptions {
     viewBox?: string;
     removeTitle?: boolean;
     viewBoxOnly?: boolean;
+    fill?: string;
     overrideExisting?: boolean;
 }
 
@@ -116,6 +117,9 @@ function setIconSize(svg: Document, options: IconOptions): string {
     }
     if (options.viewBox && (options.overrideExisting || !svg.documentElement.hasAttribute("viewBox"))) {
         svg.documentElement.setAttribute("viewBox", options.viewBox);
+    }
+    if (options.fill && (options.overrideExisting || !svg.documentElement.hasAttribute("fill"))) {
+        svg.documentElement.setAttribute("fill", options.fill);
     }
     return new XMLSerializer().serializeToString(svg);
 }
