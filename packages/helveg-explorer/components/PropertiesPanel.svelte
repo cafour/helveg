@@ -1,5 +1,8 @@
 <script lang="ts">
-    import type { DataModel, MultigraphDiagnostic, MultigraphNode } from "../deps/helveg-diagram.ts";
+    import type {
+        MultigraphDiagnostic,
+        MultigraphNode,
+    } from "../deps/helveg-diagram.ts";
     import KeyValueList from "./KeyValueList.svelte";
     import Panel from "./Panel.svelte";
     import Subpanel from "./Subpanel.svelte";
@@ -7,17 +10,23 @@
     import Icon from "./Icon.svelte";
     import * as marked from "../deps/marked.ts";
     import dompurify from "../deps/dompurify.ts";
+    import NodeInspector from "./NodeInspector.svelte";
 
     export let node: MultigraphNode | null = null;
     $: nodeItems =
         [
             ...Object.entries(node ?? {}).filter(
-                ([k, v]) => k !== "diagnostics" && k !== "comments" && !k.startsWith("$")
+                ([k, v]) =>
+                    k !== "diagnostics" &&
+                    k !== "comments" &&
+                    !k.startsWith("$"),
             ),
-        ].map((p) => ({
-            key: p[0]!,
-            value: p[1],
-        })) ?? [];
+        ]
+            .map((p) => ({
+                key: p[0]!,
+                value: p[1],
+            }))
+            .sort((a, b) => a.key.localeCompare(b.key)) ?? [];
     $: diagnostics = node?.diagnostics ?? [];
     $: comments = node?.comments ?? [];
 
@@ -38,22 +47,25 @@
 </script>
 
 <Panel name="Properties" indent={false} id={AppPanels.Properties}>
+    <!-- NB: The inspector is not in the `if` below because of performance. There is a `canvas` in the inspector. -->
+    <Subpanel class={node == null ? "hidden" : undefined}>
+        <NodeInspector {node} />
+    </Subpanel>
     {#if node == null}
         <span class="indent"
             >Click on a node with the <Icon
                 name={AppIcons.ShowPropertiesTool}
-            /> tool to view its properties.</span
+            /> tool or in the Tree View to view its properties.</span
         >
     {:else}
-        <Subpanel>
-            <KeyValueList bind:items={nodeItems} />
-        </Subpanel>
         {#if comments.length > 0}
             <Subpanel name="Comments" indent={false}>
                 {#each comments as comment}
-                    <div class="comment flex flex-col gap-2 px-16">
+                    <div class="comment flex flex-col gap-2 px-16 pb-16">
                         {#if comment.format == "markdown"}
-                            {@html dompurify.sanitize(marked.parse(comment.content).toString())}
+                            {@html dompurify.sanitize(
+                                marked.parse(comment.content).toString(),
+                            )}
                         {:else}
                             <p>{comment.content}</p>
                         {/if}
@@ -77,5 +89,8 @@
                 {/each}
             </Subpanel>
         {/if}
+        <Subpanel name="Details">
+            <KeyValueList bind:items={nodeItems} />
+        </Subpanel>
     {/if}
 </Panel>

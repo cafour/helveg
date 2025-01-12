@@ -5,7 +5,7 @@ import { ForceAtlas2Progress, ForceAtlas2Supervisor } from "../layout/forceAltas
 import { DataModel, Multigraph, MultigraphRelation } from "../model/data-model.ts";
 import { HelvegEdgeAttributes, HelvegGraph, HelvegNodeAttributes, collapseNode, expandNode, findRoots, toggleNode } from "../model/graph.ts";
 import { ILogger, Logger, sublogger } from "../model/logger.ts";
-import { EdgeStylist, FALLBACK_EDGE_STYLE, FALLBACK_NODE_STYLE, NodeStylist, OutlineStyle, Outlines, RelationStylist, getOutlinesTotalWidth } from "../model/style.ts";
+import { EdgeStylist, FALLBACK_EDGE_STYLE, FALLBACK_NODE_STYLE, NodeStyle, NodeStylist, OutlineStyle, Outlines, RelationStylist, getOutlinesTotalWidth } from "../model/style.ts";
 import { bfsGraph, bfsMultigraph } from "../model/traversal.ts";
 import { GlyphProgramOptions, SizingMode } from "../rendering/node.glyph.ts";
 import { WorkaroundNodeProgram } from "../rendering/workaround_node.ts";
@@ -256,6 +256,54 @@ function addTransitiveRelation(graph: HelvegGraph, multigraph: Multigraph, relat
     });
 }
 
+export function toHelvegNodeAttributes(
+    glyphProgramOptions: GlyphProgramOptions,
+    nodeStyle: NodeStyle,
+): Partial<HelvegNodeAttributes> {
+    const attributes: Partial<HelvegNodeAttributes> = {};
+
+    const outlines = [
+        { width: nodeStyle.size, style: OutlineStyle.Solid },
+        ...nodeStyle.outlines.slice(0, 3),
+    ] as Outlines;
+
+    attributes.baseSize = nodeStyle.size;
+    attributes.size = attributes.baseSize;
+    // attributes.size = glyphProgramOptions.showOutlines && outlines.length > 0
+    //     ? getOutlinesTotalWidth(outlines)
+    //     : nodeStyle.size;
+    if (nodeStyle.slices?.width > 0) {
+        attributes.size += nodeStyle.slices.width + glyphProgramOptions.gap;
+    }
+    attributes.iconSize = nodeStyle.size;
+
+    const getSize = (sizingMode: SizingMode, value: number) => {
+        switch (sizingMode) {
+            case "linear":
+                // keep it as is
+                return value;
+            case "sqrt":
+                return Math.sqrt(value);
+            case "log":
+                return Math.log(Math.max(value, 1));
+            default:
+                return value;
+        }
+    }
+
+    attributes.size = getSize(glyphProgramOptions.sizingMode, attributes.size);
+    attributes.iconSize = getSize(glyphProgramOptions.sizingMode, attributes.iconSize);
+    attributes.baseSize = getSize(glyphProgramOptions.sizingMode, attributes.baseSize);
+    attributes.color = nodeStyle.color;
+    attributes.type = "glyph";
+    attributes.icon = nodeStyle.icon;
+    attributes.outlines = outlines;
+    attributes.slices = nodeStyle.slices;
+    attributes.fire = nodeStyle.fire;
+
+    return attributes;
+}
+
 export function styleGraph(
     graph: HelvegGraph,
     model: DataModel,
@@ -277,44 +325,7 @@ export function styleGraph(
             nodeStyle = { ...nodeStyle, ...nodeStylist(model.data.nodes[node]) };
         }
 
-        const outlines = [
-            { width: nodeStyle.size, style: OutlineStyle.Solid },
-            ...nodeStyle.outlines.slice(0, 3),
-        ] as Outlines;
-
-        attributes.baseSize = nodeStyle.size;
-        attributes.size = attributes.baseSize;
-        // attributes.size = glyphProgramOptions.showOutlines && outlines.length > 0
-        //     ? getOutlinesTotalWidth(outlines)
-        //     : nodeStyle.size;
-        if (nodeStyle.slices?.width > 0) {
-            attributes.size += nodeStyle.slices.width + glyphProgramOptions.gap;
-        }
-        attributes.iconSize = nodeStyle.size;
-
-        const getSize = (sizingMode: SizingMode, value: number) => {
-            switch (sizingMode) {
-                case "linear":
-                    // keep it as is
-                    return value;
-                case "sqrt":
-                    return Math.sqrt(value);
-                case "log":
-                    return Math.log(Math.max(value, 1));
-                default:
-                    return value;
-            }
-        }
-
-        attributes.size = getSize(glyphProgramOptions.sizingMode, attributes.size);
-        attributes.iconSize = getSize(glyphProgramOptions.sizingMode, attributes.iconSize);
-        attributes.baseSize = getSize(glyphProgramOptions.sizingMode, attributes.baseSize);
-        attributes.color = nodeStyle.color;
-        attributes.type = "glyph";
-        attributes.icon = nodeStyle.icon;
-        attributes.outlines = outlines;
-        attributes.slices = nodeStyle.slices;
-        attributes.fire = nodeStyle.fire;
+        Object.assign(attributes, toHelvegNodeAttributes(glyphProgramOptions, nodeStyle));
     });
 
     graph.forEachEdge((edge, attributes) => {

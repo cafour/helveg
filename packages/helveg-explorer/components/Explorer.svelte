@@ -24,6 +24,13 @@
     export let diagram: Diagram;
     setContext("diagram", diagram);
 
+    diagram.cursorOptions = {
+        defaultCursor: "default",
+        hoverCursor: "pointer",
+        shiftHoverCursor: "move",
+        altHoverCursor: `url("${diagram.options.iconRegistry.getIconDataUrl("helveg:cursor-trash")}"), not-allowed`,
+    };
+
     const state = createExplorerState(rootElement, diagram);
     setContext("state", state);
     setContext("model", state.model);
@@ -90,7 +97,7 @@
     class="explorer-svelte flex flex-row h-100p relative pointer-events-none justify-content-between"
     bind:this={rootElement}
 >
-    <div class="diagram-background" />
+    <div class="diagram-background"></div>
 
     <LoadingScreen status={$status} />
 

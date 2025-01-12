@@ -11,7 +11,7 @@
         "allowJs": true,
         "allowUnreachableCode": false,
         "allowUnusedLabels": false,
-        "noImplicitAny": true,
+        "noImplicitAny": false,
         "noImplicitReturns": false,
         "noImplicitThis": true,
         "strictBindCallApply": true,

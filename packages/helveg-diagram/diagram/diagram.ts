@@ -1,5 +1,5 @@
 import { HelvegEvent } from "../common/event.ts";
-import { HelvegGraph, expandPathsTo, findRoots, getNodeKinds, toggleNode } from "../model/graph.ts";
+import { HelvegGraph, MULTIGRAPH_NODE_KEY, expandPathsTo, findRoots, getNodeKinds, toggleNode } from "../model/graph.ts";
 import { Coordinates, SigmaNodeEventPayload } from "../deps/sigma.ts";
 import { LogSeverity, ILogger, consoleLogger } from "../model/logger.ts";
 import { ForceAtlas2Progress, ForceAtlas2Supervisor } from "../layout/forceAltas2Supervisor.ts";
@@ -16,6 +16,7 @@ import { DataModel } from "../model/data-model.ts";
 import { EMPTY_DATA_MODEL } from "../model/const.ts";
 import { inferSettings } from "graphology-layout-forceatlas2";
 import { deepCompare } from "../common/deep-compare.ts";
+import { FALLBACK_INSPECTOR, Inspector } from "../model/inspect.ts";
 
 export interface DiagramRefreshOptions {
     selectedRelations?: string[],
@@ -30,10 +31,12 @@ export interface DiagramOptions {
     nodeStylist: NodeStylist,
     relationStylist: RelationStylist,
     edgeStylist?: EdgeStylist,
+    inspector: Inspector,
     nodeKindOrder: string[],
     iconRegistry: Readonly<IconRegistry>,
     refresh: DiagramRefreshOptions,
-    forceAtlas2: ForceAtlas2Options
+    forceAtlas2: ForceAtlas2Options,
+    cursor: CursorOptions,
 }
 
 export interface ForceAtlas2Options {
@@ -49,6 +52,14 @@ export interface ForceAtlas2Options {
     barnesHutTheta?: number;
 }
 
+export interface CursorOptions {
+    defaultCursor: string,
+    hoverCursor: string,
+    shiftHoverCursor?: string,
+    controlHoverCursor?: string;
+    altHoverCursor?: string;
+}
+
 export const DEFAULT_FORCE_ATLAS2_OPTIONS: Readonly<ForceAtlas2Options> = {
     ...inferSettings(1024),
     adjustSizes: true,
@@ -59,6 +70,11 @@ export const DEFAULT_FORCE_ATLAS2_OPTIONS: Readonly<ForceAtlas2Options> = {
     outboundAttractionDistribution: false,
 };
 
+export const DEFAULT_CURSOR_OPTIONS: Readonly<CursorOptions> = {
+    defaultCursor: "default",
+    hoverCursor: "pointer",
+}
+
 export const DEFAULT_DIAGRAM_OPTIONS: Readonly<DiagramOptions> = {
     logLevel: LogSeverity.Info,
     mainRelation: null,
@@ -66,9 +82,11 @@ export const DEFAULT_DIAGRAM_OPTIONS: Readonly<DiagramOptions> = {
     nodeStylist: fallbackNodeStylist,
     relationStylist: fallbackRelationStylist,
     nodeKindOrder: [],
+    inspector: FALLBACK_INSPECTOR,
     iconRegistry: EMPTY_ICON_REGISTRY,
     refresh: {},
-    forceAtlas2: DEFAULT_FORCE_ATLAS2_OPTIONS
+    forceAtlas2: DEFAULT_FORCE_ATLAS2_OPTIONS,
+    cursor: DEFAULT_CURSOR_OPTIONS
 };
 
 export enum DiagramMode {
@@ -105,6 +123,12 @@ export const DEFAULT_AUTO_LAYOUT_OPTIONS: AutoLayoutOptions = {
     adjustIterationFactor: 10,
 };
 
+export interface ModifierKeyState {
+    control: boolean;
+    alt: boolean;
+    shift: boolean;
+}
+
 export class Diagram {
     private _element: HTMLElement;
     get element(): HTMLElement { return this._element; }
@@ -135,6 +159,7 @@ export class Diagram {
                     this._nodeKeyTypes[k] = propTypes.values().next().value ?? "string";
                 }
             });
+            Object.entries(this._model.data.nodes).forEach(([key, value]) => (value as any)[MULTIGRAPH_NODE_KEY] = key);
         }
         this.events.modelChanged.trigger(value);
 
@@ -227,6 +252,9 @@ export class Diagram {
         this.restyleGraph();
     }
 
+    get cursorOptions(): Readonly<CursorOptions> { return this.options.cursor; }
+    set cursorOptions(value: CursorOptions) { this._options.cursor = value; }
+
     // used when building JS filters
     // TODO: likely move to its own place somewhere else
     private _nodeKeys: string[] = [];
@@ -238,6 +266,13 @@ export class Diagram {
     // used for refreshing
     private _lastRefreshOptions: DiagramRefreshOptions;
 
+    private _modifierKeyState: ModifierKeyState = {
+        alt: false,
+        control: false,
+        shift: false
+    };
+    get modifierKeyState(): Readonly<ModifierKeyState> { return this._modifierKeyState; }
+
     constructor(element: HTMLElement, options?: Partial<DiagramOptions>) {
         this._element = element;
         this._element.style.position = "relative";
@@ -247,6 +282,9 @@ export class Diagram {
         this._sigmaElement.style.width = "100%";
         this._sigmaElement.style.height = "100%";
         this._element.appendChild(this._sigmaElement);
+        window.addEventListener("keydown", this.onKeyUpDown.bind(this));
+        window.addEventListener("keyup", this.onKeyUpDown.bind(this));
+        window.addEventListener("mousemove", this.updateModifierKeyState.bind(this));
 
         this._options = { ...DEFAULT_DIAGRAM_OPTIONS, ...options };
         this._logger = consoleLogger("diagram", this._options.logLevel);
@@ -690,6 +728,8 @@ export class Diagram {
                 return;
             }
 
+            this._sigma?.refresh();
+
             this._supervisor = initializeSupervisor(
                 this._graph,
                 this.onSupervisorProgress.bind(this),
@@ -753,6 +793,8 @@ export class Diagram {
             this.onUp.bind(this),
             this.onMove.bind(this)
         );
+        this._sigma.on("enterNode", this.onNodeEnter.bind(this));
+        this._sigma.on("leaveNode", this.onNodeLeave.bind(this));
         this.reconfigureSigma();
     }
 
@@ -822,6 +864,28 @@ export class Diagram {
         }
     }
 
+    private updateModifierKeyState(e: MouseEvent | KeyboardEvent) {
+        this._modifierKeyState.control = e.ctrlKey;
+        this._modifierKeyState.alt = e.altKey;
+        this._modifierKeyState.shift = e.shiftKey;
+    }
+    
+    private onNodeEnter(): void {
+        if (this.cursorOptions.altHoverCursor && this._modifierKeyState.alt) {
+            this.element.style.cursor = this.cursorOptions.altHoverCursor;
+        } else if (this.cursorOptions.controlHoverCursor && this._modifierKeyState.control) {
+            this.element.style.cursor = this.cursorOptions.controlHoverCursor;
+        } else if (this.cursorOptions.shiftHoverCursor && this._modifierKeyState.shift) {
+            this.element.style.cursor = this.cursorOptions.shiftHoverCursor;
+        } else {
+            this.element.style.cursor = this.cursorOptions.hoverCursor;
+        }
+    }
+
+    private onNodeLeave(event: SigmaNodeEventPayload): void {
+        this.element.style.cursor = this.cursorOptions.defaultCursor;
+    }
+
     private onDown(_event: Coordinates): void {
         this._gestures.isCaptorDown = true;
         this._gestures.hasPanned = false;
@@ -857,5 +921,17 @@ export class Diagram {
         this._graph.setNodeAttribute(this.draggedNode, "x", pos.x);
         this._graph.setNodeAttribute(this.draggedNode, "y", pos.y);
         return false;
+    }
+
+    private onKeyUpDown(event: KeyboardEvent) {
+        this.updateModifierKeyState(event);
+
+        if (event.key === "Alt") {
+            event.preventDefault();
+        }
+
+        if (this.hoveredNode) {
+            this.onNodeEnter();
+        }
     }
 }
