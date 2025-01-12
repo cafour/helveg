@@ -62,14 +62,16 @@
             </Subpanel>
         {/if}
         {#if diagnostics.length > 0}
-            <Subpanel name="Diagnostics" indent={false}>
+            <Subpanel name="Diagnostics" indent={true} bodyClass="gap-8">
                 {#each diagnostics as diagnostic}
-                    <div class="diagnostic flex flex-row gap-2 mb-2">
-                        <Icon
-                            name={getDiagnosticIcon(diagnostic)}
-                            title={diagnostic.severity}
-                        />
-                        <strong>{diagnostic.id}</strong>
+                    <div class="diagnostic flex flex-col gap-4 pb-8">
+                        <div class="flex flex-row gap-4 align-items-center">
+                            <Icon
+                                name={getDiagnosticIcon(diagnostic)}
+                                title={diagnostic.severity}
+                            />
+                            <strong>{diagnostic.id}</strong>
+                        </div>
                         <span>{diagnostic.message}</span>
                     </div>
                 {/each}

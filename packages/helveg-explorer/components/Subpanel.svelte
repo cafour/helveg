@@ -6,6 +6,7 @@
     export let indent: boolean = true;
     let additionalClass: string = "";
     export { additionalClass as class };
+    export let bodyClass: string = "";
     export let icon: string | null = null;
     export let hint: string | null = null!;
 </script>
@@ -22,7 +23,7 @@
             {/if}
         </div>
     {/if}
-    <div class="subpanel-body flex flex-col" class:indent>
+    <div class="subpanel-body flex flex-col {bodyClass}" class:indent>
         <slot />
     </div>
 </div>
