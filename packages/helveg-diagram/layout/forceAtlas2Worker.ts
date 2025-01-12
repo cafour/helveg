@@ -34,8 +34,9 @@ function start(message: StartMessage) {
     if (message.iterationCount !== undefined && message.iterationCount >= 0) {
         for(let i = 0; i < message.iterationCount; ++i) {
             iterate(message.settings, nodes, edges);
-            if ((i % message.reportInterval) === 0) {
-                report(i);
+            globalIterationCount++;
+            if ((globalIterationCount % message.reportInterval) === 0) {
+                report();
             }
         }
         update();
@@ -79,10 +80,10 @@ function update() {
     });
 }
 
-function report(iterationCount?: number) {
+function report() {
     self.postMessage(<ProgressMessage>{
         kind: MessageKind.Progress,
-        iterationCount: iterationCount ?? globalIterationCount
+        iterationCount: globalIterationCount
     });
 }
 
