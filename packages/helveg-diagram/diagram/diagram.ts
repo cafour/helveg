@@ -1,5 +1,5 @@
 import { HelvegEvent } from "../common/event.ts";
-import { HelvegGraph, MULTIGRAPH_NODE_KEY, expandPathsTo, findRoots, getNodeKinds, toggleNode } from "../model/graph.ts";
+import { HelvegGraph, MULTIGRAPH_NODE_KEY, expandPathsTo, findRoots, removeAllGraphListeners, toggleNode } from "../model/graph.ts";
 import { Coordinates, SigmaNodeEventPayload } from "../deps/sigma.ts";
 import { LogSeverity, ILogger, consoleLogger } from "../model/logger.ts";
 import { ForceAtlas2Progress, ForceAtlas2Supervisor } from "../layout/forceAltas2Supervisor.ts";
@@ -304,6 +304,7 @@ export class Diagram {
         statsChanged: new HelvegEvent<DiagramStats>("helveg.diagram.statsChanged"),
         nodeSelected: new HelvegEvent<string | null>("helveg.diagram.nodeSelected"),
         nodeClicked: new HelvegEvent<string>("helveg.diagram.nodeClicked"),
+        nodeDoubleClicked: new HelvegEvent<string>("helveg.diagram.nodeDoubleClicked"),
         mainRelationChanged: new HelvegEvent<string | null>("helveg.diagram.mainRelationChanged"),
     } as const;
 
@@ -681,9 +682,20 @@ export class Diagram {
                 relation: this.mainRelation
             });
 
+            // NB: This awful construction is here so that the dropping of nodes does not take forever due to
+            //     Sigma's and FA2-supervisor's event listeners.
+            // const allGraphListeners = getAllGraphListeners(this._graph);
+            removeAllGraphListeners(this._graph);
             await this.refreshSupervisor(true, () => {
-                reachable.forEach(id => this._graph?.dropNode(id));
+                if (!this._graph) {
+                    return;
+                }
+
+                reachable.forEach(id => this._graph!.dropNode(id));
+                this._sigma?.setGraph(this._graph);
             })
+            // setAllGraphListeners(this._graph, allGraphListeners);
+
             removedCount = reachable.size;
         }
 
@@ -728,7 +740,9 @@ export class Diagram {
                 return;
             }
 
-            this._sigma?.refresh();
+            try {
+                this._sigma?.refresh();
+            } catch { }
 
             this._supervisor = initializeSupervisor(
                 this._graph,
@@ -795,6 +809,7 @@ export class Diagram {
         );
         this._sigma.on("enterNode", this.onNodeEnter.bind(this));
         this._sigma.on("leaveNode", this.onNodeLeave.bind(this));
+        this._sigma.on("doubleClickNode", this.onNodeDoubleClick.bind(this));
         this.reconfigureSigma();
     }
 
@@ -852,7 +867,6 @@ export class Diagram {
     }
 
     private onNodeClick(event: SigmaNodeEventPayload): void {
-        this.selectedNode = event.node;
         this.events.nodeClicked.trigger(event.node);
     }
 
@@ -864,12 +878,16 @@ export class Diagram {
         }
     }
 
+    private onNodeDoubleClick(event: SigmaNodeEventPayload): void {
+        this.events.nodeDoubleClicked.trigger(event.node);
+    }
+
     private updateModifierKeyState(e: MouseEvent | KeyboardEvent) {
         this._modifierKeyState.control = e.ctrlKey;
         this._modifierKeyState.alt = e.altKey;
         this._modifierKeyState.shift = e.shiftKey;
     }
-    
+
     private onNodeEnter(): void {
         if (this.cursorOptions.altHoverCursor && this._modifierKeyState.alt) {
             this.element.style.cursor = this.cursorOptions.altHoverCursor;

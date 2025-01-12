@@ -77,16 +77,22 @@
     });
 
     function onDiagramNodeClicked(nodeId: string) {
-        switch ($selectedTool) {
-            case AppTools.Toggle:
-                diagram.toggleNode(nodeId);
-                break;
-            case AppTools.Remove:
-                diagram.remove(nodeId, get(state.toolOptions).remove);
-                break;
+        if (diagram.modifierKeyState.alt && !diagram.modifierKeyState.control && !diagram.modifierKeyState.shift) {{
+            diagram.remove(nodeId, get(state.toolOptions).remove);
+        }}
+        
+        if (!diagram.modifierKeyState.alt && !diagram.modifierKeyState.control && !diagram.modifierKeyState.shift) {
+            diagram.selectedNode = nodeId;
         }
     }
     diagram.events.nodeClicked.subscribe(onDiagramNodeClicked);
+
+    function onDiagramNodeDoubleClicked(nodeId: string) {
+        if (!diagram.modifierKeyState.alt && !diagram.modifierKeyState.control && !diagram.modifierKeyState.shift) {
+            diagram.toggleNode(nodeId);
+        }
+    }
+    diagram.events.nodeDoubleClicked.subscribe(onDiagramNodeDoubleClicked);
 
     selectedTool.subscribe((tool) => {
         diagram.canDragNodes = tool == AppTools.Move;

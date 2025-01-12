@@ -1,5 +1,5 @@
 import { hierarchy, HierarchyNode } from "../deps/d3-hierarchy.ts";
-import { Attributes, EdgeEntry } from "../deps/graphology.ts";
+import { Attributes, EdgeEntry, GraphEvents } from "../deps/graphology.ts";
 import Graph from "../deps/graphology.ts";
 import { NodeDisplayData, EdgeDisplayData } from "../deps/sigma.ts";
 import { Multigraph, MultigraphNodeDiffStatus } from "./data-model.ts";
@@ -216,4 +216,44 @@ export function getForestItems(forest: HelvegForest): HelvegForestItem[] {
 
     forest.roots.forEach(t => visit(t));
     return items;
+}
+
+type HelvegGraphEvent = keyof GraphEvents<HelvegGraph>;
+
+const HELVEG_GRAPH_EVENTS: HelvegGraphEvent[] = [
+    "nodeAdded",
+    "edgeAdded",
+    "nodeDropped",
+    "edgeDropped",
+    "cleared",
+    "edgesCleared",
+    "attributesUpdated",
+    "nodeAttributesUpdated",
+    "edgeAttributesUpdated",
+    "eachNodeAttributesUpdated",
+    "eachEdgeAttributesUpdated",
+]
+
+export function getAllGraphListeners(graph: HelvegGraph): Record<HelvegGraphEvent, any[]> {
+    const listeners: Record<string, any[]> = {};
+    for (const event of HELVEG_GRAPH_EVENTS) {
+        listeners[event] = graph.rawListeners(event);
+    }
+
+    return listeners;
+}
+
+export function removeAllGraphListeners(graph: HelvegGraph): void {
+    for (const event of HELVEG_GRAPH_EVENTS) {
+        graph.removeAllListeners(event);
+    }
+}
+
+
+export function setAllGraphListeners(graph: HelvegGraph, listeners: Record<HelvegGraphEvent, any[]>): void {
+    for (const event of HELVEG_GRAPH_EVENTS) {
+        for (const listener of listeners[event]) {
+            graph.addListener(event, listener);
+        }
+    }
 }
