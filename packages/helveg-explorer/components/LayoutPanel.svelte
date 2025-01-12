@@ -42,12 +42,13 @@
 </script>
 
 <Panel name="Layout" indent={false} id={AppPanels.Layout}>
-    <Subpanel>
+    <Subpanel class="sticky top-0">
         <button
             on:click={() => dispatch("refresh")}
-            class="button-stretch primary mb-8"
+            class="button-stretch primary mb-8 flex flex-row gap-4 align-items-center"
         >
-            Refresh
+            <Icon name="vscode:refresh" />
+            Run Layout
         </button>
         <label>
             <div class="flex flex-row gap-8">

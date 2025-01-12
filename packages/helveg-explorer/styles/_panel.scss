@@ -3,6 +3,7 @@
 .panel {
     height: 100%;
     overflow: hidden;
+    background-color: var(--color-surface-50);
 
     .panel-header {
 
@@ -45,6 +46,7 @@
 
 .panel-body,
 .subpanel-body {
+    background-color: var(--color-surface-50);
 
     input,
     textarea,
