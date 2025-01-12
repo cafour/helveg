@@ -8,6 +8,7 @@ export interface IconOptions {
     viewBox?: string;
     removeTitle?: boolean;
     viewBoxOnly?: boolean;
+    fill?: string;
     overrideExisting?: boolean;
 }
 
@@ -87,7 +88,7 @@ export class IconRegistry {
             case "png":
                 return `data:image/png;base64,${icon.data}`;
             default:
-                throw new Error(`IconFormat '${icon.format}' is not supported.`);
+                throw new Error(`IconFormat '${icon.format}' of icon '${name}' is not supported.`);
         }
     }
 
@@ -116,6 +117,9 @@ function setIconSize(svg: Document, options: IconOptions): string {
     }
     if (options.viewBox && (options.overrideExisting || !svg.documentElement.hasAttribute("viewBox"))) {
         svg.documentElement.setAttribute("viewBox", options.viewBox);
+    }
+    if (options.fill && (options.overrideExisting || !svg.documentElement.hasAttribute("fill"))) {
+        svg.documentElement.setAttribute("fill", options.fill);
     }
     return new XMLSerializer().serializeToString(svg);
 }

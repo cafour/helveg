@@ -18,6 +18,7 @@
     import type { DataOptions, LayoutOptions } from "../options.ts";
     import ToggleAllCheckbox from "./ToggleAllCheckbox.svelte";
     import Hint from "./Hint.svelte";
+    import NodeKindIcon from "./NodeKindIcon.svelte";
 
     export let status: DiagramStatus;
     export let stats: DiagramStats;
@@ -38,13 +39,6 @@
 
     $: kinds = getNodeKinds($model.data)
         .sort((a, b) => diagram.options.nodeKindOrder.indexOf(a) - diagram.options.nodeKindOrder.indexOf(b));
-
-    function getNodeKindIcon(kind: string): string {
-        const style = diagram.nodeStylist({
-            kind: kind,
-        });
-        return style.icon ?? FALLBACK_NODE_STYLE.icon;
-    }
 </script>
 
 <Panel name="Layout" indent={false} id={AppPanels.Layout}>
@@ -288,7 +282,7 @@
                     bind:group={$dataOptions.selectedKinds}
                     value={kind}
                 />
-                <Icon title={kind} name={getNodeKindIcon(kind)} />
+                <NodeKindIcon nodeKind={kind} />
                 <span>{kind}</span>
             </label>
         {/each}

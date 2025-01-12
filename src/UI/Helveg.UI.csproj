@@ -12,8 +12,8 @@
     <EmbeddedResource Include="$(RepositoryRoot)/packages/helveg-diagram/dist/helveg-diagram.js" LogicalName="helveg-diagram.js" />
     <EmbeddedResource Include="$(RepositoryRoot)/packages/helveg-explorer/dist/helveg-explorer.js" LogicalName="helveg-explorer.js" />
     <EmbeddedResource Include="$(RepositoryRoot)/packages/helveg-explorer/dist/helveg-explorer.css" LogicalName="helveg-explorer.css" />
-    <EmbeddedResource Include="$(RepositoryRoot)/packages/helveg-diagram/dist/helveg-icons-vs.json" LogicalName="helveg-icons-vs.json" />
-    <EmbeddedResource Include="$(RepositoryRoot)/packages/helveg-diagram/dist/helveg-icons-nuget.json" LogicalName="helveg-icons-nuget.json" />
+    <EmbeddedResource Include="$(RepositoryRoot)/packages/helveg-diagram/dist/helveg-icons-helveg.json" LogicalName="helveg-icons-helveg.json" />
+    <EmbeddedResource Include="$(RepositoryRoot)/packages/helveg-diagram/dist/helveg-icons-vscode.json" LogicalName="helveg-icons-vscode.json" />
     <EmbeddedResource Include="$(RepositoryRoot)/packages/helveg-diagram/dist/helveg-icons-pizza.json" LogicalName="helveg-icons-pizza.json" />
   </ItemGroup>
 

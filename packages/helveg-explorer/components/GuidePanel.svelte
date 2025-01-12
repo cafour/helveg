@@ -159,12 +159,6 @@
         >.
     </p>
     <p>
-        Helveg uses Visual Studio Icons by Microsoft. These are licensed under <a
-            href="https://www.microsoft.com/en-us/download/details.aspx?id=35825"
-            target="_blank">Microsoft Software License Terms</a
-        >.
-    </p>
-    <p>
         Helveg uses <code
             ><a
                 href="https://github.com/microsoft/vscode-codicons"
