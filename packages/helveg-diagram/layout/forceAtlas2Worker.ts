@@ -1,8 +1,7 @@
 import iterate from "graphology-layout-forceatlas2/iterate";
 import { MessageKind, type Message, type StartMessage, type StopMessage, type UpdateMessage, type InitMessage, type ProgressMessage } from "./forceAtlas2Messages";
-import type { ForceAtlas2Settings } from "graphology-layout-forceatlas2";
 
-let iterationCount = 0;
+let globalIterationCount = 0;
 let nodes: Float32Array;
 let edges: Float32Array;
 let stopRequested: boolean = false;
@@ -32,13 +31,17 @@ function init(message: InitMessage) {
 function start(message: StartMessage) {
     nodes = new Float32Array(message.nodes);
     stopRequested = false;
-    if (message.isSingleIteration) {
-        iterate(message.settings, nodes, edges);
-        update();
-        iterationCount++;
-        if ((iterationCount % message.reportInterval) === 0) {
-            report();
+    if (message.iterationCount !== undefined && message.iterationCount >= 0) {
+        for(let i = 0; i < message.iterationCount; ++i) {
+            iterate(message.settings, nodes, edges);
+            if ((i % message.reportInterval) === 0) {
+                report(i);
+            }
         }
+        update();
+        postMessage(<StopMessage>{
+            kind: MessageKind.Stop
+        });
     }
     else {
         runContinously(message);
@@ -54,8 +57,8 @@ function runContinously(message: StartMessage)
             return;
         }
         iterate(message.settings, nodes, edges);
-        iterationCount++;
-        if ((iterationCount % message.reportInterval) === 0) {
+        globalIterationCount++;
+        if ((globalIterationCount % message.reportInterval) === 0) {
             report();
         }
         mc.port2.postMessage("");
@@ -76,10 +79,10 @@ function update() {
     });
 }
 
-function report() {
+function report(iterationCount?: number) {
     self.postMessage(<ProgressMessage>{
         kind: MessageKind.Progress,
-        iterationCount: iterationCount
+        iterationCount: iterationCount ?? globalIterationCount
     });
 }
 

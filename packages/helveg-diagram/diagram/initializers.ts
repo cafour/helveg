@@ -13,6 +13,7 @@ import { WorkaroundNodeProgram } from "../rendering/workaround_node.ts";
 export function initializeSupervisor(
     graph: HelvegGraph,
     onSupervisorProgress: (progress: ForceAtlas2Progress) => void,
+    onSupervisorStopped: () => void,
     settings?: ForceAtlas2Settings,
     logger?: ILogger
 ): ForceAtlas2Supervisor {
@@ -20,6 +21,7 @@ export function initializeSupervisor(
     settings ??= { ...inferSettings(graph), adjustSizes: true };
     const supervisor = new ForceAtlas2Supervisor(graph, settings, logger ? sublogger(logger, "fa2") : undefined);
     supervisor.progress.subscribe(onSupervisorProgress);
+    supervisor.stopped.subscribe(onSupervisorStopped);
     return supervisor;
 }
 
