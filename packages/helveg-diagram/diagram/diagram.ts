@@ -681,7 +681,7 @@ export class Diagram {
         }
 
         let removedCount = 0;
-        if (!options.isTransitive) {
+        if (!options.isTransitive && !this._graph.getNodeAttributes(nodeId).collapsed) {
             this._graph.dropNode(nodeId);
             removedCount = 1;
         } else {
