@@ -1,5 +1,5 @@
 import { HelvegEvent } from "../common/event.ts";
-import { HelvegGraph, MULTIGRAPH_NODE_KEY, expandPathsTo, findRoots, removeAllGraphListeners, toggleNode } from "../model/graph.ts";
+import { HelvegEdgeAttributes, HelvegGraph, HelvegNodeAttributes, MULTIGRAPH_NODE_KEY, expandPathsTo, findRoots, removeAllGraphListeners, toggleNode } from "../model/graph.ts";
 import { Coordinates, SigmaNodeEventPayload } from "../deps/sigma.ts";
 import { LogSeverity, ILogger, consoleLogger } from "../model/logger.ts";
 import { ForceAtlas2Progress, ForceAtlas2Supervisor } from "../layout/forceAltas2Supervisor.ts";
@@ -17,6 +17,7 @@ import { EMPTY_DATA_MODEL } from "../model/const.ts";
 import { inferSettings } from "graphology-layout-forceatlas2";
 import { deepCompare } from "../common/deep-compare.ts";
 import { FALLBACK_INSPECTOR, Inspector } from "../model/inspect.ts";
+import Graph from "../deps/graphology.ts";
 
 export interface DiagramRefreshOptions {
     selectedRelations?: string[],
@@ -690,18 +691,18 @@ export class Diagram {
 
             // NB: This awful construction is here so that the dropping of nodes does not take forever due to
             //     Sigma's and FA2-supervisor's event listeners.
-            // const allGraphListeners = getAllGraphListeners(this._graph);
-            removeAllGraphListeners(this._graph);
             await this.refreshSupervisor(true, () => {
                 if (!this._graph) {
                     return;
                 }
 
+                this._sigma?.setGraph(new Graph<HelvegNodeAttributes, HelvegEdgeAttributes>());
+                // NB: Sigma doesn't clear its highlightedNodes correctly
+                ((this._sigma as any)["highlightedNodes"] as Set<string>).clear();
                 reachable.forEach(id => this._graph!.dropNode(id));
+                this._graph!.forEachNode((_, a) => a.highlighted = undefined);
                 this._sigma?.setGraph(this._graph);
-                (this._sigma as any)["hoveredNode"] = null;
             })
-            // setAllGraphListeners(this._graph, allGraphListeners);
 
             removedCount = reachable.size;
         }

@@ -1,7 +1,7 @@
 <script lang="ts">
     import { getContext } from "svelte";
     import type { IExplorerState } from "../explorer-state";
-    import { OperationScope, type INodeOperation } from "../operation";
+    import { OperationScope, type NodeOperation } from "../operation";
     import Icon from "./Icon.svelte";
 
     const state = getContext<IExplorerState>("state");
@@ -44,9 +44,9 @@
         sizeY = element.offsetHeight;
     }
 
-    function onClicked(op: INodeOperation, e: MouseEvent) {
+    function onClicked(op: NodeOperation, e: MouseEvent) {
         if (contextNode) {
-            state.operationExecutor.executeClick(op, contextNode, e);
+            state.operationExecutor.executeNodeMouseDown(contextNode, e);
         }
     }
 </script>

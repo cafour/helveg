@@ -150,6 +150,7 @@ export function createExplorerState(rootElement: HTMLElement, diagram: Diagram):
     };
 
     state.operationExecutor = new OperationExecutor(state);
+    state.operationExecutor.attach(diagram);
     return state;
 }
 
