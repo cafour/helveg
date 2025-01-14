@@ -11,7 +11,7 @@
     import Toast from "./Toast.svelte";
     import ToolBox from "./ToolBox.svelte";
     import ToolsPanel from "./ToolsPanel.svelte";
-    import { type Diagram } from "../deps/helveg-diagram.ts";
+    import { type Diagram, type ModifierKeyStateChange } from "../deps/helveg-diagram.ts";
     import { AppIcons, AppPanels, AppTools } from "../const.ts";
     import LoadingScreen from "./LoadingScreen.svelte";
     import SearchPanel from "./SearchPanel.svelte";
@@ -86,6 +86,11 @@
         }
     }
     diagram.events.nodeClicked.subscribe(onDiagramNodeClicked);
+    
+    function onModifierKeysChanged(change: ModifierKeyStateChange) {
+        diagram.canDragNodes = change.new.shift;
+    }
+    diagram.events.modifierKeysChanged.subscribe(onModifierKeysChanged);
 
     function onDiagramNodeDoubleClicked(nodeId: string) {
         if (!diagram.modifierKeyState.alt && !diagram.modifierKeyState.control && !diagram.modifierKeyState.shift) {

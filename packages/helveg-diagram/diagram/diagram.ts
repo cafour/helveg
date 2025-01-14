@@ -129,6 +129,11 @@ export interface ModifierKeyState {
     shift: boolean;
 }
 
+export interface ModifierKeyStateChange {
+    old: Readonly<ModifierKeyState>,
+    new: Readonly<ModifierKeyState>
+};
+
 export class Diagram {
     private _element: HTMLElement;
     get element(): HTMLElement { return this._element; }
@@ -306,6 +311,7 @@ export class Diagram {
         nodeClicked: new HelvegEvent<string>("helveg.diagram.nodeClicked"),
         nodeDoubleClicked: new HelvegEvent<string>("helveg.diagram.nodeDoubleClicked"),
         mainRelationChanged: new HelvegEvent<string | null>("helveg.diagram.mainRelationChanged"),
+        modifierKeysChanged: new HelvegEvent<ModifierKeyStateChange>("helveg.diagram.modifierKeysChanged")
     } as const;
 
     // NB: private state for gestures
@@ -884,9 +890,16 @@ export class Diagram {
     }
 
     private updateModifierKeyState(e: MouseEvent | KeyboardEvent) {
-        this._modifierKeyState.control = e.ctrlKey;
-        this._modifierKeyState.alt = e.altKey;
-        this._modifierKeyState.shift = e.shiftKey;
+        const newState: ModifierKeyState = {
+            alt: e.altKey,
+            control: e.ctrlKey,
+            shift: e.shiftKey
+        };
+        if (!deepCompare(this._modifierKeyState, newState)) {
+            const oldState = { ...this._modifierKeyState };
+            Object.assign(this._modifierKeyState, newState);
+            this.events.modifierKeysChanged.trigger({ old: oldState, new: this._modifierKeyState });
+        }
     }
 
     private onNodeEnter(): void {
