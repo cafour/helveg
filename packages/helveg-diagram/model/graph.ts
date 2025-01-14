@@ -74,14 +74,14 @@ export function expandNode(
     graph.setNodeAttribute(nodeId, "collapsed", false);
     graph.setNodeAttribute(nodeId, "hidden", false);
 
-    let neighborEdge: EdgeEntry<Partial<HelvegNodeAttributes>, Partial<HelvegEdgeAttributes>>[] = [];
+    let neighborEdges: EdgeEntry<Partial<HelvegNodeAttributes>, Partial<HelvegEdgeAttributes>>[] = [];
     for (let edge of graph.outboundEdgeEntries(nodeId)) {
         if (!relation || edge.attributes.relation === relation) {
-            neighborEdge.push(edge);
+            neighborEdges.push(edge);
         }
     }
 
-    neighborEdge.forEach((neighbor, i) => {
+    neighborEdges.forEach((neighbor, i) => {
         if (x === undefined || y === undefined || nodeSize === undefined) {
             return;
         }
@@ -90,13 +90,14 @@ export function expandNode(
         neighbor.targetAttributes.hidden = false;
         if (neighbor.sourceAttributes.inInitialPosition !== true
             && neighbor.targetAttributes.inInitialPosition !== true) {
-            neighbor.targetAttributes.x = x + dist * Math.cos((i / neighborEdge.length) * 2 * Math.PI);
-            neighbor.targetAttributes.y = y + dist * Math.sin((i / neighborEdge.length) * 2 * Math.PI);
+            neighbor.targetAttributes.x = x + dist * Math.cos((i / neighborEdges.length) * 2 * Math.PI);
+            neighbor.targetAttributes.y = y + dist * Math.sin((i / neighborEdges.length) * 2 * Math.PI);
             neighbor.targetAttributes.inInitialPosition = false;
         }
 
-        if (recursive) {
-            expandNode(graph, neighbor.target, true, relation);
+        const shouldExpandChild = recursive || neighborEdges.length === 1;
+        if (shouldExpandChild) {
+            expandNode(graph, neighbor.target, recursive, relation);
         }
     });
 }
