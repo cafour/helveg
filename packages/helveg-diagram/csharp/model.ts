@@ -31,21 +31,21 @@ export const csharpNodeKindOrder: readonly string[] = [
     EntityKind.Project,
     EntityKind.Framework,
     EntityKind.Package,
-    
+
     EntityKind.Library,
     EntityKind.Assembly,
     EntityKind.Module,
-    
+
     EntityKind.Namespace,
-    
+
     EntityKind.Type,
     EntityKind.TypeParameter,
-    
+
     EntityKind.Field,
     EntityKind.Property,
     EntityKind.Event,
     EntityKind.Method,
-    
+
     EntityKind.Parameter
 ];
 
@@ -177,6 +177,45 @@ export enum VSColor {
     NuGetBlue = "#004880",
     Green = "#1f801f"
 }
+
+export const PALETTE: Readonly<Map<EntityKind | TypeKind, string>> = new Map()
+    // Solution-Project abstraction
+    .set(EntityKind.Solution, "Green")
+    .set(EntityKind.Project, "LessGreen")
+
+    // Assembly-Module abstraction
+    .set(EntityKind.Assembly, "Purple")
+    .set(EntityKind.Module, "LessPurple")
+
+    // Repository-Package abstraction
+    .set(EntityKind.PackageRepository, "?")
+    .set(EntityKind.Package, "Less?")
+
+    // General structure
+    .set(EntityKind.Namespace, "DarkGray")
+    .set(EntityKind.ExternalDependencySource, "DarkGray")
+    .set(EntityKind.Library, "DarkGray")
+    .set(EntityKind.Framework, "DarkGray")
+
+    // Types
+    .set(EntityKind.Type, "#4c893c")
+    .set(EntityKind.TypeParameter, "#84782a")
+    .set(TypeKind.Class, "#cdb23c")
+    .set(TypeKind.Struct, "#61c886")
+    .set(TypeKind.Interface, "#aeb570")
+    .set(TypeKind.Delegate, "#325217")
+    .set(TypeKind.Enum, "#87c245")
+
+    // Type members
+    .set(EntityKind.Property, "")
+    .set(EntityKind.Field, "")
+    .set(EntityKind.Method, "")
+    .set(EntityKind.Event, "")
+    
+    // Parameters
+    .set(EntityKind.Parameter, "");
+
+export const FALLBACK_COLOR = "#202020";
 
 export interface CSharpNode extends MultigraphNode {
     kind: EntityKind,

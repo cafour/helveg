@@ -1,6 +1,6 @@
 import { MultigraphNode } from "../model/data-model.ts";
 import { EdgeStyle, FALLBACK_EDGE_STYLE, FALLBACK_NODE_STYLE, FireStatus, NodeStyle, NodeStylist, OutlineStyle, RelationStylist } from "../model/style";
-import { CSharpNode, DefaultRelationColors, EntityKind, MemberAccessibility, MethodKind, Relations, TypeKind, VSColor } from "./model";
+import { CSharpNode, DefaultRelationColors, EntityKind, MemberAccessibility, MethodKind, PALETTE, Relations, TypeKind, VSColor } from "./model";
 
 export const csharpNodeStylist: NodeStylist = (node: MultigraphNode) => {
     return { ...FALLBACK_NODE_STYLE, ...resolveNodeStyle(node as Partial<CSharpNode>) };
@@ -113,28 +113,26 @@ function resolveNodeStyle(node: Partial<CSharpNode>): Partial<NodeStyle> {
             switch (node.typeKind) {
                 case TypeKind.Class:
                     base.icon = node.isRecord ? "helveg:RecordClass" : "helveg:Class";
-                    base.color = VSColor.DarkYellow;
                     break;
                 case TypeKind.Interface:
                     base.icon = "helveg:Interface";
-                    base.color = VSColor.Blue;
                     break;
                 case TypeKind.Enum:
                     base.icon = "helveg:Enum";
-                    base.color = VSColor.DarkYellow;
                     break;
                 case TypeKind.Struct:
                     base.icon = node.isRecord ? "helveg:RecordStruct" : "helveg:Struct";
-                    base.color = VSColor.Blue;
                     break;
                 case TypeKind.Delegate:
                     base.icon = "helveg:Delegate";
-                    base.color = VSColor.Purple;
                     break;
                 default:
                     base.icon = "helveg:Type";
-                    base.color = VSColor.Blue;
                     break;
+            }
+            base.color = PALETTE.get(EntityKind.Type);
+            if (node.typeKind && PALETTE.has(node.typeKind)) {
+                base.color = PALETTE.get(node.typeKind);
             }
             const instanceMemberCount = node.instanceMemberCount ?? 0;
             const staticMemberCount = node.staticMemberCount ?? 0;
