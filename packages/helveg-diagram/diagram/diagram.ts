@@ -1,5 +1,5 @@
 import { HelvegEvent } from "../common/event.ts";
-import { HelvegGraph, MULTIGRAPH_NODE_KEY, expandPathsTo, findRoots, getNodeKinds, toggleNode } from "../model/graph.ts";
+import { HelvegEdgeAttributes, HelvegGraph, HelvegNodeAttributes, MULTIGRAPH_NODE_KEY, expandPathsTo, findRoots, removeAllGraphListeners, toggleNode } from "../model/graph.ts";
 import { Coordinates, SigmaNodeEventPayload } from "../deps/sigma.ts";
 import { LogSeverity, ILogger, consoleLogger } from "../model/logger.ts";
 import { ForceAtlas2Progress, ForceAtlas2Supervisor } from "../layout/forceAltas2Supervisor.ts";
@@ -17,6 +17,7 @@ import { EMPTY_DATA_MODEL } from "../model/const.ts";
 import { inferSettings } from "graphology-layout-forceatlas2";
 import { deepCompare } from "../common/deep-compare.ts";
 import { FALLBACK_INSPECTOR, Inspector } from "../model/inspect.ts";
+import Graph from "../deps/graphology.ts";
 
 export interface DiagramRefreshOptions {
     selectedRelations?: string[],
@@ -128,6 +129,11 @@ export interface ModifierKeyState {
     alt: boolean;
     shift: boolean;
 }
+
+export interface ModifierKeyStateChange {
+    old: Readonly<ModifierKeyState>,
+    new: Readonly<ModifierKeyState>
+};
 
 export class Diagram {
     private _element: HTMLElement;
@@ -304,7 +310,9 @@ export class Diagram {
         statsChanged: new HelvegEvent<DiagramStats>("helveg.diagram.statsChanged"),
         nodeSelected: new HelvegEvent<string | null>("helveg.diagram.nodeSelected"),
         nodeClicked: new HelvegEvent<string>("helveg.diagram.nodeClicked"),
+        nodeDoubleClicked: new HelvegEvent<string>("helveg.diagram.nodeDoubleClicked"),
         mainRelationChanged: new HelvegEvent<string | null>("helveg.diagram.mainRelationChanged"),
+        modifierKeysChanged: new HelvegEvent<ModifierKeyStateChange>("helveg.diagram.modifierKeysChanged")
     } as const;
 
     // NB: private state for gestures
@@ -673,7 +681,7 @@ export class Diagram {
         }
 
         let removedCount = 0;
-        if (!options.isTransitive) {
+        if (!options.isTransitive && !this._graph.getNodeAttributes(nodeId).collapsed) {
             this._graph.dropNode(nodeId);
             removedCount = 1;
         } else {
@@ -681,9 +689,21 @@ export class Diagram {
                 relation: this.mainRelation
             });
 
+            // NB: This awful construction is here so that the dropping of nodes does not take forever due to
+            //     Sigma's and FA2-supervisor's event listeners.
             await this.refreshSupervisor(true, () => {
-                reachable.forEach(id => this._graph?.dropNode(id));
+                if (!this._graph) {
+                    return;
+                }
+
+                this._sigma?.setGraph(new Graph<HelvegNodeAttributes, HelvegEdgeAttributes>());
+                // NB: Sigma doesn't clear its highlightedNodes correctly
+                ((this._sigma as any)["highlightedNodes"] as Set<string>).clear();
+                reachable.forEach(id => this._graph!.dropNode(id));
+                this._graph!.forEachNode((_, a) => a.highlighted = undefined);
+                this._sigma?.setGraph(this._graph);
             })
+
             removedCount = reachable.size;
         }
 
@@ -728,7 +748,9 @@ export class Diagram {
                 return;
             }
 
-            this._sigma?.refresh();
+            try {
+                this._sigma?.refresh();
+            } catch { }
 
             this._supervisor = initializeSupervisor(
                 this._graph,
@@ -795,6 +817,7 @@ export class Diagram {
         );
         this._sigma.on("enterNode", this.onNodeEnter.bind(this));
         this._sigma.on("leaveNode", this.onNodeLeave.bind(this));
+        this._sigma.on("doubleClickNode", this.onNodeDoubleClick.bind(this));
         this.reconfigureSigma();
     }
 
@@ -852,7 +875,6 @@ export class Diagram {
     }
 
     private onNodeClick(event: SigmaNodeEventPayload): void {
-        this.selectedNode = event.node;
         this.events.nodeClicked.trigger(event.node);
     }
 
@@ -864,12 +886,23 @@ export class Diagram {
         }
     }
 
-    private updateModifierKeyState(e: MouseEvent | KeyboardEvent) {
-        this._modifierKeyState.control = e.ctrlKey;
-        this._modifierKeyState.alt = e.altKey;
-        this._modifierKeyState.shift = e.shiftKey;
+    private onNodeDoubleClick(event: SigmaNodeEventPayload): void {
+        this.events.nodeDoubleClicked.trigger(event.node);
     }
-    
+
+    private updateModifierKeyState(e: MouseEvent | KeyboardEvent) {
+        const newState: ModifierKeyState = {
+            alt: e.altKey,
+            control: e.ctrlKey,
+            shift: e.shiftKey
+        };
+        if (!deepCompare(this._modifierKeyState, newState)) {
+            const oldState = { ...this._modifierKeyState };
+            Object.assign(this._modifierKeyState, newState);
+            this.events.modifierKeysChanged.trigger({ old: oldState, new: this._modifierKeyState });
+        }
+    }
+
     private onNodeEnter(): void {
         if (this.cursorOptions.altHoverCursor && this._modifierKeyState.alt) {
             this.element.style.cursor = this.cursorOptions.altHoverCursor;

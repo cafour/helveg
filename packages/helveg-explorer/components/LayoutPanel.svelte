@@ -37,23 +37,25 @@
     let layoutOptions = getContext<Writable<LayoutOptions>>("layoutOptions");
     let dataOptions = getContext<Writable<DataOptions>>("dataOptions");
 
-    $: kinds = getNodeKinds($model.data)
-        .sort((a, b) => diagram.options.nodeKindOrder.indexOf(a) - diagram.options.nodeKindOrder.indexOf(b));
+    $: kinds = getNodeKinds($model.data).sort(
+        (a, b) =>
+            diagram.options.nodeKindOrder.indexOf(a) -
+            diagram.options.nodeKindOrder.indexOf(b),
+    );
 </script>
 
 <Panel name="Layout" indent={false} id={AppPanels.Layout}>
-    <Subpanel>
+    <Subpanel class="sticky top-0">
         <button
             on:click={() => dispatch("refresh")}
-            class="button-stretch primary mb-8"
+            class="button-stretch primary mb-8 flex flex-row gap-4 align-items-center"
         >
-            Refresh
+            <Icon name="vscode:refresh" />
+            Run Layout
         </button>
         <label>
             <div class="flex flex-row gap-8">
-                <span>
-                    ExpandedDepth
-                </span>
+                <span> ExpandedDepth </span>
                 <Hint
                     text="The initial visible depth of the diagram. Press the Refresh button to reset the diagram to this depth."
                 />
@@ -66,9 +68,65 @@
         </label>
     </Subpanel>
 
-    <Subpanel name="TidyTree" hint="An immediate algorithm that lays out the graph in a circular tree.">
+    <Subpanel
+        name="Relations"
+        hint="Allows you to pick which relationships are visualized."
+    >
+        <!-- svelte-ignore a11y-label-has-associated-control -->
+        <label>
+            <ToggleAllCheckbox
+                bind:selected={$dataOptions.selectedRelations}
+                all={relations}
+            />
+            <span>all</span>
+        </label>
+        {#each relations as relation}
+            <label>
+                <input
+                    type="checkbox"
+                    bind:group={$dataOptions.selectedRelations}
+                    value={relation}
+                />
+                <span>{relation}</span>
+            </label>
+        {/each}
+    </Subpanel>
+
+    <Subpanel
+        name="Node Kinds"
+        hint="Allows you to include or exclude nodes based on their kind. The list is sorted hierarchically with the 'largest' nodes at the top."
+    >
+        <!-- svelte-ignore a11y-label-has-associated-control -->
+        <label>
+            <ToggleAllCheckbox
+                bind:selected={$dataOptions.selectedKinds}
+                all={kinds}
+            />
+            <span>all</span>
+        </label>
+        {#each kinds as kind}
+            <label>
+                <input
+                    type="checkbox"
+                    bind:group={$dataOptions.selectedKinds}
+                    value={kind}
+                />
+                <NodeKindIcon nodeKind={kind} />
+                <span>{kind}</span>
+            </label>
+        {/each}
+    </Subpanel>
+
+    <Subpanel
+        name="TidyTree"
+        hint="An immediate algorithm that lays out the graph in a circular tree."
+        collapsed={true}
+    >
         <div class="flex flex-row justify-content-center mb-8">
-            <button on:click={() => dispatch("tidyTree")} class="button-icon success-stroke">
+            <button
+                on:click={() => dispatch("tidyTree")}
+                class="button-icon success-stroke"
+            >
                 <Icon name="vscode:play" title="Run" />
             </button>
         </div>
@@ -82,7 +140,12 @@
         </label>
     </Subpanel>
 
-    <Subpanel name="ForceAtlas2" indent={true} hint="A continous algorithm that simulates forces between the nodes.">
+    <Subpanel
+        name="ForceAtlas2"
+        indent={true}
+        hint="A continous algorithm that simulates forces between the nodes."
+        collapsed={true}
+    >
         <div class="flex flex-row justify-content-center">
             <button
                 on:click={() => dispatch("run", false)}
@@ -244,47 +307,5 @@
         <hr />
 
         <KeyValueList {items} />
-    </Subpanel>
-
-    <Subpanel name="Relations" hint="Allows you to pick which relationships are visualized.">
-        <!-- svelte-ignore a11y-label-has-associated-control -->
-        <label>
-            <ToggleAllCheckbox
-                bind:selected={$dataOptions.selectedRelations}
-                all={relations}
-            />
-            <span>all</span>
-        </label>
-        {#each relations as relation}
-            <label>
-                <input
-                    type="checkbox"
-                    bind:group={$dataOptions.selectedRelations}
-                    value={relation}
-                />
-                <span>{relation}</span>
-            </label>
-        {/each}
-    </Subpanel>
-    <Subpanel name="Node Kinds" hint="Allows you to include or exclude nodes based on their kind. The list is sorted hierarchically with the 'largest' nodes at the top.">
-        <!-- svelte-ignore a11y-label-has-associated-control -->
-        <label>
-            <ToggleAllCheckbox
-                bind:selected={$dataOptions.selectedKinds}
-                all={kinds}
-            />
-            <span>all</span>
-        </label>
-        {#each kinds as kind}
-            <label>
-                <input
-                    type="checkbox"
-                    bind:group={$dataOptions.selectedKinds}
-                    value={kind}
-                />
-                <NodeKindIcon nodeKind={kind} />
-                <span>{kind}</span>
-            </label>
-        {/each}
     </Subpanel>
 </Panel>

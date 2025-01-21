@@ -37,11 +37,16 @@
     const expanded = writable(new Set<string>());
     $: {
         items = getForestItems(
-            getForest($graph, $layoutOptions.tidyTree.relation ?? "declares", state.diagram.options.nodeKindOrder),
+            getForest(
+                $graph,
+                $layoutOptions.tidyTree.relation ?? "declares",
+                state.diagram.options.nodeKindOrder,
+            ),
         ) as TreeViewItem[];
-        items.filter(i => i.depth == 0).forEach(i => get(expanded).add(i.id));
+        items
+            .filter((i) => i.depth == 0)
+            .forEach((i) => get(expanded).add(i.id));
     }
-
 
     let isOpen = false;
     onMount(() => {
@@ -104,10 +109,10 @@
                 />
             {/each}
         {:else}
-            <i class="p-16"
-                >The displayed graph is empty or no relation is selected. Use
-                the Layout panel to refresh the graph.</i
-            >
+            <p class="p-16">
+                The displayed graph is empty or no relation is selected. Use the
+                Layout panel to refresh the graph.
+            </p>
         {/if}
     </Panel>
     <button class="toggle" on:click={togglePanel}>

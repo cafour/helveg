@@ -1,11 +1,10 @@
+import type { ModifierKeyState } from "@cafour/helveg-diagram";
 import { AppIcons } from "./const";
 import type { IExplorerState } from "./explorer-state";
 
-export interface IKeyboardShortcut {
+export interface KeyboardShortcut {
     key: string,
-    ctrlKey?: boolean,
-    shiftKey?: boolean,
-    altKey?: boolean
+    modifiers?: ModifierKeyState
 }
 
 /**
@@ -39,25 +38,25 @@ export enum MouseButton {
     FIFTH = 4
 }
 
-export interface IMouseGesture {
+export interface MouseGesture {
     button: MouseButton,
-    altKey?: boolean,
+    modifiers?: ModifierKeyState
 }
 
 export enum OperationScope {
-    GLOBAL = 1 << 0,
-    TOOLBOX = 1 << 1,
-    NODE = 1 << 2
+    GLOBAL = "global",
+    TOOLBOX = "toolbox",
+    NODE = "node"
 }
 
-export interface IOperation<TContext> {
+export interface Operation<TContext> {
     id: string,
     name: string;
     hint?: string;
     icon?: string,
     scope: OperationScope
-    shortcut?: IKeyboardShortcut,
-    gesture?: IMouseGesture,
+    shortcut?: KeyboardShortcut,
+    gesture?: MouseGesture,
 
     keyDown?: (state: IExplorerState, context: TContext, event: KeyboardEvent) => void | Promise<void>,
     keyUp?: (state: IExplorerState, context: TContext, event: KeyboardEvent) => void | Promise<void>
@@ -67,11 +66,11 @@ export interface IOperation<TContext> {
     mouseUp?: (state: IExplorerState, context: TContext, event: MouseEvent) => void | Promise<void>,
 }
 
-export type IGlobalOperation = IOperation<undefined>;
-export type INodeOperation = IOperation<string | null | undefined>;
+export type GlobalOperation = Operation<never>;
+export type NodeOperation = Operation<string>;
 
-export const DEFAULT_OPERATIONS: Array<IOperation<any>> = [
-    <INodeOperation>{
+export const DEFAULT_OPERATIONS: Array<Operation<unknown>> = [
+    <NodeOperation>{
         id: "move",
         name: "Move",
         hint: "Moves a node.",
@@ -100,8 +99,8 @@ export const DEFAULT_OPERATIONS: Array<IOperation<any>> = [
         mouseUp(state, node) {
             // TODO: state.diagram.draggedNode = null;
         }
-    },
-    <IGlobalOperation>{
+    } as Operation<unknown>,
+    <GlobalOperation>{
         id: "toggle-move-tool",
         name: "Toggle the Move tool",
         hint: "Selects the Move tool from the Toolbox.",
@@ -114,8 +113,8 @@ export const DEFAULT_OPERATIONS: Array<IOperation<any>> = [
         keyUp(state) {
             state.selectedTool.set("mouse");
         },
-    },
-    <INodeOperation>{
+    } as Operation<unknown>,
+    <NodeOperation>{
         id: "show-properties",
         name: "Show properties",
         hint: "Show properties of the selected node.",
@@ -134,8 +133,8 @@ export const DEFAULT_OPERATIONS: Array<IOperation<any>> = [
         mouseUp(state, node) {
             state.selectedNode.set(node ?? null);
         }
-    },
-    <IGlobalOperation>{
+    } as Operation<unknown>,
+    <GlobalOperation>{
         id: "toggle-show-properties-tool",
         name: "Toggle the Show properties tool",
         hint: "Toggle the Show properties tool from the Toolbox",
@@ -148,8 +147,8 @@ export const DEFAULT_OPERATIONS: Array<IOperation<any>> = [
         keyUp(state) {
             state.selectedTool.set("show-properties");
         },
-    },
-    <INodeOperation>{
+    } as Operation<unknown>,
+    <NodeOperation>{
         id: "toggle",
         name: "Toggle",
         hint: "Collapses or expands nodes.",
@@ -178,8 +177,8 @@ export const DEFAULT_OPERATIONS: Array<IOperation<any>> = [
 
             await state.diagram.toggleNode(node);
         }
-    },
-    <IGlobalOperation>{
+    } as Operation<unknown>,
+    <GlobalOperation>{
         id: "tool-toggle",
         name: "Switch to the Toggle tool",
         hint: "Collapses or expands nodes.",
@@ -192,13 +191,13 @@ export const DEFAULT_OPERATIONS: Array<IOperation<any>> = [
         keyUp(state) {
             state.selectedTool.set("toggle");
         },
-    },
-    <INodeOperation>{
+    } as Operation<unknown>,
+    <NodeOperation>{
         id: "remove",
         name: "Remove",
         hint: "Removes nodes and (optionally) its descendants.",
         shortcut: {
-            key: "r"
+            key: "Delete"
         },
         gesture: {
             button: MouseButton.MAIN
@@ -206,7 +205,7 @@ export const DEFAULT_OPERATIONS: Array<IOperation<any>> = [
         icon: AppIcons.RemoveTool,
         scope: OperationScope.NODE,
 
-        async keyUp(state, node) {
+        async keyDown(state, node) {
             if (!node) {
                 state.logger.warn("Select a node to be removed.");
                 return;
@@ -214,7 +213,7 @@ export const DEFAULT_OPERATIONS: Array<IOperation<any>> = [
 
             await state.diagram.remove(node);
         },
-        async mouseUp(state, node) {
+        async mouseDown(state, node) {
             if (!node) {
                 state.logger.warn("Select a node to be removed.");
                 return;
@@ -222,8 +221,8 @@ export const DEFAULT_OPERATIONS: Array<IOperation<any>> = [
 
             await state.diagram.remove(node);
         }
-    },
-    <IGlobalOperation>{
+    } as Operation<unknown>,
+    <GlobalOperation>{
         id: "tool-remove",
         name: "Switch to the Remove tool",
         hint: "Removes nodes and (optionally) its descendants.",
@@ -236,5 +235,5 @@ export const DEFAULT_OPERATIONS: Array<IOperation<any>> = [
         keyUp(state) {
             state.selectedTool.set("toggle");
         },
-    },
+    } as Operation<unknown>,
 ]

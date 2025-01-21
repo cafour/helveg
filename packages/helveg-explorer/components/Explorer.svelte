@@ -11,7 +11,7 @@
     import Toast from "./Toast.svelte";
     import ToolBox from "./ToolBox.svelte";
     import ToolsPanel from "./ToolsPanel.svelte";
-    import { type Diagram } from "../deps/helveg-diagram.ts";
+    import { type Diagram, type ModifierKeyStateChange } from "../deps/helveg-diagram.ts";
     import { AppIcons, AppPanels, AppTools } from "../const.ts";
     import LoadingScreen from "./LoadingScreen.svelte";
     import SearchPanel from "./SearchPanel.svelte";
@@ -77,16 +77,27 @@
     });
 
     function onDiagramNodeClicked(nodeId: string) {
-        switch ($selectedTool) {
-            case AppTools.Toggle:
-                diagram.toggleNode(nodeId);
-                break;
-            case AppTools.Remove:
-                diagram.remove(nodeId, get(state.toolOptions).remove);
-                break;
+        if (diagram.modifierKeyState.alt && !diagram.modifierKeyState.control && !diagram.modifierKeyState.shift) {{
+            diagram.remove(nodeId, get(state.toolOptions).remove);
+        }}
+        
+        if (!diagram.modifierKeyState.alt && !diagram.modifierKeyState.control && !diagram.modifierKeyState.shift) {
+            diagram.selectedNode = nodeId;
         }
     }
     diagram.events.nodeClicked.subscribe(onDiagramNodeClicked);
+    
+    function onModifierKeysChanged(change: ModifierKeyStateChange) {
+        diagram.canDragNodes = change.new.shift;
+    }
+    diagram.events.modifierKeysChanged.subscribe(onModifierKeysChanged);
+
+    function onDiagramNodeDoubleClicked(nodeId: string) {
+        if (!diagram.modifierKeyState.alt && !diagram.modifierKeyState.control && !diagram.modifierKeyState.shift) {
+            diagram.toggleNode(nodeId);
+        }
+    }
+    diagram.events.nodeDoubleClicked.subscribe(onDiagramNodeDoubleClicked);
 
     selectedTool.subscribe((tool) => {
         diagram.canDragNodes = tool == AppTools.Move;
