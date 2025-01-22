@@ -121,7 +121,7 @@
             </label>
         {/each}
     </Subpanel>
-    <Subpanel name="CodePizza">
+    <Subpanel name="CodePizza" collapsed={true}>
         <label>
             <input
                 type="checkbox"
