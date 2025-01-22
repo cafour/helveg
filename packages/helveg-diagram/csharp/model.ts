@@ -178,6 +178,18 @@ export enum VSColor {
     Green = "#1f801f"
 }
 
+export enum Palette {
+    Gray600 = "#202020",
+    Gray500 = "#404040",
+    Gray400 = "#606060",
+    Beige600 = "#9a7b4c",
+    Beige500 = "#a78368",
+    Beige400 = "#b98448",
+    Beige300 = "#bd8937",
+    Beige200 = "#d3982d",
+    Beige100 = "#d1ac78",
+};
+
 export const PALETTE: Readonly<Map<EntityKind | TypeKind, string>> = new Map()
     // Solution-Project abstraction
     .set(EntityKind.Solution, "Green")
@@ -192,10 +204,10 @@ export const PALETTE: Readonly<Map<EntityKind | TypeKind, string>> = new Map()
     .set(EntityKind.Package, "Less?")
 
     // General structure
-    .set(EntityKind.Namespace, "DarkGray")
-    .set(EntityKind.ExternalDependencySource, "DarkGray")
-    .set(EntityKind.Library, "DarkGray")
-    .set(EntityKind.Framework, "DarkGray")
+    .set(EntityKind.Namespace, Palette.Gray600)
+    .set(EntityKind.ExternalDependencySource, Palette.Gray600)
+    .set(EntityKind.Library, Palette.Gray600)
+    .set(EntityKind.Framework, Palette.Gray600)
 
     // Types
     .set(EntityKind.Type, "#4c893c")
@@ -240,6 +252,7 @@ export interface CSharpNode extends MultigraphNode {
     isExtern?: boolean;
     isPartial?: boolean;
     isAsync?: boolean;
+    isIndexer?: boolean;
     fieldType?: string;
     propertyType?: string;
     eventType?: string;
