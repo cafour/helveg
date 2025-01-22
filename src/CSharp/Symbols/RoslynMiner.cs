@@ -345,7 +345,7 @@ public class RoslynMiner : IMiner
 
             }
         }
-    
+
         var transcriber = new RoslynSymbolTranscriber(tokenMap, Options.ProjectSymbolAnalysisScope, logger);
         logger.LogDebug("Transcribing the '{}' assembly.", compilation.Assembly.Name);
         return transcriber.Transcribe(
@@ -441,7 +441,7 @@ public class RoslynMiner : IMiner
         {
             for (int i = 0; i < workspace.Diagnostics.Count; ++i)
             {
-                logger.LogDebug(workspace.Diagnostics[i].Message);
+                logger.LogDebug("{}: {}", workspace.Diagnostics[i].Kind, workspace.Diagnostics[i].Message);
             }
         }
 
