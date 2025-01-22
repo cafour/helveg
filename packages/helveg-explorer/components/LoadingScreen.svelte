@@ -1,8 +1,12 @@
 <script lang="ts">
+    import { createEventDispatcher } from "svelte";
     import { DiagramStatus } from "../deps/helveg-diagram.ts";
     import Icon from "./Icon.svelte";
 
     export let status: DiagramStatus;
+    export let stoppable: boolean = true;
+
+    const dispatch = createEventDispatcher();
 </script>
 
 <div
@@ -13,4 +17,13 @@
         <Icon name="Fallback" />
     </div>
     <div>Running in the background...</div>
+    {#if stoppable}
+        <button
+            class="button primary mt-16 flex flex-row gap-4 align-items-center"
+            on:click={() => dispatch("stop")}
+        >
+            <Icon name="vscode:debug-stop" />
+            Stop
+        </button>
+    {/if}
 </div>

@@ -1,16 +1,14 @@
-input.button-stretch,
-button.button-stretch,
-a.button-stretch {
+.button, .button-stretch {
     display: block;
     text-align: center;
     line-height: 1.5;
     padding: 0.25rem 0.5rem;
-    width: 100%;
     cursor: pointer;
     background-color: var(--color-surface-100);
     color: var(--color-text);
     outline: 1px solid var(--color-surface-200);
     border: none;
+    pointer-events: all;
 
     &:hover {
         background-color: var(--color-surface-200);
@@ -21,6 +19,12 @@ a.button-stretch {
         background-color: var(--color-surface-700);
         cursor: not-allowed;
     }
+}
+
+input.button-stretch,
+button.button-stretch,
+a.button-stretch {
+    width: 100%;
 }
 
 input.button-icon,
@@ -54,7 +58,7 @@ a.button-icon {
     }
 }
 
-:is(.button-stretch, .button-icon) {
+:is(.button-stretch, .button-icon, .button) {
     &.primary {
         background-color: var(--color-primary-500);
         color: var(--color-text-on-primary);
@@ -96,7 +100,7 @@ a.button-icon {
             }
         }
     }
-    
+
     &.success-stroke {
         svg {
             color: var(--color-success-500);
