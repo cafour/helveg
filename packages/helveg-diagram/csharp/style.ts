@@ -1,6 +1,7 @@
 import { MultigraphNode } from "../model/data-model.ts";
-import { EdgeStyle, FALLBACK_EDGE_STYLE, FALLBACK_NODE_STYLE, FireStatus, NodeStyle, NodeStylist, OutlineStyle, RelationStylist } from "../model/style";
-import { CSharpNode, DefaultRelationColors, EntityKind, MemberAccessibility, MethodKind, Relations, TypeKind, VSColor } from "./model";
+import { EdgeStyle, FALLBACK_EDGE_STYLE, FireStatus, NodeStyle, NodeStylist, OutlineStyle, RelationStylist } from "../model/style";
+import { CSharpNode, DefaultRelationColors, EntityKind, MemberAccessibility, MethodKind, Palette, Relations, TypeKind } from "./model";
+import chroma from "chroma-js";
 
 export const csharpNodeStylist: NodeStylist = (node: MultigraphNode) => {
     return { ...FALLBACK_NODE_STYLE, ...resolveNodeStyle(node as Partial<CSharpNode>) };
@@ -24,8 +25,121 @@ export function createCsharpRelationStylist(colors: Record<string, string>): Rel
 
 export const csharpRelationStylist: RelationStylist = createCsharpRelationStylist(DEFAULT_CSHARP_RELATION_COLORS);
 
+const FALLBACK_NODE_STYLE: NodeStyle = {
+    icon: "vscode:pie-chart",
+    size: 5,
+    color: Palette.Gray600,
+    outlines: [],
+    slices: { solid: 0, stroked: 0, width: 0 },
+    fire: FireStatus.None
+};
+
+const ENTITY_KIND_STYLES = new Map<EntityKind, Partial<NodeStyle>>()
+    .set(EntityKind.Solution, {
+        icon: "helveg:Solution",
+        size: 55,
+        color: Palette.Purple300,
+        backgroundColor: chroma(Palette.Purple300).brighten(1.5).desaturate(1).hex(),
+    })
+    .set(EntityKind.Project, {
+        icon: "helveg:Project",
+        size: 45,
+        color: Palette.Purple200,
+        backgroundColor: chroma(Palette.Purple200).brighten(1.5).desaturate(1).hex(),
+    })
+    .set(EntityKind.Framework, {
+        icon: "helveg:Framework",
+        size: 50,
+        color: Palette.Red200,
+        backgroundColor: chroma(Palette.Red200).brighten(2).hex(),
+    })
+    .set(EntityKind.ExternalDependencySource, {
+        icon: "helveg:ExternalDependencySource",
+        size: 50,
+        color: Palette.Gray600,
+        backgroundColor: chroma(Palette.Gray600).brighten(2).hex(),
+    })
+    .set(EntityKind.PackageRepository, {
+        icon: "helveg:PackageRepository",
+        size: 50,
+        color: Palette.Green300,
+        backgroundColor: chroma(Palette.Green300).brighten(2).hex(),
+    })
+    .set(EntityKind.Package, {
+        icon: "helveg:Package",
+        size: 45,
+        color: Palette.Green200,
+        backgroundColor: chroma(Palette.Green200).brighten(2).hex(),
+    })
+    .set(EntityKind.Library, {
+        icon: "helveg:Library",
+        size: 40,
+        color: Palette.Gray500,
+        backgroundColor: chroma(Palette.Gray500).brighten(2).hex(),
+    })
+    .set(EntityKind.Assembly, {
+        icon: "helveg:Assembly",
+        size: 40,
+        color: Palette.Gray600,
+        backgroundColor: chroma(Palette.Gray600).brighten(2).hex(),
+    })
+    .set(EntityKind.Module, {
+        icon: "helveg:Module",
+        size: 35,
+        color: Palette.Gray500,
+        backgroundColor: chroma(Palette.Gray500).brighten(2).hex(),
+    })
+    .set(EntityKind.Namespace, {
+        icon: "helveg:Namespace",
+        size: 30,
+        color: Palette.Gray600,
+        backgroundColor: chroma(Palette.Gray600).brighten(3).hex(),
+    })
+    .set(EntityKind.Type, {
+        icon: "helveg:Type",
+        size: 15,
+        color: Palette.Beige300
+    })
+    .set(EntityKind.TypeParameter, {
+        icon: "helveg:TypeParameter",
+        size: 10,
+        color: Palette.Beige600,
+        backgroundColor: chroma(Palette.Beige600).brighten(2).desaturate(1).hex(),
+    })
+    .set(EntityKind.Field, {
+        icon: "helveg:Field",
+        size: 10,
+        color: Palette.Blue100,
+        backgroundColor: chroma(Palette.Blue100).brighten(1.5).desaturate(1).hex(),
+    })
+    .set(EntityKind.Property, {
+        icon: "helveg:Property",
+        size: 10,
+        color: Palette.Green100,
+        backgroundColor: chroma(Palette.Green100).brighten(1.5).desaturate(1).hex(),
+    })
+    .set(EntityKind.Method, {
+        icon: "helveg:Method",
+        size: 10,
+        color: Palette.Purple100,
+        backgroundColor: chroma(Palette.Purple100).brighten(1.5).desaturate(1).hex(),
+    })
+    .set(EntityKind.Event, {
+        icon: "helveg:Event",
+        size: 10,
+        color: Palette.Red100,
+        backgroundColor: chroma(Palette.Red100).brighten(1.5).desaturate(1).hex(),
+    })
+    .set(EntityKind.Parameter, {
+        icon: "helveg:Parameter",
+        size: 5,
+        color: Palette.Pink100,
+        backgroundColor: chroma(Palette.Pink100).brighten(1.5).desaturate(1).hex(),
+    });
+
+
 function resolveNodeStyle(node: Partial<CSharpNode>): Partial<NodeStyle> {
-    let base: Partial<NodeStyle> = {};
+    let style: NodeStyle = { ...FALLBACK_NODE_STYLE, ...(node.kind && ENTITY_KIND_STYLES.get(node.kind)) };
 
     const hasErrors = (node.diagnostics ?? [])
         ?.filter(d => d.severity === "error")
@@ -33,193 +147,84 @@ function resolveNodeStyle(node: Partial<CSharpNode>): Partial<NodeStyle> {
     const hasWarnings = (node.diagnostics ?? [])
         ?.filter(d => d.severity === "warning")
         .length > 0;
-    base.fire = hasErrors ? FireStatus.Flame
+    style.fire = hasErrors ? FireStatus.Flame
         : hasWarnings ? FireStatus.Smoke
             : FireStatus.None;
 
     switch (node.kind) {
-        case EntityKind.Solution:
-            return {
-                icon: "helveg:Solution",
-                size: 55,
-                color: VSColor.DarkGray,
-                outlines: []
-            };
-        case EntityKind.Project:
-            return {
-                icon: "helveg:Project",
-                size: 45,
-                color: VSColor.Green,
-                outlines: []
-            };
-        case EntityKind.Framework:
-            return {
-                icon: "helveg:Framework",
-                size: 50,
-                color: VSColor.DarkGray,
-                outlines: []
-            };
-        case EntityKind.ExternalDependencySource:
-            return {
-                icon: "helveg:ExternalDependencySource",
-                size: 50,
-                color: VSColor.DarkGray,
-                outlines: []
-            };
-        case EntityKind.PackageRepository:
-            return {
-                icon: "helveg:PackageRepository",
-                size: 50,
-                color: VSColor.NuGetBlue,
-                outlines: []
-            };
-        case EntityKind.Package:
-            return {
-                icon: "helveg:Package",
-                size: 45,
-                color: VSColor.DarkGray,
-                outlines: []
-            };
-        case EntityKind.Library:
-            return {
-                icon: "helveg:Library",
-                size: 40,
-                color: VSColor.DarkGray,
-                outlines: []
-            };
-        case EntityKind.Assembly:
-            return {
-                icon: "helveg:Assembly",
-                size: 40,
-                color: VSColor.DarkGray,
-                outlines: []
-            };
-        case EntityKind.Module:
-            return {
-                icon: "helveg:Module",
-                size: 35,
-                color: VSColor.Purple,
-                outlines: []
-            };
-        case EntityKind.Namespace:
-            return {
-                icon: "helveg:Namespace",
-                size: 30,
-                color: VSColor.DarkGray,
-                outlines: []
-            };
         case EntityKind.Type:
-            base.size = 15;
+            style.size = 15;
             switch (node.typeKind) {
                 case TypeKind.Class:
-                    base.icon = node.isRecord ? "helveg:RecordClass" : "helveg:Class";
-                    base.color = VSColor.DarkYellow;
+                    style.icon = node.isRecord ? "helveg:RecordClass" : "helveg:Class";
+                    style.color = Palette.Beige200;
                     break;
                 case TypeKind.Interface:
-                    base.icon = "helveg:Interface";
-                    base.color = VSColor.Blue;
+                    style.icon = "helveg:Interface";
+                    style.color = Palette.Beige100;
                     break;
                 case TypeKind.Enum:
-                    base.icon = "helveg:Enum";
-                    base.color = VSColor.DarkYellow;
+                    style.icon = "helveg:Enum";
+                    style.color = Palette.Beige400;
                     break;
                 case TypeKind.Struct:
-                    base.icon = node.isRecord ? "helveg:RecordStruct" : "helveg:Struct";
-                    base.color = VSColor.Blue;
+                    style.icon = node.isRecord ? "helveg:RecordStruct" : "helveg:Struct";
+                    style.color = Palette.Beige500;
                     break;
                 case TypeKind.Delegate:
-                    base.icon = "helveg:Delegate";
-                    base.color = VSColor.Purple;
-                    break;
-                default:
-                    base.icon = "helveg:Type";
-                    base.color = VSColor.Blue;
+                    style.icon = "helveg:Delegate";
+                    style.color = Palette.Beige300;
                     break;
             }
             const instanceMemberCount = node.instanceMemberCount ?? 0;
             const staticMemberCount = node.staticMemberCount ?? 0;
-            base.outlines = [
+            style.outlines = [
                 { style: node.isStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 2 },
                 { style: OutlineStyle.Solid, width: instanceMemberCount },
                 { style: OutlineStyle.Dashed, width: staticMemberCount }
             ];
-            base.slices = {
+            style.slices = {
                 solid: staticMemberCount,
                 stroked: instanceMemberCount,
                 width: staticMemberCount + instanceMemberCount
             };
             break;
         case EntityKind.TypeParameter:
-            return {
-                icon: "helveg:TypeParameter",
-                size: node.declaringKind === EntityKind.Method ? 5 : 10,
-                color: VSColor.Blue,
-                outlines: []
-            };
+            style.size = node.declaringKind === EntityKind.Method ? 5 : 10
+            break;
         case EntityKind.Field:
+            style.outlines = [{ style: node.isStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 2 }];
             if (node.isEnumItem) {
-                return {
-                    icon: "helveg:EnumItem",
-                    size: 10,
-                    color: VSColor.Blue
-                }
-            }
-
-            base.outlines = [{ style: node.isStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 2 }];
-            base.size = 10;
-            if (node.isConst) {
-                base.icon = "helveg:Constant";
-                base.color = VSColor.DarkGray;
-            } else {
-                base.icon = "helveg:Field";
-                base.color = VSColor.Blue;
+                style.icon = "helveg:EnumItem";
+            } else if (node.isConst) {
+                style.icon = "helveg:Constant";
             }
             break;
         case EntityKind.Method:
             if (node.methodKind === MethodKind.BuiltinOperator
                 || node.methodKind === MethodKind.UserDefinedOperator) {
-                base.icon = "helveg:Operator";
+                style.icon = "helveg:Operator";
             }
             else if (node.methodKind === MethodKind.Constructor) {
-                base.icon = "helveg:Constructor";
+                style.icon = "helveg:Constructor";
             }
             else if (node.methodKind === MethodKind.Destructor) {
-                base.icon = "helveg:Destructor";
-            }
-            else {
-                base.icon = "helveg:Method";
+                style.icon = "helveg:Destructor";
             }
 
-            base.color = VSColor.Purple;
-            base.size = 10;
-            base.outlines = [{ style: node.isStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 2 }];
+
+            style.outlines = [{ style: node.isStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 2 }];
             break;
         case EntityKind.Property:
-            base.icon = node.isIndexer ? "helveg:Indexer" : "helveg:Property";
-            base.size = 10;
-            base.color = VSColor.DarkGray;
-            base.outlines = [{ style: node.isStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 2 }];
+            if (node.isIndexer) {
+                style.icon = "helveg:Indexer";
+            }
+
+            style.outlines = [{ style: node.isStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 2 }];
             break;
         case EntityKind.Event:
-            base.icon = "helveg:Event";
-            base.size = 10;
-            base.color = VSColor.DarkYellow;
-            base.outlines = [{ style: node.isStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 2 }];
+            style.outlines = [{ style: node.isStatic ? OutlineStyle.Dashed : OutlineStyle.Solid, width: 2 }];
             break;
-        case EntityKind.Parameter:
-            return {
-                icon: "helveg:Parameter",
-                color: VSColor.Blue,
-                size: 5,
-                outlines: []
-            };
-        default:
-            return {
-                icon: "vscode:pie-chart",
-                size: 5,
-                color: VSColor.DarkGray,
-                outlines: []
-            };
     }
 
     if (node.isStatic && (
@@ -230,23 +235,23 @@ function resolveNodeStyle(node: Partial<CSharpNode>): Partial<NodeStyle> {
         || node.kind === "Event"
         || node.kind === "Method"
     )) {
-        base.icon += "Static";
+        style.icon += "Static";
     }
 
     switch (node.accessibility) {
         case MemberAccessibility.Internal:
-            base.icon += "Internal";
+            style.icon += "Internal";
             break;
         case MemberAccessibility.Private:
-            base.icon += "Private";
+            style.icon += "Private";
             break;
         case MemberAccessibility.Protected:
         case MemberAccessibility.ProtectedAndInternal:
         case MemberAccessibility.ProtectedOrInternal:
-            base.icon += "Protected";
+            style.icon += "Protected";
             break;
     }
-    return base;
+    return style;
 }
 
 function resolveRelationStyle(relation: string, colors?: Record<string, string>): EdgeStyle {

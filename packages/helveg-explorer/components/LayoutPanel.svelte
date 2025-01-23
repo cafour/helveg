@@ -48,7 +48,7 @@
     <Subpanel class="sticky top-0">
         <button
             on:click={() => dispatch("refresh")}
-            class="button-stretch primary mb-8 flex flex-row gap-4 align-items-center"
+            class="button-stretch primary mb-8 flex flex-row gap-4 align-items-center justify-content-center"
         >
             <Icon name="vscode:refresh" />
             Run Layout

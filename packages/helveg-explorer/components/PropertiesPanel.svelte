@@ -44,6 +44,18 @@
                 return AppIcons.UnknownDiagnostic;
         }
     }
+    
+    function getDiagnosticClass(diagnostic: MultigraphDiagnostic) {
+        switch (diagnostic.severity) {
+            case "info":
+                return "text-success-500";
+            case "warning":
+                return "text-warning-500";
+            case "error":
+                return "text-error-500";
+        }
+        return "";
+    }
 </script>
 
 <Panel name="Properties" indent={false} id={AppPanels.Properties}>
@@ -81,6 +93,7 @@
                             <Icon
                                 name={getDiagnosticIcon(diagnostic)}
                                 title={diagnostic.severity}
+                                additionalClasses={getDiagnosticClass(diagnostic)}
                             />
                             <strong>{diagnostic.id}</strong>
                         </div>

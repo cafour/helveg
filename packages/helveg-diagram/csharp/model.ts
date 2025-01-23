@@ -31,21 +31,21 @@ export const csharpNodeKindOrder: readonly string[] = [
     EntityKind.Project,
     EntityKind.Framework,
     EntityKind.Package,
-    
+
     EntityKind.Library,
     EntityKind.Assembly,
     EntityKind.Module,
-    
+
     EntityKind.Namespace,
-    
+
     EntityKind.Type,
     EntityKind.TypeParameter,
-    
+
     EntityKind.Field,
     EntityKind.Property,
     EntityKind.Event,
     EntityKind.Method,
-    
+
     EntityKind.Parameter
 ];
 
@@ -178,6 +178,37 @@ export enum VSColor {
     Green = "#1f801f"
 }
 
+export enum Palette {
+    Gray600 = "#202020",
+    Gray500 = "#404040",
+    Gray400 = "#606060",
+
+    // i want hue: H=60-90, C=20-70, L=40-80, improve for colorblind, 6 colors, soft
+    Beige600 = "#9a7b4c",
+    Beige500 = "#a78368",
+    Beige400 = "#b98448",
+    Beige300 = "#bd8937",
+    Beige200 = "#d3982d",
+    Beige100 = "#d1ac78",
+
+    // i want hue: H=90-60, C=20-85, L=40-70, improve for colorblind, 5 colors, soft
+    Red100 = "#d55d3a",
+    Green100 = "#6d964d",
+    Blue100 = "#3198d7",
+    Purple100 = "#926fcd",
+    Pink100 = "#cc5e8b",
+
+    // i want hue: H=0-360, C=20-70, L=10-60, improve for colorblind, 3 colors, soft
+    Red200 = "#a14644",
+    Green200 = "#5b713a",
+    Purple200 = "#6f519c",
+
+    // i want hue: H=0-360, C=20-70, L=10-40, improve for colorblind, 3 colors, soft
+    Red300 = "#7c2c30",
+    Green300 = "#3f4f21",
+    Purple300 = "#503374",
+};
+
 export interface CSharpNode extends MultigraphNode {
     kind: EntityKind,
     typeKind?: TypeKind,
@@ -201,6 +232,7 @@ export interface CSharpNode extends MultigraphNode {
     isExtern?: boolean;
     isPartial?: boolean;
     isAsync?: boolean;
+    isIndexer?: boolean;
     fieldType?: string;
     propertyType?: string;
     eventType?: string;

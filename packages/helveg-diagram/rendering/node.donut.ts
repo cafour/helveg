@@ -13,6 +13,7 @@ import vertSrc from "./shaders/node.donut.vert";
 import fragSrc from "./shaders/node.donut.frag";
 import { HelvegNodeAttributes } from "../model/graph.ts";
 import { FALLBACK_NODE_STYLE } from "../global.ts";
+import chroma from "chroma-js";
 
 export interface DonutProgramOptions {
     gap: number;
@@ -93,6 +94,12 @@ export class DonutProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
                     type: UNSIGNED_BYTE,
                     normalized: true,
                 },
+                {
+                    name: "a_backgroundColor",
+                    size: 4,
+                    type: UNSIGNED_BYTE,
+                    normalized: true,
+                },
             ],
             // NB: Data for an equilateral triangle that the donut is carved from.
             CONSTANT_ATTRIBUTES: [{ name: "a_angle", size: 1, type: FLOAT }],
@@ -121,9 +128,12 @@ export class DonutProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
             FALLBACK_NODE_STYLE.slices.stroked;
         array[offset++] = data.slices?.width ??
             FALLBACK_NODE_STYLE.slices.width;
-        array[offset++] = floatColor(
-            useColor ? data.color ?? FALLBACK_NODE_STYLE.color : "#aaaaaa",
-        );
+
+        const color = data.color ?? FALLBACK_NODE_STYLE.color;
+        const backgroundColor = data.backgroundColor ?? chroma(color).brighten(1).desaturate(1).hex();
+
+        array[offset++] = floatColor(useColor ? color : "#999999");
+        array[offset++] = floatColor(useColor ? backgroundColor : "#cccccc");
     }
 
     setUniforms(params: RenderParams, programInfo: ProgramInfo): void {
@@ -151,7 +161,8 @@ export class DonutProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
         if (programInfo.isPicking) {
             gl.blendFunc(gl.ONE, gl.ZERO);
         } else {
-            gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+            gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+            // gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
         }
 
         super.drawWebGL(method, programInfo);

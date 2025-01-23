@@ -1,4 +1,3 @@
-@use "./uniform.config.scss";
 @use "./variables.scss";
 @use "./colors.scss";
 @use "./base.scss";
@@ -18,3 +17,6 @@
 @use "./tooltip.scss";
 @use "./tree-view.scss";
 @use "./node-inspector.scss";
+
+// NB: Uniform should override the styles above so it's down here.
+@use "./uniform.config.scss";

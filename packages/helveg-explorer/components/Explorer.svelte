@@ -110,7 +110,7 @@
 >
     <div class="diagram-background"></div>
 
-    <LoadingScreen status={$status} />
+    <LoadingScreen status={$status} on:stop={() => diagram.stopLayout()}/>
 
     <TreeView
         class="z-2"

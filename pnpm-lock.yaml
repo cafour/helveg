@@ -28,6 +28,9 @@ importers:
 
   packages/helveg-diagram:
     devDependencies:
+      '@types/chroma-js':
+        specifier: ^3.1.0
+        version: 3.1.0
       '@types/d3-hierarchy':
         specifier: ^3.1.7
         version: 3.1.7
@@ -46,6 +49,9 @@ importers:
       browser-sync:
         specifier: ^3.0.3
         version: 3.0.3
+      chroma-js:
+        specifier: ^3.1.2
+        version: 3.1.2
       concurrently:
         specifier: ^8.2.2
         version: 8.2.2
@@ -930,6 +936,9 @@ packages:
   '@tsconfig/svelte@5.0.4':
     resolution: {integrity: sha512-BV9NplVgLmSi4mwKzD8BD/NQ8erOY/nUE/GpgWe2ckx+wIQF5RyRirn/QsSSCPeulVpc3RA/iJt6DpfTIZps0Q==}
 
+  '@types/chroma-js@3.1.0':
+    resolution: {integrity: sha512-Uwl3SOtUkbQ6Ye6ZYu4q4xdLGBzmY839sEHYtOT7i691neeyd+7fXWT5VIkcUSfNwIFrIjQutNYQn9h4q5HFvg==}
+
   '@types/cookie@0.4.1':
     resolution: {integrity: sha512-XW/Aa8APYr6jSVVA1y/DEIZX0/GMKLEVekNG727R8cs56ahETkRAy/3DR7+fJyh7oUgGwNQaRfXCun0+KbWY7Q==}
 
@@ -1151,6 +1160,9 @@ packages:
   chokidar@3.6.0:
     resolution: {integrity: sha512-7VT13fmjotKpGipCW9JEQAusEPE+Ei8nl6/g4FBAmIm0GOOLMua9NDDo/DWp0ZAxCr3cPq5ZpBqmPAQgDda2Pw==}
     engines: {node: '>= 8.10.0'}
+
+  chroma-js@3.1.2:
+    resolution: {integrity: sha512-IJnETTalXbsLx1eKEgx19d5L6SRM7cH4vINw/99p/M11HCuXGRWL+6YmCm7FWFGIo6dtWuQoQi1dc5yQ7ESIHg==}
 
   cliui@8.0.1:
     resolution: {integrity: sha512-BSeNnyus75C4//NQ9gQt1/csTXyo/8Sb+afLAkzAptFuMsod9HFokGNudZpi/oQV73hnVK+sR+5PVRMd+Dr7YQ==}
@@ -3359,6 +3371,8 @@ snapshots:
 
   '@tsconfig/svelte@5.0.4': {}
 
+  '@types/chroma-js@3.1.0': {}
+
   '@types/cookie@0.4.1': {}
 
   '@types/cors@2.8.17':
@@ -3601,6 +3615,8 @@ snapshots:
       readdirp: 3.6.0
     optionalDependencies:
       fsevents: 2.3.3
+
+  chroma-js@3.1.2: {}
 
   cliui@8.0.1:
     dependencies:
