@@ -162,6 +162,7 @@ function resolveNodeStyle(node: Partial<CSharpNode>): Partial<NodeStyle> {
                 case TypeKind.Interface:
                     style.icon = "helveg:Interface";
                     style.color = Palette.Beige100;
+                    style.backgroundColor = chroma(Palette.Beige100).brighten(0.5).desaturate(0.5).hex();
                     break;
                 case TypeKind.Enum:
                     style.icon = "helveg:Enum";
@@ -170,6 +171,7 @@ function resolveNodeStyle(node: Partial<CSharpNode>): Partial<NodeStyle> {
                 case TypeKind.Struct:
                     style.icon = node.isRecord ? "helveg:RecordStruct" : "helveg:Struct";
                     style.color = Palette.Beige500;
+                    style.backgroundColor = chroma(Palette.Beige500).brighten(1).hex();
                     break;
                 case TypeKind.Delegate:
                     style.icon = "helveg:Delegate";
