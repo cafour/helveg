@@ -113,11 +113,16 @@
             </select>
         </label>
     </Subpanel>
-    <Subpanel name="Relations">
+    <Subpanel name="Relation Palette">
         {#each relations as relation}
             <label class="flex flex-row gap-8 align-items-center">
                 <span class="inline-block flex-grow-1">{relation}</span>
-                <input type="color" bind:value={relationColors[relation]} />
+                <input
+                    type="color"
+                    value={relationColors[relation]}
+                    on:change={(e) =>
+                        (relationColors[relation] = e.currentTarget.value)}
+                />
             </label>
         {/each}
     </Subpanel>

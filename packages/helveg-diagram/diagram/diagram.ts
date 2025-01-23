@@ -218,18 +218,21 @@ export class Diagram {
     set nodeStylist(value: NodeStylist) {
         this._options.nodeStylist = value;
         this.restyleGraph();
+        this._sigma?.scheduleRefresh();
     }
 
     get edgeStylist(): EdgeStylist | undefined { return this._options.edgeStylist; }
     set edgeStylist(value: EdgeStylist | undefined) {
         this._options.edgeStylist = value;
         this.restyleGraph();
+        this._sigma?.scheduleRefresh();
     };
 
     get relationStylist(): RelationStylist { return this._options.relationStylist; }
     set relationStylist(value: RelationStylist) {
         this._options.relationStylist = value;
         this.restyleGraph();
+        this._sigma?.scheduleRefresh();
     }
 
     get forceAtlas2Options(): ForceAtlas2Options { return this._options.forceAtlas2; }
