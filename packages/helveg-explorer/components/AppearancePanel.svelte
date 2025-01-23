@@ -11,7 +11,11 @@
         cyrb53,
         PizzaIcons,
         getRelations,
+        EntityKind,
+        LimitedTypeKind,
+        UNIVERSAL_NODE_COLOR_SCHEMA,
     } from "../deps/helveg-diagram.ts";
+    import Hint from "./Hint.svelte";
 
     let appearanceOptions =
         getContext<Writable<AppearanceOptions>>("appearanceOptions");
@@ -30,10 +34,26 @@
         return u;
     });
 
+    $: entityColors = $appearanceOptions.nodeColorSchema.entities;
+    $: appearanceOptions.update((u) => {
+        u.nodeColorSchema.entities = entityColors;
+        nodeColorPreset = NodeColorSchemaPreset.Custom;
+        return u;
+    });
+
+    $: typeColors = $appearanceOptions.nodeColorSchema.types;
+    $: appearanceOptions.update((u) => {
+        u.nodeColorSchema.types = typeColors;
+        nodeColorPreset = NodeColorSchemaPreset.Custom;
+        return u;
+    });
+
     const allToppings = Object.entries(PizzaIcons);
 
     $: kinds = getNodeKinds($model.data);
     $: relations = getRelations($model.data);
+    const entityKinds = Object.values(EntityKind);
+    const typeKinds = Object.values(LimitedTypeKind);
 
     let seed = 42;
 
@@ -47,6 +67,23 @@
         }
 
         seed++;
+    }
+
+    enum NodeColorSchemaPreset {
+        Universal = "Universal",
+        Custom = "Custom",
+    }
+
+    let nodeColorPreset = NodeColorSchemaPreset.Universal;
+    function onNodeColorChanged(preset: string) {
+        nodeColorPreset = preset as NodeColorSchemaPreset;
+        switch(nodeColorPreset) {
+            case NodeColorSchemaPreset.Universal:
+                $appearanceOptions.nodeColorSchema = structuredClone(UNIVERSAL_NODE_COLOR_SCHEMA);
+                entityColors = $appearanceOptions.nodeColorSchema.entities;
+                typeColors = $appearanceOptions.nodeColorSchema.types;
+                break;
+        }
     }
 </script>
 
@@ -112,8 +149,19 @@
                 <option value="log">log</option>
             </select>
         </label>
+        <label class="flex flex-row gap-8 align-items-center">
+            <span
+                class="w-80 inline-block flex-shrink-0 ellipsis overflow-hidden"
+                title="Node color preset">NodeColorPreset</span
+            >
+            <select on:change={(e) => onNodeColorChanged(e.currentTarget.value)} value={nodeColorPreset}>
+                {#each Object.values(NodeColorSchemaPreset) as schemaPreset}
+                    <option value={schemaPreset}>{schemaPreset}</option>
+                {/each}
+            </select>
+        </label>
     </Subpanel>
-    <Subpanel name="Relation Palette">
+    <Subpanel name="Relation colors">
         {#each relations as relation}
             <label class="flex flex-row gap-8 align-items-center">
                 <span class="inline-block flex-grow-1">{relation}</span>
@@ -124,6 +172,68 @@
                         (relationColors[relation] = e.currentTarget.value)}
                 />
             </label>
+        {/each}
+    </Subpanel>
+    <Subpanel name="Entity colors">
+        <div class="flex flex-row gap-8 align-items-center">
+            <strong class="flex-grow-1">&nbsp;</strong>
+            <strong class="w-48">Fg <Hint text="Foreground color" /></strong>
+            <strong class="w-48">Bg <Hint text="Background color" /></strong>
+        </div>
+        {#each entityKinds as entityKind}
+            <div class="flex flex-row gap-8 align-items-center">
+                <span
+                    class="inline-block flex-grow-1 overflow-hidden ellipsis"
+                    title={entityKind}>{entityKind}</span
+                >
+                <input
+                    class="w-48 flex-shrink-0"
+                    type="color"
+                    value={entityColors[entityKind].foreground}
+                    on:change={(e) =>
+                        (entityColors[entityKind].foreground =
+                            e.currentTarget.value)}
+                />
+                <input
+                    class="w-48 flex-shrink-0"
+                    type="color"
+                    value={entityColors[entityKind].background}
+                    on:change={(e) =>
+                        (entityColors[entityKind].background =
+                            e.currentTarget.value)}
+                />
+            </div>
+        {/each}
+    </Subpanel>
+    <Subpanel name="Type colors">
+        <div class="flex flex-row gap-8 align-items-center">
+            <strong class="flex-grow-1">&nbsp;</strong>
+            <strong class="w-48">Fg <Hint text="Foreground color" /></strong>
+            <strong class="w-48">Bg <Hint text="Background color" /></strong>
+        </div>
+        {#each typeKinds as typeKind}
+            <div class="flex flex-row gap-8 align-items-center">
+                <span
+                    class="inline-block flex-grow-1 overflow-hidden ellipsis"
+                    title={typeKind}>{typeKind}</span
+                >
+                <input
+                    class="w-48 flex-shrink-0"
+                    type="color"
+                    value={typeColors[typeKind].foreground}
+                    on:change={(e) =>
+                        (typeColors[typeKind].foreground =
+                            e.currentTarget.value)}
+                />
+                <input
+                    class="w-48 flex-shrink-0"
+                    type="color"
+                    value={typeColors[typeKind].background}
+                    on:change={(e) =>
+                        (typeColors[typeKind].background =
+                            e.currentTarget.value)}
+                />
+            </div>
         {/each}
     </Subpanel>
     <Subpanel name="CodePizza" collapsed={true}>

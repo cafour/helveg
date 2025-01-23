@@ -1,6 +1,6 @@
 import { readable, writable, type Readable, type Writable } from "svelte/store";
 import type { DataModel, Diagram, DiagramStats, DiagramStatus, HelvegGraph, ILogger } from "./deps/helveg-diagram";
-import { createCsharpRelationStylist, sublogger, type HelvegEvent } from "./deps/helveg-diagram";
+import { createCsharpNodeStylist, createCsharpRelationStylist, sublogger, type HelvegEvent } from "./deps/helveg-diagram";
 import * as Options from "./options.ts";
 import { OperationExecutor } from "./operation-executor.ts";
 import { AppTools } from "./const.ts";
@@ -101,6 +101,9 @@ export function createExplorerState(rootElement: HTMLElement, diagram: Diagram):
     appearanceOptions.subscribe(o => {
         diagram.relationStylist = createCsharpRelationStylist(
             o.relationColors!
+        );
+        diagram.nodeStylist = createCsharpNodeStylist(
+            o.nodeColorSchema
         );
 
         const glyphOptions = { ...diagram.glyphProgramOptions };
