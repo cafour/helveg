@@ -158,16 +158,6 @@ export enum MethodKind {
     FunctionPointerSignature = "FunctionPointerSignature"
 }
 
-export enum VSColor {
-    DarkGray = "#212121",
-    DarkPurple = "#68217a",
-    Purple = "#6936aa",
-    DarkYellow = "#996f00",
-    Blue = "#005dba",
-    NuGetBlue = "#004880",
-    Green = "#1f801f"
-}
-
 export interface NodeColor {
     foreground: string,
     background: string

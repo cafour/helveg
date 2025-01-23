@@ -14,6 +14,7 @@
         EntityKind,
         LimitedTypeKind,
         UNIVERSAL_NODE_COLOR_SCHEMA,
+        VS_NODE_COLOR_SCHEMA,
     } from "../deps/helveg-diagram.ts";
     import Hint from "./Hint.svelte";
 
@@ -35,18 +36,22 @@
     });
 
     $: entityColors = $appearanceOptions.nodeColorSchema.entities;
-    $: appearanceOptions.update((u) => {
-        u.nodeColorSchema.entities = entityColors;
+    function onEntityColorsChanged() {
+        appearanceOptions.update((u) => {
+            u.nodeColorSchema.entities = entityColors;
+            return u;
+        });
         nodeColorPreset = NodeColorSchemaPreset.Custom;
-        return u;
-    });
+    }
 
     $: typeColors = $appearanceOptions.nodeColorSchema.types;
-    $: appearanceOptions.update((u) => {
-        u.nodeColorSchema.types = typeColors;
+    function onTypeColorsChanged() {
+        appearanceOptions.update((u) => {
+            u.nodeColorSchema.types = typeColors;
+            return u;
+        });
         nodeColorPreset = NodeColorSchemaPreset.Custom;
-        return u;
-    });
+    }
 
     const allToppings = Object.entries(PizzaIcons);
 
@@ -71,15 +76,23 @@
 
     enum NodeColorSchemaPreset {
         Universal = "Universal",
+        VS = "VS",
         Custom = "Custom",
     }
 
     let nodeColorPreset = NodeColorSchemaPreset.Universal;
     function onNodeColorChanged(preset: string) {
-        nodeColorPreset = preset as NodeColorSchemaPreset;
-        switch(nodeColorPreset) {
+        switch (preset) {
             case NodeColorSchemaPreset.Universal:
-                $appearanceOptions.nodeColorSchema = structuredClone(UNIVERSAL_NODE_COLOR_SCHEMA);
+                $appearanceOptions.nodeColorSchema = structuredClone(
+                    UNIVERSAL_NODE_COLOR_SCHEMA,
+                );
+                entityColors = $appearanceOptions.nodeColorSchema.entities;
+                typeColors = $appearanceOptions.nodeColorSchema.types;
+                break;
+            case NodeColorSchemaPreset.VS:
+                $appearanceOptions.nodeColorSchema =
+                    structuredClone(VS_NODE_COLOR_SCHEMA);
                 entityColors = $appearanceOptions.nodeColorSchema.entities;
                 typeColors = $appearanceOptions.nodeColorSchema.types;
                 break;
@@ -154,9 +167,16 @@
                 class="w-80 inline-block flex-shrink-0 ellipsis overflow-hidden"
                 title="Node color preset">NodeColorPreset</span
             >
-            <select on:change={(e) => onNodeColorChanged(e.currentTarget.value)} value={nodeColorPreset}>
+            <select
+                on:change={(e) => onNodeColorChanged(e.currentTarget.value)}
+                value={nodeColorPreset}
+            >
                 {#each Object.values(NodeColorSchemaPreset) as schemaPreset}
-                    <option value={schemaPreset}>{schemaPreset}</option>
+                    <option
+                        value={schemaPreset}
+                        disabled={schemaPreset == NodeColorSchemaPreset.Custom}
+                        >{schemaPreset}</option
+                    >
                 {/each}
             </select>
         </label>
@@ -190,17 +210,21 @@
                     class="w-48 flex-shrink-0"
                     type="color"
                     value={entityColors[entityKind].foreground}
-                    on:change={(e) =>
-                        (entityColors[entityKind].foreground =
-                            e.currentTarget.value)}
+                    on:change={(e) => {
+                        entityColors[entityKind].foreground =
+                            e.currentTarget.value;
+                        onEntityColorsChanged();
+                    }}
                 />
                 <input
                     class="w-48 flex-shrink-0"
                     type="color"
                     value={entityColors[entityKind].background}
-                    on:change={(e) =>
-                        (entityColors[entityKind].background =
-                            e.currentTarget.value)}
+                    on:change={(e) => {
+                        entityColors[entityKind].background =
+                            e.currentTarget.value;
+                        onEntityColorsChanged();
+                    }}
                 />
             </div>
         {/each}
@@ -221,17 +245,19 @@
                     class="w-48 flex-shrink-0"
                     type="color"
                     value={typeColors[typeKind].foreground}
-                    on:change={(e) =>
-                        (typeColors[typeKind].foreground =
-                            e.currentTarget.value)}
+                    on:change={(e) => {
+                        typeColors[typeKind].foreground = e.currentTarget.value;
+                        onTypeColorsChanged();
+                    }}
                 />
                 <input
                     class="w-48 flex-shrink-0"
                     type="color"
                     value={typeColors[typeKind].background}
-                    on:change={(e) =>
-                        (typeColors[typeKind].background =
-                            e.currentTarget.value)}
+                    on:change={(e) => {
+                        typeColors[typeKind].background = e.currentTarget.value;
+                        onTypeColorsChanged();
+                    }}
                 />
             </div>
         {/each}

@@ -57,6 +57,16 @@ export enum Palette {
     Red400 = "#470000",
 }
 
+export enum VSColor {
+    DarkGray = "#212121",
+    DarkPurple = "#68217a",
+    Purple = "#6936aa",
+    DarkYellow = "#996f00",
+    Blue = "#005dba",
+    NuGetBlue = "#004880",
+    Green = "#1f801f"
+}
+
 export const DEFAULT_CSHARP_RELATION_COLORS: Record<string, string> = {
     [Relations.Declares]: DefaultRelationColors.Declares,
     [Relations.AssociatedWith]: DefaultRelationColors.AssociatedWith,
@@ -170,6 +180,101 @@ export const UNIVERSAL_NODE_COLOR_SCHEMA: Readonly<NodeColorSchema> = {
         [TypeKind.Delegate]: {
             foreground: Palette.Beige300,
             background: chroma(Palette.Beige300).brighten(1).desaturate(1).hex(),
+        },
+    },
+};
+
+export const VS_NODE_COLOR_SCHEMA: Readonly<NodeColorSchema> = {
+    entities: {
+        [EntityKind.Solution]: {
+            foreground: VSColor.DarkPurple,
+            background: chroma(VSColor.DarkPurple).brighten(3).desaturate(2).hex(),
+        },
+        [EntityKind.Project]: {
+            foreground: VSColor.DarkGray,
+            background: chroma(VSColor.DarkGray).brighten(4).desaturate(1).hex()
+        },
+        [EntityKind.ExternalDependencySource]: {
+            foreground: VSColor.DarkGray,
+            background: chroma(VSColor.DarkGray).brighten(4).desaturate(1).hex(),
+        },
+        [EntityKind.Framework]: {
+            foreground: VSColor.DarkGray,
+            background: chroma(VSColor.DarkGray).brighten(4).desaturate(1).hex(),
+        },
+        [EntityKind.PackageRepository]: {
+            foreground: VSColor.NuGetBlue,
+            background: chroma(VSColor.NuGetBlue).brighten(3).desaturate(2).hex(),
+        },
+        [EntityKind.Package]: {
+            foreground: VSColor.DarkGray,
+            background: chroma(VSColor.DarkGray).brighten(4).desaturate(1).hex(),
+        },
+        [EntityKind.Library]: {
+            foreground: VSColor.DarkGray,
+            background: chroma(VSColor.DarkGray).brighten(4).desaturate(1).hex(),
+        },
+        [EntityKind.Assembly]: {
+            foreground: VSColor.DarkGray,
+            background: chroma(VSColor.DarkGray).brighten(4).desaturate(1).hex(),
+        },
+        [EntityKind.Module]: {
+            foreground: VSColor.Purple,
+            background: chroma(VSColor.Purple).brighten(2).desaturate(2).hex(),
+        },
+        [EntityKind.Namespace]: {
+            foreground: VSColor.DarkGray,
+            background: chroma(VSColor.DarkGray).brighten(4).desaturate(1).hex(),
+        },
+        [EntityKind.Type]: {
+            foreground: VSColor.Blue,
+            background: chroma(VSColor.Blue).brighten(2).desaturate(1).hex(),
+        },
+        [EntityKind.Field]: {
+            foreground: VSColor.Blue,
+            background: chroma(VSColor.Blue).brighten(2).desaturate(1).hex(),
+        },
+        [EntityKind.Property]: {
+            foreground: VSColor.DarkGray,
+            background: chroma(VSColor.DarkGray).brighten(4).desaturate(1).hex(),
+        },
+        [EntityKind.Event]: {
+            foreground: VSColor.DarkYellow,
+            background: chroma(VSColor.DarkYellow).brighten(2).desaturate(2).hex(),
+        },
+        [EntityKind.Method]: {
+            foreground: VSColor.Purple,
+            background: chroma(VSColor.Purple).brighten(2).desaturate(2).hex(),
+        },
+        [EntityKind.TypeParameter]: {
+            foreground: VSColor.Blue,
+            background: chroma(VSColor.Blue).brighten(2).desaturate(1).hex(),
+        },
+        [EntityKind.Parameter]: {
+            foreground: VSColor.Blue,
+            background: chroma(VSColor.Blue).brighten(2).desaturate(1).hex(),
+        },
+    },
+    types: {
+        [TypeKind.Class]: {
+            foreground: VSColor.DarkYellow,
+            background: chroma(VSColor.DarkYellow).brighten(2).desaturate(2).hex(),
+        },
+        [TypeKind.Struct]: {
+            foreground: VSColor.Blue,
+            background: chroma(VSColor.Blue).brighten(2).desaturate(1).hex(),
+        },
+        [TypeKind.Interface]: {
+            foreground: VSColor.Blue,
+            background: chroma(VSColor.Blue).brighten(2).desaturate(1).hex(),
+        },
+        [TypeKind.Enum]: {
+            foreground: VSColor.DarkYellow,
+            background: chroma(VSColor.DarkYellow).brighten(2).desaturate(2).hex(),
+        },
+        [TypeKind.Delegate]: {
+            foreground: VSColor.Purple,
+            background: chroma(VSColor.Purple).brighten(2).desaturate(2).hex(),
         },
     },
 };
