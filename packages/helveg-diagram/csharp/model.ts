@@ -182,6 +182,8 @@ export enum Palette {
     Gray600 = "#202020",
     Gray500 = "#404040",
     Gray400 = "#606060",
+    
+    // i want hue: H=60-90, C=20-70, L=40-80, improve for colorblind, 6 colors, soft
     Beige600 = "#9a7b4c",
     Beige500 = "#a78368",
     Beige400 = "#b98448",
