@@ -22,7 +22,7 @@
             disabled={!isCollapsible}
         >
             {#if isCollapsible}
-                <button>
+                <button class="flex flex-col justify-content-center">
                     <Icon
                         name={collapsed
                             ? "vscode:chevron-right"
