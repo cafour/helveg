@@ -295,6 +295,7 @@ export function toHelvegNodeAttributes(
     attributes.iconSize = getSize(glyphProgramOptions.sizingMode, attributes.iconSize);
     attributes.baseSize = getSize(glyphProgramOptions.sizingMode, attributes.baseSize);
     attributes.color = nodeStyle.color;
+    attributes.backgroundColor = nodeStyle.backgroundColor;
     attributes.type = "glyph";
     attributes.icon = nodeStyle.icon;
     attributes.outlines = outlines;

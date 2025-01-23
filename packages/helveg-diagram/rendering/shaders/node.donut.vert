@@ -7,6 +7,7 @@ in vec2 a_position;
 in float a_baseSize;
 in vec3 a_slices;
 in vec4 a_color;
+in vec4 a_backgroundColor;
 in float a_angle;
 
 uniform float u_sizeRatio;
@@ -18,6 +19,7 @@ uniform float u_stroke;
 uniform float u_hatchingWidth;
 
 out vec4 v_color;
+out vec4 v_backgroundColor;
 out vec2 v_diffVector;
 out vec2 v_radii;
 out float v_strokedSlice;
@@ -58,5 +60,7 @@ void main() {
     #else
     v_color = a_color;
     v_color.a *= bias;
+    v_backgroundColor = a_backgroundColor;
+    v_backgroundColor.a *= bias;
     #endif
 }

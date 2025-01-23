@@ -79,6 +79,7 @@ export enum FireStatus {
 export interface NodeStyle {
     icon: string;
     color: string;
+    backgroundColor?: string;
     size: number;
     outlines: Outlines;
     slices: Slices;

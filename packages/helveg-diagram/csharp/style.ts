@@ -1,6 +1,7 @@
 import { MultigraphNode } from "../model/data-model.ts";
 import { EdgeStyle, FALLBACK_EDGE_STYLE, FireStatus, NodeStyle, NodeStylist, OutlineStyle, RelationStylist } from "../model/style";
 import { CSharpNode, DefaultRelationColors, EntityKind, MemberAccessibility, MethodKind, Palette, Relations, TypeKind } from "./model";
+import chroma from "chroma-js";
 
 export const csharpNodeStylist: NodeStylist = (node: MultigraphNode) => {
     return { ...FALLBACK_NODE_STYLE, ...resolveNodeStyle(node as Partial<CSharpNode>) };
@@ -37,52 +38,62 @@ const ENTITY_KIND_STYLES = new Map<EntityKind, Partial<NodeStyle>>()
     .set(EntityKind.Solution, {
         icon: "helveg:Solution",
         size: 55,
-        color: Palette.Gray600,
+        color: Palette.Purple300,
+        backgroundColor: chroma(Palette.Purple300).brighten(1.5).desaturate(1).hex(),
     })
     .set(EntityKind.Project, {
         icon: "helveg:Project",
         size: 45,
-        color: Palette.Gray500
+        color: Palette.Purple200,
+        backgroundColor: chroma(Palette.Purple200).brighten(1.5).desaturate(1).hex(),
     })
     .set(EntityKind.Framework, {
         icon: "helveg:Framework",
         size: 50,
-        color: Palette.Gray600,
+        color: Palette.Red200,
+        backgroundColor: chroma(Palette.Red200).brighten(2).hex(),
     })
     .set(EntityKind.ExternalDependencySource, {
         icon: "helveg:ExternalDependencySource",
         size: 50,
-        color: Palette.Gray600
+        color: Palette.Gray600,
+        backgroundColor: chroma(Palette.Gray600).brighten(2).hex(),
     })
     .set(EntityKind.PackageRepository, {
         icon: "helveg:PackageRepository",
         size: 50,
-        color: Palette.Gray600,
+        color: Palette.Green300,
+        backgroundColor: chroma(Palette.Green300).brighten(2).hex(),
     })
     .set(EntityKind.Package, {
         icon: "helveg:Package",
         size: 45,
-        color: Palette.Gray500,
+        color: Palette.Green200,
+        backgroundColor: chroma(Palette.Green200).brighten(2).hex(),
     })
     .set(EntityKind.Library, {
         icon: "helveg:Library",
         size: 40,
         color: Palette.Gray500,
+        backgroundColor: chroma(Palette.Gray500).brighten(2).hex(),
     })
     .set(EntityKind.Assembly, {
         icon: "helveg:Assembly",
         size: 40,
         color: Palette.Gray600,
+        backgroundColor: chroma(Palette.Gray600).brighten(2).hex(),
     })
     .set(EntityKind.Module, {
         icon: "helveg:Module",
         size: 35,
         color: Palette.Gray500,
+        backgroundColor: chroma(Palette.Gray500).brighten(2).hex(),
     })
     .set(EntityKind.Namespace, {
         icon: "helveg:Namespace",
         size: 30,
-        color: Palette.Gray400,
+        color: Palette.Gray600,
+        backgroundColor: chroma(Palette.Gray600).brighten(3).hex(),
     })
     .set(EntityKind.Type, {
         icon: "helveg:Type",
@@ -93,31 +104,37 @@ const ENTITY_KIND_STYLES = new Map<EntityKind, Partial<NodeStyle>>()
         icon: "helveg:TypeParameter",
         size: 10,
         color: Palette.Beige600,
+        backgroundColor: chroma(Palette.Beige600).brighten(2).desaturate(1).hex(),
     })
     .set(EntityKind.Field, {
         icon: "helveg:Field",
         size: 10,
         color: Palette.Blue100,
+        backgroundColor: chroma(Palette.Blue100).brighten(1.5).desaturate(1).hex(),
     })
     .set(EntityKind.Property, {
         icon: "helveg:Property",
         size: 10,
         color: Palette.Green100,
+        backgroundColor: chroma(Palette.Green100).brighten(1.5).desaturate(1).hex(),
     })
     .set(EntityKind.Method, {
         icon: "helveg:Method",
         size: 10,
-        color: Palette.Purple100
+        color: Palette.Purple100,
+        backgroundColor: chroma(Palette.Purple100).brighten(1.5).desaturate(1).hex(),
     })
     .set(EntityKind.Event, {
         icon: "helveg:Event",
         size: 10,
         color: Palette.Red100,
+        backgroundColor: chroma(Palette.Red100).brighten(1.5).desaturate(1).hex(),
     })
     .set(EntityKind.Parameter, {
         icon: "helveg:Parameter",
         size: 5,
         color: Palette.Pink100,
+        backgroundColor: chroma(Palette.Pink100).brighten(1.5).desaturate(1).hex(),
     });
 
 

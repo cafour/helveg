@@ -3,6 +3,7 @@
 precision mediump float;
 
 in vec4 v_color;
+in vec4 v_backgroundColor;
 in vec2 v_diffVector;
 in vec2 v_radii;
 in float v_gap;
@@ -114,16 +115,19 @@ void main(void) {
     return;
     #endif
 
-    float opacity = 0.0;
+    float opacity = 0.0f;
     float lightnessFactor = 1.0f;
     float saturationFactor = 1.0f;
 
     float innerCircleFactor = circle(v_radii.x, dist);
     opacity += innerCircleFactor;
 
+    f_color = v_color;
+
     if (dist < v_radii.x) {
         lightnessFactor = 1.5f;
         saturationFactor = 0.7f;
+        f_color = v_backgroundColor;
     } else if (v_radii.y > 0.0f) {
         float donutFactor = circle(v_radii.y, dist) - circle(v_radii.x + v_gap, dist);
         opacity += donutFactor;
@@ -146,6 +150,7 @@ void main(void) {
             float solidSector = sector(pi - v_strokedSlice, pi - halfAngle, dist, v_gap);
 
             opacity *= max(strokedSector, solidSector);
+            f_color = mix(transparent, v_color, solidSector) + mix(transparent, v_backgroundColor, strokedSector);
             lightnessFactor = strokedLightness * strokedSector + solidLightness * solidSector;
             saturationFactor = lightnessFactor;
             // top and bottom line of the stroked sector
@@ -157,11 +162,10 @@ void main(void) {
         }
     }
 
-    f_color = v_color;
-    vec3 hsl = rgb2hsl(f_color.rgb);
-    hsl.g *= saturationFactor;
-    hsl.z *= lightnessFactor;
-    f_color.rgb = hsl2rgb(hsl);
+    // vec3 hsl = rgb2hsl(f_color.rgb);
+    // hsl.g *= saturationFactor;
+    // hsl.z *= lightnessFactor;
+    // f_color.rgb = hsl2rgb(hsl);
 
-    f_color = mix(transparent, f_color, opacity * 0.9);
+    f_color = mix(transparent, f_color, opacity * 0.9f);
 }

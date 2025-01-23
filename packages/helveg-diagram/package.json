@@ -34,12 +34,14 @@
         "schema": "npm run schema:data && npm run schema:icon-set"
     },
     "devDependencies": {
+        "@types/chroma-js": "^3.1.0",
         "@types/d3-hierarchy": "^3.1.7",
         "@types/events": "^3.0.3",
         "@types/file-saver": "^2.0.7",
         "@types/node": "^20.17.10",
         "@types/yargs": "^17.0.33",
         "browser-sync": "^3.0.3",
+        "chroma-js": "^3.1.2",
         "concurrently": "^8.2.2",
         "d3-hierarchy": "^3.1.2",
         "esbuild": "^0.20.2",
