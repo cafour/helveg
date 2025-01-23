@@ -190,46 +190,14 @@ export enum Palette {
     Beige300 = "#bd8937",
     Beige200 = "#d3982d",
     Beige100 = "#d1ac78",
-};
-
-export const PALETTE: Readonly<Map<EntityKind | TypeKind, string>> = new Map()
-    // Solution-Project abstraction
-    .set(EntityKind.Solution, "Green")
-    .set(EntityKind.Project, "LessGreen")
-
-    // Assembly-Module abstraction
-    .set(EntityKind.Assembly, "Purple")
-    .set(EntityKind.Module, "LessPurple")
-
-    // Repository-Package abstraction
-    .set(EntityKind.PackageRepository, "?")
-    .set(EntityKind.Package, "Less?")
-
-    // General structure
-    .set(EntityKind.Namespace, Palette.Gray600)
-    .set(EntityKind.ExternalDependencySource, Palette.Gray600)
-    .set(EntityKind.Library, Palette.Gray600)
-    .set(EntityKind.Framework, Palette.Gray600)
-
-    // Types
-    .set(EntityKind.Type, "#4c893c")
-    .set(EntityKind.TypeParameter, "#84782a")
-    .set(TypeKind.Class, "#cdb23c")
-    .set(TypeKind.Struct, "#61c886")
-    .set(TypeKind.Interface, "#aeb570")
-    .set(TypeKind.Delegate, "#325217")
-    .set(TypeKind.Enum, "#87c245")
-
-    // Type members
-    .set(EntityKind.Property, "")
-    .set(EntityKind.Field, "")
-    .set(EntityKind.Method, "")
-    .set(EntityKind.Event, "")
     
-    // Parameters
-    .set(EntityKind.Parameter, "");
-
-export const FALLBACK_COLOR = "#202020";
+    // i want hue: H=90-60, C=20-85, L=40-70, improve for colorblind, 5 colors, soft
+    Red100 = "#d55d3a",
+    Green100 = "#6d964d",
+    Blue100 = "#3198d7",
+    Purple100 = "#926fcd",
+    Pink100 = "#cc5e8b",
+};
 
 export interface CSharpNode extends MultigraphNode {
     kind: EntityKind,

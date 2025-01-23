@@ -1,6 +1,6 @@
 import { MultigraphNode } from "../model/data-model.ts";
 import { EdgeStyle, FALLBACK_EDGE_STYLE, FireStatus, NodeStyle, NodeStylist, OutlineStyle, RelationStylist } from "../model/style";
-import { CSharpNode, DefaultRelationColors, EntityKind, MemberAccessibility, MethodKind, Palette, PALETTE, Relations, TypeKind, VSColor } from "./model";
+import { CSharpNode, DefaultRelationColors, EntityKind, MemberAccessibility, MethodKind, Palette, Relations, TypeKind } from "./model";
 
 export const csharpNodeStylist: NodeStylist = (node: MultigraphNode) => {
     return { ...FALLBACK_NODE_STYLE, ...resolveNodeStyle(node as Partial<CSharpNode>) };
@@ -97,27 +97,27 @@ const ENTITY_KIND_STYLES = new Map<EntityKind, Partial<NodeStyle>>()
     .set(EntityKind.Field, {
         icon: "helveg:Field",
         size: 10,
-        color: Palette.Gray600,
+        color: Palette.Blue100,
     })
     .set(EntityKind.Property, {
         icon: "helveg:Property",
         size: 10,
-        color: Palette.Gray600,
+        color: Palette.Green100,
     })
     .set(EntityKind.Method, {
         icon: "helveg:Method",
         size: 10,
-        color: Palette.Gray600
+        color: Palette.Purple100
     })
     .set(EntityKind.Event, {
         icon: "helveg:Event",
         size: 10,
-        color: Palette.Gray600,
+        color: Palette.Red100,
     })
     .set(EntityKind.Parameter, {
         icon: "helveg:Parameter",
         size: 5,
-        color: Palette.Gray600,
+        color: Palette.Pink100,
     });
 
 
