@@ -58,11 +58,21 @@ export const DEFAULT_CODE_PIZZA_OPTIONS: CodePizzaOptions = {
     sauceWidth: 40
 };
 
+
+export enum NodeColorSchemaPreset {
+    Universal = "Universal",
+    TypeFocus = "TypeFocus",
+    VS = "VS",
+    Custom = "Custom",
+}
+
+
 export interface AppearanceOptions {
     glyph: GlyphOptions;
     codePizza: CodePizzaOptions;
     relationColors?: Record<string, string>;
     nodeColorSchema: NodeColorSchema;
+    nodeColorPreset: NodeColorSchemaPreset;
 }
 
 export const DEFAULT_APPEARANCE_OPTIONS: Readonly<AppearanceOptions> = {
@@ -70,6 +80,7 @@ export const DEFAULT_APPEARANCE_OPTIONS: Readonly<AppearanceOptions> = {
     codePizza: DEFAULT_CODE_PIZZA_OPTIONS,
     relationColors: DEFAULT_CSHARP_RELATION_COLORS,
     nodeColorSchema: structuredClone(UNIVERSAL_NODE_COLOR_SCHEMA),
+    nodeColorPreset: NodeColorSchemaPreset.Universal,
 };
 
 export interface TidyTreeOptions {

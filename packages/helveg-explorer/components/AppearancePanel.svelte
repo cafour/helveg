@@ -4,7 +4,10 @@
     import { AppPanels } from "../const.ts";
     import { getContext, onMount } from "svelte";
     import type { Readable, Writable } from "svelte/store";
-    import type { AppearanceOptions } from "../options.ts";
+    import {
+        NodeColorSchemaPreset,
+        type AppearanceOptions,
+    } from "../options.ts";
     import {
         getNodeKinds,
         type DataModel,
@@ -15,6 +18,7 @@
         LimitedTypeKind,
         UNIVERSAL_NODE_COLOR_SCHEMA,
         VS_NODE_COLOR_SCHEMA,
+        TYPE_FOCUS_COLOR_SCHEMA,
     } from "../deps/helveg-diagram.ts";
     import Hint from "./Hint.svelte";
 
@@ -39,18 +43,18 @@
     function onEntityColorsChanged() {
         appearanceOptions.update((u) => {
             u.nodeColorSchema.entities = entityColors;
+            u.nodeColorPreset = NodeColorSchemaPreset.Custom;
             return u;
         });
-        nodeColorPreset = NodeColorSchemaPreset.Custom;
     }
 
     $: typeColors = $appearanceOptions.nodeColorSchema.types;
     function onTypeColorsChanged() {
         appearanceOptions.update((u) => {
             u.nodeColorSchema.types = typeColors;
+            u.nodeColorPreset = NodeColorSchemaPreset.Custom;
             return u;
         });
-        nodeColorPreset = NodeColorSchemaPreset.Custom;
     }
 
     const allToppings = Object.entries(PizzaIcons);
@@ -74,18 +78,18 @@
         seed++;
     }
 
-    enum NodeColorSchemaPreset {
-        Universal = "Universal",
-        VS = "VS",
-        Custom = "Custom",
-    }
-
-    let nodeColorPreset = NodeColorSchemaPreset.Universal;
     function onNodeColorChanged(preset: string) {
         switch (preset) {
             case NodeColorSchemaPreset.Universal:
                 $appearanceOptions.nodeColorSchema = structuredClone(
                     UNIVERSAL_NODE_COLOR_SCHEMA,
+                );
+                entityColors = $appearanceOptions.nodeColorSchema.entities;
+                typeColors = $appearanceOptions.nodeColorSchema.types;
+                break;
+            case NodeColorSchemaPreset.TypeFocus:
+                $appearanceOptions.nodeColorSchema = structuredClone(
+                    TYPE_FOCUS_COLOR_SCHEMA,
                 );
                 entityColors = $appearanceOptions.nodeColorSchema.entities;
                 typeColors = $appearanceOptions.nodeColorSchema.types;
@@ -153,7 +157,7 @@
         </label>
         <label class="flex flex-row gap-8 align-items-center">
             <span
-                class="w-80 inline-block flex-shrink-0 ellipsis overflow-hidden"
+                class="w-128 inline-block flex-shrink-0 ellipsis overflow-hidden"
                 title="SizingMode">SizingMode</span
             >
             <select bind:value={$appearanceOptions.glyph.sizingMode}>
@@ -164,12 +168,12 @@
         </label>
         <label class="flex flex-row gap-8 align-items-center">
             <span
-                class="w-80 inline-block flex-shrink-0 ellipsis overflow-hidden"
+                class="w-128 inline-block flex-shrink-0 ellipsis overflow-hidden"
                 title="Node color preset">NodeColorPreset</span
             >
             <select
                 on:change={(e) => onNodeColorChanged(e.currentTarget.value)}
-                value={nodeColorPreset}
+                bind:value={$appearanceOptions.nodeColorPreset}
             >
                 {#each Object.values(NodeColorSchemaPreset) as schemaPreset}
                     <option

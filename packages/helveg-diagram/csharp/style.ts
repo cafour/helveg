@@ -136,11 +136,11 @@ export const UNIVERSAL_NODE_COLOR_SCHEMA: Readonly<NodeColorSchema> = {
             background: chroma(Palette.Beige300).brighten(1).desaturate(1).hex(),
         },
         [EntityKind.Field]: {
-            foreground: Palette.Blue100,
+            foreground: chroma(Palette.Blue100).darken(0.5).hex(),
             background: chroma(Palette.Blue100).brighten(1.5).desaturate(1).hex(),
         },
         [EntityKind.Property]: {
-            foreground: Palette.Green100,
+            foreground: chroma(Palette.Green100).darken(0.5).hex(),
             background: chroma(Palette.Green100).brighten(1.5).desaturate(1).hex(),
         },
         [EntityKind.Event]: {
@@ -148,7 +148,7 @@ export const UNIVERSAL_NODE_COLOR_SCHEMA: Readonly<NodeColorSchema> = {
             background: chroma(Palette.Red100).brighten(1.5).desaturate(1).hex(),
         },
         [EntityKind.Method]: {
-            foreground: Palette.Purple100,
+            foreground: chroma(Palette.Purple100).darken(0.5).hex(),
             background: chroma(Palette.Purple100).brighten(1.5).desaturate(1).hex(),
         },
         [EntityKind.TypeParameter]: {
@@ -157,13 +157,13 @@ export const UNIVERSAL_NODE_COLOR_SCHEMA: Readonly<NodeColorSchema> = {
         },
         [EntityKind.Parameter]: {
             foreground: Palette.Pink100,
-            background: chroma(Palette.Pink100).brighten(1.5).desaturate(1).hex(),
+            background: chroma(Palette.Pink100).brighten(1.5).desaturate(1.5).hex(),
         },
     },
     types: {
         [TypeKind.Class]: {
             foreground: Palette.Beige200,
-            background: chroma(Palette.Beige200).brighten(1).desaturate(1).hex(),
+            background: chroma(Palette.Beige200).brighten(1).desaturate(2).hex(),
         },
         [TypeKind.Struct]: {
             foreground: Palette.Beige500,
@@ -183,6 +183,62 @@ export const UNIVERSAL_NODE_COLOR_SCHEMA: Readonly<NodeColorSchema> = {
         },
     },
 };
+
+export const TYPE_FOCUS_COLOR_SCHEMA: Readonly<NodeColorSchema> = {
+    entities: {
+        ...UNIVERSAL_NODE_COLOR_SCHEMA.entities,
+        [EntityKind.Solution]: {
+            foreground: chroma(Palette.Red400).brighten(1).desaturate(1.5).hex(),
+            background: chroma(Palette.Red400).brighten(3).desaturate(1.5).hex(),
+        },
+        [EntityKind.Project]: {
+            foreground: chroma(Palette.Red300).brighten(1).desaturate(2).hex(),
+            background: chroma(Palette.Red300).brighten(3).desaturate(2).hex()
+        },
+        [EntityKind.Field]: {
+            foreground: Palette.Gray500,
+            background: chroma(Palette.Gray500).brighten(3).desaturate(1).hex(),
+        },
+        [EntityKind.Property]: {
+            foreground: Palette.Gray500,
+            background: chroma(Palette.Gray500).brighten(3).desaturate(1).hex(),
+        },
+        [EntityKind.Event]: {
+            foreground: Palette.Gray500,
+            background: chroma(Palette.Gray500).brighten(3).desaturate(1).hex(),
+        },
+        [EntityKind.Method]: {
+            foreground: Palette.Gray500,
+            background: chroma(Palette.Gray500).brighten(3).desaturate(1).hex(),
+        },
+        [EntityKind.Parameter]: {
+            foreground: Palette.Gray500,
+            background: chroma(Palette.Gray500).brighten(3).desaturate(1).hex(),
+        },
+    },
+    types: {
+        [TypeKind.Class]: {
+            foreground: Palette.Beige200,
+            background: chroma(Palette.Beige200).brighten(1).desaturate(2).hex(),
+        },
+        [TypeKind.Struct]: {
+            foreground: chroma(Palette.Blue100).darken(0.5).hex(),
+            background: chroma(Palette.Blue100).brighten(1.5).desaturate(1).hex(),
+        },
+        [TypeKind.Interface]: {
+            foreground: chroma(Palette.Green100).darken(0.5).hex(),
+            background: chroma(Palette.Green100).brighten(1.5).desaturate(1).hex(),
+        },
+        [TypeKind.Enum]: {
+            foreground: chroma(Palette.Red100).desaturate(1).hex(),
+            background: chroma(Palette.Red100).brighten(1.5).desaturate(1).hex(),
+        },
+        [TypeKind.Delegate]: {
+            foreground: chroma(Palette.Purple100).darken(0.5).hex(),
+            background: chroma(Palette.Purple100).brighten(1.5).desaturate(1).hex(),
+        },
+    }
+}
 
 export const VS_NODE_COLOR_SCHEMA: Readonly<NodeColorSchema> = {
     entities: {
