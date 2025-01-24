@@ -1,20 +1,20 @@
 @use "./variables.scss";
 
 .toast-wrapper {
-    position: fixed;
+    // position: fixed;
     z-index: 2;
     display: flex;
     flex-direction: column;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    // top: 0;
+    // left: 0;
+    // right: 0;
+    // bottom: 0;
     pointer-events: none;
     justify-content: flex-end;
     align-items: flex-end;
 
     .toast {
-        margin-right: 3rem;
+        margin-right: 1rem;
         margin-bottom: 1rem;
         width: 30rem;
         max-width: calc(100vw - 5rem);
