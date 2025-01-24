@@ -138,9 +138,11 @@ void main(void) {
         if (v_strokedSlice < eps) {
             // full solid
             lightnessFactor = solidLightness;
+            f_color = v_color;
         } else if (pi - v_strokedSlice < eps) {
             // full stroked
             lightnessFactor = strokedLightness;
+            f_color = v_backgroundColor;
             // sectorFactor = max(sectorFactor, mix(0.0f, solidFactor, circle(v_radii.x + v_gap + margin, dist) + 1.0f - circle(v_radii.y - margin, dist)));
             // sectorFactor = max(sectorFactor, mix(0.0f, solidFactor, hatch()));
         } else {

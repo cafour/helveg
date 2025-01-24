@@ -122,6 +122,7 @@
 
     <!-- filler element -->
     <div class="filler flex-grow-1"></div>
+    <Toast />
 
     <Dock
         name="panels"
@@ -194,7 +195,5 @@
             <GuidePanel />
         </Tab>
     </Dock>
-
-    <Toast />
     <ContextMenu />
 </div>

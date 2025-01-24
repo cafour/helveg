@@ -25,14 +25,16 @@ export enum EntityKind {
 
 export const csharpNodeKindOrder: readonly string[] = [
     EntityKind.Solution,
-    EntityKind.PackageRepository,
-    EntityKind.ExternalDependencySource,
-
     EntityKind.Project,
-    EntityKind.Framework,
+
+    EntityKind.PackageRepository,
     EntityKind.Package,
 
+    EntityKind.Framework,
     EntityKind.Library,
+
+    EntityKind.ExternalDependencySource,
+
     EntityKind.Assembly,
     EntityKind.Module,
 
@@ -48,26 +50,6 @@ export const csharpNodeKindOrder: readonly string[] = [
 
     EntityKind.Parameter
 ];
-
-export enum DefaultIcons {
-    Solution = "csharp:Solution",
-    Project = "csharp:CSProjectNode",
-    ExternalDependencySource = "csharp:ReferenceGroup",
-    Framework = "csharp:Framework",
-    PackageRepository = "csharp:NuGet",
-    Package = "csharp:Package",
-    Library = "csharp:Library",
-    Assembly = "csharp:Assembly",
-    Module = "csharp:Module",
-    Namespace = "csharp:Namespace",
-    Type = "csharp:Class",
-    TypeParameter = "csharp:Type",
-    Field = "csharp:Field",
-    Method = "csharp:Method",
-    Property = "csharp:Property",
-    Event = "csharp:Event",
-    Parameter = "csharp:LocalVariable",
-}
 
 export enum IconableEntities {
     Solution = "Solution",
@@ -145,6 +127,14 @@ export enum TypeKind {
     FunctionPointer = "FunctionPointer"
 }
 
+export enum LimitedTypeKind {
+    Class = "Class",
+    Delegate = "Delegate",
+    Enum = "Enum",
+    Interface = "Interface",
+    Struct = "Struct",
+}
+
 export enum MethodKind {
     Invalid = "Invalid",
     AnonymousFunction = "AnonymousFunction",
@@ -168,45 +158,14 @@ export enum MethodKind {
     FunctionPointerSignature = "FunctionPointerSignature"
 }
 
-export enum VSColor {
-    DarkGray = "#212121",
-    DarkPurple = "#68217a",
-    Purple = "#6936aa",
-    DarkYellow = "#996f00",
-    Blue = "#005dba",
-    NuGetBlue = "#004880",
-    Green = "#1f801f"
-}
+export interface NodeColor {
+    foreground: string,
+    background: string
+};
 
-export enum Palette {
-    Gray600 = "#202020",
-    Gray500 = "#404040",
-    Gray400 = "#606060",
-
-    // i want hue: H=60-90, C=20-70, L=40-80, improve for colorblind, 6 colors, soft
-    Beige600 = "#9a7b4c",
-    Beige500 = "#a78368",
-    Beige400 = "#b98448",
-    Beige300 = "#bd8937",
-    Beige200 = "#d3982d",
-    Beige100 = "#d1ac78",
-
-    // i want hue: H=90-60, C=20-85, L=40-70, improve for colorblind, 5 colors, soft
-    Red100 = "#d55d3a",
-    Green100 = "#6d964d",
-    Blue100 = "#3198d7",
-    Purple100 = "#926fcd",
-    Pink100 = "#cc5e8b",
-
-    // i want hue: H=0-360, C=20-70, L=10-60, improve for colorblind, 3 colors, soft
-    Red200 = "#a14644",
-    Green200 = "#5b713a",
-    Purple200 = "#6f519c",
-
-    // i want hue: H=0-360, C=20-70, L=10-40, improve for colorblind, 3 colors, soft
-    Red300 = "#7c2c30",
-    Green300 = "#3f4f21",
-    Purple300 = "#503374",
+export interface NodeColorSchema {
+    entities: Record<EntityKind, NodeColor>,
+    types: Record<LimitedTypeKind, NodeColor>
 };
 
 export interface CSharpNode extends MultigraphNode {
@@ -242,38 +201,6 @@ export interface CSharpNode extends MultigraphNode {
     parameterCount?: number;
     path?: string,
     [MULTIGRAPH_NODE_KEY]: string;
-}
-
-export const FALLBACK_STYLE: NodeStyle = {
-    icon: "csharp:ExplodedDoughnutChart",
-    color: VSColor.DarkGray,
-    size: 5,
-    outlines: [],
-    slices: { stroked: 1, solid: 0, width: 0 },
-    fire: FireStatus.None
-};
-
-export interface CSharpDataOptions {
-    includedKinds: string[];
-    autoExpandedKinds: string[];
-}
-
-export const DEFAULT_CSHARP_DATA_OPTIONS: CSharpDataOptions = {
-    includedKinds: [
-        EntityKind.Solution,
-        EntityKind.Project,
-        EntityKind.Namespace,
-        EntityKind.Type,
-        EntityKind.Field,
-        EntityKind.Method,
-        EntityKind.Property,
-        EntityKind.Event
-    ],
-    autoExpandedKinds: [
-        EntityKind.Solution,
-        EntityKind.Project,
-        EntityKind.Namespace
-    ]
 }
 
 export const DEFAULT_CSHARP_PIZZA_TOPPINGS: Record<keyof typeof IconableEntities, PizzaIcons> = {

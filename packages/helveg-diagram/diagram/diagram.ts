@@ -218,18 +218,24 @@ export class Diagram {
     set nodeStylist(value: NodeStylist) {
         this._options.nodeStylist = value;
         this.restyleGraph();
+        this._sigma?.scheduleRefresh();
+        this.events.nodeStylistChanged.trigger();
     }
 
     get edgeStylist(): EdgeStylist | undefined { return this._options.edgeStylist; }
     set edgeStylist(value: EdgeStylist | undefined) {
         this._options.edgeStylist = value;
         this.restyleGraph();
+        this._sigma?.scheduleRefresh();
+        this.events.edgeStylistChanged.trigger();
     };
 
     get relationStylist(): RelationStylist { return this._options.relationStylist; }
     set relationStylist(value: RelationStylist) {
         this._options.relationStylist = value;
         this.restyleGraph();
+        this._sigma?.scheduleRefresh();
+        this.events.relationStylistChanged.trigger();
     }
 
     get forceAtlas2Options(): ForceAtlas2Options { return this._options.forceAtlas2; }
@@ -312,7 +318,10 @@ export class Diagram {
         nodeClicked: new HelvegEvent<string>("helveg.diagram.nodeClicked"),
         nodeDoubleClicked: new HelvegEvent<string>("helveg.diagram.nodeDoubleClicked"),
         mainRelationChanged: new HelvegEvent<string | null>("helveg.diagram.mainRelationChanged"),
-        modifierKeysChanged: new HelvegEvent<ModifierKeyStateChange>("helveg.diagram.modifierKeysChanged")
+        modifierKeysChanged: new HelvegEvent<ModifierKeyStateChange>("helveg.diagram.modifierKeysChanged"),
+        nodeStylistChanged: new HelvegEvent<void>("helveg.diagram.nodeStylistChanged"),
+        edgeStylistChanged: new HelvegEvent<void>("helveg.diagram.edgeStylistChanged"),
+        relationStylistChanged: new HelvegEvent<void>("helveg.diagram.relationStylistChanged"),
     } as const;
 
     // NB: private state for gestures
