@@ -17,7 +17,6 @@ import chroma from "chroma-js";
 
 export interface DonutProgramOptions {
     gap: number;
-    stroke: number;
     hatchingWidth: number;
     showOnlyHighlighted: boolean;
     showCollapsedNodeIndicators: boolean;
@@ -25,7 +24,6 @@ export interface DonutProgramOptions {
 
 export const DEFAULT_DONUT_PROGRAM_OPTIONS: DonutProgramOptions = {
     gap: 1,
-    stroke: 10,
     hatchingWidth: 8,
     showOnlyHighlighted: false,
     showCollapsedNodeIndicators: true,
@@ -59,7 +57,6 @@ const UNIFORMS = [
     "u_correctionRatio",
     "u_matrix",
     "u_gap",
-    "u_stroke",
     "u_hatchingWidth",
 ];
 
@@ -152,13 +149,11 @@ export class DonutProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
             u_correctionRatio,
             u_matrix,
             u_gap,
-            u_stroke,
             u_hatchingWidth,
         } = uniformLocations;
         gl.uniform1f(u_sizeRatio, params.sizeRatio);
         gl.uniform1f(u_pixelRatio, params.pixelRatio);
         gl.uniform1f(u_correctionRatio, params.correctionRatio);
-        gl.uniform1f(u_stroke, this.options.stroke);
         gl.uniform1f(u_hatchingWidth, this.options.hatchingWidth * params.correctionRatio / params.sizeRatio);
         gl.uniformMatrix3fv(u_matrix, false, params.matrix);
         gl.uniform1f(u_gap, 1);
