@@ -8,12 +8,12 @@ in vec2 v_diffVector;
 in vec2 v_radii;
 in float v_gap;
 in float v_bottomSlice;
-in float v_hatchingWidth;
 flat in float v_childrenIndicator;
 
 out vec4 f_color;
 
 uniform float u_pixelRatio;
+uniform float u_hatchingWidth;
 
 const vec4 transparent = vec4(0.0f, 0.0f, 0.0f, 0.0f);
 const float pi = 3.14159f;
@@ -52,9 +52,10 @@ float sector(float sectorHalfAngle, float halfAngle, float dist, float gap) {
 
 float hatch() {
     float pos = v_diffVector.x + v_diffVector.y;
-    float diffPos = fwidth(pos) * u_pixelRatio * 2.0f;
-    float pattern = fract(pos / max(2.0f * diffPos, v_hatchingWidth));
-    return pattern < 0.5f ? 1.0f : 0.0f;
+    // float diffPos = fwidth(pos) * u_pixelRatio * 2.0f;
+    // float pattern = fract(pos / max(2.0f * diffPos, u_hatchingWidth));
+    float pattern = fract(pos / u_hatchingWidth);
+    return pattern < 0.333f ? 1.0f : 0.0f;
 }
 
 void main(void) {
@@ -100,7 +101,7 @@ void main(void) {
             } else if (pi - v_bottomSlice < eps) {
                 // only the "bottom slice
                 f_color = v_backgroundColor;
-                if (v_hatchingWidth > 0.0f) {
+                if (u_hatchingWidth > 0.0f) {
                     f_color = mix(v_backgroundColor, v_color, hatch());
                 }
             } else {
@@ -111,7 +112,7 @@ void main(void) {
                 opacity *= max(bottomSector, topSector);
 
                 vec4 bottomSectorColor = v_backgroundColor;
-                if (v_hatchingWidth > 0.0f) {
+                if (u_hatchingWidth > 0.0f) {
                     bottomSectorColor = mix(v_backgroundColor, v_color, hatch());
                 }
 

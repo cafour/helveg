@@ -151,9 +151,16 @@
         <label>
             <input
                 type="checkbox"
-                bind:checked={$appearanceOptions.glyph.dimCollapsedNodes}
+                bind:checked={$appearanceOptions.glyph.showCollapsedNodeIndicators}
             />
-            DimCollapsedNodes
+            ShowCollapsedNodeIndicators
+        </label>
+        <label>
+            <input
+                type="checkbox"
+                bind:checked={$appearanceOptions.glyph.showHatching}
+            />
+            ShowHatching
         </label>
         <label class="flex flex-row gap-8 align-items-center">
             <span

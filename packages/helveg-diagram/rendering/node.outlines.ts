@@ -12,13 +12,13 @@ const UNIFORMS = ["u_sizeRatio", "u_pixelRatio", "u_matrix", "u_gap"];
 export interface OutlinesProgramOptions {
     gap: number;
     showOnlyHighlighted: boolean;
-    dimCollapsedNodes: boolean;
+    showCollapsedNodeIndicators: boolean;
 }
 
 export const DEFAULT_OUTLINES_PROGRAM_OPTIONS: OutlinesProgramOptions = {
     gap: 0,
     showOnlyHighlighted: false,
-    dimCollapsedNodes: true
+    showCollapsedNodeIndicators: true
 };
 
 export default function createOutlinesProgram(options?: Partial<OutlinesProgramOptions>): HelvegNodeProgramType {
@@ -75,7 +75,7 @@ export class OutlinesProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> 
         array[offset++] = floatColor(useColor ? data.color ?? FALLBACK_NODE_STYLE.color : "#aaaaaa");
         array[offset++] = floatOutlineWidths(data.outlines ?? FALLBACK_NODE_STYLE.outlines);
         array[offset++] = floatOutlineStyles(data.outlines ?? FALLBACK_NODE_STYLE.outlines);
-        array[offset++] = +!!(useColor && this.options.dimCollapsedNodes && data.collapsed);
+        array[offset++] = +!!(useColor && this.options.showCollapsedNodeIndicators && data.collapsed);
         array[offset++] = nodeIndex;
     }
 

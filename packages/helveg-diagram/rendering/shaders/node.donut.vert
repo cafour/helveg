@@ -16,7 +16,6 @@ uniform float u_pixelRatio;
 uniform float u_correctionRatio;
 uniform mat3 u_matrix;
 uniform float u_gap;
-uniform float u_hatchingWidth;
 
 out vec4 v_color;
 out vec4 v_backgroundColor;
@@ -24,7 +23,6 @@ out vec2 v_diffVector;
 out vec2 v_radii;
 out float v_bottomSlice;
 out float v_gap;
-out float v_hatchingWidth;
 flat out float v_childrenIndicator;
 
 const float pi = 3.14159f;
@@ -60,7 +58,6 @@ void main() {
     v_diffVector = diffVector;
     v_radii = vec2(innerRadius, outerRadius);
     v_bottomSlice = a_slices.x / (a_slices.x + a_slices.y) * pi;
-    v_hatchingWidth = u_hatchingWidth * u_correctionRatio / u_sizeRatio;
 
     #ifdef PICKING_MODE
     v_color = a_id;

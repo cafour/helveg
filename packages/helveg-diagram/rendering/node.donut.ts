@@ -20,13 +20,15 @@ export interface DonutProgramOptions {
     stroke: number;
     hatchingWidth: number;
     showOnlyHighlighted: boolean;
+    showCollapsedNodeIndicators: boolean;
 }
 
 export const DEFAULT_DONUT_PROGRAM_OPTIONS: DonutProgramOptions = {
     gap: 1,
     stroke: 10,
-    hatchingWidth: 16,
+    hatchingWidth: 8,
     showOnlyHighlighted: false,
+    showCollapsedNodeIndicators: true,
 };
 
 export default function createDonutProgram(
@@ -50,7 +52,7 @@ export default function createDonutProgram(
     };
 }
 
-const { UNSIGNED_BYTE, FLOAT, INT } = WebGLRenderingContext;
+const { UNSIGNED_BYTE, FLOAT } = WebGLRenderingContext;
 const UNIFORMS = [
     "u_sizeRatio",
     "u_pixelRatio",
@@ -157,7 +159,7 @@ export class DonutProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
         gl.uniform1f(u_pixelRatio, params.pixelRatio);
         gl.uniform1f(u_correctionRatio, params.correctionRatio);
         gl.uniform1f(u_stroke, this.options.stroke);
-        gl.uniform1f(u_hatchingWidth, this.options.hatchingWidth);
+        gl.uniform1f(u_hatchingWidth, this.options.hatchingWidth * params.correctionRatio / params.sizeRatio);
         gl.uniformMatrix3fv(u_matrix, false, params.matrix);
         gl.uniform1f(u_gap, 1);
     }
