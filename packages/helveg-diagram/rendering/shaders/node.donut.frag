@@ -15,10 +15,11 @@ out vec4 f_color;
 uniform float u_pixelRatio;
 uniform float u_hatchingWidth;
 
-const vec4 transparent = vec4(0.0f, 0.0f, 0.0f, 0.0f);
-const vec4 white = vec4(1.0f, 1.0f, 1.0f, 1.0f);
-const float pi = 3.14159f;
-const float eps = 0.00001f;
+const vec4 TRANSPARENT = vec4(0.0f, 0.0f, 0.0f, 0.0f);
+const vec4 WHITE = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+const float PI = 3.14159f;
+const float TWO_PI = 6.28319f;
+const float EPS = 0.00001f;
 
 float circle(float radius, float dist) {
     return clamp(sign(radius - dist), 0.0f, 1.0f);
@@ -40,7 +41,7 @@ float sector(float sectorHalfAngle, float halfAngle, float dist, float gap) {
     float t = 1.0f;
     float halfAngleDelta = fwidth(halfAngle);
     // NB: The 4.0f below is magic. It just kinda looks good.
-    float angularGap = 4.0f * gap / (2.0f * pi * dist);
+    float angularGap = 4.0f * gap / (2.0f * PI * dist);
     // NB: ...the 2.0f below is also magic.
     angularGap = max(angularGap, halfAngleDelta / 2.0f);
     float edge = halfAngle - sectorHalfAngle + halfAngleDelta + angularGap;
@@ -59,6 +60,20 @@ float hatch() {
     return pattern < 0.333f ? 1.0f : 0.0f;
 }
 
+float octagon() {
+    // polar coordinates
+    float angle = atan(v_diffVector.y, v_diffVector.x) + PI / 8.0f;
+    float radius = TWO_PI / float(8);
+
+    float stripes = cos(floor(0.5f + angle / radius) * radius - angle);
+    float field = stripes * length(v_diffVector);
+    field /= v_radii.x;
+    field *= stripes;
+
+    return (field < 0.9f ? 1.0f : 0.0f) - (field < 0.8f ? 1.0f : 0.0f);
+    // return field * v_radii.x;
+}
+
 void main(void) {
     float dist = length(v_diffVector);
 
@@ -74,7 +89,7 @@ void main(void) {
 
     // NB: inner circle which is always present
     float opacity = 0.0f;
-    float lightness = 0.9;
+    float lightness = 0.9f;
     float innerCircleFactor = smoothcircle(v_radii.x, dist);
     f_color = v_backgroundColor;
     opacity += innerCircleFactor;
@@ -97,10 +112,10 @@ void main(void) {
 
             // NB: x and y are switched on purpose (and y flipped as well) to emulate a rotation by 90 deg clockwise
             float halfAngle = abs(atan(v_diffVector.x, -v_diffVector.y));
-            if (v_bottomSlice < eps) {
+            if (v_bottomSlice < EPS) {
                 // only the "top" slice
                 f_color = v_color;
-            } else if (pi - v_bottomSlice < eps) {
+            } else if (PI - v_bottomSlice < EPS) {
                 // only the "bottom slice
                 f_color = v_backgroundColor;
                 if (u_hatchingWidth > 0.0f) {
@@ -110,7 +125,7 @@ void main(void) {
             } else {
                 float bottomSector = sector(v_bottomSlice, halfAngle, dist, v_gap);
                 // by inverting the angle, we switch to the complementary angle but still correctly compute the gap
-                float topSector = sector(pi - v_bottomSlice, pi - halfAngle, dist, v_gap);
+                float topSector = sector(PI - v_bottomSlice, PI - halfAngle, dist, v_gap);
 
                 opacity *= max(bottomSector, topSector);
                 lightness *= max(bottomSector * 1.33f, topSector);
@@ -120,11 +135,12 @@ void main(void) {
                     bottomSectorColor = mix(v_backgroundColor, v_color, hatch());
                 }
 
-                f_color = mix(transparent, v_color, topSector) + mix(transparent, bottomSectorColor, bottomSector);
+                f_color = mix(TRANSPARENT, v_color, topSector) + mix(TRANSPARENT, bottomSectorColor, bottomSector);
             }
         }
     }
 
-    f_color = mix(f_color, white, lightness - 1.0f);
-    f_color = mix(transparent, f_color, opacity * 0.9f);
+    f_color = mix(f_color, v_color, octagon());
+    f_color = mix(f_color, WHITE, lightness - 1.0f);
+    f_color = mix(TRANSPARENT, f_color, opacity * 0.9f);
 }
