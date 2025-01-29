@@ -134,11 +134,16 @@ export class DonutProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
             FALLBACK_NODE_STYLE.slices.width;
 
         const color = data.color ?? FALLBACK_NODE_STYLE.color;
-        const backgroundColor = data.backgroundColor ?? chroma(color).brighten(1).desaturate(1).hex();
+        const backgroundColor = data.backgroundColor ??
+            chroma(color).brighten(1).desaturate(1).hex();
 
         array[offset++] = floatColor(useColor ? color : "#999999");
         array[offset++] = floatColor(useColor ? backgroundColor : "#cccccc");
-        array[offset++] = (data.childCount ?? 0) > 0 && data.collapsed === true ? 1 : 0;
+        array[offset++] =
+            (data.childCount ?? 0) > 0 && data.collapsed === true &&
+                this.options.showCollapsedNodeIndicators
+                ? 1.0
+                : 0.0;
     }
 
     setUniforms(params: RenderParams, programInfo: ProgramInfo): void {
@@ -154,7 +159,11 @@ export class DonutProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
         gl.uniform1f(u_sizeRatio, params.sizeRatio);
         gl.uniform1f(u_pixelRatio, params.pixelRatio);
         gl.uniform1f(u_correctionRatio, params.correctionRatio);
-        gl.uniform1f(u_hatchingWidth, this.options.hatchingWidth * params.correctionRatio / params.sizeRatio);
+        gl.uniform1f(
+            u_hatchingWidth,
+            this.options.hatchingWidth * params.correctionRatio /
+                params.sizeRatio,
+        );
         gl.uniformMatrix3fv(u_matrix, false, params.matrix);
         gl.uniform1f(u_gap, 1);
     }
