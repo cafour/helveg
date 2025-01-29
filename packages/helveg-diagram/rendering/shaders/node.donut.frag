@@ -16,6 +16,7 @@ uniform float u_pixelRatio;
 uniform float u_hatchingWidth;
 
 const vec4 transparent = vec4(0.0f, 0.0f, 0.0f, 0.0f);
+const vec4 white = vec4(1.0f, 1.0f, 1.0f, 1.0f);
 const float pi = 3.14159f;
 const float eps = 0.00001f;
 
@@ -73,6 +74,7 @@ void main(void) {
 
     // NB: inner circle which is always present
     float opacity = 0.0f;
+    float lightness = 0.9;
     float innerCircleFactor = smoothcircle(v_radii.x, dist);
     f_color = v_backgroundColor;
     opacity += innerCircleFactor;
@@ -104,12 +106,14 @@ void main(void) {
                 if (u_hatchingWidth > 0.0f) {
                     f_color = mix(v_backgroundColor, v_color, hatch());
                 }
+                lightness *= 1.33f;
             } else {
                 float bottomSector = sector(v_bottomSlice, halfAngle, dist, v_gap);
                 // by inverting the angle, we switch to the complementary angle but still correctly compute the gap
                 float topSector = sector(pi - v_bottomSlice, pi - halfAngle, dist, v_gap);
 
                 opacity *= max(bottomSector, topSector);
+                lightness *= max(bottomSector * 1.33f, topSector);
 
                 vec4 bottomSectorColor = v_backgroundColor;
                 if (u_hatchingWidth > 0.0f) {
@@ -121,5 +125,6 @@ void main(void) {
         }
     }
 
+    f_color = mix(f_color, white, lightness - 1.0f);
     f_color = mix(transparent, f_color, opacity * 0.9f);
 }
