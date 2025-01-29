@@ -30,6 +30,7 @@ export interface GlyphOptions {
     showHatching: boolean;
     isFireAnimated: boolean;
     showCollapsedNodeIndicators: boolean;
+    showContours: boolean;
     codePizza: boolean;
     sizingMode: SizingMode
 }
@@ -41,8 +42,9 @@ export const DEFAULT_GLYPH_OPTIONS: GlyphOptions = {
     showDiffs: true,
     showFire: true,
     showHatching: true,
-    showCollapsedNodeIndicators: true,
     isFireAnimated: true,
+    showCollapsedNodeIndicators: true,
+    showContours: true,
     codePizza: false,
     sizingMode: "linear"
 }

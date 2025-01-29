@@ -14,12 +14,14 @@ import fragSrc from "./shaders/node.donut.frag";
 import { HelvegNodeAttributes } from "../model/graph.ts";
 import { FALLBACK_NODE_STYLE } from "../global.ts";
 import chroma from "chroma-js";
+import { provideDefaults } from "../common/object.ts";
 
 export interface DonutProgramOptions {
     gap: number;
     hatchingWidth: number;
     showOnlyHighlighted: boolean;
     showCollapsedNodeIndicators: boolean;
+    showContours: boolean;
 }
 
 export const DEFAULT_DONUT_PROGRAM_OPTIONS: DonutProgramOptions = {
@@ -27,6 +29,7 @@ export const DEFAULT_DONUT_PROGRAM_OPTIONS: DonutProgramOptions = {
     hatchingWidth: 8,
     showOnlyHighlighted: false,
     showCollapsedNodeIndicators: true,
+    showContours: true,
 };
 
 export default function createDonutProgram(
@@ -35,9 +38,9 @@ export default function createDonutProgram(
     // NB: Cannot use options = {...DEFAULT_DONUT_PROGRAM_OPTIONS, ...options} because we need to keep the original
     //     object.
     if (options === undefined) {
-        options = DEFAULT_DONUT_PROGRAM_OPTIONS;
+        options = {...DEFAULT_DONUT_PROGRAM_OPTIONS};
     } else {
-        Object.assign(options, DEFAULT_DONUT_PROGRAM_OPTIONS);
+        provideDefaults(options, DEFAULT_DONUT_PROGRAM_OPTIONS);
     }
     return class extends DonutProgram {
         constructor(
@@ -149,7 +152,7 @@ export class DonutProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
                 this.options.showCollapsedNodeIndicators
                 ? 1.0
                 : 0.0;
-        array[offset++] = data.contour ?? 0.0;
+        array[offset++] = this.options.showContours ? data.contour ?? 0.0 : 0.0;
     }
 
     setUniforms(params: RenderParams, programInfo: ProgramInfo): void {

@@ -162,6 +162,13 @@
             />
             ShowHatching
         </label>
+        <label>
+            <input
+                type="checkbox"
+                bind:checked={$appearanceOptions.glyph.showContours}
+            />
+            ShowContours
+        </label>
         <label class="flex flex-row gap-8 align-items-center">
             <span
                 class="w-128 inline-block flex-shrink-0 ellipsis overflow-hidden"

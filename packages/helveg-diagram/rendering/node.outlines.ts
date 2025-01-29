@@ -4,6 +4,7 @@ import { FALLBACK_NODE_STYLE, floatOutlineWidths, floatOutlineStyles } from "../
 import vertSrc from "./shaders/node.outlines.vert";
 import fragSrc from "./shaders/node.outlines.frag";
 import { HelvegNodeProgram, HelvegNodeProgramType } from "../diagram/initializers.ts";
+import { provideDefaults } from "../common/object.ts";
 
 const { UNSIGNED_BYTE, FLOAT } = WebGLRenderingContext;
 
@@ -23,9 +24,9 @@ export const DEFAULT_OUTLINES_PROGRAM_OPTIONS: OutlinesProgramOptions = {
 
 export default function createOutlinesProgram(options?: Partial<OutlinesProgramOptions>): HelvegNodeProgramType {
     if (options === undefined) {
-        options = DEFAULT_OUTLINES_PROGRAM_OPTIONS;
+        options = {...DEFAULT_OUTLINES_PROGRAM_OPTIONS};
     } else {
-        Object.assign(options, DEFAULT_OUTLINES_PROGRAM_OPTIONS);
+        provideDefaults(options, DEFAULT_OUTLINES_PROGRAM_OPTIONS);
     }
 
     return class extends OutlinesProgram {

@@ -139,6 +139,7 @@ export function createExplorerState(
         glyphOptions.hatchingWidth = o.glyph.showHatching
             ? DEFAULT_DONUT_PROGRAM_OPTIONS.hatchingWidth
             : 0;
+        glyphOptions.showContours = o.glyph.showContours;
 
         glyphOptions.crustWidth = o.codePizza.crustWidth;
         glyphOptions.sauceWidth = o.codePizza.sauceWidth;
