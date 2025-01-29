@@ -104,6 +104,11 @@ export class DonutProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
                     size: 1,
                     type: FLOAT,
                 },
+                {
+                    name: "a_contour",
+                    size: 1,
+                    type: FLOAT,
+                },
             ],
             // NB: Data for an equilateral triangle that the donut is carved from.
             CONSTANT_ATTRIBUTES: [{ name: "a_angle", size: 1, type: FLOAT }],
@@ -144,6 +149,7 @@ export class DonutProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
                 this.options.showCollapsedNodeIndicators
                 ? 1.0
                 : 0.0;
+        array[offset++] = data.contour ?? 0.0;
     }
 
     setUniforms(params: RenderParams, programInfo: ProgramInfo): void {

@@ -9,6 +9,7 @@ in vec2 v_radii;
 in float v_gap;
 in float v_bottomSlice;
 flat in float v_childrenIndicator;
+flat in float v_contour;
 
 out vec4 f_color;
 
@@ -60,18 +61,30 @@ float hatch() {
     return pattern < 0.333f ? 1.0f : 0.0f;
 }
 
-float octagon() {
+float octagonContour() {
     // polar coordinates
     float angle = atan(v_diffVector.y, v_diffVector.x) + PI / 8.0f;
     float radius = TWO_PI / float(8);
 
+    float field = cos(floor(0.5f + angle / radius) * radius - angle) * length(v_diffVector);
+    field /= v_radii.x;
+
+    float outline = (field < 0.9f ? 1.0f : 0.0f) - (field < 0.8f ? 1.0f : 0.0f);
+    return outline;
+}
+
+float hexagonContour() {
+    // polar coordinates
+    float angle = atan(v_diffVector.y, v_diffVector.x) + PI / 6.0f;
+    float radius = TWO_PI / float(6);
+
     float stripes = cos(floor(0.5f + angle / radius) * radius - angle);
     float field = stripes * length(v_diffVector);
     field /= v_radii.x;
-    field *= stripes;
+    stripes = stripes < 0.98f ? 1.0f : 0.0f;
 
-    return (field < 0.9f ? 1.0f : 0.0f) - (field < 0.8f ? 1.0f : 0.0f);
-    // return field * v_radii.x;
+    float outline = (field < 0.85f ? 1.0f : 0.0f) - (field < 0.75f ? 1.0f : 0.0f);
+    return outline * stripes;
 }
 
 void main(void) {
@@ -140,7 +153,12 @@ void main(void) {
         }
     }
 
-    f_color = mix(f_color, v_color, octagon());
+    if (v_contour == 1.0f) {
+        f_color = mix(f_color, v_color, octagonContour());
+    } else if (v_contour == 2.0f) {
+        f_color = mix(f_color, v_color, hexagonContour());
+    }
+
     f_color = mix(f_color, WHITE, lightness - 1.0f);
     f_color = mix(TRANSPARENT, f_color, opacity * 0.9f);
 }

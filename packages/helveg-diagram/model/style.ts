@@ -26,6 +26,12 @@ export type Outlines = []
     | [Outline, Outline, Outline]
     | [Outline, Outline, Outline, Outline];
 
+export enum Contour {
+    None = 0.0,
+    FullOctagon = 1.0,
+    DashedHexagon = 2.0,
+};
+
 export function floatOutlineWidths(outlines: Outlines): number {
     if (!outlines) {
         return 0;
@@ -84,6 +90,7 @@ export interface NodeStyle {
     outlines: Outlines;
     slices: Slices;
     fire: FireStatus;
+    contour: Contour;
 }
 
 export const FALLBACK_NODE_ICON = "vscode:pie-chart";
@@ -94,7 +101,8 @@ export const FALLBACK_NODE_STYLE: NodeStyle = {
     icon: FALLBACK_NODE_ICON,
     outlines: [],
     slices: { stroked: 0, solid: 1, width: 0 },
-    fire: FireStatus.None
+    fire: FireStatus.None,
+    contour: Contour.None,
 };
 
 export interface EdgeStyle {

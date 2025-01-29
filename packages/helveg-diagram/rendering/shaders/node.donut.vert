@@ -10,6 +10,7 @@ in vec4 a_color;
 in vec4 a_backgroundColor;
 in float a_angle;
 in float a_isExpandable;
+in float a_contour;
 
 uniform float u_sizeRatio;
 uniform float u_pixelRatio;
@@ -24,6 +25,7 @@ out vec2 v_radii;
 out float v_bottomSlice;
 out float v_gap;
 flat out float v_childrenIndicator;
+flat out float v_contour;
 
 const float pi = 3.14159f;
 const float bias = 255.0f / 254.0f;
@@ -58,6 +60,7 @@ void main() {
     v_diffVector = diffVector;
     v_radii = vec2(innerRadius, outerRadius);
     v_bottomSlice = a_slices.x / (a_slices.x + a_slices.y) * pi;
+    v_contour = a_contour;
 
     #ifdef PICKING_MODE
     v_color = a_id;
