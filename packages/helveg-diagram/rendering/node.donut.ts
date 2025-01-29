@@ -50,7 +50,7 @@ export default function createDonutProgram(
     };
 }
 
-const { UNSIGNED_BYTE, FLOAT } = WebGLRenderingContext;
+const { UNSIGNED_BYTE, FLOAT, INT } = WebGLRenderingContext;
 const UNIFORMS = [
     "u_sizeRatio",
     "u_pixelRatio",
@@ -100,6 +100,11 @@ export class DonutProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
                     type: UNSIGNED_BYTE,
                     normalized: true,
                 },
+                {
+                    name: "a_isExpandable",
+                    size: 1,
+                    type: FLOAT,
+                },
             ],
             // NB: Data for an equilateral triangle that the donut is carved from.
             CONSTANT_ATTRIBUTES: [{ name: "a_angle", size: 1, type: FLOAT }],
@@ -134,6 +139,7 @@ export class DonutProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
 
         array[offset++] = floatColor(useColor ? color : "#999999");
         array[offset++] = floatColor(useColor ? backgroundColor : "#cccccc");
+        array[offset++] = (data.childCount ?? 0) > 0 && data.collapsed === true ? 1 : 0;
     }
 
     setUniforms(params: RenderParams, programInfo: ProgramInfo): void {

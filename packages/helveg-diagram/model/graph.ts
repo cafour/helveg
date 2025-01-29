@@ -19,6 +19,7 @@ export interface HelvegNodeAttributes extends Partial<NodeDisplayData>, Attribut
     diff?: MultigraphNodeDiffStatus;
     inInitialPosition?: boolean;
     backgroundColor?: string;
+    childCount?: number;
 }
 
 export interface HelvegEdgeAttributes extends Partial<EdgeDisplayData>, Attributes {

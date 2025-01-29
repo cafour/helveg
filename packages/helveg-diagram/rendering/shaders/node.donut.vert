@@ -9,6 +9,7 @@ in vec3 a_slices;
 in vec4 a_color;
 in vec4 a_backgroundColor;
 in float a_angle;
+in float a_isExpandable;
 
 uniform float u_sizeRatio;
 uniform float u_pixelRatio;
@@ -26,23 +27,35 @@ out float v_strokedSlice;
 out float v_gap;
 out float v_stroke;
 out float v_hatchingWidth;
+flat out float v_childrenIndicator;
 
 const float pi = 3.14159f;
 const float bias = 255.0f / 254.0f;
+const float childrenIndicator = 0.1;
+const float isqtr2 = 0.70710f;
 
 void main() {
     // I'm not sure why I have to multiply radii by 2.0, but Sigma's node-circle does it as well to get the same
     // sizes as in node-point. Maybe it's because of multisampling but who knows.
-    float innerRadius = a_baseSize * u_correctionRatio / u_sizeRatio * 2.0;
+    float innerRadius = a_baseSize * u_correctionRatio / u_sizeRatio * 2.0f;
     float outerRadius = innerRadius;
-    v_gap = 0.0f;
+    v_gap = u_gap * u_correctionRatio / u_sizeRatio;
     if (a_slices.z > 0.0f) {
-        v_gap = u_gap * u_correctionRatio / u_sizeRatio;
-        outerRadius = (a_baseSize + a_slices.z + u_gap) * u_correctionRatio / u_sizeRatio * 2.0;
+        outerRadius = (a_baseSize + a_slices.z) * u_correctionRatio / u_sizeRatio * 2.0f;
+        outerRadius += v_gap * 2.0f;
     }
 
     // x2 because the triangle reaches only -0.5 on the left side and we want the triangle to contain the unit circle
-    vec2 diffVector = outerRadius * 2.0f * vec2(cos(a_angle), sin(a_angle));
+    float totalDiameter = outerRadius * 2.0f;
+
+    v_childrenIndicator = 0.0f;
+    if (a_isExpandable > 0.0f) {
+        float childrenIndicatorIncrement = childrenIndicator * outerRadius;
+        totalDiameter += 2.0f * childrenIndicatorIncrement;
+        v_childrenIndicator = childrenIndicatorIncrement;
+    }
+
+    vec2 diffVector = totalDiameter * vec2(cos(a_angle), sin(a_angle));
     vec2 position = a_position + diffVector;
     gl_Position = vec4((u_matrix * vec3(position, 1)).xy, 0, 1);
 
@@ -52,7 +65,7 @@ void main() {
 
     // the stroke must never obscure the true color of the stroked sector
     v_stroke = min(u_stroke, a_slices.z / 3.0f) * u_correctionRatio / u_sizeRatio;
-    
+
     v_hatchingWidth = u_hatchingWidth * u_correctionRatio / u_sizeRatio;
 
     #ifdef PICKING_MODE

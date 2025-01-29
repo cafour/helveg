@@ -10,6 +10,7 @@ in float v_gap;
 in float v_strokedSlice;
 in float v_stroke;
 in float v_hatchingWidth;
+flat in float v_childrenIndicator;
 
 out vec4 f_color;
 
@@ -21,19 +22,19 @@ const float eps = 0.00001f;
 const float strokedLightness = 1.3f;
 const float solidLightness = 1.1f;
 
+float circle(float radius, float dist) {
+    return clamp(sign(radius - dist), 0.0f, 1.0f);
+}
+
 // Returns:
 // * 1 if inside the circle
 // * 0 if outside the circle
 // * (1, 0) if on the border of the circle
-float circle(float radius, float dist) {
-    float distDelta = fwidth(dist);
-    float t = 1.0f;
-    // return dist > radius ? 0.0 : 1.0;
-    float edge = dist - (radius - distDelta);
-    if (edge > distDelta)
-        t = 0.0f;
-    else if (edge > 0.0f)
-        t = 1.0f - edge / distDelta;
+// IMPORTANT: Must be used in uniform control flow.
+float smoothcircle(float radius, float dist) {
+    float edge = radius - dist;
+    float delta = fwidth(edge);
+    float t = (edge + delta) / delta;
     return clamp(t, 0.0f, 1.0f);
 }
 
@@ -59,49 +60,6 @@ float hatch() {
     return pattern < 0.5f ? 1.0f : 0.0f;
 }
 
-// float lightness(vec3 color) {
-//     return 0.5f * (min(color.r, min(color.g, color.b)) + max(color.r, max(color.g, color.b)));
-// }
-
-vec3 rgb2hsl(in vec3 c) {
-    float h = 0.0f;
-    float s = 0.0f;
-    float l = 0.0f;
-    float r = c.r;
-    float g = c.g;
-    float b = c.b;
-    float cMin = min(r, min(g, b));
-    float cMax = max(r, max(g, b));
-
-    l = (cMax + cMin) / 2.0f;
-    if (cMax > cMin) {
-        float cDelta = cMax - cMin;
-
-        //s = l < .05 ? cDelta / ( cMax + cMin ) : cDelta / ( 2.0 - ( cMax + cMin ) ); Original
-        s = l < .0f ? cDelta / (cMax + cMin) : cDelta / (2.0f - (cMax + cMin));
-
-        if (r == cMax) {
-            h = (g - b) / cDelta;
-        } else if (g == cMax) {
-            h = 2.0f + (b - r) / cDelta;
-        } else {
-            h = 4.0f + (r - g) / cDelta;
-        }
-
-        if (h < 0.0f) {
-            h += 6.0f;
-        }
-        h = h / 6.0f;
-    }
-    return vec3(h, s, l);
-}
-
-vec3 hsl2rgb(in vec3 c) {
-    vec3 rgb = clamp(abs(mod(c.x * 6.0f + vec3(0.0f, 4.0f, 2.0f), 6.0f) - 3.0f) - 1.0f, 0.0f, 1.0f);
-
-    return c.z + c.y * (rgb - 0.5f) * (1.0f - abs(2.0f * c.z - 1.0f));
-}
-
 void main(void) {
     float dist = length(v_diffVector);
 
@@ -115,59 +73,56 @@ void main(void) {
     return;
     #endif
 
+    // NB: inner circle which is always present
     float opacity = 0.0f;
-    float lightnessFactor = 1.0f;
-    float saturationFactor = 1.0f;
-
-    float innerCircleFactor = circle(v_radii.x, dist);
+    float innerCircleFactor = smoothcircle(v_radii.x, dist);
+    f_color = v_backgroundColor;
     opacity += innerCircleFactor;
 
-    f_color = v_color;
-
-    if (dist < v_radii.x) {
-        lightnessFactor = 1.5f;
-        saturationFactor = 0.7f;
-        f_color = v_backgroundColor;
-    } else if (v_radii.y > 0.0f) {
-        float donutFactor = circle(v_radii.y, dist) - circle(v_radii.x + v_gap, dist);
-        opacity += donutFactor;
-
-        // NB: x and y are switched on purpose (and y flipped as well) to emulate a rotation by 90 deg clockwise
-        float halfAngle = abs(atan(v_diffVector.x, -v_diffVector.y));
-        float margin = v_stroke;
-        if (v_strokedSlice < eps) {
-            // full solid
-            lightnessFactor = solidLightness;
+    if (v_childrenIndicator > 0.0f) {
+        float radius = max(v_radii.x, v_radii.y);
+        vec2 childrenIndicatorOffset = vec2(0, -v_childrenIndicator);
+        float childrenIndicatorDist = length(v_diffVector - childrenIndicatorOffset);
+        float childrenIndicatorFactor = smoothcircle(radius, childrenIndicatorDist) - smoothcircle(radius + v_gap, dist);
+        if (childrenIndicatorFactor > 0.0f) {
+            opacity += childrenIndicatorFactor;
             f_color = v_color;
-        } else if (pi - v_strokedSlice < eps) {
-            // full stroked
-            lightnessFactor = strokedLightness;
-            f_color = v_backgroundColor;
-            // sectorFactor = max(sectorFactor, mix(0.0f, solidFactor, circle(v_radii.x + v_gap + margin, dist) + 1.0f - circle(v_radii.y - margin, dist)));
-            // sectorFactor = max(sectorFactor, mix(0.0f, solidFactor, hatch()));
-        } else {
-            // margin = is the line lining the stroked sector, it should be always at least two "pixels" wide
-            float strokedSector = sector(v_strokedSlice, halfAngle, dist, v_gap);
-            // by inverting the angle, we switch to the complementary angle but still correctly compute the gap
-            float solidSector = sector(pi - v_strokedSlice, pi - halfAngle, dist, v_gap);
-
-            opacity *= max(strokedSector, solidSector);
-            f_color = mix(transparent, v_color, solidSector) + mix(transparent, v_backgroundColor, strokedSector);
-            lightnessFactor = strokedLightness * strokedSector + solidLightness * solidSector;
-            saturationFactor = lightnessFactor;
-            // top and bottom line of the stroked sector
-            // sectorFactor = max(sectorFactor, mix(0.0f, solidFactor, strokedSector * (circle(v_radii.x + v_gap + margin, dist) + 1.0f - circle(v_radii.y - margin, dist))));
-            // left and right line of the stroked sector
-            // sectorFactor = max(sectorFactor, mix(0.0f, solidFactor, strokedSector * (1.0f - sector(v_strokedSlice, halfAngle, dist, v_gap + 2.0f * margin))));
-            // hatching
-            // sectorFactor = max(sectorFactor, mix(0.0f, solidFactor, strokedSector * hatch()));
         }
     }
 
-    // vec3 hsl = rgb2hsl(f_color.rgb);
-    // hsl.g *= saturationFactor;
-    // hsl.z *= lightnessFactor;
-    // f_color.rgb = hsl2rgb(hsl);
+    if (v_radii.y > 0.0f) {
+        float donutFactor = smoothcircle(v_radii.y, dist) - smoothcircle(v_radii.x + v_gap, dist);
+        if (donutFactor > 0.0f) {
+            opacity += donutFactor;
+
+            // NB: x and y are switched on purpose (and y flipped as well) to emulate a rotation by 90 deg clockwise
+            float halfAngle = abs(atan(v_diffVector.x, -v_diffVector.y));
+            // float margin = v_stroke;
+            if (v_strokedSlice < eps) {
+                // full solid
+                f_color = v_color;
+            } else if (pi - v_strokedSlice < eps) {
+                // full stroked
+                f_color = v_backgroundColor;
+                // sectorFactor = max(sectorFactor, mix(0.0f, solidFactor, circle(v_radii.x + v_gap + margin, dist) + 1.0f - circle(v_radii.y - margin, dist)));
+                // sectorFactor = max(sectorFactor, mix(0.0f, solidFactor, hatch()));
+            } else {
+                // margin = is the line lining the stroked sector, it should be always at least two "pixels" wide
+                float strokedSector = sector(v_strokedSlice, halfAngle, dist, v_gap);
+                // by inverting the angle, we switch to the complementary angle but still correctly compute the gap
+                float solidSector = sector(pi - v_strokedSlice, pi - halfAngle, dist, v_gap);
+
+                opacity *= max(strokedSector, solidSector);
+                f_color = mix(transparent, v_color, solidSector) + mix(transparent, v_backgroundColor, strokedSector);
+                // top and bottom line of the stroked sector
+                // sectorFactor = max(sectorFactor, mix(0.0f, solidFactor, strokedSector * (circle(v_radii.x + v_gap + margin, dist) + 1.0f - circle(v_radii.y - margin, dist))));
+                // left and right line of the stroked sector
+                // sectorFactor = max(sectorFactor, mix(0.0f, solidFactor, strokedSector * (1.0f - sector(v_strokedSlice, halfAngle, dist, v_gap + 2.0f * margin))));
+                // hatching
+                // sectorFactor = max(sectorFactor, mix(0.0f, solidFactor, strokedSector * hatch()));
+            }
+        }
+    }
 
     f_color = mix(transparent, f_color, opacity * 0.9f);
 }
