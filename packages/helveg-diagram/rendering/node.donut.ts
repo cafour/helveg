@@ -14,19 +14,22 @@ import fragSrc from "./shaders/node.donut.frag";
 import { HelvegNodeAttributes } from "../model/graph.ts";
 import { FALLBACK_NODE_STYLE } from "../global.ts";
 import chroma from "chroma-js";
+import { provideDefaults } from "../common/object.ts";
 
 export interface DonutProgramOptions {
     gap: number;
-    stroke: number;
     hatchingWidth: number;
     showOnlyHighlighted: boolean;
+    showCollapsedNodeIndicators: boolean;
+    showContours: boolean;
 }
 
 export const DEFAULT_DONUT_PROGRAM_OPTIONS: DonutProgramOptions = {
     gap: 1,
-    stroke: 10,
-    hatchingWidth: 16,
+    hatchingWidth: 8,
     showOnlyHighlighted: false,
+    showCollapsedNodeIndicators: true,
+    showContours: true,
 };
 
 export default function createDonutProgram(
@@ -35,9 +38,9 @@ export default function createDonutProgram(
     // NB: Cannot use options = {...DEFAULT_DONUT_PROGRAM_OPTIONS, ...options} because we need to keep the original
     //     object.
     if (options === undefined) {
-        options = DEFAULT_DONUT_PROGRAM_OPTIONS;
+        options = {...DEFAULT_DONUT_PROGRAM_OPTIONS};
     } else {
-        Object.assign(options, DEFAULT_DONUT_PROGRAM_OPTIONS);
+        provideDefaults(options, DEFAULT_DONUT_PROGRAM_OPTIONS);
     }
     return class extends DonutProgram {
         constructor(
@@ -57,7 +60,6 @@ const UNIFORMS = [
     "u_correctionRatio",
     "u_matrix",
     "u_gap",
-    "u_stroke",
     "u_hatchingWidth",
 ];
 
@@ -100,6 +102,16 @@ export class DonutProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
                     type: UNSIGNED_BYTE,
                     normalized: true,
                 },
+                {
+                    name: "a_isExpandable",
+                    size: 1,
+                    type: FLOAT,
+                },
+                {
+                    name: "a_contour",
+                    size: 1,
+                    type: FLOAT,
+                },
             ],
             // NB: Data for an equilateral triangle that the donut is carved from.
             CONSTANT_ATTRIBUTES: [{ name: "a_angle", size: 1, type: FLOAT }],
@@ -130,10 +142,17 @@ export class DonutProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
             FALLBACK_NODE_STYLE.slices.width;
 
         const color = data.color ?? FALLBACK_NODE_STYLE.color;
-        const backgroundColor = data.backgroundColor ?? chroma(color).brighten(1).desaturate(1).hex();
+        const backgroundColor = data.backgroundColor ??
+            chroma(color).brighten(1).desaturate(1).hex();
 
         array[offset++] = floatColor(useColor ? color : "#999999");
         array[offset++] = floatColor(useColor ? backgroundColor : "#cccccc");
+        array[offset++] =
+            (data.childCount ?? 0) > 0 && data.collapsed === true &&
+                this.options.showCollapsedNodeIndicators
+                ? 1.0
+                : 0.0;
+        array[offset++] = this.options.showContours ? data.contour ?? 0.0 : 0.0;
     }
 
     setUniforms(params: RenderParams, programInfo: ProgramInfo): void {
@@ -144,14 +163,16 @@ export class DonutProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
             u_correctionRatio,
             u_matrix,
             u_gap,
-            u_stroke,
             u_hatchingWidth,
         } = uniformLocations;
         gl.uniform1f(u_sizeRatio, params.sizeRatio);
         gl.uniform1f(u_pixelRatio, params.pixelRatio);
         gl.uniform1f(u_correctionRatio, params.correctionRatio);
-        gl.uniform1f(u_stroke, this.options.stroke);
-        gl.uniform1f(u_hatchingWidth, this.options.hatchingWidth);
+        gl.uniform1f(
+            u_hatchingWidth,
+            this.options.hatchingWidth * params.correctionRatio /
+                params.sizeRatio,
+        );
         gl.uniformMatrix3fv(u_matrix, false, params.matrix);
         gl.uniform1f(u_gap, 1);
     }

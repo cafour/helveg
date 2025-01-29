@@ -301,6 +301,7 @@ export function toHelvegNodeAttributes(
     attributes.outlines = outlines;
     attributes.slices = nodeStyle.slices;
     attributes.fire = nodeStyle.fire;
+    attributes.contour = nodeStyle.contour;
 
     return attributes;
 }

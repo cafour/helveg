@@ -1,34 +1,51 @@
-import { readable, writable, type Readable, type Writable } from "svelte/store";
-import type { DataModel, Diagram, DiagramStats, DiagramStatus, HelvegGraph, ILogger } from "./deps/helveg-diagram";
-import { createCsharpNodeStylist, createCsharpRelationStylist, sublogger, type HelvegEvent } from "./deps/helveg-diagram";
+import { type Readable, readable, type Writable, writable } from "svelte/store";
+import type {
+    DataModel,
+    Diagram,
+    DiagramStats,
+    DiagramStatus,
+    HelvegGraph,
+    ILogger,
+} from "./deps/helveg-diagram";
+import {
+    createCsharpNodeStylist,
+    createCsharpRelationStylist,
+    DEFAULT_DONUT_PROGRAM_OPTIONS,
+    type HelvegEvent,
+    sublogger,
+} from "./deps/helveg-diagram";
 import * as Options from "./options.ts";
 import { OperationExecutor } from "./operation-executor.ts";
 import { AppTools } from "./const.ts";
 
 export interface IExplorerState {
-    rootElement: HTMLElement,
-    diagram: Diagram,
-    model: Readable<DataModel>,
-    graph: Readable<HelvegGraph | undefined>,
-    status: Readable<DiagramStatus>,
-    stats: Readable<DiagramStats>,
-    logger: ILogger,
-    operationExecutor: OperationExecutor,
-    selectedTool: Writable<string>,
-    selectedNode: Writable<string | null>,
+    rootElement: HTMLElement;
+    diagram: Diagram;
+    model: Readable<DataModel>;
+    graph: Readable<HelvegGraph | undefined>;
+    status: Readable<DiagramStatus>;
+    stats: Readable<DiagramStats>;
+    logger: ILogger;
+    operationExecutor: OperationExecutor;
+    selectedTool: Writable<string>;
+    selectedNode: Writable<string | null>;
 
-    dataOptions: Writable<Options.DataOptions>,
-    layoutOptions: Writable<Options.LayoutOptions>,
-    appearanceOptions: Writable<Options.AppearanceOptions>,
-    exportOptions: Writable<Options.ExportOptions>,
-    toolOptions: Writable<Options.ToolOptions>,
+    dataOptions: Writable<Options.DataOptions>;
+    layoutOptions: Writable<Options.LayoutOptions>;
+    appearanceOptions: Writable<Options.AppearanceOptions>;
+    exportOptions: Writable<Options.ExportOptions>;
+    toolOptions: Writable<Options.ToolOptions>;
 }
 
-function wrapVariable<T>(get: () => T, set: (value: T) => void, event: HelvegEvent<T>): Writable<T> {
+function wrapVariable<T>(
+    get: () => T,
+    set: (value: T) => void,
+    event: HelvegEvent<T>,
+): Writable<T> {
     const store: Writable<T> = {
         set,
         update(updater) {
-            set(updater(get()))
+            set(updater(get()));
         },
         subscribe(run) {
             event.subscribe(run);
@@ -39,8 +56,10 @@ function wrapVariable<T>(get: () => T, set: (value: T) => void, event: HelvegEve
     return store;
 }
 
-
-export function createExplorerState(rootElement: HTMLElement, diagram: Diagram): IExplorerState {
+export function createExplorerState(
+    rootElement: HTMLElement,
+    diagram: Diagram,
+): IExplorerState {
     const model = readable(diagram.model, (set) => {
         diagram.events.modelChanged.subscribe(set);
         return () => diagram.events.modelChanged.unsubscribe(set);
@@ -68,21 +87,22 @@ export function createExplorerState(rootElement: HTMLElement, diagram: Diagram):
     const selectedNode = wrapVariable(
         () => diagram.selectedNode,
         (value) => diagram.selectedNode = value,
-        diagram.events.nodeSelected);
+        diagram.events.nodeSelected,
+    );
 
     const dataOptions = createOptions<Options.DataOptions>(
         "data",
         {
             ...structuredClone(Options.DEFAULT_DATA_OPTIONS),
             ...diagram.options.refresh,
-        }
+        },
     );
 
     const layoutOptions = createOptions<Options.LayoutOptions>(
         "layout",
-        structuredClone(Options.DEFAULT_LAYOUT_OPTIONS)
+        structuredClone(Options.DEFAULT_LAYOUT_OPTIONS),
     );
-    layoutOptions.update(o => {
+    layoutOptions.update((o) => {
         o.tidyTree.relation = diagram.mainRelation;
         return o;
     });
@@ -96,14 +116,14 @@ export function createExplorerState(rootElement: HTMLElement, diagram: Diagram):
         {
             relationColors: {},
             ...structuredClone(Options.DEFAULT_APPEARANCE_OPTIONS),
-        }
+        },
     );
-    appearanceOptions.subscribe(o => {
+    appearanceOptions.subscribe((o) => {
         diagram.relationStylist = createCsharpRelationStylist(
-            o.relationColors!
+            o.relationColors!,
         );
         diagram.nodeStylist = createCsharpNodeStylist(
-            o.nodeColorSchema
+            o.nodeColorSchema,
         );
 
         const glyphOptions = { ...diagram.glyphProgramOptions };
@@ -113,24 +133,29 @@ export function createExplorerState(rootElement: HTMLElement, diagram: Diagram):
         glyphOptions.showLabels = o.glyph.showLabels;
         glyphOptions.showOutlines = o.glyph.showOutlines;
         glyphOptions.showDiffs = o.glyph.showDiffs;
-        glyphOptions.dimCollapsedNodes = o.glyph.dimCollapsedNodes;
+        glyphOptions.showCollapsedNodeIndicators =
+            o.glyph.showCollapsedNodeIndicators;
         glyphOptions.sizingMode = o.glyph.sizingMode;
+        glyphOptions.hatchingWidth = o.glyph.showHatching
+            ? DEFAULT_DONUT_PROGRAM_OPTIONS.hatchingWidth
+            : 0;
+        glyphOptions.showContours = o.glyph.showContours;
 
         glyphOptions.crustWidth = o.codePizza.crustWidth;
         glyphOptions.sauceWidth = o.codePizza.sauceWidth;
         glyphOptions.isPizzaEnabled = o.codePizza.isEnabled;
-        glyphOptions.pizzaToppings =
-            o.codePizza.pizzaToppings ?? glyphOptions.pizzaToppings;
+        glyphOptions.pizzaToppings = o.codePizza.pizzaToppings ??
+            glyphOptions.pizzaToppings;
         diagram.glyphProgramOptions = glyphOptions;
     });
 
     const exportOptions = createOptions<Options.ExportOptions>(
         "export",
-        structuredClone(Options.DEFAULT_EXPORT_OPTIONS)
+        structuredClone(Options.DEFAULT_EXPORT_OPTIONS),
     );
     const toolOptions = createOptions<Options.ToolOptions>(
         "tool",
-        structuredClone(Options.DEFAULT_TOOL_OPTIONS)
+        structuredClone(Options.DEFAULT_TOOL_OPTIONS),
     );
 
     const state: IExplorerState = {
@@ -149,7 +174,7 @@ export function createExplorerState(rootElement: HTMLElement, diagram: Diagram):
         layoutOptions,
         appearanceOptions,
         exportOptions,
-        toolOptions
+        toolOptions,
     };
 
     state.operationExecutor = new OperationExecutor(state);
@@ -159,7 +184,7 @@ export function createExplorerState(rootElement: HTMLElement, diagram: Diagram):
 
 function createOptions<T>(
     storageName: string,
-    defaults: T
+    defaults: T,
 ): Writable<T> {
     const options = writable({
         ...defaults,

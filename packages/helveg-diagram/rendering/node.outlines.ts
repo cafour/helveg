@@ -4,6 +4,7 @@ import { FALLBACK_NODE_STYLE, floatOutlineWidths, floatOutlineStyles } from "../
 import vertSrc from "./shaders/node.outlines.vert";
 import fragSrc from "./shaders/node.outlines.frag";
 import { HelvegNodeProgram, HelvegNodeProgramType } from "../diagram/initializers.ts";
+import { provideDefaults } from "../common/object.ts";
 
 const { UNSIGNED_BYTE, FLOAT } = WebGLRenderingContext;
 
@@ -12,20 +13,20 @@ const UNIFORMS = ["u_sizeRatio", "u_pixelRatio", "u_matrix", "u_gap"];
 export interface OutlinesProgramOptions {
     gap: number;
     showOnlyHighlighted: boolean;
-    dimCollapsedNodes: boolean;
+    showCollapsedNodeIndicators: boolean;
 }
 
 export const DEFAULT_OUTLINES_PROGRAM_OPTIONS: OutlinesProgramOptions = {
     gap: 0,
     showOnlyHighlighted: false,
-    dimCollapsedNodes: true
+    showCollapsedNodeIndicators: true
 };
 
 export default function createOutlinesProgram(options?: Partial<OutlinesProgramOptions>): HelvegNodeProgramType {
     if (options === undefined) {
-        options = DEFAULT_OUTLINES_PROGRAM_OPTIONS;
+        options = {...DEFAULT_OUTLINES_PROGRAM_OPTIONS};
     } else {
-        Object.assign(options, DEFAULT_OUTLINES_PROGRAM_OPTIONS);
+        provideDefaults(options, DEFAULT_OUTLINES_PROGRAM_OPTIONS);
     }
 
     return class extends OutlinesProgram {
@@ -75,7 +76,7 @@ export class OutlinesProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> 
         array[offset++] = floatColor(useColor ? data.color ?? FALLBACK_NODE_STYLE.color : "#aaaaaa");
         array[offset++] = floatOutlineWidths(data.outlines ?? FALLBACK_NODE_STYLE.outlines);
         array[offset++] = floatOutlineStyles(data.outlines ?? FALLBACK_NODE_STYLE.outlines);
-        array[offset++] = +!!(useColor && this.options.dimCollapsedNodes && data.collapsed);
+        array[offset++] = +!!(useColor && this.options.showCollapsedNodeIndicators && data.collapsed);
         array[offset++] = nodeIndex;
     }
 

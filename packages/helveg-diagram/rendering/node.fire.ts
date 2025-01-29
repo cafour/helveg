@@ -4,6 +4,7 @@ import { FireStatus } from "../model/style.ts";
 import vertSrc from "./shaders/node.fire.vert";
 import fragSrc from "./shaders/node.fire.frag";
 import { HelvegNodeProgramType, HelvegNodeProgram } from "../diagram/initializers.ts";
+import { provideDefaults } from "../common/object.ts";
 
 export interface FireProgramOptions {
     showOnlyHighlighted: boolean;
@@ -19,9 +20,9 @@ export const DEFAULT_FIRE_PROGRAM_OPTIONS: FireProgramOptions = {
 
 export default function createFireProgram(options?: Partial<FireProgramOptions>): HelvegNodeProgramType {
     if (options === undefined) {
-        options = DEFAULT_FIRE_PROGRAM_OPTIONS;
+        options = {...DEFAULT_FIRE_PROGRAM_OPTIONS};
     } else {
-        Object.assign(options, DEFAULT_FIRE_PROGRAM_OPTIONS);
+        provideDefaults(options, DEFAULT_FIRE_PROGRAM_OPTIONS);
     }
 
     return class extends FireProgram {

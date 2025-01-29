@@ -3,7 +3,7 @@ import { Attributes, EdgeEntry, GraphEvents } from "../deps/graphology.ts";
 import Graph from "../deps/graphology.ts";
 import { NodeDisplayData, EdgeDisplayData } from "../deps/sigma.ts";
 import { Multigraph, MultigraphNodeDiffStatus } from "./data-model.ts";
-import { Outlines, FireStatus, Slices } from "./style.ts";
+import { Outlines, FireStatus, Slices, Contour } from "./style.ts";
 
 export interface HelvegNodeAttributes extends Partial<NodeDisplayData>, Attributes {
     style?: string;
@@ -19,6 +19,8 @@ export interface HelvegNodeAttributes extends Partial<NodeDisplayData>, Attribut
     diff?: MultigraphNodeDiffStatus;
     inInitialPosition?: boolean;
     backgroundColor?: string;
+    childCount?: number;
+    contour?: Contour;
 }
 
 export interface HelvegEdgeAttributes extends Partial<EdgeDisplayData>, Attributes {
