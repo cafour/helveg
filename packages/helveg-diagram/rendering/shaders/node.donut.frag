@@ -7,8 +7,7 @@ in vec4 v_backgroundColor;
 in vec2 v_diffVector;
 in vec2 v_radii;
 in float v_gap;
-in float v_strokedSlice;
-in float v_stroke;
+in float v_bottomSlice;
 in float v_hatchingWidth;
 flat in float v_childrenIndicator;
 
@@ -19,8 +18,6 @@ uniform float u_pixelRatio;
 const vec4 transparent = vec4(0.0f, 0.0f, 0.0f, 0.0f);
 const float pi = 3.14159f;
 const float eps = 0.00001f;
-const float strokedLightness = 1.3f;
-const float solidLightness = 1.1f;
 
 float circle(float radius, float dist) {
     return clamp(sign(radius - dist), 0.0f, 1.0f);
@@ -97,29 +94,28 @@ void main(void) {
 
             // NB: x and y are switched on purpose (and y flipped as well) to emulate a rotation by 90 deg clockwise
             float halfAngle = abs(atan(v_diffVector.x, -v_diffVector.y));
-            // float margin = v_stroke;
-            if (v_strokedSlice < eps) {
-                // full solid
+            if (v_bottomSlice < eps) {
+                // only the "top" slice
                 f_color = v_color;
-            } else if (pi - v_strokedSlice < eps) {
-                // full stroked
+            } else if (pi - v_bottomSlice < eps) {
+                // only the "bottom slice
                 f_color = v_backgroundColor;
-                // sectorFactor = max(sectorFactor, mix(0.0f, solidFactor, circle(v_radii.x + v_gap + margin, dist) + 1.0f - circle(v_radii.y - margin, dist)));
-                // sectorFactor = max(sectorFactor, mix(0.0f, solidFactor, hatch()));
+                if (v_hatchingWidth > 0.0f) {
+                    f_color = mix(v_backgroundColor, v_color, hatch());
+                }
             } else {
-                // margin = is the line lining the stroked sector, it should be always at least two "pixels" wide
-                float strokedSector = sector(v_strokedSlice, halfAngle, dist, v_gap);
+                float bottomSector = sector(v_bottomSlice, halfAngle, dist, v_gap);
                 // by inverting the angle, we switch to the complementary angle but still correctly compute the gap
-                float solidSector = sector(pi - v_strokedSlice, pi - halfAngle, dist, v_gap);
+                float topSector = sector(pi - v_bottomSlice, pi - halfAngle, dist, v_gap);
 
-                opacity *= max(strokedSector, solidSector);
-                f_color = mix(transparent, v_color, solidSector) + mix(transparent, v_backgroundColor, strokedSector);
-                // top and bottom line of the stroked sector
-                // sectorFactor = max(sectorFactor, mix(0.0f, solidFactor, strokedSector * (circle(v_radii.x + v_gap + margin, dist) + 1.0f - circle(v_radii.y - margin, dist))));
-                // left and right line of the stroked sector
-                // sectorFactor = max(sectorFactor, mix(0.0f, solidFactor, strokedSector * (1.0f - sector(v_strokedSlice, halfAngle, dist, v_gap + 2.0f * margin))));
-                // hatching
-                // sectorFactor = max(sectorFactor, mix(0.0f, solidFactor, strokedSector * hatch()));
+                opacity *= max(bottomSector, topSector);
+
+                vec4 bottomSectorColor = v_backgroundColor;
+                if (v_hatchingWidth > 0.0f) {
+                    bottomSectorColor = mix(v_backgroundColor, v_color, hatch());
+                }
+
+                f_color = mix(transparent, v_color, topSector) + mix(transparent, bottomSectorColor, bottomSector);
             }
         }
     }
