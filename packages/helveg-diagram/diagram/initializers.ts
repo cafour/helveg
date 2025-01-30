@@ -41,12 +41,6 @@ export function initializeSigma(
     element: HTMLElement,
     graph: HelvegGraph,
     glyphProgram: HelvegNodeProgramType,
-    onClick?: (payload: SigmaNodeEventPayload) => void,
-    onNodeDown?: (payload: SigmaNodeEventPayload) => void,
-    onStageDown?: (payload: SigmaStageEventPayload) => void,
-    onDown?: (coords: Coordinates) => void,
-    onUp?: (coords: Coordinates) => void,
-    onMove?: (coords: Coordinates) => boolean | void
 ): HelvegSigma {
 
     const sigma = new Sigma(graph, element, {
@@ -60,46 +54,6 @@ export function initializeSigma(
     }) as HelvegSigma;
     sigma[isHoverEnabledSymbol] = false;
     sigma[hoveredNodeSymbol] = null;
-
-    if (onClick) {
-        sigma.on("clickNode", onClick);
-    }
-
-    if (onNodeDown) {
-        sigma.on("downNode", onNodeDown);
-    }
-
-    if (onStageDown) {
-        sigma.on("downStage", onStageDown);
-    }
-
-    if (onDown) {
-        sigma.getMouseCaptor().on("mousedown", e => onDown(e));
-        sigma.getTouchCaptor().on("touchdown", e => onDown(e.touches[0]));
-    }
-
-    if (onUp) {
-        sigma.getMouseCaptor().on("mouseup", onUp);
-        sigma.getTouchCaptor().on("touchup", e => onUp(e.touches[0]));
-    }
-
-    if (onMove) {
-        sigma.getMouseCaptor().on("mousemovebody", e => {
-            if (onMove(e) === false) {
-                // prevent Sigma from moving the camera
-                e.preventSigmaDefault();
-                e.original.preventDefault();
-                e.original.stopPropagation();
-            }
-
-        });
-        sigma.getTouchCaptor().on("touchmove", e => {
-            if (e.touches.length == 1) {
-                onMove(e.touches[0]);
-                e.original.preventDefault();
-            }
-        });
-    }
 
     sigma.on("enterNode", e => {
         if (sigma[isHoverEnabledSymbol]) {

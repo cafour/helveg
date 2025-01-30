@@ -15,8 +15,9 @@ import {
     sublogger,
 } from "./deps/helveg-diagram";
 import * as Options from "./options.ts";
-import { OperationExecutor } from "./operation-executor.ts";
+import { OperationExecutor } from "./operations/executor.ts";
 import { AppTools } from "./const.ts";
+import { createDefaultExecutor } from "./operations/index.ts";
 
 export interface IExplorerState {
     rootElement: HTMLElement;
@@ -177,8 +178,7 @@ export function createExplorerState(
         toolOptions,
     };
 
-    state.operationExecutor = new OperationExecutor(state);
-    state.operationExecutor.attach(diagram);
+    state.operationExecutor = createDefaultExecutor(state);
     return state;
 }
 

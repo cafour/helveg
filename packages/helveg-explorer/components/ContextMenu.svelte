@@ -1,13 +1,13 @@
 <script lang="ts">
     import { getContext } from "svelte";
     import type { IExplorerState } from "../explorer-state";
-    import { OperationScope, type NodeOperation } from "../operation";
+    import { OperationScope, type NodeOperation } from "../operations/index.ts";
     import Icon from "./Icon.svelte";
 
     const state = getContext<IExplorerState>("state");
-    const nodeOperations = [
-        ...state.operationExecutor.getOperations(OperationScope.NODE).values(),
-    ].sort((a, b) => a.name.localeCompare(b.name));
+    const nodeOperations = [...state.operationExecutor.getOperations(OperationScope.NODE).values()].sort((a, b) =>
+        a.name.localeCompare(b.name),
+    );
 
     let isVisible = false;
     let posX = -1;
@@ -44,19 +44,18 @@
         sizeY = element.offsetHeight;
     }
 
-    function onClicked(op: NodeOperation, e: MouseEvent) {
-        if (contextNode) {
-            state.operationExecutor.executeNodeMouseDown(contextNode, e);
+    async function onClicked(op: NodeOperation, e: MouseEvent) {
+        if (contextNode && op.beginExecute) {
+            await op.beginExecute(state, contextNode, {
+                modifiers: state.operationExecutor.pressedModifiers,
+                type: "mouseDown",
+            });
         }
     }
 </script>
 
 {#if isVisible}
-    <div
-        use:onCreated
-        class="context-menu"
-        style="position: absolute; top: {posY}px; left: {posX}px;"
-    >
+    <div use:onCreated class="context-menu" style="position: absolute; top: {posY}px; left: {posX}px;">
         <ul>
             {#each nodeOperations as operation}
                 <li>

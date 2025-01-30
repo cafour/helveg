@@ -76,32 +76,6 @@
         }
     });
 
-    function onDiagramNodeClicked(nodeId: string) {
-        if (diagram.modifierKeyState.alt && !diagram.modifierKeyState.control && !diagram.modifierKeyState.shift) {{
-            diagram.remove(nodeId, get(state.toolOptions).remove);
-        }}
-        
-        if (!diagram.modifierKeyState.alt && !diagram.modifierKeyState.control && !diagram.modifierKeyState.shift) {
-            diagram.selectedNode = nodeId;
-        }
-    }
-    diagram.events.nodeClicked.subscribe(onDiagramNodeClicked);
-    
-    function onModifierKeysChanged(change: ModifierKeyStateChange) {
-        diagram.canDragNodes = change.new.shift;
-    }
-    diagram.events.modifierKeysChanged.subscribe(onModifierKeysChanged);
-
-    function onDiagramNodeDoubleClicked(nodeId: string) {
-        if (!diagram.modifierKeyState.alt && !diagram.modifierKeyState.control && !diagram.modifierKeyState.shift) {
-            diagram.toggleNode(nodeId);
-        }
-    }
-    diagram.events.nodeDoubleClicked.subscribe(onDiagramNodeDoubleClicked);
-
-    selectedTool.subscribe((tool) => {
-        diagram.canDragNodes = tool == AppTools.Move;
-    });
 </script>
 
 <div
