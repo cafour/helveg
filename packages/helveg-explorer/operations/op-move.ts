@@ -4,9 +4,9 @@ import { ModifierFlags, MouseButton, OperationScope, type NodeOperation, type Op
 export const OP_MOVE: NodeOperation = {
     id: "move",
     name: "Move",
-    hint: "Manually move a node by draggin and dropping.",
+    hint: "Manually move a node by dragging and dropping.",
     icon: AppIcons.MoveTool,
-    scope: OperationScope.NODE,
+    scopes: OperationScope.NODE,
     shortcut: {
         key: "m"
     },

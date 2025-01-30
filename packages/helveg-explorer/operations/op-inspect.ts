@@ -1,11 +1,18 @@
 import { AppIcons } from "../const";
-import { MouseButton, OperationScope, type GlobalOperation, type NodeOperation } from "./executor";
+import {
+    MouseButton,
+    OperationScope,
+    type GlobalOperation,
+    type NodeOperation,
+    type Operation,
+    type StageOperation,
+} from "./executor";
 
 export const OP_INSPECT: NodeOperation = {
     id: "inspect",
     name: "Inspect",
     hint: "Show the properties of a node.",
-    scope: OperationScope.NODE,
+    scopes: OperationScope.NODE,
     icon: AppIcons.ShowPropertiesTool,
     shortcut: {
         key: "i",
@@ -19,22 +26,30 @@ export const OP_INSPECT: NodeOperation = {
     },
 };
 
-export const OP_DESELECT: GlobalOperation = {
-    id: "deselect",
+export const OP_GLOBAL_DESELECT: GlobalOperation = {
+    id: "global-deselect",
     name: "Deselect",
-    scope: OperationScope.GLOBAL,
+    hidden: true,
+    scopes: OperationScope.GLOBAL,
     shortcut: {
         key: "Escape",
-    },
-    gesture: {
-        button: MouseButton.MAIN,
     },
 
     keyDown(state) {
         state.diagram.selectedNode = null;
     },
+};
 
-    mouseDown(state, _contex, event) {
+export const OP_STAGE_DESELECT: StageOperation = {
+    id: "stage-deselect",
+    name: "Deselect",
+    hidden: true,
+    scopes: OperationScope.STAGE,
+    gesture: {
+        button: MouseButton.MAIN,
+    },
+
+    mouseUp(state, _context, event) {
         if (!event.hasMoved) {
             state.diagram.selectedNode = null;
         }

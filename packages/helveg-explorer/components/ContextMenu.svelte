@@ -5,9 +5,9 @@
     import Icon from "./Icon.svelte";
 
     const state = getContext<IExplorerState>("state");
-    const nodeOperations = [...state.operationExecutor.getOperations(OperationScope.NODE).values()].sort((a, b) =>
-        a.name.localeCompare(b.name),
-    );
+    const nodeOperations = state.operationExecutor.getOperations(OperationScope.NODE)
+        .filter((op) => !op.hidden)
+        .sort((a, b) => a.name.localeCompare(b.name));
 
     let isVisible = false;
     let posX = -1;

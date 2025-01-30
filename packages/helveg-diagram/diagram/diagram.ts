@@ -420,7 +420,7 @@ export class Diagram {
           }
         | undefined;
 
-    async resetLayout(): Promise<void> {
+    public async resetLayout(): Promise<void> {
         if (!this._graph) {
             this._logger.debug("Cannot reset layout since the graph is not initialized.");
             return;
@@ -466,7 +466,11 @@ export class Diagram {
         }
     }
 
-    async runLayout(inBackground: boolean, iterationCount?: number, options?: ForceAtlas2Options): Promise<void> {
+    public async runLayout(
+        inBackground: boolean,
+        iterationCount?: number,
+        options?: ForceAtlas2Options
+    ): Promise<void> {
         if (!this._graph) {
             this._logger.debug("Cannot run since the graph is not initialized.");
             return;
@@ -502,7 +506,7 @@ export class Diagram {
         }
     }
 
-    async stopLayout(): Promise<void> {
+    public async stopLayout(): Promise<void> {
         if (!this._graph) {
             this._logger.debug("Cannot stop since the graph is not initialized.");
             return;
@@ -511,7 +515,7 @@ export class Diagram {
         this._logger.debug("Stopping the layout.");
 
         if (this._supervisor?.isRunning) {
-            await this._supervisor.stop();
+            this._supervisor.stop();
             this.refreshStatus();
 
             if (!this._sigma) {
@@ -524,7 +528,7 @@ export class Diagram {
         }
     }
 
-    async autoLayout(options?: AutoLayoutOptions): Promise<void> {
+    public async autoLayout(options?: AutoLayoutOptions): Promise<void> {
         options = { ...DEFAULT_AUTO_LAYOUT_OPTIONS, ...options };
 
         if (!this._graph) {
@@ -562,7 +566,7 @@ export class Diagram {
         });
     }
 
-    save(options?: ExportOptions): void {
+    public save(options?: ExportOptions): void {
         if (!this._graph) {
             this._logger.debug("Cannot save since the graph is not initialized.");
             return;
@@ -582,7 +586,7 @@ export class Diagram {
         }
     }
 
-    exportPositions(): Record<string, Coordinates> {
+    public exportPositions(): Record<string, Coordinates> {
         const result: Record<string, Coordinates> = {};
         if (this._graph) {
             this._graph.forEachNode((node, attributes) => {
@@ -595,7 +599,7 @@ export class Diagram {
         return result;
     }
 
-    importPositions(value: Record<string, Coordinates>) {
+    public importPositions(value: Record<string, Coordinates>) {
         this._graph?.forEachNode((node, attributes) => {
             if (value[node]) {
                 attributes.x = value[node].x;
@@ -604,7 +608,7 @@ export class Diagram {
         });
     }
 
-    highlight(
+    public highlight(
         searchText: string | null,
         searchMode: SearchMode,
         expandedOnly: boolean = false,
@@ -652,7 +656,11 @@ export class Diagram {
         return results;
     }
 
-    async highlightNode(nodeId: string | null, includeSubtree: boolean, includeNeighbors: boolean): Promise<void> {
+    public async highlightNode(
+        nodeId: string | null,
+        includeSubtree: boolean,
+        includeNeighbors: boolean
+    ): Promise<void> {
         if (nodeId === null) {
             this._logger.debug("Clearing node highlights.");
             this._graph?.forEachNode((_, a) => (a.highlighted = undefined));
@@ -694,7 +702,7 @@ export class Diagram {
         this._sigma?.refresh();
     }
 
-    async isolate(
+    public async isolate(
         searchText: string | null,
         searchMode: SearchMode,
         filterBuilder?: IFilterBuilderEntry[]
@@ -737,12 +745,12 @@ export class Diagram {
         this.events.graphChanged.trigger(this._graph);
     }
 
-    async refresh(options?: DiagramRefreshOptions): Promise<void> {
+    public async refresh(options?: DiagramRefreshOptions): Promise<void> {
         await this.refreshGraph(options ?? this._lastRefreshOptions);
         await this.autoLayout();
     }
 
-    reset(): Promise<void> {
+    public reset(): Promise<void> {
         this.mainRelation = this.options.mainRelation;
         return this.refresh(this.options.refresh);
     }

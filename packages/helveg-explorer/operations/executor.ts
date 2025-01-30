@@ -51,14 +51,14 @@ export interface MouseGesture {
 }
 
 export enum OperationScope {
-    GLOBAL = "global",
-    TOOLBOX = "toolbox",
-    NODE = "node",
+    GLOBAL = 1 << 0,
+    NODE = 1 << 1,
+    STAGE = 1 << 2,
 }
 
 export type OperationEventType = keyof Omit<
     Operation<never>,
-    "id" | "name" | "scope" | "hint" | "icon" | "shortcut" | "gesture" | "beginExecute" | "endExecute"
+    "id" | "name" | "scopes" | "hint" | "icon" | "shortcut" | "gesture" | "beginExecute" | "endExecute" | "hidden"
 >;
 
 export interface OperationEvent {
@@ -80,12 +80,13 @@ export interface KeyOperationEvent extends OperationEvent {
 export interface Operation<TContext> {
     readonly id: string;
     readonly name: string;
-    readonly scope: OperationScope;
+    readonly scopes: OperationScope;
 
     readonly hint?: string;
     readonly icon?: string;
     readonly shortcut?: KeyboardShortcut;
     readonly gesture?: MouseGesture;
+    readonly hidden?: boolean;
 
     keyDown?: (state: IExplorerState, context: TContext, event: KeyOperationEvent) => void | Promise<void>;
     keyUp?: (state: IExplorerState, context: TContext, event: KeyOperationEvent) => void | Promise<void>;
@@ -100,8 +101,9 @@ export interface Operation<TContext> {
     endExecute?: (state: IExplorerState, context: TContext, event: OperationEvent) => void | Promise<void>;
 }
 
-export type GlobalOperation = Operation<never>;
+export type GlobalOperation = Operation<undefined>;
 export type NodeOperation = Operation<string>;
+export type StageOperation = Operation<undefined>;
 
 function toModifiers(event: MouseEvent | KeyboardEvent): ModifierFlags {
     return (
@@ -198,7 +200,9 @@ export class OperationExecutor {
                 isDouble: false,
                 type: "mouseDown",
             };
-            await this.trigger(OperationScope.NODE, e.nodeId, operationEvent, { shouldBeginExecute: true });
+            await this.trigger(OperationScope.GLOBAL | OperationScope.NODE, e.nodeId, operationEvent, {
+                shouldBeginExecute: true,
+            });
         });
         state.diagram.events.nodeUp.subscribe(async (e) => {
             this.mousePressed.delete(MouseButton.MAIN);
@@ -210,7 +214,9 @@ export class OperationExecutor {
                 isDouble: false,
                 type: "mouseUp",
             };
-            await this.trigger(OperationScope.NODE, e.nodeId, operationEvent, { shouldEndExecute: true });
+            await this.trigger(OperationScope.GLOBAL | OperationScope.NODE, e.nodeId, operationEvent, {
+                shouldEndExecute: true,
+            });
         });
         state.diagram.events.nodeDoubleClicked.subscribe(async (e) => {
             const operationEvent: MouseOperationEvent = {
@@ -221,7 +227,9 @@ export class OperationExecutor {
                 isDouble: true,
                 type: "mouseDown",
             };
-            await this.trigger(OperationScope.NODE, e.nodeId, operationEvent, { shouldBeginExecute: true });
+            await this.trigger(OperationScope.GLOBAL | OperationScope.NODE, e.nodeId, operationEvent, {
+                shouldBeginExecute: true,
+            });
         });
         state.diagram.events.nodeMove.subscribe(async (e) => {
             this._hasMoved = this._mousePressed.size > 0;
@@ -233,7 +241,7 @@ export class OperationExecutor {
                 isDouble: true,
                 type: "mouseMove",
             };
-            await this.trigger(OperationScope.NODE, e.nodeId, operationEvent, {});
+            await this.trigger(OperationScope.GLOBAL | OperationScope.NODE, e.nodeId, operationEvent, {});
         });
         state.diagram.events.stageDown.subscribe(async (e) => {
             this.mousePressed.add(MouseButton.MAIN);
@@ -245,7 +253,9 @@ export class OperationExecutor {
                 isDouble: false,
                 type: "mouseDown",
             };
-            await this.trigger(OperationScope.GLOBAL, undefined, operationEvent, { shouldBeginExecute: true });
+            await this.trigger(OperationScope.GLOBAL | OperationScope.STAGE, undefined, operationEvent, {
+                shouldBeginExecute: true,
+            });
         });
         state.diagram.events.stageUp.subscribe(async (e) => {
             this.mousePressed.delete(MouseButton.MAIN);
@@ -257,7 +267,9 @@ export class OperationExecutor {
                 isDouble: false,
                 type: "mouseUp",
             };
-            await this.trigger(OperationScope.GLOBAL, undefined, operationEvent, { shouldEndExecute: true });
+            await this.trigger(OperationScope.GLOBAL | OperationScope.STAGE, undefined, operationEvent, {
+                shouldEndExecute: true,
+            });
         });
         state.diagram.events.stageDoubleClicked.subscribe(async (e) => {
             const operationEvent: MouseOperationEvent = {
@@ -268,7 +280,9 @@ export class OperationExecutor {
                 isDouble: true,
                 type: "mouseDown",
             };
-            await this.trigger(OperationScope.GLOBAL, undefined, operationEvent, { shouldBeginExecute: true });
+            await this.trigger(OperationScope.GLOBAL | OperationScope.STAGE, undefined, operationEvent, {
+                shouldBeginExecute: true,
+            });
         });
         state.diagram.events.stageMove.subscribe(async (e) => {
             this._hasMoved = this._mousePressed.size > 0;
@@ -280,33 +294,42 @@ export class OperationExecutor {
                 isDouble: true,
                 type: "mouseMove",
             };
-            await this.trigger(OperationScope.GLOBAL, undefined, operationEvent, {});
+            await this.trigger(OperationScope.GLOBAL | OperationScope.STAGE, undefined, operationEvent, {});
         });
     }
 
     public register<T>(operation: Operation<T>) {
-        if (!this._scopeMaps.has(operation.scope)) {
-            this._scopeMaps.set(operation.scope, new Map());
-        }
+        for (const scope of Object.values(OperationScope) as OperationScope[]) {
+            if ((operation.scopes & scope) !== scope) {
+                continue;
+            }
 
-        const scopeMap = this._scopeMaps.get(operation.scope)!;
-        if (scopeMap.has(operation.id)) {
-            throw new Error(`Operation '${operation.id}' is already present in the '${operation.scope}' scope.`);
+            if (!this._scopeMaps.has(scope)) {
+                this._scopeMaps.set(scope, new Map());
+            }
+
+            const scopeMap = this._scopeMaps.get(scope)!;
+            if (scopeMap.has(operation.id)) {
+                throw new Error(`Operation '${operation.id}' is already present in the '${scope}' scope.`);
+            }
+
+            scopeMap.set(operation.id, operation as Operation<unknown>);
         }
-        scopeMap.set(operation.id, operation as Operation<unknown>);
     }
 
-    public getOperations<Op extends Operation<unknown>>(scope: OperationScope): Readonly<Map<string, Op>> {
-        return <Map<string, Op>>this._scopeMaps.get(scope)!;
+    public getOperations<Op extends Operation<unknown>>(scopes: OperationScope): Op[] {
+        return [...this._scopeMaps.entries()]
+            .filter((s) => (s[0] & scopes) === s[0])
+            .flatMap((s) => [...s[1].values()]) as Op[];
     }
 
     public async trigger<TContext>(
-        scope: OperationScope,
+        scopes: OperationScope,
         context: TContext,
         event: OperationEvent,
         options: TriggerOptions
     ): Promise<void> {
-        const ops = [...this.getOperations(scope).values()].filter((op) => satisfiesEvent(op, event));
+        const ops = this.getOperations(scopes).filter((op) => satisfiesEvent(op, event));
         for (const op of ops) {
             if (op[event.type]) {
                 await op[event.type]!(this.state, context, event as KeyOperationEvent & MouseOperationEvent);
@@ -340,11 +363,11 @@ export class OperationExecutor {
             modifiers: toModifiers(event),
         };
         await this.trigger(
-            this.state.diagram.selectedNode ? OperationScope.NODE : OperationScope.GLOBAL,
+            this.state.diagram.selectedNode ? OperationScope.GLOBAL | OperationScope.NODE : OperationScope.GLOBAL,
             this.state.diagram.selectedNode,
             operationEvent,
             {
-                shouldEndExecute: true,
+                shouldBeginExecute: true,
             }
         );
     }
@@ -367,11 +390,11 @@ export class OperationExecutor {
             modifiers: toModifiers(event),
         };
         await this.trigger(
-            this.state.diagram.selectedNode ? OperationScope.NODE : OperationScope.GLOBAL,
+            this.state.diagram.selectedNode ? OperationScope.GLOBAL | OperationScope.NODE : OperationScope.GLOBAL,
             this.state.diagram.selectedNode,
             operationEvent,
             {
-                shouldBeginExecute: true,
+                shouldEndExecute: true,
             }
         );
     }

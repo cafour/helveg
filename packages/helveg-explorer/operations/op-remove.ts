@@ -13,7 +13,7 @@ export const OP_REMOVE: NodeOperation = {
         modifiers: ModifierFlags.ALT,
     },
     icon: AppIcons.RemoveTool,
-    scope: OperationScope.NODE,
+    scopes: OperationScope.NODE,
 
     async beginExecute(state, nodeId) {
         await state.diagram.remove(nodeId);

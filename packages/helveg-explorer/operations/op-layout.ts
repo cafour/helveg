@@ -4,11 +4,11 @@ import { OperationScope, type GlobalOperation } from "./executor";
 export const OP_LAYOUT: GlobalOperation = {
     id: "layout",
     name: "Layout",
-    scope: OperationScope.GLOBAL,
+    scopes: OperationScope.GLOBAL,
     hint: "Runs or stop a continuous layout algorithm.",
     icon: "vscode:play",
     shortcut: {
-        key: "Space"
+        key: " "
     },
     async beginExecute(state) {
         if (state.diagram.status === DiagramStatus.Stopped) {

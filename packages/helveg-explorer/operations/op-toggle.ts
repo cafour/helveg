@@ -5,7 +5,7 @@ export const OP_TOGGLE: NodeOperation = {
     id: "toggle",
     name: "Toggle",
     hint: "Collapses or expands the children of a node.",
-    scope: OperationScope.NODE,
+    scopes: OperationScope.NODE,
     shortcut: {
         key: "t"
     },

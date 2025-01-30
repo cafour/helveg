@@ -7,7 +7,7 @@ import { ILogger } from "../model/logger.ts";
 import { MessageKind, StartMessage, Message, UpdateMessage, ProgressMessage } from "./forceAtlas2Messages.ts";
 import forceAtlas2WorkerCode from "inline-bundle:./forceAtlas2Worker.ts";
 
-type GraphMatrices = { nodes: Float32Array, edges: Float32Array };
+type GraphMatrices = { nodes: Float32Array; edges: Float32Array };
 
 export interface ForceAtlas2Progress {
     iterationCount: number;
@@ -20,6 +20,7 @@ export interface ForceAtlas2Progress {
 
 export class ForceAtlas2Supervisor {
     public reportInterval: number = 100;
+    private _lastWorker: Worker | null = null;
     private _worker: Worker | null = null;
     private _running: boolean = false;
     private _inBackground: boolean = false;
@@ -33,42 +34,44 @@ export class ForceAtlas2Supervisor {
         this.graph.on("edgeDropped", this.handleGraphChange);
         this.handleGraphChange();
 
-        this.settings = helpers.assign({}, {
-            linLogMode: false,
-            outboundAttractionDistribution: false,
-            adjustSizes: false,
-            edgeWeightInfluence: 1,
-            scalingRatio: 1,
-            strongGravityMode: false,
-            gravity: 1,
-            slowDown: 1,
-            barnesHutOptimize: false,
-            barnesHutTheta: 0.5
-        }, this.settings);
+        this.settings = helpers.assign(
+            {},
+            {
+                linLogMode: false,
+                outboundAttractionDistribution: false,
+                adjustSizes: false,
+                edgeWeightInfluence: 1,
+                scalingRatio: 1,
+                strongGravityMode: false,
+                gravity: 1,
+                slowDown: 1,
+                barnesHutOptimize: false,
+                barnesHutTheta: 0.5,
+            },
+            this.settings
+        );
         let validationError = helpers.validateSettings(this.settings);
         if (validationError) {
             throw new Error(validationError);
         }
     }
 
-    progress: HelvegEvent<ForceAtlas2Progress>
-        = new HelvegEvent<ForceAtlas2Progress>("helveg.ForceAtlas2Supervisor.progress");
-    started: HelvegEvent<boolean>
-        = new HelvegEvent<boolean>("helveg.ForceAtlas2Supervisor.started");
-    stopped: HelvegEvent<void>
-        = new HelvegEvent<void>("helveg.ForceAtlas2Supervisor.stopped");
-    updated: HelvegEvent<void>
-        = new HelvegEvent<void>("helveg.ForceAtlas2Supervisor.updated");
+    progress: HelvegEvent<ForceAtlas2Progress> = new HelvegEvent<ForceAtlas2Progress>(
+        "helveg.ForceAtlas2Supervisor.progress"
+    );
+    started: HelvegEvent<boolean> = new HelvegEvent<boolean>("helveg.ForceAtlas2Supervisor.started");
+    stopped: HelvegEvent<void> = new HelvegEvent<void>("helveg.ForceAtlas2Supervisor.stopped");
+    updated: HelvegEvent<void> = new HelvegEvent<void>("helveg.ForceAtlas2Supervisor.updated");
 
-    get isRunning(): boolean {
+    public get isRunning(): boolean {
         return this._running;
     }
 
-    get isInBackground(): boolean {
+    public get isInBackground(): boolean {
         return this._inBackground;
     }
 
-    async start(inBackground: boolean, iterationCount?: number, settings?: ForceAtlas2Settings): Promise<void> {
+    public async start(inBackground: boolean, iterationCount?: number, settings?: ForceAtlas2Settings): Promise<void> {
         if (this._running && this._inBackground === inBackground) {
             return;
         }
@@ -77,7 +80,11 @@ export class ForceAtlas2Supervisor {
             throw new Error("The iterationCount parameter is currently supported only in background mode.");
         }
 
-        await this.stop();
+        this.stop();
+
+        // NB: last worker is only not null when the last stop operation is still in progress
+        this._lastWorker?.terminate();
+        this._lastWorker = null;
 
         this._inBackground = inBackground;
         this._running = true;
@@ -88,58 +95,73 @@ export class ForceAtlas2Supervisor {
             this._worker = this.spawnWorker();
         }
 
-        this._worker.postMessage({
-            kind: MessageKind.Start,
-            iterationCount: this.isInBackground ? iterationCount : 1,
-            settings: { ...this.settings, ...settings },
-            reportInterval: this.reportInterval,
-            nodes: this._matrices.nodes.buffer,
-        }, {
-            transfer: [this._matrices.nodes.buffer]
-        });
+        this._worker.postMessage(
+            {
+                kind: MessageKind.Start,
+                iterationCount: this.isInBackground ? iterationCount : 1,
+                settings: { ...this.settings, ...settings },
+                reportInterval: this.reportInterval,
+                nodes: this._matrices.nodes.buffer,
+            },
+            {
+                transfer: [this._matrices.nodes.buffer],
+            }
+        );
     }
 
-    stop(): Promise<void> {
+    public kill(): void {
+        this._lastWorker?.terminate();
+        this._lastWorker = null;
+        this._worker?.terminate();
+        this._worker = null;
+        this._running = false;
+        this.detach();
+    }
+
+    public stop(): void {
         if (!this._worker || !this._running) {
             this.logger?.debug("Worker is not running, nothing to stop.");
-            return Promise.resolve();
+            return;
         }
 
-        let promise = new Promise<void>((resolve, reject) => {
-            // NB: running = false needs to be set to prevent `update` from asking for more iterations.
-            this._running = false;
+        this._lastWorker = this._worker;
+
+        // NB: running = false needs to be set to prevent `update` from asking for more iterations.
+        this._running = false;
+        this._worker = null;
+
+        // when running in background, we fire-and-forget wait for the last update
+        if (this._inBackground) {
+            // NB: "pretends" to stop immediately to make the UI responsive while the worker stops or is terminated
             let killTimeout = setTimeout(() => {
-                this.kill();
-                this.logger?.warn("Timed out while waiting for the worker to stop.");
-                this.stopped.trigger();
-                resolve();
-            }, 1000);
+                if (this._lastWorker) {
+                    this._lastWorker.terminate();
+                    this._lastWorker = null;
+                    this.logger?.warn("Timed out while waiting for the worker to stop.");
+                }
+            }, 2_000);
             this.updated.subscribeOnce(() => {
                 clearTimeout(killTimeout);
-                this.kill();
-
-                this.stopped.trigger();
-
-                this.logger?.debug("Worker stopped.");
-                resolve();
+                if (this._lastWorker) {
+                    this._lastWorker.terminate();
+                    this._lastWorker = null;
+                    this.logger?.debug("Worker stopped.");
+                }
             });
-        });
-
-        this.logger?.debug("Stopping the worker.");
-        this._worker.postMessage({
-            kind: MessageKind.Stop
-        });
-
-        return promise;
+            this.logger?.debug("Stopping the background worker.");
+            this._lastWorker.postMessage({
+                kind: MessageKind.Stop,
+            });
+        } else {
+            this._lastWorker.terminate();
+            this._lastWorker = null;
+            this.logger?.debug("Worker stopped.");
+        }
+        this.detach();
+        this.stopped.trigger();
     }
 
-    kill(): void {
-        if (this._worker) {
-            this._worker.terminate();
-            this._worker = null;
-        }
-        this._running = false;
-
+    private detach(): void {
         this.graph.removeListener("nodeAdded", this.handleGraphChange);
         this.graph.removeListener("edgeAdded", this.handleGraphChange);
         this.graph.removeListener("nodeDropped", this.handleGraphChange);
@@ -152,20 +174,23 @@ export class ForceAtlas2Supervisor {
             return;
         }
 
-        this._worker.postMessage(<StartMessage>{
-            kind: MessageKind.Start,
-            iterationCount: 1,
-            settings: { ...this.settings, ...settings },
-            nodes: this._matrices.nodes.buffer,
-            reportInterval: this.reportInterval
-        }, {
-            transfer: [this._matrices.nodes.buffer]
-        });
+        this._worker.postMessage(
+            <StartMessage>{
+                kind: MessageKind.Start,
+                iterationCount: 1,
+                settings: { ...this.settings, ...settings },
+                nodes: this._matrices.nodes.buffer,
+                reportInterval: this.reportInterval,
+            },
+            {
+                transfer: [this._matrices.nodes.buffer],
+            }
+        );
     }
 
     private handleGraphChange() {
         if (this._worker) {
-            this.kill();
+            this.detach();
             this.spawnWorker();
             if (this._running) {
                 this.start(this._inBackground);
@@ -184,14 +209,14 @@ export class ForceAtlas2Supervisor {
                 let newTime = performance.now();
                 this.progress.trigger({
                     iterationCount: iterationCount,
-                    speed: this.reportInterval / ((newTime - this._lastPerformanceTime) / 1000.0)
+                    speed: this.reportInterval / ((newTime - this._lastPerformanceTime) / 1000.0),
                 });
                 this._lastPerformanceTime = newTime;
                 return;
             case MessageKind.Stop:
                 if (this.isInBackground) {
                     // the worker has finished the assigned background iterations
-                    this.kill();
+                    this.detach();
                     this.stopped.trigger();
                     this.logger?.debug("Worker stopped.");
                 } else if (this._running) {
@@ -217,12 +242,15 @@ export class ForceAtlas2Supervisor {
         worker.onmessage = this.handleMessage.bind(this);
 
         this._matrices = graphToByteArrays(this.graph, createEdgeWeightGetter("weight").fromEntry);
-        worker.postMessage({
-            kind: MessageKind.Init,
-            edges: this._matrices.edges.buffer
-        }, {
-            transfer: [this._matrices.edges.buffer]
-        })
+        worker.postMessage(
+            {
+                kind: MessageKind.Init,
+                edges: this._matrices.edges.buffer,
+            },
+            {
+                transfer: [this._matrices.edges.buffer],
+            }
+        );
 
         return worker;
     }
@@ -234,8 +262,8 @@ const FLOATS_PER_EDGE = 3;
 // Based on https://github.com/graphology/graphology/blob/master/src/layout-forceatlas2/helpers.js
 function graphToByteArrays(
     graph: HelvegGraph,
-    getEdgeWeight: EdgeMapper<number, Attributes, Attributes>): GraphMatrices {
-
+    getEdgeWeight: EdgeMapper<number, Attributes, Attributes>
+): GraphMatrices {
     let order = graph.filterNodes((n, a) => !a.hidden).length;
     let size = graph.filterEdges((e, a, s, t, sa, ta) => !sa.hidden && !ta.hidden).length;
     let index: Record<string, number> = {};
@@ -296,17 +324,17 @@ function graphToByteArrays(
 
     return {
         nodes: NodeMatrix,
-        edges: EdgeMatrix
+        edges: EdgeMatrix,
     };
-};
-
+}
 
 // Based on https://github.com/graphology/graphology/blob/master/src/layout-forceatlas2/helpers.js
 function assignLayoutChanges(
     graph: Graph,
     nodeMatrix: Float32Array,
     outputReducer: ((node: string, attr: Attributes) => Attributes) | null = null,
-    isFixedVolatile: boolean = false) {
+    isFixedVolatile: boolean = false
+) {
     var i = 0;
 
     graph.updateEachNodeAttributes((node, attr) => {
@@ -326,7 +354,7 @@ function assignLayoutChanges(
 
         return outputReducer ? outputReducer(node, attr) : attr;
     });
-};
+}
 
 // Based on https://github.com/graphology/graphology/blob/master/src/layout-forceatlas2/helpers.js
 function readGraphPositions(graph: Graph, nodeMatrix: Float32Array) {
@@ -338,4 +366,4 @@ function readGraphPositions(graph: Graph, nodeMatrix: Float32Array) {
 
         i += FLOATS_PER_NODE;
     });
-};
+}
