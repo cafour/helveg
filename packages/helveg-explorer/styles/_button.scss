@@ -1,5 +1,6 @@
-.button, .button-stretch {
-    display: block;
+.button,
+.button-stretch {
+    display: flex;
     text-align: center;
     line-height: 1.5;
     padding: 0.25rem 0.5rem;

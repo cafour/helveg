@@ -56,10 +56,12 @@ export enum OperationScope {
     STAGE = 1 << 2,
 }
 
-export type OperationEventType = keyof Omit<
-    Operation<never>,
-    "id" | "name" | "scopes" | "hint" | "icon" | "shortcut" | "gesture" | "beginExecute" | "endExecute" | "hidden"
->;
+export type OperationEventType =
+    | "manual"
+    | keyof Omit<
+          Operation<never>,
+          "id" | "name" | "scopes" | "hint" | "icon" | "shortcut" | "gesture" | "beginExecute" | "endExecute" | "hidden"
+      >;
 
 export interface OperationEvent {
     modifiers: ModifierFlags;
@@ -330,7 +332,11 @@ export class OperationExecutor {
         event: OperationEvent,
         options: TriggerOptions
     ): Promise<void> {
-        const ops = this.getOperations(scopes).filter((op) => satisfiesEvent(op, event));
+        if (event.type === "manual") {
+            return;
+        }
+
+        let ops = this.getOperations(scopes).filter((op) => satisfiesEvent(op, event));
         for (const op of ops) {
             if (op[event.type]) {
                 this.state.logger.debug(`Operation '${op.name}' triggered (${event.type}).`);
@@ -349,6 +355,21 @@ export class OperationExecutor {
                 options.event?.preventDefault();
                 await op.endExecute(this.state, context, event);
             }
+        }
+    }
+
+    public async triggerManually<TContext>(op: Operation<TContext>, context: TContext, options: TriggerOptions) {
+        const event: OperationEvent = {
+            type: "manual",
+            modifiers: ModifierFlags.NONE,
+        };
+
+        if (options.shouldBeginExecute && op.beginExecute) {
+            await op.beginExecute(this.state, context, event);
+        }
+
+        if (options.shouldEndExecute && op.endExecute) {
+            await op.endExecute(this.state, context, event);
         }
     }
 

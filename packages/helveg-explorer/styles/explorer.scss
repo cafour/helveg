@@ -1,3 +1,8 @@
+// NB: While it can be tempting to have Uniform override everything it also contains a CSS reset so it's up here.
+//     It can also be tempting to @use "uniform" twice with different configs once at the top and once at the bottom...
+//     ...that also doesn't work because SCSS just doesn't work that way. :(
+@use "./uniform.config.scss";
+
 @use "./variables.scss";
 @use "./colors.scss";
 @use "./base.scss";
@@ -9,6 +14,7 @@
 @use "./diagram.scss";
 @use "./toast.scss";
 @use "./toolbox.scss";
+@use "./toolbar.scss";
 @use "./diagnostic.scss";
 @use "./diagram-background.scss";
 @use "./search.scss";
@@ -18,5 +24,3 @@
 @use "./tree-view.scss";
 @use "./node-inspector.scss";
 
-// NB: Uniform should override the styles above so it's down here.
-@use "./uniform.config.scss";

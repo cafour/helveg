@@ -18,6 +18,7 @@
     import { createExplorerState } from "../explorer-state.ts";
     import ContextMenu from "./ContextMenu.svelte";
     import TreeView from "./TreeView.svelte";
+    import ToolBar from "./ToolBar.svelte";
 
     export let rootElement: HTMLElement;
     setContext("rootElement", rootElement);
@@ -92,7 +93,8 @@
         on:nodeClicked={() => ($selectedTool = AppTools.ShowProperties)}
     />
 
-    <ToolBox bind:selectedTool={$selectedTool} class="z-1" />
+    <!-- <ToolBox bind:selectedTool={$selectedTool} class="z-1" /> -->
+    <ToolBar class="z-1" />
 
     <!-- filler element -->
     <div class="filler flex-grow-1"></div>
