@@ -1,6 +1,10 @@
 .hint {
     display: inline;
 
+    &:hover {
+        cursor: help;
+    }
+
     .icon {
         width: 1em;
         height: 1em;

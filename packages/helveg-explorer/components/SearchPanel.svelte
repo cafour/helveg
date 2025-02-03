@@ -14,6 +14,7 @@
     import type { Readable } from "svelte/store";
     import FilterBuilder from "./FilterBuilder.svelte";
     import NodeIcon from "./NodeIcon.svelte";
+    import Hint from "./Hint.svelte";
 
     let dispatch = createEventDispatcher();
 
@@ -70,6 +71,7 @@
             <label>
                 <input type="checkbox" bind:checked={expandedOnly} />
                 <span>ExpandedOnly</span>
+                <Hint text="Search only among the currently visible nodes."/>
             </label>
         </Subpanel>
         <Subpanel
