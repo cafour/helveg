@@ -90,10 +90,12 @@ export const DEFAULT_FORCE_ATLAS2_OPTIONS: Readonly<ForceAtlas2Options> = {
     ...inferSettings(1024),
     adjustSizes: true,
     barnesHutOptimize: false,
+    strongGravityMode: false,
     barnesHutTheta: 0.5,
     edgeWeightInfluence: 1,
     linLogMode: false,
     outboundAttractionDistribution: false,
+    slowDown: 3,
 };
 
 export const DEFAULT_CURSOR_OPTIONS: Readonly<CursorOptions> = {
