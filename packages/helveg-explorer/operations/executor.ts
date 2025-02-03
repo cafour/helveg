@@ -1,4 +1,4 @@
-import type { Coordinates, Diagram, ModifierKeyState } from "../deps/helveg-diagram.ts";
+import type { Coordinates } from "../deps/helveg-diagram.ts";
 import type { IExplorerState } from "../explorer-state.ts";
 
 export interface KeyboardShortcut {
@@ -156,6 +156,7 @@ function satisfiesEvent(operation: Operation<any>, event: OperationEvent): boole
 }
 
 export interface TriggerOptions {
+    event?: Event;
     shouldBeginExecute?: boolean;
     shouldEndExecute?: boolean;
 }
@@ -332,14 +333,20 @@ export class OperationExecutor {
         const ops = this.getOperations(scopes).filter((op) => satisfiesEvent(op, event));
         for (const op of ops) {
             if (op[event.type]) {
+                this.state.logger.debug(`Operation '${op.name}' triggered (${event.type}).`);
+                options.event?.preventDefault();
                 await op[event.type]!(this.state, context, event as KeyOperationEvent & MouseOperationEvent);
             }
 
             if (options.shouldBeginExecute && op.beginExecute) {
+                this.state.logger.debug(`Operation '${op.name}' triggered (beginExecute).`);
+                options.event?.preventDefault();
                 await op.beginExecute(this.state, context, event);
             }
 
             if (options.shouldEndExecute && op.endExecute) {
+                this.state.logger.debug(`Operation '${op.name}' triggered (endExecute).`);
+                options.event?.preventDefault();
                 await op.endExecute(this.state, context, event);
             }
         }
@@ -367,6 +374,7 @@ export class OperationExecutor {
             this.state.diagram.selectedNode,
             operationEvent,
             {
+                event: event,
                 shouldBeginExecute: true,
             }
         );
@@ -394,6 +402,7 @@ export class OperationExecutor {
             this.state.diagram.selectedNode,
             operationEvent,
             {
+                event: event,
                 shouldEndExecute: true,
             }
         );

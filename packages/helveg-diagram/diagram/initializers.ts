@@ -1,11 +1,31 @@
 import forceAtlas2, { ForceAtlas2Settings, inferSettings } from "../deps/graphology-layout-forceatlas2.ts";
 import Graph from "../deps/graphology.ts";
-import { Sigma, Coordinates, DEFAULT_SETTINGS, NodeProgramType, SigmaNodeEventPayload, SigmaStageEventPayload } from "../deps/sigma.ts";
+import {
+    Sigma,
+    DEFAULT_SETTINGS,
+    NodeProgramType,
+} from "../deps/sigma.ts";
 import { ForceAtlas2Progress, ForceAtlas2Supervisor } from "../layout/forceAltas2Supervisor.ts";
 import { DataModel, Multigraph, MultigraphRelation } from "../model/data-model.ts";
-import { HelvegEdgeAttributes, HelvegGraph, HelvegNodeAttributes, collapseNode, expandNode, findRoots, toggleNode } from "../model/graph.ts";
+import {
+    HelvegEdgeAttributes,
+    HelvegGraph,
+    HelvegNodeAttributes,
+    collapseNode,
+    expandNode,
+    findRoots,
+} from "../model/graph.ts";
 import { ILogger, Logger, sublogger } from "../model/logger.ts";
-import { EdgeStylist, FALLBACK_EDGE_STYLE, FALLBACK_NODE_STYLE, NodeStyle, NodeStylist, OutlineStyle, Outlines, RelationStylist, getOutlinesTotalWidth } from "../model/style.ts";
+import {
+    EdgeStylist,
+    FALLBACK_EDGE_STYLE,
+    FALLBACK_NODE_STYLE,
+    NodeStyle,
+    NodeStylist,
+    OutlineStyle,
+    Outlines,
+    RelationStylist,
+} from "../model/style.ts";
 import { bfsGraph, bfsMultigraph } from "../model/traversal.ts";
 import { GlyphProgramOptions, SizingMode } from "../rendering/node.glyph.ts";
 import { WorkaroundNodeProgram } from "../rendering/workaround_node.ts";
@@ -17,7 +37,6 @@ export function initializeSupervisor(
     settings?: ForceAtlas2Settings,
     logger?: ILogger
 ): ForceAtlas2Supervisor {
-
     settings ??= { ...inferSettings(graph), adjustSizes: true };
     const supervisor = new ForceAtlas2Supervisor(graph, settings, logger ? sublogger(logger, "fa2") : undefined);
     supervisor.progress.subscribe(onSupervisorProgress);
@@ -29,20 +48,24 @@ export function initializeSupervisor(
 export const isHoverEnabledSymbol = Symbol("isHoverEnabled");
 export const hoveredNodeSymbol = Symbol("hoveredNode");
 
-export type HelvegSigma = Sigma<HelvegNodeAttributes, HelvegEdgeAttributes>
-    & { [isHoverEnabledSymbol]: boolean, [hoveredNodeSymbol]: string | null };
+export type HelvegSigma = Sigma<HelvegNodeAttributes, HelvegEdgeAttributes> & {
+    [isHoverEnabledSymbol]: boolean;
+    [hoveredNodeSymbol]: string | null;
+};
 
 export type HelvegNodeProgramType = NodeProgramType<HelvegNodeAttributes, HelvegEdgeAttributes>;
 
-export abstract class HelvegNodeProgram<Uniform extends string>
-    extends WorkaroundNodeProgram<Uniform, HelvegNodeAttributes, HelvegEdgeAttributes> { };
+export abstract class HelvegNodeProgram<Uniform extends string> extends WorkaroundNodeProgram<
+    Uniform,
+    HelvegNodeAttributes,
+    HelvegEdgeAttributes
+> {}
 
 export function initializeSigma(
     element: HTMLElement,
     graph: HelvegGraph,
-    glyphProgram: HelvegNodeProgramType,
+    glyphProgram: HelvegNodeProgramType
 ): HelvegSigma {
-
     const sigma = new Sigma(graph, element, {
         nodeProgramClasses: {
             glyph: glyphProgram,
@@ -55,7 +78,7 @@ export function initializeSigma(
     sigma[isHoverEnabledSymbol] = false;
     sigma[hoveredNodeSymbol] = null;
 
-    sigma.on("enterNode", e => {
+    sigma.on("enterNode", (e) => {
         if (sigma[isHoverEnabledSymbol]) {
             sigma[hoveredNodeSymbol] = e.node;
         } else {
@@ -63,30 +86,27 @@ export function initializeSigma(
             // HACK: This is IMHO currently the only way to force Sigma *not to* render hovered nodes.
             (sigma as any).hoveredNode = null;
         }
-    })
+    });
 
-    sigma.on("leaveNode", e => {
+    sigma.on("leaveNode", (e) => {
         if (sigma[isHoverEnabledSymbol]) {
             sigma[hoveredNodeSymbol] = null;
             // HACK: This is IMHO currently the only way to force Sigma *not to* render hovered nodes.
             (sigma as any).hoveredNode = null;
         }
-    })
+    });
 
-    sigma.getMouseCaptor().on("doubleClick", e => {
+    sigma.getMouseCaptor().on("doubleClick", (e) => {
         e.preventSigmaDefault();
     });
-    sigma.getTouchCaptor().on("doubletap", e => {
+    sigma.getTouchCaptor().on("doubletap", (e) => {
         e.preventSigmaDefault();
     });
 
     return sigma;
 }
 
-export function configureSigma(
-    sigma: HelvegSigma,
-    options: GlyphProgramOptions
-) {
+export function configureSigma(sigma: HelvegSigma, options: GlyphProgramOptions) {
     sigma.setSetting("renderLabels", options.showLabels);
     if (options.isPizzaEnabled) {
         // sigma.setSetting("zoomToSizeRatioFunction", (cameraRatio) => cameraRatio);
@@ -106,11 +126,10 @@ export function initializeGraph(
     selectedKinds?: string[],
     expandedDepth?: number
 ): HelvegGraph {
-
     const graph = new Graph<HelvegNodeAttributes, HelvegEdgeAttributes>({
         multi: true,
         allowSelfLoops: true,
-        type: "directed"
+        type: "directed",
     });
 
     if (!model.data) {
@@ -125,7 +144,7 @@ export function initializeGraph(
                 x: 0,
                 y: 0,
                 kind: node.kind,
-                diff: node.diff
+                diff: node.diff,
             });
         }
     }
@@ -146,14 +165,13 @@ export function initializeGraph(
 
     if (mainRelation !== undefined && expandedDepth !== undefined && expandedDepth >= 0) {
         const mainRoots = findRoots(graph, mainRelation);
-        mainRoots.forEach(r => {
+        mainRoots.forEach((r) => {
             collapseNode(graph, r, mainRelation);
             bfsGraph(graph, r, {
                 maxDepth: expandedDepth - 1,
                 callback: (n, _a, d) => {
-                    expandNode(graph, n, false, mainRelation);
-                }
-
+                    expandNode(graph, n, { relation: mainRelation });
+                },
             });
         });
     }
@@ -170,7 +188,7 @@ function addRegularRelation(graph: HelvegGraph, multigraph: Multigraph, relation
     for (let [id, edge] of Object.entries(relation.edges)) {
         if (graph.hasNode(edge.src) && graph.hasNode(edge.dst)) {
             graph.addDirectedEdgeWithKey(`${relationId};${id}`, edge.src, edge.dst, {
-                relation: relationId
+                relation: relationId,
             });
         }
     }
@@ -185,14 +203,14 @@ function addTransitiveRelation(graph: HelvegGraph, multigraph: Multigraph, relat
     addRegularRelation(graph, multigraph, relationId);
 
     graph.forEachNode((id, a) => {
-        // find nodes that are reachable from the current node, stop at those that are already in the graph 
+        // find nodes that are reachable from the current node, stop at those that are already in the graph
         const transitiveChildren = bfsMultigraph(multigraph, id, {
             relation: relationId,
-            callback: n => n === id || !graph.hasNode(n)
+            callback: (n) => n === id || !graph.hasNode(n),
         });
 
         // add the transitive edges and remove the unincluded nodes
-        transitiveChildren.forEach(child => {
+        transitiveChildren.forEach((child) => {
             if (child === id) {
                 // the node doesn't have an edge to itself
                 return;
@@ -202,7 +220,7 @@ function addTransitiveRelation(graph: HelvegGraph, multigraph: Multigraph, relat
                 let edgeKey = `declares;${id};${child}`;
                 if (!graph.hasEdge(edgeKey)) {
                     graph.addDirectedEdgeWithKey(edgeKey, id, child, {
-                        relation: relationId
+                        relation: relationId,
                     });
                 }
             }
@@ -212,7 +230,7 @@ function addTransitiveRelation(graph: HelvegGraph, multigraph: Multigraph, relat
 
 export function toHelvegNodeAttributes(
     glyphProgramOptions: GlyphProgramOptions,
-    nodeStyle: NodeStyle,
+    nodeStyle: NodeStyle
 ): Partial<HelvegNodeAttributes> {
     const attributes: Partial<HelvegNodeAttributes> = {};
 
@@ -243,7 +261,7 @@ export function toHelvegNodeAttributes(
             default:
                 return value;
         }
-    }
+    };
 
     attributes.size = getSize(glyphProgramOptions.sizingMode, attributes.size);
     attributes.iconSize = getSize(glyphProgramOptions.sizingMode, attributes.iconSize);
@@ -267,10 +285,9 @@ export function styleGraph(
     nodeStylist?: NodeStylist,
     relationStylist?: RelationStylist,
     edgeStylist?: EdgeStylist,
-    logger?: ILogger) {
-
+    logger?: ILogger
+) {
     graph.forEachNode((node, attributes) => {
-
         if (!model.data || !model.data.nodes[node]) {
             logger?.debug(`Node '${node}' does not exist in the model.`);
             return;

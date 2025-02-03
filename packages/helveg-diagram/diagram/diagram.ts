@@ -4,9 +4,10 @@ import {
     HelvegGraph,
     HelvegNodeAttributes,
     MULTIGRAPH_NODE_KEY,
+    collapseNode,
+    expandNode,
     expandPathsTo,
     findRoots,
-    removeAllGraphListeners,
     toggleNode,
 } from "../model/graph.ts";
 import { Coordinates, SigmaNodeEventPayload } from "../deps/sigma.ts";
@@ -32,7 +33,6 @@ import {
     EdgeStylist,
     NodeStylist,
     RelationStylist,
-    fallbackEdgeStylist,
     fallbackNodeStylist,
     fallbackRelationStylist,
 } from "../model/style.ts";
@@ -809,7 +809,57 @@ export class Diagram {
             return;
         }
 
-        await this.refreshSupervisor(true, () => toggleNode(this._graph!, nodeId, this.mainRelation ?? undefined));
+        if (!this.mainRelation) {
+            this._logger.warn("Cannot toggle nodes since the main relation is unset.");
+            return;
+        }
+
+        await this.refreshSupervisor(true, () => toggleNode(this._graph!, nodeId, this.mainRelation!));
+    }
+
+    async toggleAll(shouldExpand?: boolean): Promise<void> {
+        if (!this._graph) {
+            this._logger.warn("Cannot toggle nodes since the graph is not initialized.");
+            return;
+        }
+
+        if (!this.mainRelation) {
+            this._logger.warn("Cannot toggle nodes since the main relation is unset.");
+            return;
+        }
+
+        await this.refreshSupervisor(true, () => {
+            this.graph!.forEachNode((n) => toggleNode(this.graph!, n, this.mainRelation!, shouldExpand));
+        });
+    }
+
+    async dig(collapse: boolean = false): Promise<void> {
+        if (!this._graph) {
+            this._logger.warn("Cannot toggle nodes since the graph is not initialized.");
+            return;
+        }
+
+        if (!this.mainRelation) {
+            this._logger.warn("Cannot toggle nodes since the main relation is unset.");
+            return;
+        }
+
+        await this.refreshSupervisor(true, () => {
+            if (collapse) {
+                this.graph
+                    ?.filterNodes((_n, na) => !na.hidden && (na.collapsed || na.childCount === 0))
+                    .flatMap((n) =>
+                        this.graph!.filterInEdges(n, (_e, ea) => ea.relation === this.mainRelation!).map((e) =>
+                            this.graph!.source(e)
+                        )
+                    )
+                    .forEach((n) => collapseNode(this.graph!, n, this.mainRelation!));
+            } else {
+                this.graph
+                    ?.filterNodes((_n, na) => !na.hidden && na.collapsed)
+                    .forEach((n) => expandNode(this.graph!, n, { relation: this.mainRelation! }));
+            }
+        });
     }
 
     /**

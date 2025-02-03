@@ -4,7 +4,7 @@ import { OP_GLOBAL_DESELECT, OP_INSPECT, OP_STAGE_DESELECT } from "./op-inspect.
 import { OP_LAYOUT } from "./op-layout.ts";
 import { OP_MOVE } from "./op-move.ts";
 import { OP_REMOVE } from "./op-remove.ts";
-import { OP_TOGGLE } from "./op-toggle.ts";
+import { OP_TOGGLE, OP_DIG_IN, OP_DIG_OUT, OP_COLLAPSE_ALL, OP_EXPAND_ALL } from "./op-toggle.ts";
 
 export * from "./executor.ts";
 export * from "./op-move.ts";
@@ -20,6 +20,10 @@ export function createDefaultExecutor(state: IExplorerState): OperationExecutor 
     executor.register(OP_GLOBAL_DESELECT);
     executor.register(OP_STAGE_DESELECT);
     executor.register(OP_TOGGLE);
+    executor.register(OP_DIG_IN);
+    executor.register(OP_DIG_OUT);
+    executor.register(OP_EXPAND_ALL);
+    executor.register(OP_COLLAPSE_ALL);
     executor.register(OP_REMOVE);
     executor.register(OP_LAYOUT);
     return executor;

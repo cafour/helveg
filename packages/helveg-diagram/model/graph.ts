@@ -65,12 +65,20 @@ export function collapseNode(graph: Graph, nodeId: string, relation?: string) {
     });
 }
 
-export function expandNode(
-    graph: HelvegGraph,
-    nodeId: string,
-    recursive: boolean = false,
-    relation?: string
-) {
+export interface ExpandNodeOptions {
+    recursive?: boolean;
+    relation?: string;
+    shouldExpandSingleChildren?: boolean;
+}
+
+export const DEFAULT_EXPAND_NODE_OPTIONS: ExpandNodeOptions = {
+    recursive: false,
+    relation: undefined,
+    shouldExpandSingleChildren: true,
+};
+
+export function expandNode(graph: HelvegGraph, nodeId: string, options?: ExpandNodeOptions) {
+    options = { ...DEFAULT_EXPAND_NODE_OPTIONS, ...options };
     let nodeSize = graph.getNodeAttribute(nodeId, "size") ?? 2;
     let x = graph.getNodeAttribute(nodeId, "x");
     let y = graph.getNodeAttribute(nodeId, "y");
@@ -79,7 +87,7 @@ export function expandNode(
 
     let neighborEdges: EdgeEntry<Partial<HelvegNodeAttributes>, Partial<HelvegEdgeAttributes>>[] = [];
     for (let edge of graph.outboundEdgeEntries(nodeId)) {
-        if (!relation || edge.attributes.relation === relation) {
+        if (!options.relation || edge.attributes.relation === options.relation) {
             neighborEdges.push(edge);
         }
     }
@@ -89,18 +97,21 @@ export function expandNode(
             return;
         }
 
-        let dist = (nodeSize + (neighbor.attributes.size ?? 2));
+        let dist = nodeSize + (neighbor.attributes.size ?? 2);
         neighbor.targetAttributes.hidden = false;
-        if (neighbor.sourceAttributes.inInitialPosition !== true
-            && neighbor.targetAttributes.inInitialPosition !== true) {
+        if (
+            neighbor.sourceAttributes.inInitialPosition !== true &&
+            neighbor.targetAttributes.inInitialPosition !== true
+        ) {
             neighbor.targetAttributes.x = x + dist * Math.cos((i / neighborEdges.length) * 2 * Math.PI);
             neighbor.targetAttributes.y = y + dist * Math.sin((i / neighborEdges.length) * 2 * Math.PI);
             neighbor.targetAttributes.inInitialPosition = false;
         }
 
-        const shouldExpandChild = recursive || neighborEdges.length === 1;
+        const shouldExpandChild =
+            options.recursive || (neighborEdges.length === 1 && options.shouldExpandSingleChildren);
         if (shouldExpandChild) {
-            expandNode(graph, neighbor.target, recursive, relation);
+            expandNode(graph, neighbor.target, options);
         }
     });
 }
@@ -112,15 +123,16 @@ export function expandPathsTo(graph: HelvegGraph, nodeId: string, relation?: str
             return;
         }
         if (sa.collapsed === true && (!relation || a.relation === relation)) {
-            expandNode(graph, s, false, relation);
+            expandNode(graph, s, { relation });
             expandPathsTo(graph, s, relation);
         }
     });
 }
 
-export function toggleNode(graph: HelvegGraph, nodeId: string, relation?: string) {
-    if (graph.getNodeAttribute(nodeId, "collapsed")) {
-        expandNode(graph, nodeId, false, relation);
+export function toggleNode(graph: HelvegGraph, nodeId: string, relation?: string, shouldExpand?: boolean) {
+    shouldExpand ??= graph.getNodeAttribute(nodeId, "collapsed");
+    if (shouldExpand) {
+        expandNode(graph, nodeId, { relation });
     } else {
         collapseNode(graph, nodeId, relation);
     }
@@ -142,8 +154,8 @@ export function getNodeKinds(graph: Multigraph | null | undefined): string[] {
     }
 
     return Object.values(graph.nodes)
-        .filter(n => n.kind)
-        .map(n => n.kind!)
+        .filter((n) => n.kind)
+        .map((n) => n.kind!)
         .filter((v, i, a) => a.indexOf(v) === i)
         .sort();
 }
@@ -155,7 +167,7 @@ export interface HelvegTree {
 }
 
 export interface HelvegForest {
-    roots: HelvegTree[]
+    roots: HelvegTree[];
 }
 
 export function getForest(graph: HelvegGraph | undefined, relation: string, nodeKindOrder?: string[]): HelvegForest {
@@ -166,10 +178,17 @@ export function getForest(graph: HelvegGraph | undefined, relation: string, node
     const rootIds = findRoots(graph, relation);
     const roots: HelvegTree[] = [];
     for (const rootId of rootIds) {
-        const root = hierarchy(rootId, nodeId =>
-            <string[]>graph.mapOutboundEdges(nodeId, (_edge, attr, _src, dst, _srcAttr, _dstAttr) =>
-                attr.relation && attr.relation === relation ? dst : undefined)
-                .filter(dst => dst != undefined));
+        const root = hierarchy(
+            rootId,
+            (nodeId) =>
+                <string[]>(
+                    graph
+                        .mapOutboundEdges(nodeId, (_edge, attr, _src, dst, _srcAttr, _dstAttr) =>
+                            attr.relation && attr.relation === relation ? dst : undefined
+                        )
+                        .filter((dst) => dst != undefined)
+                )
+        );
 
         function convertD3Node(node: HierarchyNode<string>): HelvegTree {
             let children = undefined;
@@ -184,7 +203,7 @@ export function getForest(graph: HelvegGraph | undefined, relation: string, node
             return {
                 id: node.data,
                 node: graph!.getNodeAttributes(node.data),
-                children: children
+                children: children,
             };
         }
 
@@ -209,16 +228,15 @@ export function getForestItems(forest: HelvegForest): HelvegForestItem[] {
         const item: HelvegForestItem = {
             id: node.id,
             node: node.node,
-            depth: depth
+            depth: depth,
         };
         items.push(item);
-        item.children = node.children === undefined ? undefined
-            : node.children.map(c => visit(c, depth + 1));
-        item.children?.forEach(c => c.parent = item);
+        item.children = node.children === undefined ? undefined : node.children.map((c) => visit(c, depth + 1));
+        item.children?.forEach((c) => (c.parent = item));
         return item;
     }
 
-    forest.roots.forEach(t => visit(t));
+    forest.roots.forEach((t) => visit(t));
     return items;
 }
 
@@ -236,7 +254,7 @@ const HELVEG_GRAPH_EVENTS: HelvegGraphEvent[] = [
     "edgeAttributesUpdated",
     "eachNodeAttributesUpdated",
     "eachEdgeAttributesUpdated",
-]
+];
 
 export function getAllGraphListeners(graph: HelvegGraph): Record<HelvegGraphEvent, any[]> {
     const listeners: Record<string, any[]> = {};
@@ -252,7 +270,6 @@ export function removeAllGraphListeners(graph: HelvegGraph): void {
         graph.removeAllListeners(event);
     }
 }
-
 
 export function setAllGraphListeners(graph: HelvegGraph, listeners: Record<HelvegGraphEvent, any[]>): void {
     for (const event of HELVEG_GRAPH_EVENTS) {
