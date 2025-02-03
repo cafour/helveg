@@ -71,7 +71,7 @@ export class ForceAtlas2Supervisor {
         return this._inBackground;
     }
 
-    public async start(inBackground: boolean, iterationCount?: number, settings?: ForceAtlas2Settings): Promise<void> {
+    public start(inBackground: boolean, iterationCount?: number, settings?: ForceAtlas2Settings): void {
         if (this._running && this._inBackground === inBackground) {
             return;
         }
@@ -118,10 +118,10 @@ export class ForceAtlas2Supervisor {
         this.detach();
     }
 
-    public stop(): void {
+    public stop(): Promise<void> {
         if (!this._worker || !this._running) {
             this.logger?.debug("Worker is not running, nothing to stop.");
-            return;
+            return Promise.resolve();
         }
 
         this._lastWorker = this._worker;
@@ -129,28 +129,30 @@ export class ForceAtlas2Supervisor {
         // NB: running = false needs to be set to prevent `update` from asking for more iterations.
         this._running = false;
         this._worker = null;
+        let stopPromise = Promise.resolve();
 
         // when running in background, we fire-and-forget wait for the last update
         if (this._inBackground) {
-            // NB: "pretends" to stop immediately to make the UI responsive while the worker stops or is terminated
-            let killTimeout = setTimeout(() => {
-                if (this._lastWorker) {
-                    this._lastWorker.terminate();
-                    this._lastWorker = null;
-                    this.logger?.warn("Timed out while waiting for the worker to stop.");
-                }
-            }, 2_000);
-            this.updated.subscribeOnce(() => {
-                clearTimeout(killTimeout);
-                if (this._lastWorker) {
-                    this._lastWorker.terminate();
-                    this._lastWorker = null;
-                    this.logger?.debug("Worker stopped.");
-                }
-            });
-            this.logger?.debug("Stopping the background worker.");
-            this._lastWorker.postMessage({
-                kind: MessageKind.Stop,
+            stopPromise = new Promise<void>((resolve, reject) => {
+                let killTimeout = setTimeout(() => {
+                    if (this._lastWorker) {
+                        this._lastWorker.terminate();
+                        this._lastWorker = null;
+                        this.logger?.warn("Timed out while waiting for the worker to stop.");
+                    }
+                }, 2_000);
+                this.updated.subscribeOnce(() => {
+                    clearTimeout(killTimeout);
+                    if (this._lastWorker) {
+                        this._lastWorker.terminate();
+                        this._lastWorker = null;
+                        this.logger?.debug("Worker stopped.");
+                    }
+                });
+                this.logger?.debug("Stopping the background worker.");
+                this._lastWorker?.postMessage({
+                    kind: MessageKind.Stop,
+                });
             });
         } else {
             this._lastWorker.terminate();
@@ -159,6 +161,7 @@ export class ForceAtlas2Supervisor {
         }
         this.detach();
         this.stopped.trigger();
+        return stopPromise;
     }
 
     private detach(): void {

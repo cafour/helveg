@@ -487,7 +487,7 @@ export class Diagram {
 
         this._graph.forEachNode((n, a) => (a.inInitialPosition = false));
 
-        await this._supervisor.start(inBackground, iterationCount, options);
+        this._supervisor.start(inBackground, iterationCount, options);
 
         this.refreshStatus();
 
@@ -851,7 +851,7 @@ export class Diagram {
                 shouldLayoutContinue &&
                 (lastStatus === DiagramStatus.Running || lastStatus === DiagramStatus.RunningInBackground)
             ) {
-                await this._supervisor.start(lastStatus === DiagramStatus.RunningInBackground);
+                this._supervisor.start(lastStatus === DiagramStatus.RunningInBackground);
                 this.refreshStatus();
             }
         }
