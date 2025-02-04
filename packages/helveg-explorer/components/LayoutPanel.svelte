@@ -26,6 +26,10 @@
     $: items = [
         { key: "Iterations", value: stats?.iterationCount.toString() },
         { key: "Speed", value: `${stats?.speed.toFixed(3)} iterations/s` },
+        { key: "Global traction", value: stats?.globalTraction.toFixed(3)},
+        { key: "Global swinging", value: stats?.globalSwinging.toFixed(3)},
+        { key: "Average traction", value: stats?.averageTraction.toFixed(3)},
+        { key: "Average swinging", value: stats?.averageSwinging.toFixed(3)},
     ];
 
     $: relations = getRelations($model.data);
@@ -281,6 +285,25 @@
                     max="5"
                     step="0.05"
                     bind:value={$layoutOptions.forceAtlas2.barnesHutTheta}
+                />
+            </label>
+            <label>
+                <div class="flex flex-row gap-8">
+                    <span>AutoStopAverageTraction</span>
+                    <input
+                        type="number"
+                        min="-1.0"
+                        step="0.1"
+                        bind:value={$layoutOptions.forceAtlas2.autoStopAverageTraction}
+                    />
+                </div>
+                <input
+                    type="range"
+                    class="w-100p"
+                    min="-1"
+                    max="10"
+                    step="0.1"
+                    bind:value={$layoutOptions.forceAtlas2.autoStopAverageTraction}
                 />
             </label>
             <!-- <label>

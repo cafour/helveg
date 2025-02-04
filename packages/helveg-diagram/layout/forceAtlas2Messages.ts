@@ -1,4 +1,4 @@
-import { ForceAtlas2Settings } from "../deps/graphology-layout-forceatlas2.ts";
+import { ForceAtlas2Metadata, type ForceAtlas2Options } from "./forceAtlas2Iterate.ts";
 
 export enum MessageKind {
     Init = "init",
@@ -6,6 +6,11 @@ export enum MessageKind {
     Start = "start",
     Stop = "stop",
     Update = "update"
+}
+
+export enum StopReason {
+    FiniteIterationsDone = "finiteIterationsDone",
+    AutoStop = "autoStop",
 }
 
 export interface Message {
@@ -16,6 +21,7 @@ export interface ProgressMessage extends Message {
     kind: MessageKind.Progress;
     iterationCount: number;
     speed: number;
+    metadata: ForceAtlas2Metadata;
 }
 
 export interface InitMessage extends Message {
@@ -25,7 +31,7 @@ export interface InitMessage extends Message {
 
 export interface StartMessage extends Message {
     kind: MessageKind.Start;
-    settings: ForceAtlas2Settings;
+    settings: ForceAtlas2Options;
     iterationCount?: number;
     reportInterval: number;
     nodes: ArrayBufferLike;
@@ -38,4 +44,5 @@ export interface UpdateMessage extends Message {
 
 export interface StopMessage extends Message {
     kind: MessageKind.Stop;
+    reason: StopReason;
 }

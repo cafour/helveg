@@ -39,10 +39,12 @@ import {
 import { EMPTY_ICON_REGISTRY, IconRegistry } from "../global.ts";
 import { DataModel } from "../model/data-model.ts";
 import { EMPTY_DATA_MODEL } from "../model/const.ts";
-import { inferSettings } from "graphology-layout-forceatlas2";
+import { ForceAtlas2Settings, inferSettings } from "graphology-layout-forceatlas2";
 import { deepCompare } from "../common/deep-compare.ts";
 import { FALLBACK_INSPECTOR, Inspector } from "../model/inspect.ts";
 import Graph from "../deps/graphology.ts";
+import type { ForceAtlas2Options } from "../layout/forceAtlas2Iterate.ts";
+import { Full } from "../common/full.ts";
 
 export interface DiagramRefreshOptions {
     selectedRelations?: string[];
@@ -65,19 +67,6 @@ export interface DiagramOptions {
     cursor: CursorOptions;
 }
 
-export interface ForceAtlas2Options {
-    linLogMode?: boolean;
-    outboundAttractionDistribution?: boolean;
-    adjustSizes?: boolean;
-    edgeWeightInfluence?: number;
-    scalingRatio?: number;
-    strongGravityMode?: boolean;
-    gravity?: number;
-    slowDown?: number;
-    barnesHutOptimize?: boolean;
-    barnesHutTheta?: number;
-}
-
 export interface CursorOptions {
     defaultCursor: string;
     hoverCursor: string;
@@ -87,7 +76,7 @@ export interface CursorOptions {
 }
 
 export const DEFAULT_FORCE_ATLAS2_OPTIONS: Readonly<ForceAtlas2Options> = {
-    ...inferSettings(1024),
+    ...inferSettings(1024) as Full<ForceAtlas2Settings>,
     adjustSizes: true,
     barnesHutOptimize: false,
     strongGravityMode: false,
@@ -96,6 +85,7 @@ export const DEFAULT_FORCE_ATLAS2_OPTIONS: Readonly<ForceAtlas2Options> = {
     linLogMode: false,
     outboundAttractionDistribution: false,
     slowDown: 3,
+    autoStopAverageTraction: 1.0,
 };
 
 export const DEFAULT_CURSOR_OPTIONS: Readonly<CursorOptions> = {
@@ -131,6 +121,19 @@ export enum DiagramStatus {
 export interface DiagramStats {
     iterationCount: number;
     speed: number;
+    globalTraction: number;
+    globalSwinging: number;
+    averageTraction: number;
+    averageSwinging: number;
+}
+
+const DEFAULT_DIAGRAM_STATS: Readonly<DiagramStats> = {
+    iterationCount: 0,
+    speed: 0,
+    globalSwinging: 0,
+    globalTraction: 0,
+    averageTraction: 0,
+    averageSwinging: 0,
 }
 
 export interface RemoveOptions {
@@ -211,7 +214,7 @@ export class Diagram {
         this.refreshSigma();
     }
 
-    private _stats: DiagramStats = { iterationCount: -1, speed: -1.0 };
+    private _stats: DiagramStats = structuredClone(DEFAULT_DIAGRAM_STATS);
     get stats(): DiagramStats {
         return this._stats;
     }
@@ -462,7 +465,7 @@ export class Diagram {
             i++;
         }
 
-        this.stats = { iterationCount: 0, speed: 0 };
+        this.stats = structuredClone(DEFAULT_DIAGRAM_STATS);
         if (this._sigma) {
             this._sigma.scheduleRefresh();
         }
@@ -471,7 +474,7 @@ export class Diagram {
     public async runLayout(
         inBackground: boolean,
         iterationCount?: number,
-        options?: ForceAtlas2Options
+        options?: Partial<ForceAtlas2Options>
     ): Promise<void> {
         if (!this._graph) {
             this._logger.debug("Cannot run since the graph is not initialized.");
@@ -919,7 +922,11 @@ export class Diagram {
     private onSupervisorProgress(message: ForceAtlas2Progress) {
         this.stats = {
             iterationCount: message.iterationCount,
-            speed: message.speed,
+            speed: message.iterationsPerSecond,
+            globalSwinging: message.globalSwinging,
+            globalTraction: message.globalTraction,
+            averageSwinging: message.averageSwinging,
+            averageTraction: message.averageTraction,
         };
     }
 

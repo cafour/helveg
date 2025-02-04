@@ -4,18 +4,24 @@ import { createEdgeWeightGetter } from "../deps/graphology-utils.ts";
 import Graph, { Attributes, EdgeMapper } from "../deps/graphology.ts";
 import { HelvegGraph } from "../global.ts";
 import { ILogger } from "../model/logger.ts";
-import { MessageKind, StartMessage, Message, UpdateMessage, ProgressMessage } from "./forceAtlas2Messages.ts";
+import { MessageKind, StartMessage, Message, UpdateMessage, ProgressMessage, StopMessage, StopReason } from "./forceAtlas2Messages.ts";
 import forceAtlas2WorkerCode from "inline-bundle:./forceAtlas2Worker.ts";
 
-type GraphMatrices = { nodes: Float32Array; edges: Float32Array };
+type GraphMatrices = {
+    // NB: the counts variables are here because the matrices might currently be owned by the worker
+    nodeCount: number;
+    nodes: Float32Array;
+    edgeCount: number;
+    edges: Float32Array
+};
 
 export interface ForceAtlas2Progress {
     iterationCount: number;
-
-    /**
-     * The number of iterations per second.
-     */
-    speed: number;
+    iterationsPerSecond: number;
+    globalTraction: number;
+    globalSwinging: number;
+    averageTraction: number;
+    averageSwinging: number;
 }
 
 export class ForceAtlas2Supervisor {
@@ -25,7 +31,12 @@ export class ForceAtlas2Supervisor {
     private _running: boolean = false;
     private _inBackground: boolean = false;
     private _lastPerformanceTime: number = 0;
-    private _matrices: GraphMatrices = { nodes: new Float32Array(0), edges: new Float32Array(0) };
+    private _matrices: GraphMatrices = {
+        nodeCount: 0,
+        nodes: new Float32Array(0),
+        edgeCount: 0,
+        edges: new Float32Array(0),
+    };
 
     constructor(private graph: HelvegGraph, private settings: ForceAtlas2Settings, private logger?: ILogger) {
         this.graph.on("nodeAdded", this.handleGraphChange);
@@ -208,24 +219,30 @@ export class ForceAtlas2Supervisor {
                 this.update(message as UpdateMessage);
                 return;
             case MessageKind.Progress:
-                let iterationCount = (message as ProgressMessage).iterationCount;
+                let progressMessage = message as ProgressMessage;
                 let newTime = performance.now();
                 this.progress.trigger({
-                    iterationCount: iterationCount,
-                    speed: this.reportInterval / ((newTime - this._lastPerformanceTime) / 1000.0),
+                    iterationCount: progressMessage.iterationCount,
+                    iterationsPerSecond: this.reportInterval / ((newTime - this._lastPerformanceTime) / 1000.0),
+                    globalSwinging: progressMessage.metadata.globalSwinging,
+                    globalTraction: progressMessage.metadata.globalTraction,
+                    averageSwinging: progressMessage.metadata.globalSwinging / this._matrices.nodeCount,
+                    averageTraction: progressMessage.metadata.globalTraction / this._matrices.nodeCount
                 });
                 this._lastPerformanceTime = newTime;
                 return;
             case MessageKind.Stop:
-                if (this.isInBackground) {
-                    // the worker has finished the assigned background iterations
-                    this.detach();
-                    this.stopped.trigger();
-                    this.logger?.debug("Worker stopped.");
-                } else if (this._running) {
+                const stopMessage = message as StopMessage;
+                if (stopMessage.reason === StopReason.FiniteIterationsDone && !this._inBackground && this._running) {
                     // continue running in the foreground, one iteration at a time
                     this.askForSingleIteration();
+                    return;
                 }
+
+                // the worker has finished
+                this.kill();
+                this.stopped.trigger();
+                this.logger?.debug("Worker stopped.");
                 return;
             default:
                 console.warn("Ignoring a message of unknown kind.");
@@ -326,7 +343,9 @@ function graphToByteArrays(
     });
 
     return {
+        nodeCount: order,
         nodes: NodeMatrix,
+        edgeCount: size,
         edges: EdgeMatrix,
     };
 }
