@@ -76,7 +76,7 @@ export interface CursorOptions {
 }
 
 export const DEFAULT_FORCE_ATLAS2_OPTIONS: Readonly<ForceAtlas2Options> = {
-    ...inferSettings(1024) as Full<ForceAtlas2Settings>,
+    ...(inferSettings(1024) as Full<ForceAtlas2Settings>),
     adjustSizes: true,
     barnesHutOptimize: false,
     strongGravityMode: false,
@@ -134,7 +134,7 @@ const DEFAULT_DIAGRAM_STATS: Readonly<DiagramStats> = {
     globalTraction: 0,
     averageTraction: 0,
     averageSwinging: 0,
-}
+};
 
 export interface RemoveOptions {
     isTransitive: boolean;
@@ -251,12 +251,32 @@ export class Diagram {
         this.events.modeChanged.trigger(value);
     }
 
+    private _shouldFixateSelectedNode: boolean = true;
+    get shouldFixateSelectedNode(): boolean {
+        return this._shouldFixateSelectedNode;
+    }
+    set shouldFixateSelectedNode(value: boolean) {
+        this._shouldFixateSelectedNode = value;
+        if (this._selectedNode != null) {
+            this._graph?.setNodeAttribute(this._selectedNode, "fixed", value);
+        }
+    }
+
     private _selectedNode: string | null = null;
     get selectedNode(): string | null {
         return this._selectedNode;
     }
     set selectedNode(value: string | null) {
+        if (this.shouldFixateSelectedNode && this._selectedNode != null) {
+            this._graph?.setNodeAttribute(this._selectedNode, "fixed", false);
+        }
+
         this._selectedNode = value;
+
+        if (this.shouldFixateSelectedNode && this._selectedNode != null) {
+            this._graph?.setNodeAttribute(this._selectedNode, "fixed", true);
+        }
+
         this.events.nodeSelected.trigger(value);
     }
 

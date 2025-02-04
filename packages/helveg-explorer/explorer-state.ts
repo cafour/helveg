@@ -158,6 +158,9 @@ export function createExplorerState(
         "tool",
         structuredClone(Options.DEFAULT_TOOL_OPTIONS),
     );
+    toolOptions.subscribe(o => {
+        diagram.shouldFixateSelectedNode = o.showProperties.shouldFixateSelectedNode;
+    })
 
     const state: IExplorerState = {
         rootElement,

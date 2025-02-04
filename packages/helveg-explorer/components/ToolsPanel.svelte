@@ -20,6 +20,13 @@
             <input type="checkbox" bind:checked={$toolOptions.showProperties.shouldHighlightNeighbors} />
             ShouldHighlightNeighbors
         </label>
+        <label>
+            <input type="checkbox" bind:checked={$toolOptions.showProperties.shouldFixateSelectedNode} />
+            ShouldFixateSelectedNodes
+            <Hint
+                text="Whether to keep the currently inspected node in place -- let it be ignored by the layout algorithm."
+            />
+        </label>
     </Subpanel>
     <Subpanel name="Remove" icon={AppIcons.RemoveTool}>
         <label>

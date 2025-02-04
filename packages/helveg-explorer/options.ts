@@ -16,11 +16,13 @@ export { type RemoveOptions, type ExportOptions, DEFAULT_EXPORT_OPTIONS };
 export interface ShowPropertiesToolOptions {
     shouldHighlightSubtree: boolean;
     shouldHighlightNeighbors: boolean;
+    shouldFixateSelectedNode: boolean;
 }
 
 export const DEFAULT_SHOW_PROPERTIES_TOOL_OPTIONS: Readonly<ShowPropertiesToolOptions> = {
     shouldHighlightSubtree: false,
     shouldHighlightNeighbors: false,
+    shouldFixateSelectedNode: true,
 };
 
 export interface ToggleToolOptions {
