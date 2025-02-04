@@ -1,5 +1,6 @@
 import FileSaver from "../deps/file-saver.ts";
 import { Sigma } from "../deps/sigma.ts";
+import { HelvegSigma } from "../global.ts";
 import { Colors } from "../model/const.ts";
 import { ILogger } from "../model/logger.ts";
 
@@ -38,7 +39,7 @@ export const DEFAULT_EXPORT_OPTIONS: ExportOptions = {
  * 
  * Based on the "png-snapshot" example from the Sigma.js repository.
  */
-export function exportDiagram(sigma: Sigma, options?: ExportOptions, logger?: ILogger) {
+export function exportDiagram(sigma: HelvegSigma, options?: ExportOptions, logger?: ILogger) {
     options = { ...DEFAULT_EXPORT_OPTIONS, ...options };
 
     let { width, height } = sigma.getDimensions();

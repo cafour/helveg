@@ -6,7 +6,6 @@
         type DiagramStats,
         getRelations,
         getNodeKinds,
-        FALLBACK_NODE_STYLE,
     } from "../deps/helveg-diagram.ts";
     import { createEventDispatcher, getContext } from "svelte";
     import Icon from "./Icon.svelte";

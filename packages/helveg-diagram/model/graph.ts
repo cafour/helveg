@@ -2,11 +2,11 @@ import { hierarchy, HierarchyNode } from "../deps/d3-hierarchy.ts";
 import { Attributes, EdgeEntry, GraphEvents } from "../deps/graphology.ts";
 import Graph from "../deps/graphology.ts";
 import { NodeDisplayData, EdgeDisplayData } from "../deps/sigma.ts";
-import { Multigraph, MultigraphNode, MultigraphNodeDiffStatus } from "./data-model.ts";
+import { DataModel, Multigraph, MultigraphEdge, MultigraphNode, MultigraphNodeDiffStatus } from "./data-model.ts";
 import { Outlines, FireStatus, Slices, Contour } from "./style.ts";
 
 export interface HelvegNodeAttributes extends Partial<NodeDisplayData>, Attributes {
-    data: MultigraphNode;
+    model?: MultigraphNode;
     style?: string;
     kind?: string;
     icon?: string;
@@ -26,15 +26,23 @@ export interface HelvegNodeAttributes extends Partial<NodeDisplayData>, Attribut
 }
 
 export interface HelvegEdgeAttributes extends Partial<EdgeDisplayData>, Attributes {
+    model?: MultigraphEdge;
     relation?: string;
     style?: string;
 }
 
 export interface HelvegGraphAttributes extends Attributes {
+    model?: DataModel;
     roots?: Set<string>;
 }
 
 export type HelvegGraph = Graph<HelvegNodeAttributes, HelvegEdgeAttributes, HelvegGraphAttributes>;
+
+export const EMPTY_GRAPH: Readonly<HelvegGraph> = new Graph<
+    HelvegNodeAttributes,
+    HelvegEdgeAttributes,
+    HelvegGraphAttributes
+>();
 
 export function findRoots(graph: Graph, relation?: string) {
     let roots = new Set<string>();
@@ -143,8 +151,6 @@ export function toggleNode(graph: HelvegGraph, nodeId: string, relation?: string
         collapseNode(graph, nodeId, relation);
     }
 }
-
-export const MULTIGRAPH_NODE_KEY = Symbol();
 
 export function getRelations(graph: Multigraph | null | undefined): string[] {
     if (!graph || !graph.relations) {
@@ -283,4 +289,34 @@ export function setAllGraphListeners(graph: HelvegGraph, listeners: Record<Helve
             graph.addListener(event, listener);
         }
     }
+}
+
+export function dropNode(graph: HelvegGraph, node: string) {
+    graph.forEachInboundEdge((ie, iea, is, it) => {
+        if (iea.relation == null) {
+            return;
+        }
+
+        const relationModel = graph.getAttributes().model!.data!.relations[iea.relation];
+        if (!relationModel.isTransitive) {
+            return;
+        }
+
+        graph.forEachOutboundEdge(it, (oe, oea, _os, ot, _osa, _ota, undirected) => {
+            if (ie === oe || oea.relation !== iea.relation) {
+                return;
+            }
+
+            const edgeKey = `${iea.relation};${is};${ot}`;
+            if (undirected) {
+                graph.addUndirectedEdgeWithKey(edgeKey, is, ot, {
+                    relation: iea.relation,
+                });
+            } else {
+                graph.addDirectedEdgeWithKey(edgeKey, is, ot, {
+                    relation: iea.relation,
+                });
+            }
+        });
+    });
 }

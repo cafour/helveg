@@ -1,17 +1,15 @@
 import forceAtlas2, { ForceAtlas2Settings, inferSettings } from "../deps/graphology-layout-forceatlas2.ts";
 import Graph from "../deps/graphology.ts";
-import {
-    Sigma,
-    DEFAULT_SETTINGS,
-    NodeProgramType,
-} from "../deps/sigma.ts";
+import { Sigma, DEFAULT_SETTINGS, NodeProgramType } from "../deps/sigma.ts";
 import { ForceAtlas2Progress, ForceAtlas2Supervisor } from "../layout/forceAltas2Supervisor.ts";
 import { DataModel, Multigraph, MultigraphRelation } from "../model/data-model.ts";
 import {
     HelvegEdgeAttributes,
     HelvegGraph,
+    HelvegGraphAttributes,
     HelvegNodeAttributes,
     collapseNode,
+    dropNode,
     expandNode,
     findRoots,
 } from "../model/graph.ts";
@@ -48,7 +46,7 @@ export function initializeSupervisor(
 export const isHoverEnabledSymbol = Symbol("isHoverEnabled");
 export const hoveredNodeSymbol = Symbol("hoveredNode");
 
-export type HelvegSigma = Sigma<HelvegNodeAttributes, HelvegEdgeAttributes> & {
+export type HelvegSigma = Sigma<HelvegNodeAttributes, HelvegEdgeAttributes, HelvegGraphAttributes> & {
     [isHoverEnabledSymbol]: boolean;
     [hoveredNodeSymbol]: string | null;
 };
@@ -58,7 +56,8 @@ export type HelvegNodeProgramType = NodeProgramType<HelvegNodeAttributes, Helveg
 export abstract class HelvegNodeProgram<Uniform extends string> extends WorkaroundNodeProgram<
     Uniform,
     HelvegNodeAttributes,
-    HelvegEdgeAttributes
+    HelvegEdgeAttributes,
+    HelvegGraphAttributes
 > {}
 
 export function initializeSigma(
@@ -120,47 +119,28 @@ export function configureSigma(sigma: HelvegSigma, options: GlyphProgramOptions)
 }
 
 export function initializeGraph(
-    model: DataModel,
+    modelGraph: HelvegGraph,
     mainRelation?: string,
     selectedRelations?: string[],
     selectedKinds?: string[],
     expandedDepth?: number
 ): HelvegGraph {
-    const graph = new Graph<HelvegNodeAttributes, HelvegEdgeAttributes>({
-        multi: true,
-        allowSelfLoops: true,
-        type: "directed",
-    });
+    const graph = modelGraph.copy();
 
-    if (!model.data) {
-        return graph;
+    if (selectedKinds != null) {
+        modelGraph.forEachNode((n, na) => {
+            if (na.kind == null || !selectedKinds.includes(na.kind)) {
+                dropNode(modelGraph, n);
+            }
+        });
     }
 
-    for (const nodeId in model.data.nodes) {
-        const node = model.data.nodes[nodeId];
-        if (!node.kind || !selectedKinds || selectedKinds.includes(node.kind)) {
-            graph.addNode(nodeId, {
-                label: node.name ?? nodeId,
-                x: 0,
-                y: 0,
-                kind: node.kind,
-                diff: node.diff,
-            });
-        }
-    }
-
-    selectedRelations ??= Object.keys(model.data.relations);
-    for (const relationId of selectedRelations) {
-        const relation = model.data.relations[relationId];
-        if (!relation) {
-            continue;
-        }
-
-        if (relation.isTransitive) {
-            addTransitiveRelation(graph, model.data, relationId);
-        } else {
-            addRegularRelation(graph, model.data, relationId);
-        }
+    if (selectedRelations != null) {
+        modelGraph.forEachEdge((e, ea) => {
+            if (ea.relation == null || !selectedRelations.includes(ea.relation)) {
+                graph.dropEdge(e);
+            }
+        });
     }
 
     if (mainRelation !== undefined && expandedDepth !== undefined && expandedDepth >= 0) {

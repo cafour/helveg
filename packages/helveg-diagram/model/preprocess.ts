@@ -11,7 +11,9 @@ export const DEFAULT_PREPROCESS_OPTIONS: PreprocessOptions = {
     mainRelation: "declares",
 };
 
-export function preprocess(model: DataModel, options: Partial<PreprocessOptions>): HelvegGraph {
+export type PreprocessFunc = (model: DataModel, options?: Partial<PreprocessOptions>) => HelvegGraph;
+
+export function preprocess(model: DataModel, options?: Partial<PreprocessOptions>): HelvegGraph {
     options = { ...DEFAULT_PREPROCESS_OPTIONS, ...options };
     const graph: HelvegGraph = new Graph<HelvegNodeAttributes, HelvegEdgeAttributes, HelvegGraphAttributes>({
         multi: true,
@@ -33,7 +35,7 @@ export function preprocess(model: DataModel, options: Partial<PreprocessOptions>
         node.hasComments = node.commentCount > 0;
 
         graph.addNode(nodeId, {
-            data: node,
+            model: node,
             label: node.name ?? nodeId,
             x: 0,
             y: 0,
@@ -63,8 +65,8 @@ export function preprocess(model: DataModel, options: Partial<PreprocessOptions>
             );
             rootHierarchy.each(node => {
                 const attr = graph.getNodeAttributes(node.data);
-                attr.data["childCount"] = node.children?.length ?? 0;
-                attr.data["descendantCount"] = node.descendants().length;
+                attr.model!["childCount"] = node.children?.length ?? 0;
+                attr.model!["descendantCount"] = node.descendants().length;
             })
         }
     }

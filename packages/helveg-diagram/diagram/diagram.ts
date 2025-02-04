@@ -1,9 +1,10 @@
 import { HelvegEvent } from "../common/event.ts";
 import {
+    EMPTY_GRAPH,
     HelvegEdgeAttributes,
     HelvegGraph,
+    HelvegGraphAttributes,
     HelvegNodeAttributes,
-    MULTIGRAPH_NODE_KEY,
     collapseNode,
     expandNode,
     expandPathsTo,
@@ -45,6 +46,7 @@ import { FALLBACK_INSPECTOR, Inspector } from "../model/inspect.ts";
 import Graph from "../deps/graphology.ts";
 import type { ForceAtlas2Options } from "../layout/forceAtlas2Iterate.ts";
 import { Full } from "../common/full.ts";
+import { preprocess, PreprocessFunc } from "../model/preprocess.ts";
 
 export interface DiagramRefreshOptions {
     selectedRelations?: string[];
@@ -52,11 +54,10 @@ export interface DiagramRefreshOptions {
     expandedDepth?: number;
 }
 
-export type PreprocessFunc = (model: DataModel) => HelvegGraph;
-
 export interface DiagramOptions {
     glyphProgram: GlyphProgramOptions;
     mainRelation: string | null;
+    preprocess: PreprocessFunc;
     logLevel: LogSeverity;
     nodeStylist: NodeStylist;
     relationStylist: RelationStylist;
@@ -98,6 +99,7 @@ export const DEFAULT_CURSOR_OPTIONS: Readonly<CursorOptions> = {
 export const DEFAULT_DIAGRAM_OPTIONS: Readonly<DiagramOptions> = {
     logLevel: LogSeverity.Info,
     mainRelation: null,
+    preprocess: preprocess,
     glyphProgram: DEFAULT_GLYPH_PROGRAM_OPTIONS,
     nodeStylist: fallbackNodeStylist,
     relationStylist: fallbackRelationStylist,
@@ -184,6 +186,7 @@ export class Diagram {
     }
 
     private _model: DataModel = EMPTY_DATA_MODEL;
+    private _modelGraph: HelvegGraph = EMPTY_GRAPH;
     get model(): DataModel {
         return this._model;
     }
@@ -205,13 +208,11 @@ export class Diagram {
                     this._nodeKeyTypes[k] = propTypes.values().next().value ?? "string";
                 }
             });
-            Object.entries(this._model.data.nodes).forEach(
-                ([key, value]) => ((value as any)[MULTIGRAPH_NODE_KEY] = key)
-            );
         }
         this.events.modelChanged.trigger(value);
 
         // NB: Runs without awaiting.
+        this._modelGraph = this.options.preprocess(this._model);
         this.refreshGraph(this._lastRefreshOptions);
         this.refreshSigma();
     }
@@ -810,7 +811,7 @@ export class Diagram {
                     return;
                 }
 
-                this._sigma?.setGraph(new Graph<HelvegNodeAttributes, HelvegEdgeAttributes>());
+                this._sigma?.setGraph(new Graph<HelvegNodeAttributes, HelvegEdgeAttributes, HelvegGraphAttributes>());
                 // NB: Sigma doesn't clear its highlightedNodes correctly
                 ((this._sigma as any)["highlightedNodes"] as Set<string>).clear();
                 reachable.forEach((id) => this._graph!.dropNode(id));
@@ -1044,7 +1045,7 @@ export class Diagram {
         this._logger.debug(`Refreshing the graph to match the '${this._model.name}' model.`);
 
         this._graph = initializeGraph(
-            this._model,
+            this._modelGraph,
             this.mainRelation ?? undefined,
             options.selectedRelations ?? (this.mainRelation ? [this.mainRelation] : []),
             options.selectedKinds,

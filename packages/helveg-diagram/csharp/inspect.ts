@@ -1,5 +1,5 @@
-import { MULTIGRAPH_NODE_KEY } from "../global.ts";
 import { Multigraph } from "../model/data-model.ts";
+import { HelvegGraph, HelvegNodeAttributes } from "../model/graph.ts";
 import { FALLBACK_INSPECTOR, identifier, Inspection, InspectionExpression, InspectionToken, InspectionTokenKind, Inspector, keyword, MISSING_TEXT as MISSING_TEXT, name, fullPath, SPACE, TokenFactory, trivia, type } from "../model/inspect.ts";
 import { CSharpNode, EntityKind, MemberAccessibility, TypeKind } from "./model.ts";
 
@@ -8,7 +8,7 @@ export const CSHARP_INSPECTOR: Inspector = (graph, node) => {
     switch (node.kind) {
         case EntityKind.Solution:
         case EntityKind.Project:
-            result.expression.tokens = fullPath(node.path, InspectionTokenKind.Identifier, "path");
+            result.expression.tokens = fullPath(node.model!.path, InspectionTokenKind.Identifier, "path");
             break;
         case EntityKind.Namespace:
             result.expression = inspectNamespace(graph, node as CSharpNode);
@@ -40,8 +40,8 @@ export const CSHARP_INSPECTOR: Inspector = (graph, node) => {
 };
 
 function walkBackwards(
-    graph: Multigraph,
-    node: CSharpNode,
+    graph: HelvegGraph,
+    node: HelvegNodeAttributes,
     separator: string,
     relation: string,
     stopCondition: (node: CSharpNode) => boolean,
@@ -76,7 +76,7 @@ function walkBackwards(
     return tokens;
 }
 
-function inspectNamespace(graph: Multigraph, node: CSharpNode): InspectionExpression {
+function inspectNamespace(graph: HelvegGraph, node: HelvegNodeAttributes): InspectionExpression {
     if (node.name === "global") {
         return {
             tokens: [keyword("global", "isGlobal"), trivia(" "), keyword("namespace", "kind")]
