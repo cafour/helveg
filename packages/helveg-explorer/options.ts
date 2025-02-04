@@ -33,16 +33,26 @@ export const DEFAULT_TOGGLE_TOOL_OPTIONS: Readonly<ToggleToolOptions> = {
     shouldRunLayout: true,
 }
 
+export interface MoveToolOptions {
+    shouldRunLayout: boolean;
+}
+
+export const DEFAULT_MOVE_TOOL_OPTIONS: Readonly<ToggleToolOptions> = {
+    shouldRunLayout: true,
+}
+
 export interface ToolOptions {
     remove: RemoveOptions;
     showProperties: ShowPropertiesToolOptions;
     toggle: ToggleToolOptions;
+    move: MoveToolOptions;
 }
 
 export const DEFAULT_TOOL_OPTIONS: Readonly<ToolOptions> = {
     remove: DEFAULT_REMOVE_OPTIONS,
     showProperties: DEFAULT_SHOW_PROPERTIES_TOOL_OPTIONS,
     toggle: DEFAULT_TOGGLE_TOOL_OPTIONS,
+    move: DEFAULT_MOVE_TOOL_OPTIONS,
 };
 
 export interface GlyphOptions {

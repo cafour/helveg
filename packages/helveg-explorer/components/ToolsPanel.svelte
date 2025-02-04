@@ -43,4 +43,13 @@
             />
         </label>
     </Subpanel>
+    <Subpanel name="Move" icon={AppIcons.MoveTool}>
+        <label>
+            <input type="checkbox" bind:checked={$toolOptions.move.shouldRunLayout} />
+            ShouldRunLayout
+            <Hint
+                text="Whether to automatically run the continuous layout algorithm when a node is manually moved."
+            />
+        </label>
+    </Subpanel>
 </Panel>
