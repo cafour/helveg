@@ -102,6 +102,8 @@
                 break;
         }
     }
+    
+    $: hasDiffMetadata = Object.values($model.data?.nodes ?? {}).some(n => n.diff !== undefined);
 </script>
 
 <Panel name="Appearance" indent={false} id={AppPanels.Appearance}>
@@ -127,6 +129,7 @@
             />
             ShowLabels
         </label>
+        {#if hasDiffMetadata}
         <label>
             <input
                 type="checkbox"
@@ -134,6 +137,7 @@
             />
             ShowDiffs
         </label>
+        {/if}
         <label>
             <input
                 type="checkbox"
