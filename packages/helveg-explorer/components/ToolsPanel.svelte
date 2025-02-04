@@ -5,6 +5,7 @@
     import type { Writable } from "svelte/store";
     import { getContext } from "svelte";
     import type { ToolOptions } from "../options.ts";
+    import Hint from "./Hint.svelte";
 
     let toolOptions = getContext<Writable<ToolOptions>>("toolOptions");
 </script>
@@ -12,29 +13,27 @@
 <Panel name="Tools" indent={false} id={AppPanels.Tools}>
     <Subpanel name="ShowProperties" icon={AppIcons.ShowPropertiesTool}>
         <label>
-            <input
-                type="checkbox"
-                bind:checked={$toolOptions.showProperties
-                    .shouldHighlightSubtree}
-            />
+            <input type="checkbox" bind:checked={$toolOptions.showProperties.shouldHighlightSubtree} />
             ShouldHighlightSubtree
         </label>
         <label>
-            <input
-                type="checkbox"
-                bind:checked={$toolOptions.showProperties
-                    .shouldHighlightNeighbors}
-            />
+            <input type="checkbox" bind:checked={$toolOptions.showProperties.shouldHighlightNeighbors} />
             ShouldHighlightNeighbors
         </label>
     </Subpanel>
     <Subpanel name="Remove" icon={AppIcons.RemoveTool}>
         <label>
-            <input
-                type="checkbox"
-                bind:checked={$toolOptions.remove.isTransitive}
-            />
+            <input type="checkbox" bind:checked={$toolOptions.remove.isTransitive} />
             IsTransitive
+        </label>
+    </Subpanel>
+    <Subpanel name="Toggle" icon={AppIcons.ToggleTool}>
+        <label>
+            <input type="checkbox" bind:checked={$toolOptions.toggle.shouldRunLayout} />
+            ShouldRunLayout
+            <Hint
+                text="Whether to automatically run the continuous layout algorithm after every node-expanding or node-collapsing operation."
+            />
         </label>
     </Subpanel>
 </Panel>

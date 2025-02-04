@@ -1,3 +1,4 @@
+import { get } from "svelte/store";
 import { AppIcons } from "../const";
 import { ModifierFlags, MouseButton, OperationScope, type GlobalOperation, type NodeOperation } from "./executor";
 
@@ -17,6 +18,10 @@ export const OP_TOGGLE: NodeOperation = {
 
     async beginExecute(state, nodeId) {
         await state.diagram.toggleNode(nodeId);
+
+        if (get(state.toolOptions).toggle.shouldRunLayout) {
+            await state.diagram.runLayout(false);
+        }
     },
 };
 
@@ -32,6 +37,10 @@ export const OP_DIG_IN: GlobalOperation = {
 
     async beginExecute(state) {
         await state.diagram.dig(false);
+
+        if (get(state.toolOptions).toggle.shouldRunLayout) {
+            await state.diagram.runLayout(false);
+        }
     },
 };
 
@@ -47,6 +56,10 @@ export const OP_DIG_OUT: GlobalOperation = {
 
     async beginExecute(state) {
         await state.diagram.dig(true);
+
+        if (get(state.toolOptions).toggle.shouldRunLayout) {
+            await state.diagram.runLayout(false);
+        }
     },
 };
 
@@ -63,6 +76,10 @@ export const OP_EXPAND_ALL: GlobalOperation = {
 
     async beginExecute(state) {
         await state.diagram.toggleAll(true);
+
+        if (get(state.toolOptions).toggle.shouldRunLayout) {
+            await state.diagram.runLayout(false);
+        }
     },
 };
 
@@ -79,5 +96,9 @@ export const OP_COLLAPSE_ALL: GlobalOperation = {
 
     async beginExecute(state) {
         await state.diagram.toggleAll(false);
+
+        if (get(state.toolOptions).toggle.shouldRunLayout) {
+            await state.diagram.runLayout(false);
+        }
     },
 };
