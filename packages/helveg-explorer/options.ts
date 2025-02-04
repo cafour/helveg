@@ -1,4 +1,16 @@
-import { DEFAULT_REMOVE_OPTIONS, type RemoveOptions, type ExportOptions, DEFAULT_EXPORT_OPTIONS, PizzaIcons, DEFAULT_CSHARP_RELATION_COLORS, type ForceAtlas2Options, DEFAULT_FORCE_ATLAS2_OPTIONS, type SizingMode, type NodeColorSchema, UNIVERSAL_NODE_COLOR_SCHEMA } from "./deps/helveg-diagram.ts";
+import {
+    DEFAULT_REMOVE_OPTIONS,
+    type RemoveOptions,
+    type ExportOptions,
+    DEFAULT_EXPORT_OPTIONS,
+    PizzaIcons,
+    DEFAULT_CSHARP_RELATION_COLORS,
+    type ForceAtlas2Options,
+    DEFAULT_FORCE_ATLAS2_OPTIONS,
+    type SizingMode,
+    type NodeColorSchema,
+    UNIVERSAL_NODE_COLOR_SCHEMA,
+} from "./deps/helveg-diagram.ts";
 export { type RemoveOptions, type ExportOptions, DEFAULT_EXPORT_OPTIONS };
 
 export interface ShowPropertiesToolOptions {
@@ -8,7 +20,7 @@ export interface ShowPropertiesToolOptions {
 
 export const DEFAULT_SHOW_PROPERTIES_TOOL_OPTIONS: Readonly<ShowPropertiesToolOptions> = {
     shouldHighlightSubtree: false,
-    shouldHighlightNeighbors: false
+    shouldHighlightNeighbors: false,
 };
 
 export interface ToolOptions {
@@ -18,8 +30,8 @@ export interface ToolOptions {
 
 export const DEFAULT_TOOL_OPTIONS: Readonly<ToolOptions> = {
     remove: DEFAULT_REMOVE_OPTIONS,
-    showProperties: DEFAULT_SHOW_PROPERTIES_TOOL_OPTIONS
-}
+    showProperties: DEFAULT_SHOW_PROPERTIES_TOOL_OPTIONS,
+};
 
 export interface GlyphOptions {
     showIcons: boolean;
@@ -32,7 +44,7 @@ export interface GlyphOptions {
     showCollapsedNodeIndicators: boolean;
     showContours: boolean;
     codePizza: boolean;
-    sizingMode: SizingMode
+    sizingMode: SizingMode;
 }
 
 export const DEFAULT_GLYPH_OPTIONS: GlyphOptions = {
@@ -46,8 +58,8 @@ export const DEFAULT_GLYPH_OPTIONS: GlyphOptions = {
     showCollapsedNodeIndicators: true,
     showContours: true,
     codePizza: false,
-    sizingMode: "linear"
-}
+    sizingMode: "linear",
+};
 
 export interface CodePizzaOptions {
     isEnabled: boolean;
@@ -59,9 +71,8 @@ export interface CodePizzaOptions {
 export const DEFAULT_CODE_PIZZA_OPTIONS: CodePizzaOptions = {
     isEnabled: false,
     crustWidth: 20,
-    sauceWidth: 40
+    sauceWidth: 40,
 };
-
 
 export enum NodeColorSchemaPreset {
     Universal = "Universal",
@@ -69,7 +80,6 @@ export enum NodeColorSchemaPreset {
     VS = "VS",
     Custom = "Custom",
 }
-
 
 export interface AppearanceOptions {
     glyph: GlyphOptions;
@@ -92,8 +102,8 @@ export interface TidyTreeOptions {
 }
 
 export const DEFAULT_TIDY_TREE_OPTIONS: Readonly<TidyTreeOptions> = {
-    relation: null
-}
+    relation: null,
+};
 
 export interface LayoutOptions {
     forceAtlas2: ForceAtlas2Options;
@@ -102,7 +112,7 @@ export interface LayoutOptions {
 
 export const DEFAULT_LAYOUT_OPTIONS: Readonly<LayoutOptions> = {
     forceAtlas2: DEFAULT_FORCE_ATLAS2_OPTIONS,
-    tidyTree: DEFAULT_TIDY_TREE_OPTIONS
+    tidyTree: DEFAULT_TIDY_TREE_OPTIONS,
 };
 
 export interface DataOptions {
@@ -114,7 +124,7 @@ export interface DataOptions {
 export const DEFAULT_DATA_OPTIONS: Readonly<DataOptions> = {
     selectedRelations: [],
     selectedKinds: [],
-}
+};
 
 export interface ExplorerOptions {
     layout: LayoutOptions;
@@ -129,9 +139,8 @@ export const DEFAULT_HELVEG_OPTIONS: Readonly<ExplorerOptions> = {
     data: DEFAULT_DATA_OPTIONS,
     appearance: DEFAULT_APPEARANCE_OPTIONS,
     export: DEFAULT_EXPORT_OPTIONS,
-    tool: DEFAULT_TOOL_OPTIONS
+    tool: DEFAULT_TOOL_OPTIONS,
 };
-
 
 export const STORAGE_KEY_PREFIX = "helveg.options.";
 
