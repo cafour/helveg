@@ -52,6 +52,8 @@ export interface DiagramRefreshOptions {
     expandedDepth?: number;
 }
 
+export type PreprocessFunc = (model: DataModel) => HelvegGraph;
+
 export interface DiagramOptions {
     glyphProgram: GlyphProgramOptions;
     mainRelation: string | null;

@@ -2,10 +2,11 @@ import { hierarchy, HierarchyNode } from "../deps/d3-hierarchy.ts";
 import { Attributes, EdgeEntry, GraphEvents } from "../deps/graphology.ts";
 import Graph from "../deps/graphology.ts";
 import { NodeDisplayData, EdgeDisplayData } from "../deps/sigma.ts";
-import { Multigraph, MultigraphNodeDiffStatus } from "./data-model.ts";
+import { Multigraph, MultigraphNode, MultigraphNodeDiffStatus } from "./data-model.ts";
 import { Outlines, FireStatus, Slices, Contour } from "./style.ts";
 
 export interface HelvegNodeAttributes extends Partial<NodeDisplayData>, Attributes {
+    data: MultigraphNode;
     style?: string;
     kind?: string;
     icon?: string;
@@ -20,6 +21,7 @@ export interface HelvegNodeAttributes extends Partial<NodeDisplayData>, Attribut
     inInitialPosition?: boolean;
     backgroundColor?: string;
     childCount?: number;
+    descendantCount?: number;
     contour?: Contour;
 }
 
@@ -28,7 +30,11 @@ export interface HelvegEdgeAttributes extends Partial<EdgeDisplayData>, Attribut
     style?: string;
 }
 
-export type HelvegGraph = Graph<HelvegNodeAttributes, HelvegEdgeAttributes>;
+export interface HelvegGraphAttributes extends Attributes {
+    roots?: Set<string>;
+}
+
+export type HelvegGraph = Graph<HelvegNodeAttributes, HelvegEdgeAttributes, HelvegGraphAttributes>;
 
 export function findRoots(graph: Graph, relation?: string) {
     let roots = new Set<string>();

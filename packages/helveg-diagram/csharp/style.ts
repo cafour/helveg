@@ -65,7 +65,7 @@ export enum VSColor {
     DarkYellow = "#996f00",
     Blue = "#005dba",
     NuGetBlue = "#004880",
-    Green = "#1f801f"
+    Green = "#1f801f",
 }
 
 export const DEFAULT_CSHARP_RELATION_COLORS: Record<string, string> = {
@@ -79,16 +79,13 @@ export const DEFAULT_CSHARP_RELATION_COLORS: Record<string, string> = {
     [Relations.TypeOf]: DefaultRelationColors.TypeOf,
 };
 
-export function createCsharpRelationStylist(
-    colors: Record<string, string>,
-): RelationStylist {
+export function createCsharpRelationStylist(colors: Record<string, string>): RelationStylist {
     return (r) => {
         return { ...FALLBACK_EDGE_STYLE, ...resolveRelationStyle(r, colors) };
     };
 }
 
-export const csharpRelationStylist: RelationStylist =
-    createCsharpRelationStylist(DEFAULT_CSHARP_RELATION_COLORS);
+export const csharpRelationStylist: RelationStylist = createCsharpRelationStylist(DEFAULT_CSHARP_RELATION_COLORS);
 
 export const UNIVERSAL_NODE_COLOR_SCHEMA: Readonly<NodeColorSchema> = {
     entities: {
@@ -98,7 +95,7 @@ export const UNIVERSAL_NODE_COLOR_SCHEMA: Readonly<NodeColorSchema> = {
         },
         [EntityKind.Project]: {
             foreground: Palette.Red300,
-            background: chroma(Palette.Red300).brighten(2).desaturate(2).hex()
+            background: chroma(Palette.Red300).brighten(2).desaturate(2).hex(),
         },
         [EntityKind.ExternalDependencySource]: {
             foreground: Palette.Gray600,
@@ -194,7 +191,7 @@ export const TYPE_FOCUS_COLOR_SCHEMA: Readonly<NodeColorSchema> = {
         },
         [EntityKind.Project]: {
             foreground: chroma(Palette.Red300).brighten(1).desaturate(2).hex(),
-            background: chroma(Palette.Red300).brighten(3).desaturate(2).hex()
+            background: chroma(Palette.Red300).brighten(3).desaturate(2).hex(),
         },
         [EntityKind.Field]: {
             foreground: Palette.Gray500,
@@ -238,8 +235,8 @@ export const TYPE_FOCUS_COLOR_SCHEMA: Readonly<NodeColorSchema> = {
             foreground: chroma(Palette.Purple100).darken(0.5).hex(),
             background: chroma(Palette.Purple100).brighten(1.5).desaturate(1).hex(),
         },
-    }
-}
+    },
+};
 
 export const VS_NODE_COLOR_SCHEMA: Readonly<NodeColorSchema> = {
     entities: {
@@ -249,7 +246,7 @@ export const VS_NODE_COLOR_SCHEMA: Readonly<NodeColorSchema> = {
         },
         [EntityKind.Project]: {
             foreground: VSColor.DarkGray,
-            background: chroma(VSColor.DarkGray).brighten(4).desaturate(1).hex()
+            background: chroma(VSColor.DarkGray).brighten(4).desaturate(1).hex(),
         },
         [EntityKind.ExternalDependencySource]: {
             foreground: VSColor.DarkGray,
@@ -341,7 +338,7 @@ export function createCsharpNodeStylist(colorSchema: NodeColorSchema) {
         return {
             ...FALLBACK_NODE_STYLE,
             ...resolveNodeStyle(colorSchema, node as Partial<CSharpNode>),
-        }
+        };
     };
 }
 
@@ -458,17 +455,9 @@ function resolveNodeStyle(colorSchema: NodeColorSchema, node: Partial<CSharpNode
         style.backgroundColor = colorSchema.entities[node.kind].background;
     }
 
-    const hasErrors = (node.diagnostics ?? [])
-        ?.filter((d) => d.severity === "error")
-        .length > 0;
-    const hasWarnings = (node.diagnostics ?? [])
-        ?.filter((d) => d.severity === "warning")
-        .length > 0;
-    style.fire = hasErrors
-        ? FireStatus.Flame
-        : hasWarnings
-            ? FireStatus.Smoke
-            : FireStatus.None;
+    const hasErrors = (node.diagnostics ?? [])?.filter((d) => d.severity === "error").length > 0;
+    const hasWarnings = (node.diagnostics ?? [])?.filter((d) => d.severity === "warning").length > 0;
+    style.fire = hasErrors ? FireStatus.Flame : hasWarnings ? FireStatus.Smoke : FireStatus.None;
 
     switch (node.kind) {
         case EntityKind.Type:
@@ -500,9 +489,7 @@ function resolveNodeStyle(colorSchema: NodeColorSchema, node: Partial<CSharpNode
             const staticMemberCount = node.staticMemberCount ?? 0;
             style.outlines = [
                 {
-                    style: node.isStatic
-                        ? OutlineStyle.Dashed
-                        : OutlineStyle.Solid,
+                    style: node.isStatic ? OutlineStyle.Dashed : OutlineStyle.Solid,
                     width: 2,
                 },
                 { style: OutlineStyle.Solid, width: instanceMemberCount },
@@ -518,10 +505,12 @@ function resolveNodeStyle(colorSchema: NodeColorSchema, node: Partial<CSharpNode
             style.size = node.declaringKind === EntityKind.Method ? 5 : 10;
             break;
         case EntityKind.Field:
-            style.outlines = [{
-                style: node.isStatic ? OutlineStyle.Dashed : OutlineStyle.Solid,
-                width: 2,
-            }];
+            style.outlines = [
+                {
+                    style: node.isStatic ? OutlineStyle.Dashed : OutlineStyle.Solid,
+                    width: 2,
+                },
+            ];
             if (node.isEnumItem) {
                 style.icon = "helveg:EnumItem";
             } else if (node.isConst) {
@@ -529,9 +518,7 @@ function resolveNodeStyle(colorSchema: NodeColorSchema, node: Partial<CSharpNode
             }
             break;
         case EntityKind.Method:
-            if (node.methodKind === MethodKind.BuiltinOperator ||
-                node.methodKind === MethodKind.UserDefinedOperator
-            ) {
+            if (node.methodKind === MethodKind.BuiltinOperator || node.methodKind === MethodKind.UserDefinedOperator) {
                 style.icon = "helveg:Operator";
             } else if (node.methodKind === MethodKind.Constructor) {
                 style.icon = "helveg:Constructor";
@@ -539,51 +526,55 @@ function resolveNodeStyle(colorSchema: NodeColorSchema, node: Partial<CSharpNode
                 style.icon = "helveg:Destructor";
             }
 
-            style.outlines = [{
-                style: node.isStatic ? OutlineStyle.Dashed : OutlineStyle.Solid,
-                width: 2,
-            }];
+            style.outlines = [
+                {
+                    style: node.isStatic ? OutlineStyle.Dashed : OutlineStyle.Solid,
+                    width: 2,
+                },
+            ];
             break;
         case EntityKind.Property:
             if (node.isIndexer) {
                 style.icon = "helveg:Indexer";
             }
 
-            style.outlines = [{
-                style: node.isStatic ? OutlineStyle.Dashed : OutlineStyle.Solid,
-                width: 2,
-            }];
+            style.outlines = [
+                {
+                    style: node.isStatic ? OutlineStyle.Dashed : OutlineStyle.Solid,
+                    width: 2,
+                },
+            ];
             break;
         case EntityKind.Event:
-            style.outlines = [{
-                style: node.isStatic ? OutlineStyle.Dashed : OutlineStyle.Solid,
-                width: 2,
-            }];
+            style.outlines = [
+                {
+                    style: node.isStatic ? OutlineStyle.Dashed : OutlineStyle.Solid,
+                    width: 2,
+                },
+            ];
             break;
     }
 
     if (
-        node.isStatic && (
-            node.typeKind === "Class" ||
+        node.isStatic &&
+        (node.typeKind === "Class" ||
             node.typeKind === "Struct" ||
             (node.kind === "Field" && !node.isConst) ||
             node.kind === "Property" ||
             node.kind === "Event" ||
-            node.kind === "Method"
-        )
+            node.kind === "Method")
     ) {
         style.icon += "Static";
     }
 
-    if (node.isSealed
-        && (node.typeKind === TypeKind.Class || node.kind === EntityKind.Method || node.kind === EntityKind.Property)
+    if (
+        node.isSealed &&
+        (node.typeKind === TypeKind.Class || node.kind === EntityKind.Method || node.kind === EntityKind.Property)
     ) {
         style.contour = Contour.FullOctagon;
     }
 
-    if (node.isAbstract
-        && (node.typeKind === TypeKind.Class || node.kind !== EntityKind.Type)
-    ) {
+    if (node.isAbstract && (node.typeKind === TypeKind.Class || node.kind !== EntityKind.Type)) {
         style.contour = Contour.DashedHexagon;
     }
 
@@ -603,10 +594,7 @@ function resolveNodeStyle(colorSchema: NodeColorSchema, node: Partial<CSharpNode
     return style;
 }
 
-function resolveRelationStyle(
-    relation: string,
-    colors?: Record<string, string>,
-): EdgeStyle {
+function resolveRelationStyle(relation: string, colors?: Record<string, string>): EdgeStyle {
     colors = { ...DEFAULT_CSHARP_RELATION_COLORS, ...colors };
     switch (relation) {
         case Relations.Declares:
