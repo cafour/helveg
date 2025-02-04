@@ -112,3 +112,11 @@ a.button-icon {
         }
     }
 }
+
+input[type=checkbox] {
+    border-radius: 0%;
+    
+    &:focus {
+        outline: 2px solid var(--color-primary-900);
+    }
+}
