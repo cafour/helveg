@@ -2,6 +2,7 @@
     import { getContext } from "svelte";
 
     export let text: string;
+    export let header: string | undefined = undefined;
     export let target: HTMLElement | null;
     export let delay: number = 0;
 
@@ -12,9 +13,14 @@
     tooltip.classList.add("tooltip");
     const rootElement = getContext<HTMLElement>("rootElement");
     rootElement.appendChild(tooltip);
-
-    $: if (tooltip) {
-        tooltip.innerText = text;
+    const headerElement = tooltip.appendChild(document.createElement("strong"));
+    headerElement.style.display = "none";
+    const paragraphElement = tooltip.appendChild(document.createElement("p"));
+    $: paragraphElement.innerText = text;
+    
+    $: if (header != null) {
+        headerElement.innerText = header;
+        headerElement.style.display = "inline";
     }
 
     $: {
@@ -55,7 +61,7 @@
     function show() {
         const rect = target!.getBoundingClientRect();
 
-        tooltip.style.left = rect.x - tooltip.clientWidth / 2 + "px";
+        tooltip.style.left = rect.x + rect.width / 2 - tooltip.clientWidth / 2 + "px";
 
         if (tooltip.clientHeight > rect.y) {
             tooltip.classList.add("arrow-top");

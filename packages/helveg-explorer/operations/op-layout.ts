@@ -1,5 +1,5 @@
 import { DiagramStatus } from "@cafour/helveg-diagram";
-import { OperationScope, type GlobalOperation } from "./executor";
+import { ModifierFlags, OperationScope, type GlobalOperation } from "./executor";
 
 export const OP_LAYOUT: GlobalOperation = {
     id: "layout",
@@ -8,7 +8,7 @@ export const OP_LAYOUT: GlobalOperation = {
     hint: "Runs or stop a continuous layout algorithm.",
     icon: "vscode:play",
     shortcut: {
-        key: " "
+        key: " ",
     },
     async beginExecute(state) {
         if (state.diagram.status === DiagramStatus.Stopped) {
@@ -16,5 +16,34 @@ export const OP_LAYOUT: GlobalOperation = {
         } else {
             await state.diagram.stopLayout();
         }
-    }
-}
+    },
+};
+
+export const OP_REFRESH: GlobalOperation = {
+    id: "refresh",
+    name: "Refresh",
+    scopes: OperationScope.GLOBAL,
+    hint: "Rebuild the graph and re-runs the automatic layout.",
+    icon: "vscode:refresh",
+    shortcut: {
+        key: "t",
+        modifiers: ModifierFlags.CONTROL,
+    },
+    async beginExecute(state) {
+        await state.diagram.refresh();
+    },
+};
+
+export const OP_AUTOLAYOUT: GlobalOperation = {
+    id: "autolayout",
+    name: "AutoLayout",
+    scopes: OperationScope.GLOBAL,
+    hint: "AutoLayout the current graph.",
+    icon: "vscode:play-circle",
+    shortcut: {
+        key: "t",
+    },
+    async beginExecute(state) {
+        await state.diagram.autoLayout();
+    },
+};

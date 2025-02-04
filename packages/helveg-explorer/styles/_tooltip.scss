@@ -12,6 +12,10 @@
     visibility: hidden;
     max-width: 20rem;
     z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    justify-content: flex-start;
 
     &.visible {
         visibility: visible;
@@ -34,6 +38,7 @@
             border-width: 0 calc(0.5 * var(--arrow-size)) var(--arrow-size) calc(0.5 * var(--arrow-size));
             border-color: transparent transparent var(--arrow-color) transparent;
             top: calc(-1 * var(--tooltip-padding) - 0.5 * 1rem);
+            left: calc(50% - 0.5rem);
         }
     }
 
@@ -45,6 +50,7 @@
             border-width: var(--arrow-size) calc(0.5 * var(--arrow-size)) 0 calc(0.5 * var(--arrow-size));
             border-color: var(--arrow-color) transparent transparent transparent;
             top: 100%;
+            left: calc(50% - 0.5rem);
         }
     }
 }
