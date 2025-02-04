@@ -52,9 +52,9 @@ public record Config(
     {
         Arity = ArgumentArity.ExactlyOne
     };
-    
+
     public static readonly Option<FileSystemInfo?> CompareToOpt = new(
-        aliases: new[] {"--compare-to"},
+        aliases: new[] { "--compare-to" },
         description: "The target project or solution for comparison."
     );
 
@@ -106,17 +106,17 @@ public record Config(
         aliases: new[] { "-f", "--force" },
         description: "Overwrite previous results."
     );
-    
+
     public static readonly Option<int?> InitialDepthOpt = new(
         aliases: new[] { "--initial-depth" },
         description: "Initial expanded depth of the diagram."
     );
-    
+
     public static readonly Option<List<string>?> InitialRelationsOpt = new(
         aliases: new[] { "--initial-relation" },
         description: "Initial selected relations of the diagram."
     );
-    
+
     public static readonly Option<List<string>?> InitialKindsOpt = new(
         aliases: new[] { "--initial-kind" },
         description: "Initial selected kinds of the diagram."
@@ -161,7 +161,13 @@ public record Config(
             BuildProperties: ImmutableDictionary<string, string>.Empty,
             Force: false,
             InitialDepth: 1,
-            InitialRelations: ImmutableArray.Create(CSRelations.Declares),
+            InitialRelations: [
+                CSRelations.Declares,
+                CSRelations.TypeOf,
+                CSRelations.Returns,
+                CSRelations.DependsOn,
+                CSRelations.InheritsFrom
+            ],
             InitialKinds: initialKinds
         );
 
@@ -178,7 +184,13 @@ public record Config(
             BuildProperties: ImmutableDictionary<string, string>.Empty,
             Force: false,
             InitialDepth: 1,
-            InitialRelations: ImmutableArray.Create(CSRelations.Declares),
+            InitialRelations: [
+                CSRelations.Declares,
+                CSRelations.TypeOf,
+                CSRelations.Returns,
+                CSRelations.DependsOn,
+                CSRelations.InheritsFrom
+            ],
             InitialKinds: initialKinds
         );
     }
@@ -204,10 +216,10 @@ public record Config(
                 ConfigPreset.Docs => Docs,
                 _ => throw new NotSupportedException($"Preset '{preset}' is not supported.")
             };
-            
+
             var initialRelations = Value(InitialRelationsOpt);
             var initialKinds = Value(InitialKindsOpt);
-            
+
             config = config with
             {
                 Source = Value(SourceArg),
