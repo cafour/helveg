@@ -176,5 +176,4 @@ This software has many dependencies. You do not need to install these explicitly
 
 * The source code is licensed under the [BSD 3-Clause License](./LICENSE).
 * Icons in `./packages/helveg-diagram/icons/vscode` are from the [`vscode-codicons` repository](https://github.com/microsoft/vscode-codicons), were created by Microsoft, and are licensed under the [Creative Commons Attribution 4.0 International Public License](https://creativecommons.org/licenses/by/4.0/legalcode).
-* The NuGet icon in `./packages/helveg-diagram/icons/nuget/NuGet.svg` is licensed under the [CC-BY License](https://creativecommons.org/licenses/by/2.0/). Also see https://github.com/NuGet/Media.
 * The ingredients used in the _CodePizza_ feature are based on a number of royalty-free images. A complete list can be found in [~/docs/codepizza.md](./codepizza.md).
