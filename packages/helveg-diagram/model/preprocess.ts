@@ -22,6 +22,8 @@ export function preprocess(model: DataModel, options?: Partial<PreprocessOptions
         type: "directed",
     });
 
+    graph.setAttribute("model", model);
+
     if (!model.data) {
         return graph;
     }

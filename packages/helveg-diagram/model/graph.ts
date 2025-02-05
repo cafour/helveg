@@ -347,6 +347,10 @@ export function dropNode(graph: HelvegGraph, node: string) {
             }
 
             const edgeKey = `${iea.relation};${is};${ot}`;
+            if (graph.hasEdge(edgeKey)) {
+                return;
+            }
+
             if (undirected) {
                 graph.addUndirectedEdgeWithKey(edgeKey, is, ot, {
                     relation: iea.relation,

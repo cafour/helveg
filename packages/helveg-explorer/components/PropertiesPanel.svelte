@@ -11,11 +11,17 @@
     import * as marked from "../deps/marked.ts";
     import dompurify from "../deps/dompurify.ts";
     import NodeInspector from "./NodeInspector.svelte";
+    import type { IExplorerState } from "../explorer-state.ts";
+    import { getContext } from "svelte";
 
-    export let node: MultigraphNode | null = null;
+    const state = getContext<IExplorerState>("state");
+    
+    export let node: string | null = null;
+    $: nodeAttr = state.diagram.graph?.getNodeAttributes(node);
+    $: nodeModel = nodeAttr?.model;
     $: nodeItems =
         [
-            ...Object.entries(node ?? {}).filter(
+            ...Object.entries(nodeModel ?? {}).filter(
                 ([k, v]) =>
                     k !== "diagnostics" &&
                     k !== "comments" &&
@@ -27,8 +33,8 @@
                 value: p[1],
             }))
             .sort((a, b) => a.key.localeCompare(b.key)) ?? [];
-    $: diagnostics = node?.diagnostics ?? [];
-    $: comments = node?.comments ?? [];
+    $: diagnostics = nodeModel?.diagnostics ?? [];
+    $: comments = nodeModel?.comments ?? [];
 
     function getDiagnosticIcon(diagnostic: MultigraphDiagnostic) {
         switch (diagnostic.severity) {
@@ -61,7 +67,7 @@
 <Panel name="Properties" indent={false} id={AppPanels.Properties}>
     <!-- NB: The inspector is not in the `if` below because of performance. There is a `canvas` in the inspector. -->
     <Subpanel class={node == null ? "hidden" : undefined}>
-        <NodeInspector {node} />
+        <NodeInspector node={nodeAttr} />
     </Subpanel>
     {#if node == null}
         <span class="indent"

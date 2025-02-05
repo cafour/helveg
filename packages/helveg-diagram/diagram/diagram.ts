@@ -19,13 +19,7 @@ import { LogSeverity, ILogger, consoleLogger } from "../model/logger.ts";
 import { ForceAtlas2Progress, ForceAtlas2Supervisor } from "../layout/forceAltas2Supervisor.ts";
 import { wheelOfFortune } from "../layout/circular.ts";
 import tidyTree from "../layout/tidyTree.ts";
-import {
-    configureSigma,
-    initializeGraph,
-    initializeSigma,
-    initializeSupervisor,
-    styleGraph,
-} from "./initializers.ts";
+import { configureSigma, initializeGraph, initializeSigma, initializeSupervisor, styleGraph } from "./initializers.ts";
 import { DEFAULT_GLYPH_PROGRAM_OPTIONS, GlyphProgramOptions, createGlyphProgram } from "../rendering/node.glyph.ts";
 import { DEFAULT_EXPORT_OPTIONS, ExportOptions, exportDiagram } from "../rendering/export.ts";
 import { IFilterBuilderEntry, SearchMode, buildNodeFilter, filterNodes } from "../model/filter.ts";
@@ -185,8 +179,12 @@ export class Diagram {
         return this._options;
     }
 
-    private _model: DataModel = EMPTY_DATA_MODEL;
     private _modelGraph: HelvegGraph = EMPTY_GRAPH;
+    get modelGraph(): Readonly<HelvegGraph> {
+        return this._modelGraph;
+    }
+
+    private _model: DataModel = EMPTY_DATA_MODEL;
     get model(): DataModel {
         return this._model;
     }

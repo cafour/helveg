@@ -17,12 +17,14 @@ export interface ShowPropertiesToolOptions {
     shouldHighlightSubtree: boolean;
     shouldHighlightNeighbors: boolean;
     shouldFixateSelectedNode: boolean;
+    shouldFocusPropertiesPanel: boolean;
 }
 
 export const DEFAULT_SHOW_PROPERTIES_TOOL_OPTIONS: Readonly<ShowPropertiesToolOptions> = {
     shouldHighlightSubtree: false,
     shouldHighlightNeighbors: false,
     shouldFixateSelectedNode: true,
+    shouldFocusPropertiesPanel: true,
 };
 
 export interface ToggleToolOptions {

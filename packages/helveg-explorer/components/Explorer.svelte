@@ -41,39 +41,22 @@
     setContext("appearanceOptions", state.appearanceOptions);
     setContext("exportOptions", state.exportOptions);
     setContext("toolOptions", state.toolOptions);
-    const { status, stats, selectedTool, selectedNode, dataOptions } = state;
+    const { status, stats, selectedNode, dataOptions } = state;
 
     let dock: Dock;
-    let propertiesPanel: PropertiesPanel;
     let searchResults: string[];
 
     selectedNode.subscribe(async (nodeId) => {
-        if (!propertiesPanel || !dock) {
-            return;
-        }
-
-        if (nodeId === null) {
-            propertiesPanel.$set({
-                node: null,
-            });
-            await diagram.highlightNode(null, false, false);
-            return;
-        }
-
-        switch ($selectedTool) {
-            case AppTools.ShowProperties:
-                propertiesPanel.$set({
-                    node: diagram.model.data?.nodes[nodeId] ?? null,
-                });
-                dock.setTab(AppPanels.Properties);
-                await diagram.highlightNode(
-                    nodeId,
-                    get(state.toolOptions).showProperties
-                        .shouldHighlightSubtree,
-                    get(state.toolOptions).showProperties
-                        .shouldHighlightNeighbors,
-                );
-                break;
+        dock.setTab(AppPanels.Properties);
+        const toolOptions = get(state.toolOptions);
+        if (toolOptions.showProperties.shouldFocusPropertiesPanel) {
+            await diagram.highlightNode(
+                nodeId,
+                get(state.toolOptions).showProperties
+                    .shouldHighlightSubtree,
+                get(state.toolOptions).showProperties
+                    .shouldHighlightNeighbors,
+            );
         }
     });
 
@@ -90,7 +73,6 @@
     <TreeView
         class="z-2"
         bind:selectedNode={$selectedNode}
-        on:nodeClicked={() => ($selectedTool = AppTools.ShowProperties)}
     />
 
     <!-- <ToolBox bind:selectedTool={$selectedTool} class="z-1" /> -->
@@ -122,7 +104,6 @@
                         e.detail.filterBuilder,
                     )}
                 on:selected={(e) => {
-                    $selectedTool = AppTools.ShowProperties;
                     diagram.selectedNode = e.detail;
                 }}
                 results={searchResults}
@@ -158,7 +139,7 @@
             value={AppPanels.Properties}
             icon={AppIcons.PropertiesPanel}
         >
-            <PropertiesPanel bind:this={propertiesPanel} />
+            <PropertiesPanel bind:node={$selectedNode} />
         </Tab>
         <Tab
             name="Document"

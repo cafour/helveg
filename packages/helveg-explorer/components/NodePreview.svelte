@@ -3,17 +3,14 @@
     import {
         type AbstractNodeProgram,
         Diagram,
-        Logger,
         type HelvegNodeAttributes,
-        type MultigraphNode,
     } from "../deps/helveg-diagram.ts";
     import {
-        toHelvegNodeAttributes,
         createDonutProgram,
         type NodeDisplayData,
     } from "../deps/helveg-diagram.ts";
 
-    export let node: MultigraphNode | null;
+    export let node: HelvegNodeAttributes | undefined = undefined;
     $: renderNode(node);
 
     let canvas: HTMLCanvasElement;
@@ -47,7 +44,7 @@
         program.reallocate(1);
     });
 
-    function renderNode(node: MultigraphNode | null) {
+    function renderNode(node?: HelvegNodeAttributes) {
         if (!gl || gl.drawingBufferWidth <= 1 || gl.drawingBufferHeight <= 1) {
             return;
         }
@@ -59,6 +56,7 @@
         }
 
         const nodeData: HelvegNodeAttributes & NodeDisplayData = {
+            ...node,
             x: 0,
             y: 0,
             label: null,
@@ -68,10 +66,6 @@
             forceLabel: false,
             type: "<invalid>",
             zIndex: 0,
-            ...toHelvegNodeAttributes(
-                diagram.glyphProgramOptions,
-                diagram.nodeStylist(node),
-            ),
             highlighted: true,
         };
         program.process(0, 0, nodeData);
