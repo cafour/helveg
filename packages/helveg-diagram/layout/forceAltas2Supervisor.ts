@@ -376,7 +376,7 @@ function assignLayoutChanges(
             return attr;
         }
 
-        if (!attr.fixed) {
+        if (attr.fixed !== true) {
             attr.x = nodeMatrix[i];
             attr.y = nodeMatrix[i + 1];
         } else if (isFixedVolatile) {

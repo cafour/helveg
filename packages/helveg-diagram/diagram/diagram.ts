@@ -266,21 +266,14 @@ export class Diagram {
         return this._selectedNode;
     }
     set selectedNode(value: string | null) {
-        let shouldRefreshLayout = false;
         if (this.shouldFixateSelectedNode && this._selectedNode != null) {
             this._graph?.setNodeAttribute(this._selectedNode, "fixed", false);
-            shouldRefreshLayout = true;
         }
 
         this._selectedNode = value;
 
         if (this.shouldFixateSelectedNode && this._selectedNode != null) {
             this._graph?.setNodeAttribute(this._selectedNode, "fixed", true);
-            shouldRefreshLayout = true;
-        }
-
-        if (shouldRefreshLayout) {
-            this.refreshSupervisor(true);
         }
 
         this.events.nodeSelected.trigger(value);
@@ -788,7 +781,7 @@ export class Diagram {
 
     async remove(nodeId: string, options?: RemoveOptions): Promise<void> {
         options = { ...DEFAULT_REMOVE_OPTIONS, ...options };
-
+        
         if (!this._graph) {
             this._logger.warn("Cannot remove nodes since the graph is not initialized.");
             return;
@@ -797,6 +790,10 @@ export class Diagram {
         if (!this._graph.hasNode(nodeId)) {
             throw new Error(`Cannot remove node '${nodeId}' since it does not exist in the graph.`);
         }
+        
+        // NB: pre-emptively unset selected node so that Sigma cannot complain that you deleted it
+        //     TODO: Handle better.
+        this.selectedNode = null;
 
         let removedCount = 0;
         if (!options.isTransitive && !this._graph.getNodeAttributes(nodeId).collapsed) {
