@@ -54,7 +54,7 @@
             class="button-stretch primary mb-8 flex flex-row gap-4 align-items-center justify-content-center"
         >
             <Icon name="vscode:refresh" />
-            Run Layout
+            Refresh
         </button>
         <label>
             <div class="flex flex-row gap-8">

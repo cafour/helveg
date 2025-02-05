@@ -580,13 +580,14 @@ export class Diagram {
         });
 
         // adjust phase: weak gravity, adjust sizes
-        const adjustIterationCount = Math.max(300, Math.sqrt(visibleNodeCount) * options.adjustIterationFactor);
+        const adjustIterationCount = Math.max(600, Math.sqrt(visibleNodeCount) * options.adjustIterationFactor);
         this.logger?.debug(`AutoLayout: Running ${Math.floor(adjustIterationCount)} adjust iterations.`);
         await this.runLayout(true, adjustIterationCount, {
             adjustSizes: true,
             strongGravityMode: false,
             barnesHutOptimize: false,
             slowDown: 2,
+            autoStopAverageTraction: 2
         });
     }
 

@@ -27,6 +27,13 @@
                 text="Whether to keep the currently inspected node in place -- let it be ignored by the layout algorithm."
             />
         </label>
+        <label>
+            <input type="checkbox" bind:checked={$toolOptions.showProperties.shouldFocusPropertiesPanel} />
+            ShouldFocusPropertiesPanel
+            <Hint
+                text="Whether to open the Properties panel when you select a node."
+            />
+        </label>
     </Subpanel>
     <Subpanel name="Remove" icon={AppIcons.RemoveTool}>
         <label>
