@@ -113,7 +113,7 @@
                         class:selected={node.id == diagram.selectedNode}
                         on:click={() => dispatch("selected", node.id)}
                     >
-                        <NodeIcon node={node} />
+                        <NodeIcon node={node.id} />
                         <span>{node.name}</span>
                     </div>
                 {/each}
