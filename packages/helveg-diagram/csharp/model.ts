@@ -204,6 +204,8 @@ export interface CSharpNode extends MultigraphNode {
     warningCount?: number;
     hasComments?: boolean;
     commentCount?: number;
+    descendantCount?: number;
+    treeHeight?: number;
 }
 
 export const DEFAULT_CSHARP_PIZZA_TOPPINGS: Record<keyof typeof IconableEntities, PizzaIcons> = {

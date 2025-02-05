@@ -78,6 +78,7 @@ export function preprocess(model: DataModel, options?: Partial<PreprocessOptions
                 const attr = graph.getNodeAttributes(node.data);
                 attr.model!["childCount"] = node.children?.length ?? 0;
                 attr.model!["descendantCount"] = node.descendants().length;
+                attr.model!["treeHeight"] = node.height;
             })
         }
     }

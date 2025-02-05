@@ -13,7 +13,20 @@
 
     function getNodeKindStyle(kind: string): NodeStyle {
         const style = diagram.nodeStylist({
-            kind: kind,
+            id: "<invalid>",
+            x: 0,
+            y: 0,
+            highlighted: false,
+            hidden: false,
+            label: "<invalid>",
+            size: 1,
+            color: "#000000",
+            forceLabel: false,
+            zIndex: 0,
+            type: "glyph",
+            model: {
+                kind: kind
+            }
         });
         return { ...FALLBACK_NODE_STYLE, ...style };
     }

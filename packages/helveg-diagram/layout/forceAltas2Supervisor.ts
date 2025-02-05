@@ -4,15 +4,24 @@ import { createEdgeWeightGetter } from "../deps/graphology-utils.ts";
 import Graph, { Attributes, EdgeMapper } from "../deps/graphology.ts";
 import { HelvegGraph } from "../global.ts";
 import { ILogger } from "../model/logger.ts";
-import { MessageKind, StartMessage, Message, UpdateMessage, ProgressMessage, StopMessage, StopReason } from "./forceAtlas2Messages.ts";
+import {
+    MessageKind,
+    StartMessage,
+    Message,
+    UpdateMessage,
+    ProgressMessage,
+    StopMessage,
+    StopReason,
+} from "./forceAtlas2Messages.ts";
 import forceAtlas2WorkerCode from "inline-bundle:./forceAtlas2Worker.ts";
 
 type GraphMatrices = {
     // NB: the counts variables are here because the matrices might currently be owned by the worker
     nodeCount: number;
     nodes: Float32Array;
+    nodeIds: string[];
     edgeCount: number;
-    edges: Float32Array
+    edges: Float32Array;
 };
 
 export interface ForceAtlas2Progress {
@@ -34,9 +43,14 @@ export class ForceAtlas2Supervisor {
     private _matrices: GraphMatrices = {
         nodeCount: 0,
         nodes: new Float32Array(0),
+        nodeIds: [],
         edgeCount: 0,
         edges: new Float32Array(0),
     };
+
+    get nodeIds(): Readonly<string[]> {
+        return this._matrices.nodeIds;
+    }
 
     constructor(private graph: HelvegGraph, private settings: ForceAtlas2Settings, private logger?: ILogger) {
         this.graph.on("nodeAdded", this.handleGraphChange);
@@ -227,7 +241,7 @@ export class ForceAtlas2Supervisor {
                     globalSwinging: progressMessage.metadata.globalSwinging,
                     globalTraction: progressMessage.metadata.globalTraction,
                     averageSwinging: progressMessage.metadata.globalSwinging / this._matrices.nodeCount,
-                    averageTraction: progressMessage.metadata.globalTraction / this._matrices.nodeCount
+                    averageTraction: progressMessage.metadata.globalTraction / this._matrices.nodeCount,
                 });
                 this._lastPerformanceTime = newTime;
                 return;
@@ -252,7 +266,7 @@ export class ForceAtlas2Supervisor {
 
     private update(message: UpdateMessage) {
         this._matrices.nodes = new Float32Array(message.nodes);
-        assignLayoutChanges(this.graph, this._matrices.nodes, null, true);
+        assignLayoutChanges(this.graph, this._matrices.nodes, this._matrices.nodeIds, true);
         this.updated.trigger();
     }
 
@@ -284,7 +298,8 @@ function graphToByteArrays(
     graph: HelvegGraph,
     getEdgeWeight: EdgeMapper<number, Attributes, Attributes>
 ): GraphMatrices {
-    let order = graph.filterNodes((n, a) => !a.hidden).length;
+    const nodeIds = graph.filterNodes((_n, a) => !a.hidden);
+    let order = nodeIds.length;
     let size = graph.filterEdges((e, a, s, t, sa, ta) => !sa.hidden && !ta.hidden).length;
     let index: Record<string, number> = {};
     let j: number;
@@ -296,12 +311,8 @@ function graphToByteArrays(
 
     // Iterate through nodes
     j = 0;
-    graph.forEachNode((node, attr) => {
-        // Completely ignore hidden nodes
-        if (attr.hidden === true) {
-            return;
-        }
-
+    for (const node of nodeIds) {
+        const attr = graph.getNodeAttributes(node);
         // Node index
         index[node] = j;
 
@@ -317,7 +328,7 @@ function graphToByteArrays(
         NodeMatrix[j + 8] = attr.size || 1;
         NodeMatrix[j + 9] = attr.fixed ? 1 : 0;
         j += FLOATS_PER_NODE;
-    });
+    }
 
     // Iterate through edges
     j = 0;
@@ -345,6 +356,7 @@ function graphToByteArrays(
     return {
         nodeCount: order,
         nodes: NodeMatrix,
+        nodeIds: nodeIds,
         edgeCount: size,
         edges: EdgeMatrix,
     };
@@ -354,12 +366,12 @@ function graphToByteArrays(
 function assignLayoutChanges(
     graph: Graph,
     nodeMatrix: Float32Array,
-    outputReducer: ((node: string, attr: Attributes) => Attributes) | null = null,
+    nodeIds: string[],
     isFixedVolatile: boolean = false
 ) {
-    var i = 0;
-
-    graph.updateEachNodeAttributes((node, attr) => {
+    let i = 0;
+    for (const node of nodeIds) {
+        const attr = graph.getNodeAttributes(node);
         if (attr.hidden === true) {
             return attr;
         }
@@ -373,9 +385,7 @@ function assignLayoutChanges(
         }
 
         i += FLOATS_PER_NODE;
-
-        return outputReducer ? outputReducer(node, attr) : attr;
-    });
+    }
 }
 
 // Based on https://github.com/graphology/graphology/blob/master/src/layout-forceatlas2/helpers.js

@@ -925,6 +925,7 @@ export class Diagram {
                 this._graph,
                 this.onSupervisorProgress.bind(this),
                 this.onSupervisorStopped.bind(this),
+                this.onSupervisorUpdated.bind(this),
                 this.options.forceAtlas2,
                 this.logger
             );
@@ -967,6 +968,14 @@ export class Diagram {
         if (!this._sigma) {
             this.refreshSigma();
         }
+    }
+
+    private onSupervisorUpdated() {
+        this._sigma?.refresh({
+            partialGraph: { nodes: (this._supervisor?.nodeIds as string[]) ?? [] },
+            schedule: true,
+            skipIndexation: false,
+        });
     }
 
     private refreshSigma(): void {
@@ -1073,12 +1082,10 @@ export class Diagram {
 
         styleGraph(
             this._graph,
-            this._model,
             this.options.glyphProgram,
             this.options.nodeStylist,
             this.options.relationStylist,
-            this.options.edgeStylist,
-            this.logger
+            this.options.edgeStylist
         );
     }
 

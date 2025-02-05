@@ -37,6 +37,7 @@ export const OP_GLOBAL_DESELECT: GlobalOperation = {
 
     keyDown(state) {
         state.diagram.selectedNode = null;
+        state.diagram.dragNode(null);
     },
 };
 
@@ -52,6 +53,10 @@ export const OP_STAGE_DESELECT: StageOperation = {
     mouseUp(state, _context, event) {
         if (!event.hasMoved) {
             state.diagram.selectedNode = null;
+        }
+
+        if (state.diagram.draggedNode) {
+            state.diagram.dragNode(null);
         }
     },
 };

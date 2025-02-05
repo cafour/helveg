@@ -1,4 +1,5 @@
 import { MultigraphEdge, MultigraphNode } from "./data-model.ts";
+import { HelvegNodeAttributes } from "./graph.ts";
 
 let INT8 = new Int8Array(4);
 let INT32 = new Int32Array(INT8.buffer);
@@ -117,7 +118,7 @@ export const FALLBACK_EDGE_STYLE: EdgeStyle = {
     type: "line"
 };
 
-export type NodeStylist = (node: MultigraphNode) => NodeStyle;
+export type NodeStylist = (node: HelvegNodeAttributes) => NodeStyle;
 export type RelationStylist = (relation: string) => EdgeStyle;
 export type EdgeStylist = (relation: string, edge: MultigraphEdge) => EdgeStyle;
 

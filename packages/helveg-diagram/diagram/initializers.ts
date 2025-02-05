@@ -35,6 +35,7 @@ export function initializeSupervisor(
     graph: HelvegGraph,
     onSupervisorProgress: (progress: ForceAtlas2Progress) => void,
     onSupervisorStopped: () => void,
+    onSupervisorUpdated: () => void,
     settings?: ForceAtlas2Settings,
     logger?: ILogger
 ): ForceAtlas2Supervisor {
@@ -42,6 +43,7 @@ export function initializeSupervisor(
     const supervisor = new ForceAtlas2Supervisor(graph, settings, logger ? sublogger(logger, "fa2") : undefined);
     supervisor.progress.subscribe(onSupervisorProgress);
     supervisor.stopped.subscribe(onSupervisorStopped);
+    supervisor.updated.subscribe(onSupervisorUpdated);
     return supervisor;
 }
 
@@ -59,6 +61,9 @@ export function initializeSigma(
         itemSizesReference: "positions",
         zoomToSizeRatioFunction: (ratio) => ratio,
     }) as HelvegSigma;
+
+    // graph.removeAllListeners("eachNodeAttributesUpdated");
+
     sigma[isHoverEnabledSymbol] = false;
     sigma[hoveredNodeSymbol] = null;
 
@@ -245,22 +250,16 @@ export function toHelvegNodeAttributes(
 
 export function styleGraph(
     graph: HelvegGraph,
-    model: DataModel,
     glyphProgramOptions: GlyphProgramOptions,
     nodeStylist?: NodeStylist,
     relationStylist?: RelationStylist,
-    edgeStylist?: EdgeStylist,
-    logger?: ILogger
+    edgeStylist?: EdgeStylist
 ) {
-    graph.forEachNode((node, attributes) => {
-        if (!model.data || !model.data.nodes[node]) {
-            logger?.debug(`Node '${node}' does not exist in the model.`);
-            return;
-        }
-
+    const model = graph.getAttribute("model");
+    graph.forEachNode((_n, attributes) => {
         let nodeStyle = { ...FALLBACK_NODE_STYLE };
         if (nodeStylist) {
-            nodeStyle = { ...nodeStyle, ...nodeStylist(model.data.nodes[node]) };
+            nodeStyle = { ...nodeStyle, ...nodeStylist(attributes) };
         }
 
         Object.assign(attributes, toHelvegNodeAttributes(glyphProgramOptions, nodeStyle));
@@ -270,7 +269,6 @@ export function styleGraph(
         if (!attributes.relation || !model.data) {
             return;
         }
-
         const relation = model.data.relations[attributes.relation];
         if (!relation || !relation.edges) {
             return;
