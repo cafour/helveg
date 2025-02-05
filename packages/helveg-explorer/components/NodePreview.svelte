@@ -60,13 +60,9 @@
             x: 0,
             y: 0,
             label: null,
-            size: 0,
-            color: "#000000",
             hidden: false,
-            forceLabel: false,
-            type: "<invalid>",
-            zIndex: 0,
             highlighted: true,
+            collapsed: false,
         };
         program.process(0, 0, nodeData);
         program.render({
