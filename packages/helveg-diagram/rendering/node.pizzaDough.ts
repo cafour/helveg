@@ -1,9 +1,8 @@
 import { Sigma, ProgramDefinition, RenderParams, ProgramInfo } from "../deps/sigma.ts";
-import { HelvegNodeAttributes } from "../model/graph.ts";
+import { HelvegNodeAttributes, HelvegNodeProgram, HelvegSigma } from "../model/graph.ts";
 import { PizzaProgramOptions } from "./pizza.ts";
 import vertSrc from "./shaders/node.pizzaDough.vert";
 import fragSrc from "./shaders/node.pizzaDough.frag";
-import { HelvegNodeProgram } from "../diagram/initializers.ts";
 
 const { UNSIGNED_BYTE, FLOAT } = WebGLRenderingContext;
 
@@ -13,7 +12,7 @@ export class PizzaDoughProgram extends HelvegNodeProgram<typeof UNIFORMS[number]
     constructor(
         gl: WebGLRenderingContext,
         pickingBuffer: WebGLFramebuffer,
-        renderer: Sigma,
+        renderer: HelvegSigma,
         private options: PizzaProgramOptions
     ) {
         super(gl, pickingBuffer, renderer);

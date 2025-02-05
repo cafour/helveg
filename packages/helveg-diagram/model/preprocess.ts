@@ -2,6 +2,7 @@ import { hierarchy } from "../deps/d3-hierarchy.ts";
 import Graph from "../deps/graphology.ts";
 import { DataModel, Multigraph } from "./data-model.ts";
 import { findRoots, HelvegEdgeAttributes, HelvegGraph, HelvegGraphAttributes, HelvegNodeAttributes } from "./graph.ts";
+import { FALLBACK_NODE_STYLE } from "./style.ts";
 
 export interface PreprocessOptions {
     mainRelation: string;
@@ -42,6 +43,13 @@ export function preprocess(model: DataModel, options?: Partial<PreprocessOptions
             y: 0,
             kind: node.kind,
             diff: node.diff,
+            highlighted: false,
+            hidden: false,
+            color: FALLBACK_NODE_STYLE.color,
+            size: 1,
+            forceLabel: false,
+            zIndex: 1,
+            type: "glyph",
         });
     }
 

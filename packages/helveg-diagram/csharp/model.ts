@@ -1,4 +1,3 @@
-import { MULTIGRAPH_NODE_KEY } from "../global.ts";
 import { PizzaIcons } from "../model/const.ts";
 import { MultigraphNode } from "../model/data-model.ts";
 
@@ -205,8 +204,6 @@ export interface CSharpNode extends MultigraphNode {
     warningCount?: number;
     hasComments?: boolean;
     commentCount?: number;
-
-    [MULTIGRAPH_NODE_KEY]: string;
 }
 
 export const DEFAULT_CSHARP_PIZZA_TOPPINGS: Record<keyof typeof IconableEntities, PizzaIcons> = {

@@ -1,17 +1,20 @@
-import forceAtlas2, { ForceAtlas2Settings, inferSettings } from "../deps/graphology-layout-forceatlas2.ts";
-import Graph from "../deps/graphology.ts";
-import { Sigma, DEFAULT_SETTINGS, NodeProgramType } from "../deps/sigma.ts";
+import { ForceAtlas2Settings, inferSettings } from "../deps/graphology-layout-forceatlas2.ts";
+import { Sigma, DEFAULT_SETTINGS, NodeProgramType, AbstractNodeProgram } from "../deps/sigma.ts";
 import { ForceAtlas2Progress, ForceAtlas2Supervisor } from "../layout/forceAltas2Supervisor.ts";
-import { DataModel, Multigraph, MultigraphRelation } from "../model/data-model.ts";
+import { DataModel, Multigraph } from "../model/data-model.ts";
 import {
     HelvegEdgeAttributes,
     HelvegGraph,
     HelvegGraphAttributes,
     HelvegNodeAttributes,
+    HelvegNodeProgramType,
+    HelvegSigma,
     collapseNode,
     dropNode,
     expandNode,
     findRoots,
+    hoveredNodeSymbol,
+    isHoverEnabledSymbol,
 } from "../model/graph.ts";
 import { ILogger, Logger, sublogger } from "../model/logger.ts";
 import {
@@ -41,24 +44,6 @@ export function initializeSupervisor(
     supervisor.stopped.subscribe(onSupervisorStopped);
     return supervisor;
 }
-
-// HACK: Sigma does not allow to disable hovering on nodes, so we have to track it ourselves.
-export const isHoverEnabledSymbol = Symbol("isHoverEnabled");
-export const hoveredNodeSymbol = Symbol("hoveredNode");
-
-export type HelvegSigma = Sigma<HelvegNodeAttributes, HelvegEdgeAttributes, HelvegGraphAttributes> & {
-    [isHoverEnabledSymbol]: boolean;
-    [hoveredNodeSymbol]: string | null;
-};
-
-export type HelvegNodeProgramType = NodeProgramType<HelvegNodeAttributes, HelvegEdgeAttributes>;
-
-export abstract class HelvegNodeProgram<Uniform extends string> extends WorkaroundNodeProgram<
-    Uniform,
-    HelvegNodeAttributes,
-    HelvegEdgeAttributes,
-    HelvegGraphAttributes
-> {}
 
 export function initializeSigma(
     element: HTMLElement,

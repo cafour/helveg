@@ -1,13 +1,14 @@
 import { hierarchy, HierarchyNode } from "../deps/d3-hierarchy.ts";
 import { Attributes, EdgeEntry, GraphEvents } from "../deps/graphology.ts";
 import Graph from "../deps/graphology.ts";
-import { NodeDisplayData, EdgeDisplayData } from "../deps/sigma.ts";
+import { NodeDisplayData, EdgeDisplayData, Sigma, NodeProgramType, NodeLabelDrawingFunction, NodeHoverDrawingFunction } from "../deps/sigma.ts";
+import { AbstractNodeProgram, WorkaroundNodeProgram } from "../rendering/workaround_node.ts";
 import { DataModel, Multigraph, MultigraphEdge, MultigraphNode, MultigraphNodeDiffStatus } from "./data-model.ts";
 import { Outlines, FireStatus, Slices, Contour } from "./style.ts";
 
-export interface HelvegNodeAttributes extends Partial<NodeDisplayData>, Attributes {
+export interface HelvegNodeAttributes extends NodeDisplayData, Attributes {
     id: string;
-    model?: MultigraphNode;
+    model: MultigraphNode;
     style?: string;
     kind?: string;
     icon?: string;
@@ -24,6 +25,7 @@ export interface HelvegNodeAttributes extends Partial<NodeDisplayData>, Attribut
     childCount?: number;
     descendantCount?: number;
     contour?: Contour;
+    [key: string]: unknown;
 }
 
 export interface HelvegEdgeAttributes extends Partial<EdgeDisplayData>, Attributes {
@@ -33,7 +35,7 @@ export interface HelvegEdgeAttributes extends Partial<EdgeDisplayData>, Attribut
 }
 
 export interface HelvegGraphAttributes extends Attributes {
-    model?: DataModel;
+    model: DataModel;
     roots?: Set<string>;
 }
 
@@ -44,6 +46,42 @@ export const EMPTY_GRAPH: Readonly<HelvegGraph> = new Graph<
     HelvegEdgeAttributes,
     HelvegGraphAttributes
 >();
+
+// HACK: Sigma does not allow to disable hovering on nodes, so we have to track it ourselves.
+export const isHoverEnabledSymbol = Symbol("isHoverEnabled");
+export const hoveredNodeSymbol = Symbol("hoveredNode");
+
+export type HelvegSigma = Sigma<HelvegNodeAttributes, HelvegEdgeAttributes, HelvegGraphAttributes> & {
+    [isHoverEnabledSymbol]: boolean;
+    [hoveredNodeSymbol]: string | null;
+};
+
+export type HelvegAbstractNodeProgram = AbstractNodeProgram<
+    HelvegNodeAttributes,
+    HelvegEdgeAttributes,
+    HelvegGraphAttributes
+>;
+
+export type HelvegNodeProgramType = NodeProgramType<HelvegNodeAttributes, HelvegEdgeAttributes, HelvegGraphAttributes>;
+
+export abstract class HelvegNodeProgram<Uniform extends string> extends WorkaroundNodeProgram<
+    Uniform,
+    HelvegNodeAttributes,
+    HelvegEdgeAttributes,
+    HelvegGraphAttributes
+> {}
+
+export type HelvegNodeLabelDrawingFunction = NodeLabelDrawingFunction<
+    HelvegNodeAttributes,
+    HelvegEdgeAttributes,
+    HelvegGraphAttributes
+>;
+
+export type HelvegNodeHoverDrawingFunction = NodeHoverDrawingFunction<
+    HelvegNodeAttributes,
+    HelvegEdgeAttributes,
+    HelvegGraphAttributes
+>;
 
 export function findRoots(graph: Graph, relation?: string) {
     let roots = new Set<string>();

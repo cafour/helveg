@@ -28,7 +28,7 @@ export abstract class AbstractNodeProgram<
 
 export abstract class WorkaroundNodeProgram<
     Uniform extends string = string,
-    N extends Attributes = Attributes,
+    N extends NodeDisplayData = NodeDisplayData,
     E extends Attributes = Attributes,
     G extends Attributes = Attributes,
 >
@@ -41,7 +41,7 @@ export abstract class WorkaroundNodeProgram<
         super.kill();
     }
 
-    process(nodeIndex: number, offset: number, data: NodeDisplayData): void {
+    process(nodeIndex: number, offset: number, data: N): void {
         let i = offset * this.STRIDE;
         // NOTE: dealing with hidden items automatically
         if (data.hidden) {

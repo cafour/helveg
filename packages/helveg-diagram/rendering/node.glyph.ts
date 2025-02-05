@@ -1,6 +1,4 @@
-import { Attributes } from "graphology-types";
-import { AbstractNodeProgram, Sigma, NodeDisplayData, RenderParams, NodeHoverDrawingFunction, NodeLabelDrawingFunction } from "../deps/sigma.ts";
-import { HelvegNodeProgramType } from "../diagram/initializers.ts";
+import { AbstractNodeProgram, NodeDisplayData, RenderParams } from "../deps/sigma.ts";
 import { ILogger, sublogger } from "../model/logger.ts";
 import { SigmaEffectsExtension } from "./effects.ts";
 import createDiffProgram, { DEFAULT_DIFF_PROGRAM_OPTIONS, DiffProgramOptions } from "./node.diff.ts";
@@ -9,6 +7,7 @@ import createIconProgram, { DEFAULT_ICON_PROGRAM_OPTIONS, IconProgramOptions } f
 import createOutlinesProgram, { DEFAULT_OUTLINES_PROGRAM_OPTIONS, OutlinesProgramOptions } from "./node.outlines.ts";
 import createPizzaProgram, { DEFAULT_PIZZA_PROGRAM_OPTIONS, PizzaProgramOptions } from "./pizza.ts";
 import createDonutProgram, { DEFAULT_DONUT_PROGRAM_OPTIONS, DonutProgramOptions } from "./node.donut.ts";
+import { HelvegAbstractNodeProgram, HelvegNodeProgramType, HelvegSigma } from "../model/graph.ts";
 
 export type SizingMode = "linear" | "sqrt" | "log";
 
@@ -40,7 +39,7 @@ export const DEFAULT_GLYPH_PROGRAM_OPTIONS: GlyphProgramOptions =
 };
 
 export function createGlyphProgram(options: GlyphProgramOptions, logger?: ILogger): HelvegNodeProgramType {
-    return class implements AbstractNodeProgram {
+    return class implements HelvegAbstractNodeProgram {
         private effects: SigmaEffectsExtension;
         private iconProgram: AbstractNodeProgram;
         private outlinesProgram: AbstractNodeProgram;
@@ -49,7 +48,7 @@ export function createGlyphProgram(options: GlyphProgramOptions, logger?: ILogge
         private pizzaProgram: AbstractNodeProgram;
         private diffProgram: AbstractNodeProgram;
 
-        constructor(gl: WebGLRenderingContext, pickingBuffer: WebGLFramebuffer, renderer: Sigma) {
+        constructor(gl: WebGLRenderingContext, pickingBuffer: WebGLFramebuffer, renderer: HelvegSigma) {
 
             // NB: The effects extension's lifetime is as long as of this program.
             //     This is done on purpose since Sigma creates one instance of each program for "regular" nodes
@@ -107,8 +106,8 @@ export function createGlyphProgram(options: GlyphProgramOptions, logger?: ILogge
             }
         }
 
-        drawLabel: NodeLabelDrawingFunction<Attributes, Attributes, Attributes> | undefined = undefined;
-        drawHover: NodeHoverDrawingFunction<Attributes, Attributes, Attributes> | undefined = undefined;
+        drawLabel = undefined;
+        drawHover = undefined;
 
         kill(): void {
             this.outlinesProgram.kill();

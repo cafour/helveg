@@ -5,10 +5,13 @@ import {
     HelvegGraph,
     HelvegGraphAttributes,
     HelvegNodeAttributes,
+    HelvegNodeProgramType,
+    HelvegSigma,
     collapseNode,
     expandNode,
     expandPathsTo,
     findRoots,
+    hoveredNodeSymbol,
     toggleNode,
 } from "../model/graph.ts";
 import { Coordinates, SigmaNodeEventPayload } from "../deps/sigma.ts";
@@ -17,10 +20,7 @@ import { ForceAtlas2Progress, ForceAtlas2Supervisor } from "../layout/forceAltas
 import { wheelOfFortune } from "../layout/circular.ts";
 import tidyTree from "../layout/tidyTree.ts";
 import {
-    HelvegSigma,
-    HelvegNodeProgramType,
     configureSigma,
-    hoveredNodeSymbol,
     initializeGraph,
     initializeSigma,
     initializeSupervisor,
@@ -652,7 +652,7 @@ export class Diagram {
             let filter = buildNodeFilter(searchText, searchMode, this._nodeKeys, filterBuilder);
             if (filter === null) {
                 this.mode = DiagramMode.Normal;
-                this._graph.forEachNode((_, a) => (a.highlighted = undefined));
+                this._graph.forEachNode((_, a) => (a.highlighted = false));
                 this._sigma?.refresh();
                 return [];
             }
@@ -691,7 +691,7 @@ export class Diagram {
     ): Promise<void> {
         if (nodeId === null) {
             this._logger.debug("Clearing node highlights.");
-            this._graph?.forEachNode((_, a) => (a.highlighted = undefined));
+            this._graph?.forEachNode((_, a) => (a.highlighted = false));
             this.mode = DiagramMode.Normal;
             this._sigma?.refresh();
             return;
@@ -815,7 +815,7 @@ export class Diagram {
                 // NB: Sigma doesn't clear its highlightedNodes correctly
                 ((this._sigma as any)["highlightedNodes"] as Set<string>).clear();
                 reachable.forEach((id) => this._graph!.dropNode(id));
-                this._graph!.forEachNode((_, a) => (a.highlighted = undefined));
+                this._graph!.forEachNode((_, a) => (a.highlighted = false));
                 this._sigma?.setGraph(this._graph);
             });
 

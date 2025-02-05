@@ -1,9 +1,8 @@
-import { ProgramDefinition, Sigma, RenderParams, ProgramInfo } from "../deps/sigma.ts";
-import { HelvegNodeAttributes } from "../model/graph.ts";
+import { ProgramDefinition, RenderParams, ProgramInfo } from "../deps/sigma.ts";
+import { HelvegNodeAttributes, HelvegNodeProgram, HelvegNodeProgramType, HelvegSigma } from "../model/graph.ts";
 import { FireStatus } from "../model/style.ts";
 import vertSrc from "./shaders/node.fire.vert";
 import fragSrc from "./shaders/node.fire.frag";
-import { HelvegNodeProgramType, HelvegNodeProgram } from "../diagram/initializers.ts";
 import { provideDefaults } from "../common/object.ts";
 
 export interface FireProgramOptions {
@@ -26,7 +25,7 @@ export default function createFireProgram(options?: Partial<FireProgramOptions>)
     }
 
     return class extends FireProgram {
-        constructor(gl: WebGLRenderingContext, pickingBuffer: WebGLFramebuffer, renderer: Sigma) {
+        constructor(gl: WebGLRenderingContext, pickingBuffer: WebGLFramebuffer, renderer: HelvegSigma) {
             super(gl, pickingBuffer, renderer, options as FireProgramOptions);
         }
     };
@@ -39,7 +38,7 @@ export class FireProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
     constructor(
         gl: WebGLRenderingContext,
         pickingBuffer: WebGLFramebuffer,
-        renderer: Sigma,
+        renderer: HelvegSigma,
         private options: FireProgramOptions
     ) {
         super(gl, pickingBuffer, renderer);

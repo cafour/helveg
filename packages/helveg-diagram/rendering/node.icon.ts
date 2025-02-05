@@ -1,10 +1,9 @@
 import { Sigma, RenderParams, ProgramInfo, InstancedProgramDefinition, floatColor } from "../deps/sigma.ts";
-import { HelvegNodeAttributes } from "../model/graph.ts";
+import { HelvegNodeAttributes, HelvegNodeProgram, HelvegNodeProgramType, HelvegSigma } from "../model/graph.ts";
 import { FALLBACK_NODE_ICON, FALLBACK_NODE_STYLE } from "../model/style.ts";
 import { EMPTY_ICON_ATLAS, IconAtlas, IconAtlasEntryStatus } from "./iconAtlas.ts";
 import vertSrc from "./shaders/node.icon.vert";
 import fragSrc from "./shaders/node.icon.frag";
-import { HelvegNodeProgram, HelvegNodeProgramType } from "../diagram/initializers.ts";
 
 const { UNSIGNED_BYTE, FLOAT } = WebGLRenderingContext;
 
@@ -22,7 +21,7 @@ export const DEFAULT_ICON_PROGRAM_OPTIONS: IconProgramOptions = {
 
 export default function createIconProgram(options: IconProgramOptions): HelvegNodeProgramType {
     return class extends IconProgram {
-        constructor(gl: WebGLRenderingContext, pickingBuffer: WebGLFramebuffer, renderer: Sigma) {
+        constructor(gl: WebGLRenderingContext, pickingBuffer: WebGLFramebuffer, renderer: HelvegSigma) {
             super(gl, pickingBuffer, renderer, options);
         }
     };
@@ -34,7 +33,7 @@ export class IconProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
     constructor(
         gl: WebGLRenderingContext,
         pickingBuffer: WebGLFramebuffer,
-        renderer: Sigma,
+        renderer: HelvegSigma,
         private options: IconProgramOptions
     ) {
         super(gl, pickingBuffer, renderer);

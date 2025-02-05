@@ -5,13 +5,9 @@ import {
     RenderParams,
     Sigma,
 } from "../deps/sigma.ts";
-import {
-    HelvegNodeProgram,
-    HelvegNodeProgramType,
-} from "../diagram/initializers.ts";
 import vertSrc from "./shaders/node.donut.vert";
 import fragSrc from "./shaders/node.donut.frag";
-import { HelvegNodeAttributes } from "../model/graph.ts";
+import { HelvegNodeAttributes, HelvegNodeProgram, HelvegNodeProgramType, HelvegSigma } from "../model/graph.ts";
 import { FALLBACK_NODE_STYLE } from "../global.ts";
 import chroma from "chroma-js";
 import { provideDefaults } from "../common/object.ts";
@@ -46,7 +42,7 @@ export default function createDonutProgram(
         constructor(
             gl: WebGLRenderingContext,
             pickingBuffer: WebGLFramebuffer,
-            renderer: Sigma,
+            renderer: HelvegSigma,
         ) {
             super(gl, pickingBuffer, renderer, options as DonutProgramOptions);
         }
@@ -67,7 +63,7 @@ export class DonutProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
     constructor(
         gl: WebGLRenderingContext,
         pickingBuffer: WebGLFramebuffer,
-        renderer: Sigma,
+        renderer: HelvegSigma,
         private options: DonutProgramOptions,
     ) {
         super(gl, pickingBuffer, renderer);

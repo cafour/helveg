@@ -1,9 +1,8 @@
-import { Sigma, ProgramDefinition, RenderParams, floatColor, ProgramInfo } from "../deps/sigma.ts";
-import { HelvegNodeAttributes } from "../model/graph.ts";
+import { ProgramDefinition, RenderParams, floatColor, ProgramInfo } from "../deps/sigma.ts";
+import { HelvegNodeAttributes, HelvegNodeProgram, HelvegNodeProgramType, HelvegSigma } from "../model/graph.ts";
 import vertSrc from "./shaders/node.diff.vert";
 import fragSrc from "./shaders/node.diff.frag";
 import { MultigraphNodeDiffStatus } from "../model/data-model.ts";
-import { HelvegNodeProgramType, HelvegNodeProgram } from "../diagram/initializers.ts";
 
 export interface DiffProgramOptions {
     colors: Record<MultigraphNodeDiffStatus, string>;
@@ -22,7 +21,7 @@ export const DEFAULT_DIFF_PROGRAM_OPTIONS: DiffProgramOptions = {
 
 export default function createDiffProgram(options: DiffProgramOptions): HelvegNodeProgramType {
     return class extends DiffProgram {
-        constructor(gl: WebGLRenderingContext, pickingBuffer: WebGLFramebuffer, renderer: Sigma) {
+        constructor(gl: WebGLRenderingContext, pickingBuffer: WebGLFramebuffer, renderer: HelvegSigma) {
             super(gl, pickingBuffer, renderer, options);
         }
     };
@@ -36,7 +35,7 @@ export class DiffProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
     constructor(
         gl: WebGLRenderingContext,
         pickingBuffer: WebGLFramebuffer,
-        renderer: Sigma,
+        renderer: HelvegSigma,
         private options: DiffProgramOptions,
     ) {
         super(gl, pickingBuffer, renderer);

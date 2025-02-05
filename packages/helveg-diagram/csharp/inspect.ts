@@ -1,5 +1,4 @@
-import { Multigraph } from "../model/data-model.ts";
-import { HelvegGraph, HelvegNodeAttributes } from "../model/graph.ts";
+import { HelvegGraph, HelvegGraphAttributes, HelvegNodeAttributes } from "../model/graph.ts";
 import {
     FALLBACK_INSPECTOR,
     identifier,
@@ -30,25 +29,25 @@ export const CSHARP_INSPECTOR: Inspector = (graph, node) => {
             result.expression = inspectNamespace(graph, node);
             break;
         case EntityKind.Type:
-            result.expression = inspectType(graph, node as CSharpNode);
+            result.expression = inspectType(graph, node);
             break;
         case EntityKind.Field:
-            result.expression = inspectField(graph, node as CSharpNode);
+            result.expression = inspectField(graph, node);
             break;
         case EntityKind.Property:
-            result.expression = inspectProperty(graph, node as CSharpNode);
+            result.expression = inspectProperty(graph, node);
             // TODO: Special case: indexers are more like methods
             break;
         case EntityKind.Event:
-            result.expression = inspectEvent(graph, node as CSharpNode);
+            result.expression = inspectEvent(graph, node);
             break;
         case EntityKind.Method:
-            result.expression = inspectMethod(graph, node as CSharpNode);
+            result.expression = inspectMethod(graph, node);
             // TODO: Special case: constructors, static constructors, destructors
             // TODO: Special case: getters and setters?
             break;
         case EntityKind.Parameter:
-            result.expression = inspectParameter(graph, node as CSharpNode);
+            result.expression = inspectParameter(graph, node);
             break;
     }
 
@@ -62,7 +61,7 @@ function walkBackwards(
     relation: string,
     stopCondition: (node: HelvegNodeAttributes) => boolean,
     tokenFactory: TokenFactory = identifier,
-    textGetter = (node: HelvegNodeAttributes) => node.name ?? MISSING_TEXT
+    textGetter = (node: HelvegNodeAttributes) => node.model.name ?? MISSING_TEXT
 ): InspectionToken[] {
     const tokens: InspectionToken[] = [];
 
@@ -123,12 +122,12 @@ type RemoveIndex<T> = {
 };
 
 function modifier(
-    node: CSharpNode,
+    node: HelvegNodeAttributes,
     property: keyof RemoveIndex<CSharpNode> & string,
     keywordName: string,
     appendSpace: boolean = true
 ): InspectionToken[] {
-    if (!node[property]) {
+    if (!node.model[property]) {
         return [];
     }
     const keywordToken = keyword(keywordName, property);
@@ -139,9 +138,23 @@ function modifier(
     return [keywordToken];
 }
 
-function typeName(graph: Multigraph, node: CSharpNode): InspectionToken[] {
+function accessibility(node: HelvegNodeAttributes): InspectionToken[] {
+    const tokens: InspectionToken[] = [];
+    const model = node.model as CSharpNode;
+    if (model.accessibility) {
+        tokens.push(
+            ...ACCESSIBILITY_SYNTAX[model.accessibility].map((t) => {
+                return { ...t, associatedPropertyName: "accessibility" };
+            })
+        );
+        tokens.push(SPACE);
+    }
+    return tokens;
+}
+
+function typeName(graph: HelvegGraph, node: HelvegNodeAttributes): InspectionToken[] {
     const tokens = [];
-    if (node.isNested) {
+    if (node.model.isNested) {
         tokens.push(...walkBackwards(graph, node, ".", "declares", (n) => n.kind != EntityKind.Type, type));
     } else {
         tokens.push(name(node, InspectionTokenKind.Type));
@@ -149,18 +162,22 @@ function typeName(graph: Multigraph, node: CSharpNode): InspectionToken[] {
     return tokens;
 }
 
-function typeParameterList(graph: Multigraph, node: CSharpNode): InspectionToken[] {
+function typeParameterList(graph: HelvegGraph, node: HelvegNodeAttributes): InspectionToken[] {
+    const model = node.model as CSharpNode;
     const tokens: InspectionToken[] = [];
-    if (node.arity !== undefined && node.arity > 0) {
+    if (model.arity !== undefined && model.arity > 0) {
         tokens.push(trivia("<"));
 
-        const typeParameters = Object.values(graph.relations["declares"].edges ?? {})
-            .filter((e) => e.src === node[MULTIGRAPH_NODE_KEY] && graph.nodes[e.dst!].kind === EntityKind.TypeParameter)
-            .map((e) => graph.nodes[e.dst!] as CSharpNode);
+        const typeParameters = graph
+            .filterOutEdges(
+                node.id,
+                (e, ea, _s, _t, _sa, ta) => ea.relation === "declares" && ta.model.kind === EntityKind.TypeParameter
+            )
+            .map((e) => graph.getTargetAttributes(e));
         for (let i = 0; i < typeParameters.length; ++i) {
             const typeParameter = typeParameters[i];
 
-            tokens.push(type(typeParameter.name ?? MISSING_TEXT));
+            tokens.push(type(typeParameter.model.name ?? MISSING_TEXT));
 
             if (i != typeParameters.length - 1) {
                 tokens.push(trivia(", "));
@@ -172,31 +189,26 @@ function typeParameterList(graph: Multigraph, node: CSharpNode): InspectionToken
     return tokens;
 }
 
-function inspectType(graph: Multigraph, node: CSharpNode): InspectionExpression {
+function inspectType(graph: HelvegGraph, node: HelvegNodeAttributes): InspectionExpression {
     const expression: InspectionExpression = {
         tokens: [],
     };
+    
+    const model = node.model as CSharpNode;
 
-    if (node.accessibility) {
-        expression.tokens.push(
-            ...ACCESSIBILITY_SYNTAX[node.accessibility].map((t) => {
-                return { ...t, associatedPropertyName: "accessibility" };
-            })
-        );
-        expression.tokens.push(SPACE);
-    }
+    expression.tokens.push(...accessibility(node));
 
     expression.tokens.push(...modifier(node, "isStatic", "static"));
-    if (node.typeKind === TypeKind.Class) {
+    if (model.typeKind === TypeKind.Class) {
         expression.tokens.push(...modifier(node, "isSealed", "sealed"));
     }
     expression.tokens.push(...modifier(node, "isReadOnly", "readonly"));
     expression.tokens.push(...modifier(node, "isVirtual", "virtual"));
     expression.tokens.push(...modifier(node, "isAbstract", "abstract"));
 
-    switch (node.typeKind) {
+    switch (model.typeKind) {
         case TypeKind.Class:
-            if (node.isRecord) {
+            if (model.isRecord) {
                 expression.tokens.push(keyword("record", "isRecord"));
             } else {
                 expression.tokens.push(keyword("class", "typeKind"));
@@ -240,19 +252,14 @@ function externalType(fullName: string | null | undefined, associatedPropertyNam
     };
 }
 
-function inspectField(graph: Multigraph, node: CSharpNode): InspectionExpression {
+function inspectField(graph: HelvegGraph, node: HelvegNodeAttributes): InspectionExpression {
     const expression: InspectionExpression = {
         tokens: [],
     };
 
-    if (node.accessibility) {
-        expression.tokens.push(
-            ...ACCESSIBILITY_SYNTAX[node.accessibility].map((t) => {
-                return { ...t, associatedPropertyName: "accessibility" };
-            })
-        );
-        expression.tokens.push(SPACE);
-    }
+    const model = node.model as CSharpNode;
+
+    expression.tokens.push(...accessibility(node));
 
     expression.tokens.push(...modifier(node, "isStatic", "static"));
     expression.tokens.push(...modifier(node, "isReadOnly", "readonly"));
@@ -260,7 +267,7 @@ function inspectField(graph: Multigraph, node: CSharpNode): InspectionExpression
     expression.tokens.push(...modifier(node, "isConst", "const"));
 
     // TODO: look up the type through typeof instead of relying on the hint
-    expression.tokens.push(externalType(node.fieldType, "fieldType"));
+    expression.tokens.push(externalType(model.fieldType, "fieldType"));
 
     expression.tokens.push(trivia(" "));
 
@@ -270,19 +277,14 @@ function inspectField(graph: Multigraph, node: CSharpNode): InspectionExpression
     return expression;
 }
 
-function inspectProperty(graph: Multigraph, node: CSharpNode): InspectionExpression {
+function inspectProperty(graph: HelvegGraph, node: HelvegNodeAttributes): InspectionExpression {
     const expression: InspectionExpression = {
         tokens: [],
     };
 
-    if (node.accessibility) {
-        expression.tokens.push(
-            ...ACCESSIBILITY_SYNTAX[node.accessibility].map((t) => {
-                return { ...t, associatedPropertyName: "accessibility" };
-            })
-        );
-        expression.tokens.push(SPACE);
-    }
+    const model = node.model as CSharpNode;
+
+    expression.tokens.push(...accessibility(node));
 
     expression.tokens.push(...modifier(node, "isStatic", "static"));
     expression.tokens.push(...modifier(node, "isVirtual", "virtual"));
@@ -292,7 +294,7 @@ function inspectProperty(graph: Multigraph, node: CSharpNode): InspectionExpress
     expression.tokens.push(...modifier(node, "isExtern", "extern"));
 
     // TODO: look up the type through typeof instead of relying on the hint
-    expression.tokens.push(externalType(node.propertyType, "propertyType"));
+    expression.tokens.push(externalType(model.propertyType, "propertyType"));
 
     expression.tokens.push(trivia(" "));
 
@@ -312,19 +314,14 @@ function inspectProperty(graph: Multigraph, node: CSharpNode): InspectionExpress
     return expression;
 }
 
-function inspectEvent(graph: Multigraph, node: CSharpNode): InspectionExpression {
+function inspectEvent(graph: HelvegGraph, node: HelvegNodeAttributes): InspectionExpression {
     const expression: InspectionExpression = {
         tokens: [],
     };
 
-    if (node.accessibility) {
-        expression.tokens.push(
-            ...ACCESSIBILITY_SYNTAX[node.accessibility].map((t) => {
-                return { ...t, associatedPropertyName: "accessibility" };
-            })
-        );
-        expression.tokens.push(SPACE);
-    }
+    const model = node.model as CSharpNode;
+
+    expression.tokens.push(...accessibility(node));
 
     expression.tokens.push(...modifier(node, "isStatic", "static"));
     expression.tokens.push(...modifier(node, "isVirtual", "virtual"));
@@ -334,7 +331,7 @@ function inspectEvent(graph: Multigraph, node: CSharpNode): InspectionExpression
     expression.tokens.push(...modifier(node, "isExtern", "extern"));
 
     // TODO: look up the type through typeof instead of relying on the hint
-    expression.tokens.push(externalType(node.eventType, "eventType"));
+    expression.tokens.push(externalType(model.eventType, "eventType"));
 
     expression.tokens.push(trivia(" "));
 
@@ -344,19 +341,14 @@ function inspectEvent(graph: Multigraph, node: CSharpNode): InspectionExpression
     return expression;
 }
 
-function inspectMethod(graph: Multigraph, node: CSharpNode): InspectionExpression {
+function inspectMethod(graph: HelvegGraph, node: HelvegNodeAttributes): InspectionExpression {
     const expression: InspectionExpression = {
         tokens: [],
     };
 
-    if (node.accessibility) {
-        expression.tokens.push(
-            ...ACCESSIBILITY_SYNTAX[node.accessibility].map((t) => {
-                return { ...t, associatedPropertyName: "accessibility" };
-            })
-        );
-        expression.tokens.push(SPACE);
-    }
+    const model = node.model as CSharpNode;
+
+    expression.tokens.push(...accessibility(node));
 
     expression.tokens.push(...modifier(node, "isStatic", "static"));
     expression.tokens.push(...modifier(node, "isVirtual", "virtual"));
@@ -368,7 +360,7 @@ function inspectMethod(graph: Multigraph, node: CSharpNode): InspectionExpressio
     expression.tokens.push(...modifier(node, "isPartial", "partial"));
 
     // TODO: look up the type through typeof instead of relying on the hint
-    expression.tokens.push(externalType(node.returnType, "returnType"));
+    expression.tokens.push(externalType(model.returnType, "returnType"));
 
     expression.tokens.push(trivia(" "));
 
@@ -378,15 +370,18 @@ function inspectMethod(graph: Multigraph, node: CSharpNode): InspectionExpressio
 
     expression.tokens.push(trivia("("));
 
-    if (node.parameterCount !== undefined && node.parameterCount > 0) {
-        const parameters = Object.values(graph.relations["declares"].edges ?? {})
-            .filter((e) => e.src === node[MULTIGRAPH_NODE_KEY] && graph.nodes[e.dst!].kind === EntityKind.Parameter)
-            .map((e) => graph.nodes[e.dst!] as CSharpNode);
+    if (model.parameterCount !== undefined && model.parameterCount > 0) {
+        const parameters = graph
+            .filterOutEdges(
+                node.id,
+                (e, ea, _s, _t, _sa, ta) => ea.relation === "declares" && ta.model.kind === EntityKind.Parameter
+            )
+            .map((e) => graph.getTargetAttributes(e));
 
         for (let i = 0; i < parameters.length; ++i) {
             const parameter = parameters[i];
 
-            expression.tokens.push(externalType(parameter.parameterType));
+            expression.tokens.push(externalType(parameter.model.parameterType));
             expression.tokens.push(trivia(" "));
             expression.tokens.push(name(parameter));
 
@@ -401,12 +396,12 @@ function inspectMethod(graph: Multigraph, node: CSharpNode): InspectionExpressio
     return expression;
 }
 
-function inspectParameter(graph: Multigraph, node: CSharpNode): InspectionExpression {
+function inspectParameter(graph: HelvegGraph, node: HelvegNodeAttributes): InspectionExpression {
     const expression: InspectionExpression = {
         tokens: [],
     };
 
-    expression.tokens.push(externalType(node.parameterType, "parameterType"));
+    expression.tokens.push(externalType(node.model.parameterType, "parameterType"));
     expression.tokens.push(trivia(" "));
     expression.tokens.push(name(node));
 
