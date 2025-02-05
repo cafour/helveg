@@ -104,7 +104,7 @@ export function configureSigma(sigma: HelvegSigma, options: GlyphProgramOptions)
 }
 
 export function initializeGraph(
-    modelGraph: HelvegGraph,
+    modelGraph: Readonly<HelvegGraph>,
     mainRelation?: string,
     selectedRelations?: string[],
     selectedKinds?: string[],
@@ -113,15 +113,15 @@ export function initializeGraph(
     const graph = modelGraph.copy();
 
     if (selectedKinds != null) {
-        modelGraph.forEachNode((n, na) => {
+        graph.forEachNode((n, na) => {
             if (na.kind == null || !selectedKinds.includes(na.kind)) {
-                dropNode(modelGraph, n);
+                dropNode(graph, n);
             }
         });
     }
 
     if (selectedRelations != null) {
-        modelGraph.forEachEdge((e, ea) => {
+        graph.forEachEdge((e, ea) => {
             if (ea.relation == null || !selectedRelations.includes(ea.relation)) {
                 graph.dropEdge(e);
             }
