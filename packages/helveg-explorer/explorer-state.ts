@@ -28,7 +28,6 @@ export interface IExplorerState {
     stats: Readable<DiagramStats>;
     logger: ILogger;
     operationExecutor: OperationExecutor;
-    selectedTool: Writable<string>;
     selectedNode: Writable<string | null>;
 
     dataOptions: Writable<Options.DataOptions>;
@@ -82,8 +81,6 @@ export function createExplorerState(
         diagram.events.statsChanged.subscribe(set);
         return () => diagram.events.statsChanged.unsubscribe(set);
     });
-
-    const selectedTool = writable<string>(AppTools.ShowProperties);
 
     const selectedNode = wrapVariable(
         () => diagram.selectedNode,
@@ -171,7 +168,6 @@ export function createExplorerState(
         status,
         stats,
         operationExecutor: null!,
-        selectedTool,
         selectedNode,
 
         dataOptions,

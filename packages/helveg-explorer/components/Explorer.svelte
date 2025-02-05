@@ -51,19 +51,17 @@
             return;
         }
 
-        dock.setTab(AppPanels.Properties);
         const toolOptions = get(state.toolOptions);
+        await diagram.highlightNode(
+            nodeId,
+            get(state.toolOptions).showProperties.shouldHighlightSubtree,
+            get(state.toolOptions).showProperties.shouldHighlightNeighbors,
+        );
+
         if (toolOptions.showProperties.shouldFocusPropertiesPanel) {
-            await diagram.highlightNode(
-                nodeId,
-                get(state.toolOptions).showProperties
-                    .shouldHighlightSubtree,
-                get(state.toolOptions).showProperties
-                    .shouldHighlightNeighbors,
-            );
+            dock.setTab(AppPanels.Properties);
         }
     });
-
 </script>
 
 <div
@@ -72,12 +70,9 @@
 >
     <div class="diagram-background"></div>
 
-    <LoadingScreen status={$status} on:stop={() => diagram.stopLayout()}/>
+    <LoadingScreen status={$status} on:stop={() => diagram.stopLayout()} />
 
-    <TreeView
-        class="z-2"
-        bind:selectedNode={$selectedNode}
-    />
+    <TreeView class="z-2" bind:selectedNode={$selectedNode} />
 
     <!-- <ToolBox bind:selectedTool={$selectedTool} class="z-1" /> -->
     <ToolBar class="z-1" />
@@ -86,12 +81,7 @@
     <div class="filler flex-grow-1"></div>
     <Toast />
 
-    <Dock
-        name="panels"
-        bind:this={dock}
-        class="z-2"
-        fallbackTab={AppPanels.Guide}
-    >
+    <Dock name="panels" bind:this={dock} class="z-2" fallbackTab={AppPanels.Guide}>
         <Tab name="Search" value={AppPanels.Search} icon={AppIcons.SearchPanel}>
             <SearchPanel
                 on:highlight={(e) =>
@@ -101,12 +91,7 @@
                         e.detail.expandedOnly,
                         e.detail.filterBuilder,
                     ))}
-                on:isolate={(e) =>
-                    diagram.isolate(
-                        e.detail.searchText,
-                        e.detail.searchMode,
-                        e.detail.filterBuilder,
-                    )}
+                on:isolate={(e) => diagram.isolate(e.detail.searchText, e.detail.searchMode, e.detail.filterBuilder)}
                 on:selected={(e) => {
                     diagram.selectedNode = e.detail;
                 }}
@@ -128,28 +113,16 @@
                 stats={$stats}
             />
         </Tab>
-        <Tab
-            name="Appearance"
-            value={AppPanels.Appearance}
-            icon={AppIcons.AppearancePanel}
-        >
+        <Tab name="Appearance" value={AppPanels.Appearance} icon={AppIcons.AppearancePanel}>
             <AppearancePanel />
         </Tab>
         <Tab name="Tools" value={AppPanels.Tools} icon={AppIcons.ToolsPanel}>
             <ToolsPanel />
         </Tab>
-        <Tab
-            name="Properties"
-            value={AppPanels.Properties}
-            icon={AppIcons.PropertiesPanel}
-        >
+        <Tab name="Properties" value={AppPanels.Properties} icon={AppIcons.PropertiesPanel}>
             <PropertiesPanel bind:node={$selectedNode} />
         </Tab>
-        <Tab
-            name="Document"
-            value={AppPanels.Document}
-            icon={AppIcons.DocumentPanel}
-        >
+        <Tab name="Document" value={AppPanels.Document} icon={AppIcons.DocumentPanel}>
             <DocumentPanel on:export={(e) => diagram.save(e.detail)} />
         </Tab>
         <Tab name="Guide" value={AppPanels.Guide} icon={AppIcons.GuidePanel}>

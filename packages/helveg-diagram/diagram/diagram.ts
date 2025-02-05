@@ -268,14 +268,21 @@ export class Diagram {
         return this._selectedNode;
     }
     set selectedNode(value: string | null) {
+        let shouldRefreshLayout = false;
         if (this.shouldFixateSelectedNode && this._selectedNode != null) {
             this._graph?.setNodeAttribute(this._selectedNode, "fixed", false);
+            shouldRefreshLayout = true;
         }
 
         this._selectedNode = value;
 
         if (this.shouldFixateSelectedNode && this._selectedNode != null) {
             this._graph?.setNodeAttribute(this._selectedNode, "fixed", true);
+            shouldRefreshLayout = true;
+        }
+
+        if (shouldRefreshLayout) {
+            this.refreshSupervisor(true);
         }
 
         this.events.nodeSelected.trigger(value);
