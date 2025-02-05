@@ -1,7 +1,14 @@
 import { hierarchy, HierarchyNode } from "../deps/d3-hierarchy.ts";
 import { Attributes, EdgeEntry, GraphEvents } from "../deps/graphology.ts";
 import Graph from "../deps/graphology.ts";
-import { NodeDisplayData, EdgeDisplayData, Sigma, NodeProgramType, NodeLabelDrawingFunction, NodeHoverDrawingFunction } from "../deps/sigma.ts";
+import {
+    NodeDisplayData,
+    EdgeDisplayData,
+    Sigma,
+    NodeProgramType,
+    NodeLabelDrawingFunction,
+    NodeHoverDrawingFunction,
+} from "../deps/sigma.ts";
 import { AbstractNodeProgram, WorkaroundNodeProgram } from "../rendering/workaround_node.ts";
 import { DataModel, Multigraph, MultigraphEdge, MultigraphNode, MultigraphNodeDiffStatus } from "./data-model.ts";
 import { Outlines, FireStatus, Slices, Contour } from "./style.ts";
@@ -331,7 +338,9 @@ export function setAllGraphListeners(graph: HelvegGraph, listeners: Record<Helve
 }
 
 export function dropNode(graph: HelvegGraph, node: string) {
-    graph.forEachInboundEdge((ie, iea, is, it) => {
+    const newEdges: { relation: string; source: string; target: string; undirected: boolean }[] = [];
+
+    graph.forEachInboundEdge(node, (ie, iea, is, it) => {
         if (iea.relation == null) {
             return;
         }
@@ -346,20 +355,31 @@ export function dropNode(graph: HelvegGraph, node: string) {
                 return;
             }
 
-            const edgeKey = `${iea.relation};${is};${ot}`;
-            if (graph.hasEdge(edgeKey)) {
-                return;
-            }
-
-            if (undirected) {
-                graph.addUndirectedEdgeWithKey(edgeKey, is, ot, {
-                    relation: iea.relation,
-                });
-            } else {
-                graph.addDirectedEdgeWithKey(edgeKey, is, ot, {
-                    relation: iea.relation,
-                });
-            }
+            newEdges.push({
+                relation: iea.relation!,
+                source: is,
+                target: ot,
+                undirected: undirected,
+            });
         });
     });
+
+    for (const e of newEdges) {
+        const edgeKey = `${e.relation};${e.source};${e.target}`;
+        if (graph.hasEdge(edgeKey)) {
+            return;
+        }
+
+        if (e.undirected) {
+            graph.addUndirectedEdgeWithKey(edgeKey, e.source, e.target, {
+                relation: e.relation,
+            });
+        } else {
+            graph.addDirectedEdgeWithKey(edgeKey, e.source, e.target, {
+                relation: e.relation,
+            });
+        }
+    }
+
+    graph.dropNode(node);
 }

@@ -47,6 +47,10 @@
     let searchResults: string[];
 
     selectedNode.subscribe(async (nodeId) => {
+        if (!dock) {
+            return;
+        }
+
         dock.setTab(AppPanels.Properties);
         const toolOptions = get(state.toolOptions);
         if (toolOptions.showProperties.shouldFocusPropertiesPanel) {

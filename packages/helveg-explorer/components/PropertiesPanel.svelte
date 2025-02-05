@@ -17,7 +17,7 @@
     const state = getContext<IExplorerState>("state");
     
     export let node: string | null = null;
-    $: nodeAttr = state.diagram.graph?.getNodeAttributes(node);
+    $: nodeAttr = node ? state.diagram.graph?.getNodeAttributes(node) : undefined;
     $: nodeModel = nodeAttr?.model;
     $: nodeItems =
         [
