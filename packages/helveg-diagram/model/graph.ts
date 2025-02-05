@@ -6,6 +6,7 @@ import { DataModel, Multigraph, MultigraphEdge, MultigraphNode, MultigraphNodeDi
 import { Outlines, FireStatus, Slices, Contour } from "./style.ts";
 
 export interface HelvegNodeAttributes extends Partial<NodeDisplayData>, Attributes {
+    id: string;
     model?: MultigraphNode;
     style?: string;
     kind?: string;

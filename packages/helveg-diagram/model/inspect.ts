@@ -1,5 +1,5 @@
 import { Multigraph, MultigraphNode } from "./data-model.ts";
-import { HelvegGraph, HelvegGraphAttributes } from "./graph.ts";
+import { HelvegGraph, HelvegGraphAttributes, HelvegNodeAttributes } from "./graph.ts";
 
 export interface Inspection {
     expression: InspectionExpression;
@@ -23,7 +23,7 @@ export enum InspectionTokenKind {
     Identifier = "identifier",
 }
 
-export type Inspector = (graph: HelvegGraph, node: HelvegGraphAttributes) => Inspection;
+export type Inspector = (graph: HelvegGraph, node: HelvegNodeAttributes) => Inspection;
 
 export const FALLBACK_INSPECTOR: Inspector = (_graph, node) => {
     return {

@@ -1,6 +1,22 @@
 import { Multigraph } from "../model/data-model.ts";
 import { HelvegGraph, HelvegNodeAttributes } from "../model/graph.ts";
-import { FALLBACK_INSPECTOR, identifier, Inspection, InspectionExpression, InspectionToken, InspectionTokenKind, Inspector, keyword, MISSING_TEXT as MISSING_TEXT, name, fullPath, SPACE, TokenFactory, trivia, type } from "../model/inspect.ts";
+import {
+    FALLBACK_INSPECTOR,
+    identifier,
+    Inspection,
+    InspectionExpression,
+    InspectionToken,
+    InspectionTokenKind,
+    Inspector,
+    keyword,
+    MISSING_TEXT as MISSING_TEXT,
+    name,
+    fullPath,
+    SPACE,
+    TokenFactory,
+    trivia,
+    type,
+} from "../model/inspect.ts";
 import { CSharpNode, EntityKind, MemberAccessibility, TypeKind } from "./model.ts";
 
 export const CSHARP_INSPECTOR: Inspector = (graph, node) => {
@@ -11,7 +27,7 @@ export const CSHARP_INSPECTOR: Inspector = (graph, node) => {
             result.expression.tokens = fullPath(node.model!.path, InspectionTokenKind.Identifier, "path");
             break;
         case EntityKind.Namespace:
-            result.expression = inspectNamespace(graph, node as CSharpNode);
+            result.expression = inspectNamespace(graph, node);
             break;
         case EntityKind.Type:
             result.expression = inspectType(graph, node as CSharpNode);
@@ -44,21 +60,20 @@ function walkBackwards(
     node: HelvegNodeAttributes,
     separator: string,
     relation: string,
-    stopCondition: (node: CSharpNode) => boolean,
+    stopCondition: (node: HelvegNodeAttributes) => boolean,
     tokenFactory: TokenFactory = identifier,
-    textGetter = (node: CSharpNode) => node.name ?? MISSING_TEXT,
+    textGetter = (node: HelvegNodeAttributes) => node.name ?? MISSING_TEXT
 ): InspectionToken[] {
     const tokens: InspectionToken[] = [];
 
-    function appendName(current: CSharpNode, depth: number = 0) {
+    function appendName(current: HelvegNodeAttributes, depth: number = 0) {
         if (stopCondition(current)) {
             return;
         }
 
-        const parent = Object.values(graph.relations[relation].edges ?? {})
-            .filter(e => e.dst === current[MULTIGRAPH_NODE_KEY])[0]?.src;
+        const parent = graph.source(graph.filterInEdges(current.id, (_e, ea) => ea.relation === relation)[0]);
         if (parent) {
-            appendName(graph.nodes[parent] as CSharpNode, depth + 1);
+            appendName(graph.getNodeAttributes(parent), depth + 1);
         }
 
         tokens.push(tokenFactory(textGetter(current)));
@@ -66,10 +81,9 @@ function walkBackwards(
         if (depth !== 0) {
             tokens.push({
                 kind: InspectionTokenKind.Trivia,
-                text: separator
+                text: separator,
             });
         }
-
     }
 
     appendName(node);
@@ -79,16 +93,17 @@ function walkBackwards(
 function inspectNamespace(graph: HelvegGraph, node: HelvegNodeAttributes): InspectionExpression {
     if (node.name === "global") {
         return {
-            tokens: [keyword("global", "isGlobal"), trivia(" "), keyword("namespace", "kind")]
-        }
+            tokens: [keyword("global", "isGlobal"), trivia(" "), keyword("namespace", "kind")],
+        };
     }
 
     const expression = {
-        tokens: [keyword("namespace", "kind"), trivia(" ")]
+        tokens: [keyword("namespace", "kind"), trivia(" ")],
     };
 
     expression.tokens.push(
-        ...walkBackwards(graph, node, ".", "declares", n => n.kind != EntityKind.Namespace || n.name == "global"));
+        ...walkBackwards(graph, node, ".", "declares", (n) => n.kind != EntityKind.Namespace || n.name == "global")
+    );
 
     return expression;
 }
@@ -104,15 +119,7 @@ const ACCESSIBILITY_SYNTAX: Record<MemberAccessibility, readonly InspectionToken
 };
 
 type RemoveIndex<T> = {
-    [K in keyof T as
-    string extends K
-    ? never
-    : number extends K
-    ? never
-    : symbol extends K
-    ? never
-    : K
-    ]: T[K];
+    [K in keyof T as string extends K ? never : number extends K ? never : symbol extends K ? never : K]: T[K];
 };
 
 function modifier(
@@ -135,14 +142,7 @@ function modifier(
 function typeName(graph: Multigraph, node: CSharpNode): InspectionToken[] {
     const tokens = [];
     if (node.isNested) {
-        tokens.push(...walkBackwards(
-            graph,
-            node,
-            ".",
-            "declares",
-            n => n.kind != EntityKind.Type,
-            type
-        ));
+        tokens.push(...walkBackwards(graph, node, ".", "declares", (n) => n.kind != EntityKind.Type, type));
     } else {
         tokens.push(name(node, InspectionTokenKind.Type));
     }
@@ -155,8 +155,8 @@ function typeParameterList(graph: Multigraph, node: CSharpNode): InspectionToken
         tokens.push(trivia("<"));
 
         const typeParameters = Object.values(graph.relations["declares"].edges ?? {})
-            .filter(e => e.src === node[MULTIGRAPH_NODE_KEY] && graph.nodes[e.dst!].kind === EntityKind.TypeParameter)
-            .map(e => graph.nodes[e.dst!] as CSharpNode);
+            .filter((e) => e.src === node[MULTIGRAPH_NODE_KEY] && graph.nodes[e.dst!].kind === EntityKind.TypeParameter)
+            .map((e) => graph.nodes[e.dst!] as CSharpNode);
         for (let i = 0; i < typeParameters.length; ++i) {
             const typeParameter = typeParameters[i];
 
@@ -174,12 +174,15 @@ function typeParameterList(graph: Multigraph, node: CSharpNode): InspectionToken
 
 function inspectType(graph: Multigraph, node: CSharpNode): InspectionExpression {
     const expression: InspectionExpression = {
-        tokens: []
+        tokens: [],
     };
 
     if (node.accessibility) {
-        expression.tokens.push(...ACCESSIBILITY_SYNTAX[node.accessibility]
-            .map(t => { return { ...t, associatedPropertyName: "accessibility" }; }));
+        expression.tokens.push(
+            ...ACCESSIBILITY_SYNTAX[node.accessibility].map((t) => {
+                return { ...t, associatedPropertyName: "accessibility" };
+            })
+        );
         expression.tokens.push(SPACE);
     }
 
@@ -233,18 +236,21 @@ function externalType(fullName: string | null | undefined, associatedPropertyNam
         kind: KEYWORD_TYPES.has(fullName) ? InspectionTokenKind.Keyword : InspectionTokenKind.Type,
         text: fullName,
         associatedPropertyName: associatedPropertyName,
-        hint: fullName
+        hint: fullName,
     };
 }
 
 function inspectField(graph: Multigraph, node: CSharpNode): InspectionExpression {
     const expression: InspectionExpression = {
-        tokens: []
+        tokens: [],
     };
 
     if (node.accessibility) {
-        expression.tokens.push(...ACCESSIBILITY_SYNTAX[node.accessibility]
-            .map(t => { return { ...t, associatedPropertyName: "accessibility" }; }));
+        expression.tokens.push(
+            ...ACCESSIBILITY_SYNTAX[node.accessibility].map((t) => {
+                return { ...t, associatedPropertyName: "accessibility" };
+            })
+        );
         expression.tokens.push(SPACE);
     }
 
@@ -266,12 +272,15 @@ function inspectField(graph: Multigraph, node: CSharpNode): InspectionExpression
 
 function inspectProperty(graph: Multigraph, node: CSharpNode): InspectionExpression {
     const expression: InspectionExpression = {
-        tokens: []
+        tokens: [],
     };
 
     if (node.accessibility) {
-        expression.tokens.push(...ACCESSIBILITY_SYNTAX[node.accessibility]
-            .map(t => { return { ...t, associatedPropertyName: "accessibility" }; }));
+        expression.tokens.push(
+            ...ACCESSIBILITY_SYNTAX[node.accessibility].map((t) => {
+                return { ...t, associatedPropertyName: "accessibility" };
+            })
+        );
         expression.tokens.push(SPACE);
     }
 
@@ -305,12 +314,15 @@ function inspectProperty(graph: Multigraph, node: CSharpNode): InspectionExpress
 
 function inspectEvent(graph: Multigraph, node: CSharpNode): InspectionExpression {
     const expression: InspectionExpression = {
-        tokens: []
+        tokens: [],
     };
 
     if (node.accessibility) {
-        expression.tokens.push(...ACCESSIBILITY_SYNTAX[node.accessibility]
-            .map(t => { return { ...t, associatedPropertyName: "accessibility" }; }));
+        expression.tokens.push(
+            ...ACCESSIBILITY_SYNTAX[node.accessibility].map((t) => {
+                return { ...t, associatedPropertyName: "accessibility" };
+            })
+        );
         expression.tokens.push(SPACE);
     }
 
@@ -334,12 +346,15 @@ function inspectEvent(graph: Multigraph, node: CSharpNode): InspectionExpression
 
 function inspectMethod(graph: Multigraph, node: CSharpNode): InspectionExpression {
     const expression: InspectionExpression = {
-        tokens: []
+        tokens: [],
     };
 
     if (node.accessibility) {
-        expression.tokens.push(...ACCESSIBILITY_SYNTAX[node.accessibility]
-            .map(t => { return { ...t, associatedPropertyName: "accessibility" }; }));
+        expression.tokens.push(
+            ...ACCESSIBILITY_SYNTAX[node.accessibility].map((t) => {
+                return { ...t, associatedPropertyName: "accessibility" };
+            })
+        );
         expression.tokens.push(SPACE);
     }
 
@@ -365,8 +380,8 @@ function inspectMethod(graph: Multigraph, node: CSharpNode): InspectionExpressio
 
     if (node.parameterCount !== undefined && node.parameterCount > 0) {
         const parameters = Object.values(graph.relations["declares"].edges ?? {})
-            .filter(e => e.src === node[MULTIGRAPH_NODE_KEY] && graph.nodes[e.dst!].kind === EntityKind.Parameter)
-            .map(e => graph.nodes[e.dst!] as CSharpNode);
+            .filter((e) => e.src === node[MULTIGRAPH_NODE_KEY] && graph.nodes[e.dst!].kind === EntityKind.Parameter)
+            .map((e) => graph.nodes[e.dst!] as CSharpNode);
 
         for (let i = 0; i < parameters.length; ++i) {
             const parameter = parameters[i];
@@ -386,10 +401,9 @@ function inspectMethod(graph: Multigraph, node: CSharpNode): InspectionExpressio
     return expression;
 }
 
-
 function inspectParameter(graph: Multigraph, node: CSharpNode): InspectionExpression {
     const expression: InspectionExpression = {
-        tokens: []
+        tokens: [],
     };
 
     expression.tokens.push(externalType(node.parameterType, "parameterType"));

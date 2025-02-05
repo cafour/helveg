@@ -35,6 +35,7 @@ export function preprocess(model: DataModel, options?: Partial<PreprocessOptions
         node.hasComments = node.commentCount > 0;
 
         graph.addNode(nodeId, {
+            id: nodeId,
             model: node,
             label: node.name ?? nodeId,
             x: 0,
