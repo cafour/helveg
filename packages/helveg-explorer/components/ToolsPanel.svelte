@@ -11,25 +11,31 @@
 </script>
 
 <Panel name="Tools" indent={false} id={AppPanels.Tools}>
-    <Subpanel name="ShowProperties" icon={AppIcons.ShowPropertiesTool}>
+    <Subpanel name="Show Properties" icon={AppIcons.ShowPropertiesTool}>
         <label>
             <input type="checkbox" bind:checked={$toolOptions.showProperties.shouldHighlightSubtree} />
-            ShouldHighlightSubtree
+            Highlight subtree
+            <Hint
+                text="When inspecting a node, highlight all of its descendants."
+            />
         </label>
         <label>
             <input type="checkbox" bind:checked={$toolOptions.showProperties.shouldHighlightNeighbors} />
-            ShouldHighlightNeighbors
+            Highlight neighbors
+            <Hint
+                text="When inspecting a node, highlight all of its neighboring nodes."
+            />
         </label>
         <label>
             <input type="checkbox" bind:checked={$toolOptions.showProperties.shouldFixateSelectedNode} />
-            ShouldFixateSelectedNodes
+            Fixate selected nodes
             <Hint
                 text="Whether to keep the currently inspected node in place -- let it be ignored by the layout algorithm."
             />
         </label>
         <label>
             <input type="checkbox" bind:checked={$toolOptions.showProperties.shouldFocusPropertiesPanel} />
-            ShouldFocusPropertiesPanel
+            Focus properties panel
             <Hint
                 text="Whether to open the Properties panel when you select a node."
             />
@@ -38,7 +44,10 @@
     <Subpanel name="Remove" icon={AppIcons.RemoveTool}>
         <label>
             <input type="checkbox" bind:checked={$toolOptions.remove.isTransitive} />
-            IsTransitive
+            Transitive
+            <Hint
+                text="Remove all descendants of the removed node."
+            />
         </label>
     </Subpanel>
     <Subpanel name="Toggle" icon={AppIcons.ToggleTool}>
