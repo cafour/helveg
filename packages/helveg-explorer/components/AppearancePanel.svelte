@@ -4,10 +4,7 @@
     import { AppPanels } from "../const.ts";
     import { getContext, onMount } from "svelte";
     import type { Readable, Writable } from "svelte/store";
-    import {
-        NodeColorSchemaPreset,
-        type AppearanceOptions,
-    } from "../options.ts";
+    import { NodeColorSchemaPreset, type AppearanceOptions } from "../options.ts";
     import {
         getNodeKinds,
         type DataModel,
@@ -19,11 +16,11 @@
         UNIVERSAL_NODE_COLOR_SCHEMA,
         VS_NODE_COLOR_SCHEMA,
         TYPE_FOCUS_COLOR_SCHEMA,
+        CSHARP_RELATION_HINTS,
     } from "../deps/helveg-diagram.ts";
     import Hint from "./Hint.svelte";
 
-    let appearanceOptions =
-        getContext<Writable<AppearanceOptions>>("appearanceOptions");
+    let appearanceOptions = getContext<Writable<AppearanceOptions>>("appearanceOptions");
     $appearanceOptions.relationColors ??= {};
     $appearanceOptions.codePizza.pizzaToppings ??= {};
 
@@ -70,8 +67,7 @@
 
     function randomizeToppings() {
         for (const kind of kinds) {
-            const [_, value] =
-                allToppings[cyrb53(kind, seed) % allToppings.length];
+            const [_, value] = allToppings[cyrb53(kind, seed) % allToppings.length];
             $appearanceOptions.codePizza.pizzaToppings![kind] = value;
         }
 
@@ -81,103 +77,68 @@
     function onNodeColorChanged(preset: string) {
         switch (preset) {
             case NodeColorSchemaPreset.Universal:
-                $appearanceOptions.nodeColorSchema = structuredClone(
-                    UNIVERSAL_NODE_COLOR_SCHEMA,
-                );
+                $appearanceOptions.nodeColorSchema = structuredClone(UNIVERSAL_NODE_COLOR_SCHEMA);
                 entityColors = $appearanceOptions.nodeColorSchema.entities;
                 typeColors = $appearanceOptions.nodeColorSchema.types;
                 break;
             case NodeColorSchemaPreset.TypeFocus:
-                $appearanceOptions.nodeColorSchema = structuredClone(
-                    TYPE_FOCUS_COLOR_SCHEMA,
-                );
+                $appearanceOptions.nodeColorSchema = structuredClone(TYPE_FOCUS_COLOR_SCHEMA);
                 entityColors = $appearanceOptions.nodeColorSchema.entities;
                 typeColors = $appearanceOptions.nodeColorSchema.types;
                 break;
             case NodeColorSchemaPreset.VS:
-                $appearanceOptions.nodeColorSchema =
-                    structuredClone(VS_NODE_COLOR_SCHEMA);
+                $appearanceOptions.nodeColorSchema = structuredClone(VS_NODE_COLOR_SCHEMA);
                 entityColors = $appearanceOptions.nodeColorSchema.entities;
                 typeColors = $appearanceOptions.nodeColorSchema.types;
                 break;
         }
     }
-    
-    $: hasDiffMetadata = Object.values($model.data?.nodes ?? {}).some(n => n.diff !== undefined);
+
+    $: hasDiffMetadata = Object.values($model.data?.nodes ?? {}).some((n) => n.diff !== undefined);
 </script>
 
 <Panel name="Appearance" indent={false} id={AppPanels.Appearance}>
     <Subpanel name="Glyphs">
         <label>
-            <input
-                type="checkbox"
-                bind:checked={$appearanceOptions.glyph.showIcons}
-            />
+            <input type="checkbox" bind:checked={$appearanceOptions.glyph.showIcons} />
             ShowIcons
         </label>
         <label>
-            <input
-                type="checkbox"
-                bind:checked={$appearanceOptions.glyph.showOutlines}
-            />
+            <input type="checkbox" bind:checked={$appearanceOptions.glyph.showOutlines} />
             ShowOutlines
         </label>
         <label>
-            <input
-                type="checkbox"
-                bind:checked={$appearanceOptions.glyph.showLabels}
-            />
+            <input type="checkbox" bind:checked={$appearanceOptions.glyph.showLabels} />
             ShowLabels
         </label>
         {#if hasDiffMetadata}
-        <label>
-            <input
-                type="checkbox"
-                bind:checked={$appearanceOptions.glyph.showDiffs}
-            />
-            ShowDiffs
-        </label>
+            <label>
+                <input type="checkbox" bind:checked={$appearanceOptions.glyph.showDiffs} />
+                ShowDiffs
+            </label>
         {/if}
         <label>
-            <input
-                type="checkbox"
-                bind:checked={$appearanceOptions.glyph.showFire}
-            />
+            <input type="checkbox" bind:checked={$appearanceOptions.glyph.showFire} />
             ShowFire
         </label>
         <label>
-            <input
-                type="checkbox"
-                bind:checked={$appearanceOptions.glyph.isFireAnimated}
-            />
+            <input type="checkbox" bind:checked={$appearanceOptions.glyph.isFireAnimated} />
             IsFireAnimated
         </label>
         <label>
-            <input
-                type="checkbox"
-                bind:checked={$appearanceOptions.glyph.showCollapsedNodeIndicators}
-            />
+            <input type="checkbox" bind:checked={$appearanceOptions.glyph.showCollapsedNodeIndicators} />
             ShowCollapsedNodeIndicators
         </label>
         <label>
-            <input
-                type="checkbox"
-                bind:checked={$appearanceOptions.glyph.showHatching}
-            />
+            <input type="checkbox" bind:checked={$appearanceOptions.glyph.showHatching} />
             ShowHatching
         </label>
         <label>
-            <input
-                type="checkbox"
-                bind:checked={$appearanceOptions.glyph.showContours}
-            />
+            <input type="checkbox" bind:checked={$appearanceOptions.glyph.showContours} />
             ShowContours
         </label>
         <label class="flex flex-row gap-8 align-items-center">
-            <span
-                class="w-128 inline-block flex-shrink-0 ellipsis overflow-hidden"
-                title="SizingMode">SizingMode</span
-            >
+            <span class="w-128 inline-block flex-shrink-0 ellipsis overflow-hidden" title="SizingMode">SizingMode</span>
             <select bind:value={$appearanceOptions.glyph.sizingMode}>
                 <option value="sqrt">sqrt</option>
                 <option value="linear">linear</option>
@@ -185,18 +146,15 @@
             </select>
         </label>
         <label class="flex flex-row gap-8 align-items-center">
-            <span
-                class="w-128 inline-block flex-shrink-0 ellipsis overflow-hidden"
-                title="Node color preset">NodeColorPreset</span
+            <span class="w-128 inline-block flex-shrink-0 ellipsis overflow-hidden" title="Node color preset"
+                >NodeColorPreset</span
             >
             <select
                 on:change={(e) => onNodeColorChanged(e.currentTarget.value)}
                 bind:value={$appearanceOptions.nodeColorPreset}
             >
                 {#each Object.values(NodeColorSchemaPreset) as schemaPreset}
-                    <option
-                        value={schemaPreset}
-                        disabled={schemaPreset == NodeColorSchemaPreset.Custom}
+                    <option value={schemaPreset} disabled={schemaPreset == NodeColorSchemaPreset.Custom}
                         >{schemaPreset}</option
                     >
                 {/each}
@@ -207,11 +165,13 @@
         {#each relations as relation}
             <label class="flex flex-row gap-8 align-items-center">
                 <span class="inline-block flex-grow-1">{relation}</span>
+                {#if CSHARP_RELATION_HINTS[relation] != null}
+                    <Hint text={CSHARP_RELATION_HINTS[relation]} />
+                {/if}
                 <input
                     type="color"
                     value={relationColors[relation]}
-                    on:change={(e) =>
-                        (relationColors[relation] = e.currentTarget.value)}
+                    on:change={(e) => (relationColors[relation] = e.currentTarget.value)}
                 />
             </label>
         {/each}
@@ -224,17 +184,13 @@
         </div>
         {#each entityKinds as entityKind}
             <div class="flex flex-row gap-8 align-items-center">
-                <span
-                    class="inline-block flex-grow-1 overflow-hidden ellipsis"
-                    title={entityKind}>{entityKind}</span
-                >
+                <span class="inline-block flex-grow-1 overflow-hidden ellipsis" title={entityKind}>{entityKind}</span>
                 <input
                     class="w-48 flex-shrink-0"
                     type="color"
                     value={entityColors[entityKind].foreground}
                     on:change={(e) => {
-                        entityColors[entityKind].foreground =
-                            e.currentTarget.value;
+                        entityColors[entityKind].foreground = e.currentTarget.value;
                         onEntityColorsChanged();
                     }}
                 />
@@ -243,8 +199,7 @@
                     type="color"
                     value={entityColors[entityKind].background}
                     on:change={(e) => {
-                        entityColors[entityKind].background =
-                            e.currentTarget.value;
+                        entityColors[entityKind].background = e.currentTarget.value;
                         onEntityColorsChanged();
                     }}
                 />
@@ -259,10 +214,7 @@
         </div>
         {#each typeKinds as typeKind}
             <div class="flex flex-row gap-8 align-items-center">
-                <span
-                    class="inline-block flex-grow-1 overflow-hidden ellipsis"
-                    title={typeKind}>{typeKind}</span
-                >
+                <span class="inline-block flex-grow-1 overflow-hidden ellipsis" title={typeKind}>{typeKind}</span>
                 <input
                     class="w-48 flex-shrink-0"
                     type="color"
@@ -286,44 +238,27 @@
     </Subpanel>
     <Subpanel name="CodePizza" collapsed={true}>
         <label>
-            <input
-                type="checkbox"
-                bind:checked={$appearanceOptions.codePizza.isEnabled}
-            />
+            <input type="checkbox" bind:checked={$appearanceOptions.codePizza.isEnabled} />
             Enabled
         </label>
 
         <label class="flex flex-row gap-8 align-items-center">
             CrustWidth
-            <input
-                type="number"
-                min="1"
-                bind:value={$appearanceOptions.codePizza.crustWidth}
-            />
+            <input type="number" min="1" bind:value={$appearanceOptions.codePizza.crustWidth} />
         </label>
 
         <label class="flex flex-row gap-8 align-items-center">
             SauceWidth
-            <input
-                type="number"
-                min="1"
-                bind:value={$appearanceOptions.codePizza.sauceWidth}
-            />
+            <input type="number" min="1" bind:value={$appearanceOptions.codePizza.sauceWidth} />
         </label>
 
         <hr />
 
-        <button
-            class="button-stretch mb-16"
-            on:click={() => randomizeToppings()}>Randomize</button
-        >
+        <button class="button-stretch mb-16" on:click={() => randomizeToppings()}>Randomize</button>
 
         {#each kinds as kind}
             <label class="flex flex-row gap-8 align-items-center">
-                <span
-                    class="w-80 inline-block flex-shrink-0 ellipsis overflow-hidden"
-                    title={kind}>{kind}</span
-                >
+                <span class="w-80 inline-block flex-shrink-0 ellipsis overflow-hidden" title={kind}>{kind}</span>
                 <select bind:value={pizzaToppings[kind]}>
                     {#each allToppings as topping}
                         <option value={topping[1]}>{topping[0]}</option>

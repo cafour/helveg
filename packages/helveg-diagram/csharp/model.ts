@@ -260,7 +260,15 @@ export const CSHARP_PROP_CATEGORIES: Readonly<PropCategory[]> = [
     },
     {
         name: "Parameters",
-        properties: ["parameterType", "ordinal", "isParams", "isOptional", "isThis", "hasExplicitDefaultValue", "isDiscard"],
+        properties: [
+            "parameterType",
+            "ordinal",
+            "isParams",
+            "isOptional",
+            "isThis",
+            "hasExplicitDefaultValue",
+            "isDiscard",
+        ],
     },
     {
         name: "Modifiers",
@@ -290,6 +298,17 @@ export const CSHARP_PROP_CATEGORIES: Readonly<PropCategory[]> = [
         properties: ["version", "fileVersion", "cultureName", "publicKeyToken", "targetFramework"],
     },
 ];
+
+export const CSHARP_RELATION_HINTS: Record<string, string> = {
+    declares: "An entity declares another. For example: a class type declares a method.",
+    inheritsFrom: "A type inherits from another class or implements an interface.",
+    typeOf: "A property/field/event/parameter is of a certain type.",
+    returns: "A method/property override a base method/property.",
+    overrides: "A method/property override a base method/property.",
+    associatedWith: "A property is associated with its getter and setter, backing field with an auto-property, etc.",
+    dependsOn: "A project dependency on another project or an external library.",
+    references: "An assembly module references another assembly.",
+};
 
 export const DEFAULT_CSHARP_PIZZA_TOPPINGS: Record<keyof typeof IconableEntities, PizzaIcons> = {
     Solution: PizzaIcons.Bacon,

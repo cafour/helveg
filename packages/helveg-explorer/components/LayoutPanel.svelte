@@ -1,6 +1,6 @@
 <script lang="ts">
     import Panel from "./Panel.svelte";
-    import { Diagram, DiagramStatus, type DiagramStats, getRelations, getNodeKinds } from "../deps/helveg-diagram.ts";
+    import { Diagram, DiagramStatus, type DiagramStats, getRelations, getNodeKinds, CSHARP_RELATION_HINTS } from "../deps/helveg-diagram.ts";
     import { createEventDispatcher, getContext } from "svelte";
     import Icon from "./Icon.svelte";
     import Subpanel from "./Subpanel.svelte";
@@ -77,6 +77,9 @@
             <label>
                 <input type="checkbox" bind:group={$dataOptions.selectedRelations} value={relation} />
                 <span>{relation}</span>
+                {#if CSHARP_RELATION_HINTS[relation] != null}
+                    <Hint text={CSHARP_RELATION_HINTS[relation]} />
+                {/if}
             </label>
         {/each}
     </Subpanel>
