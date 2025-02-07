@@ -8,6 +8,7 @@ import {
     HelvegNodeProgramType,
     HelvegSigma,
     collapseNode,
+    dropNode,
     expandNode,
     expandPathsTo,
     findRoots,
@@ -808,20 +809,21 @@ export class Diagram {
 
         let removedCount = 0;
         if (!options.isTransitive && !this._graph.getNodeAttributes(nodeId).collapsed) {
-            this._graph.dropNode(nodeId);
+            // NB: drop the node but preserve the transitive relations
+            dropNode(this._graph, nodeId);
             removedCount = 1;
         } else {
             let reachable = bfsGraph(this._graph, nodeId, {
                 relation: this.mainRelation,
             });
 
-            // NB: This awful construction is here so that the dropping of nodes does not take forever due to
-            //     Sigma's and FA2-supervisor's event listeners.
             await this.refreshSupervisor(true, () => {
                 if (!this._graph) {
                     return;
                 }
-
+                
+                // NB: This awful construction is here so that the dropping of nodes does not take forever due to
+                //     Sigma's and FA2-supervisor's event listeners.
                 this._sigma?.setGraph(new Graph<HelvegNodeAttributes, HelvegEdgeAttributes, HelvegGraphAttributes>());
                 // NB: Sigma doesn't clear its highlightedNodes correctly
                 ((this._sigma as any)["highlightedNodes"] as Set<string>).clear();
