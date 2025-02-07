@@ -18,7 +18,7 @@ export enum EntityKind {
     Event = "Event",
     Method = "Method",
     TypeParameter = "TypeParameter",
-    Parameter = "Parameter"
+    Parameter = "Parameter",
 }
 
 export const csharpNodeKindOrder: readonly string[] = [
@@ -46,7 +46,7 @@ export const csharpNodeKindOrder: readonly string[] = [
     EntityKind.Event,
     EntityKind.Method,
 
-    EntityKind.Parameter
+    EntityKind.Parameter,
 ];
 
 export enum IconableEntities {
@@ -73,7 +73,7 @@ export enum IconableEntities {
     Property = "Property",
     Event = "Event",
     Parameter = "Parameter",
-    Fallback = "Fallback"
+    Fallback = "Fallback",
 }
 
 export enum Relations {
@@ -105,7 +105,7 @@ export enum MemberAccessibility {
     Protected = "Protected",
     Internal = "Internal",
     ProtectedOrInternal = "ProtectedOrInternal",
-    Public = "Public"
+    Public = "Public",
 }
 
 export enum TypeKind {
@@ -122,7 +122,7 @@ export enum TypeKind {
     Struct = "Struct",
     TypeParameter = "TypeParameter",
     Submission = "Submission",
-    FunctionPointer = "FunctionPointer"
+    FunctionPointer = "FunctionPointer",
 }
 
 export enum LimitedTypeKind {
@@ -153,30 +153,30 @@ export enum MethodKind {
     BuiltinOperator = "BuiltinOperator",
     DeclareMethod = "DeclareMethod",
     LocalFunction = "LocalFunction",
-    FunctionPointerSignature = "FunctionPointerSignature"
+    FunctionPointerSignature = "FunctionPointerSignature",
 }
 
 export interface NodeColor {
-    foreground: string,
-    background: string
-};
+    foreground: string;
+    background: string;
+}
 
 export interface NodeColorSchema {
-    entities: Record<EntityKind, NodeColor>,
-    types: Record<LimitedTypeKind, NodeColor>
-};
+    entities: Record<EntityKind, NodeColor>;
+    types: Record<LimitedTypeKind, NodeColor>;
+}
 
 export interface CSharpNode extends MultigraphNode {
-    kind: EntityKind,
-    typeKind?: TypeKind,
-    accessibility?: MemberAccessibility,
-    methodKind?: MethodKind,
-    isConst?: boolean,
-    isEnumItem?: boolean,
-    declaringKind?: EntityKind,
-    instanceMemberCount?: number,
-    staticMemberCount?: number,
-    isStatic?: boolean
+    kind: EntityKind;
+    typeKind?: TypeKind;
+    accessibility?: MemberAccessibility;
+    methodKind?: MethodKind;
+    isConst?: boolean;
+    isEnumItem?: boolean;
+    declaringKind?: EntityKind;
+    instanceMemberCount?: number;
+    staticMemberCount?: number;
+    isStatic?: boolean;
     isSealed?: boolean;
     isVirtual?: boolean;
     isReadOnly?: boolean;
@@ -197,7 +197,7 @@ export interface CSharpNode extends MultigraphNode {
     parameterType?: string;
     arity?: number;
     parameterCount?: number;
-    path?: string,
+    path?: string;
     hasErrors?: boolean;
     errorCount?: number;
     hasWarnings?: boolean;
@@ -207,6 +207,89 @@ export interface CSharpNode extends MultigraphNode {
     descendantCount?: number;
     treeHeight?: number;
 }
+
+export interface PropCategory {
+    name: string;
+    hint?: string;
+    properties: string[];
+}
+
+export const CSHARP_PROP_CATEGORIES: Readonly<PropCategory[]> = [
+    {
+        name: "Basic",
+        properties: ["name", "kind", "declaringKind", "containingType", "childCount", "descendantCount", "treeHeight"],
+    },
+    {
+        name: "Solution and Projects",
+        properties: ["path"],
+    },
+    {
+        name: "Types",
+        properties: [
+            "typeKind",
+            "baseType",
+            "arity",
+            "instanceMemberCount",
+            "staticMemberCount",
+            "isSealed",
+            "isRecord",
+            "isNested",
+            "isAnonymousType",
+            "isTupleType",
+            "isNativeIntegerType",
+            "isUnmanagedType",
+            "isRefLikeType",
+            "isImplicitClass",
+        ],
+    },
+    {
+        name: "Methods",
+        properties: ["methodKind", "parameterCount", "returnType", "isAsync", "isExtensionMethod", "isInitOnly"],
+    },
+    {
+        name: "Fields",
+        properties: ["fieldType", "isEnumItem", "isConst"],
+    },
+    {
+        name: "Properties",
+        properties: ["propertyType", "isIndexer"],
+    },
+    {
+        name: "Events",
+        properties: ["eventType"],
+    },
+    {
+        name: "Parameters",
+        properties: ["parameterType", "ordinal", "isParams", "isOptional", "isThis", "hasExplicitDefaultValue", "isDiscard"],
+    },
+    {
+        name: "Modifiers",
+        properties: [
+            "accessibility",
+            "isAbstract",
+            "isStatic",
+            "isVirtual",
+            "isReadOnly",
+            "isWriteOnly",
+            "isVolatile",
+            "isOverride",
+            "isExtern",
+            "isPartial",
+        ],
+    },
+    {
+        name: "Diagnostics",
+        properties: ["hasErrors", "hasWarnings", "errorCount", "warningCount"],
+    },
+    {
+        name: "Comments",
+        properties: ["hasComments", "commentCount"],
+    },
+    {
+        name: "Packages and Assemblies",
+        properties: ["version", "fileVersion", "cultureName", "publicKeyToken", "targetFramework"],
+    },
+];
 
 export const DEFAULT_CSHARP_PIZZA_TOPPINGS: Record<keyof typeof IconableEntities, PizzaIcons> = {
     Solution: PizzaIcons.Bacon,
@@ -232,5 +315,5 @@ export const DEFAULT_CSHARP_PIZZA_TOPPINGS: Record<keyof typeof IconableEntities
     Property: PizzaIcons.Jalapeno,
     Event: PizzaIcons.Chilli,
     Parameter: PizzaIcons.Corn,
-    Fallback: PizzaIcons.Cookie
+    Fallback: PizzaIcons.Cookie,
 };
