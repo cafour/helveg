@@ -84,14 +84,19 @@
     <Dock name="panels" bind:this={dock} class="z-2" fallbackTab={AppPanels.Guide}>
         <Tab name="Search" value={AppPanels.Search} icon={AppIcons.SearchPanel}>
             <SearchPanel
-                on:highlight={(e) =>
-                    (searchResults = diagram.highlight(
+                on:highlight={async (e) => {
+                    searchResults = diagram.highlight(
                         e.detail.searchText,
                         e.detail.searchMode,
                         e.detail.expandedOnly,
                         e.detail.filterBuilder,
-                    ))}
-                on:isolate={(e) => diagram.isolate(e.detail.searchText, e.detail.searchMode, e.detail.filterBuilder)}
+                    );
+                    await diagram.runLayout(false);
+                }}
+                on:isolate={async (e) => {
+                    await diagram.isolate(e.detail.searchText, e.detail.searchMode, e.detail.filterBuilder);
+                    await diagram.runLayout(false);
+                }}
                 on:selected={(e) => {
                     diagram.selectedNode = e.detail;
                 }}

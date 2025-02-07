@@ -4,15 +4,15 @@
 
     let className: string | undefined;
     export { className as class };
-    export let icon: string | undefined;
-    export let name: string | undefined;
-    export let hint: string | undefined;
-    export let shortcut: string | undefined;
+    export let icon: string | undefined = undefined;
+    export let name: string | undefined = undefined;
+    export let hint: string | undefined = undefined;
+    export let shortcut: string | undefined = undefined;
 
     let element: HTMLElement;
 </script>
 
-<button on:click bind:this={element} class="button-stretch {className}">
+<button on:click bind:this={element} class="button-stretch {className}" type="button">
     {#if icon != null}
         <Icon name={icon} />
     {/if}

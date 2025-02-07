@@ -5,16 +5,12 @@
     import Subpanel from "./Subpanel.svelte";
     import { AppIcons, AppPanels } from "../const.ts";
     import ResizingTextarea from "./ResizingTextarea.svelte";
-    import {
-        SearchMode,
-        type DataModel,
-        Diagram,
-        type IFilterBuilderEntry,
-    } from "../deps/helveg-diagram.ts";
+    import { SearchMode, type DataModel, Diagram, type IFilterBuilderEntry } from "../deps/helveg-diagram.ts";
     import type { Readable } from "svelte/store";
     import FilterBuilder from "./FilterBuilder.svelte";
     import NodeIcon from "./NodeIcon.svelte";
     import Hint from "./Hint.svelte";
+    import ButtonStretch from "./ButtonStretch.svelte";
 
     let dispatch = createEventDispatcher();
 
@@ -22,17 +18,17 @@
         {
             value: SearchMode.Contains,
             icon: AppIcons.ContainsMode,
-            hint: "Full-text case-insesitive search among names and comments."
+            hint: "Full-text case-insesitive search among names and comments.",
         },
         {
             value: SearchMode.Regex,
             icon: AppIcons.RegexMode,
-            hint: "Search among names and comments using a regular expression."
+            hint: "Search among names and comments using a regular expression.",
         },
         {
             value: SearchMode.JavaScript,
             icon: AppIcons.JavaScriptMode,
-            hint: "Search among any node data using a JavaScript expression. All properties from the properties panel become variables of the expression."
+            hint: "Search among any node data using a JavaScript expression. All properties from the properties panel become variables of the expression.",
         },
     ];
     let selectedSearchMode = SearchMode.Contains;
@@ -74,34 +70,27 @@
             <label>
                 <input type="checkbox" bind:checked={expandedOnly} />
                 <span>ExpandedOnly</span>
-                <Hint text="Search only among the currently visible nodes."/>
+                <Hint text="Search only among the currently visible nodes." />
             </label>
         </Subpanel>
-        <Subpanel
-            name="Filters"
-            hint="Filters that must ALL be true for a node to appear among the results."
-        >
+        <Subpanel name="Filters" hint="Filters that must ALL be true for a node to appear among the results.">
             <FilterBuilder bind:filterBuilder />
         </Subpanel>
         <Subpanel>
             <div class="flex flex-row gap-4">
-                <input
-                    type="submit"
-                    class="button-stretch primary"
-                    value="Highlight"
-                />
-                <button
-                    class="button-stretch primary"
-                    type="button"
-                    on:click|preventDefault|stopPropagation={() =>
+                <input type="submit" class="button-stretch primary" value="Highlight" />
+                <ButtonStretch
+                    class="primary"
+                    on:click={() =>
                         dispatch("isolate", {
                             searchText: searchText,
                             searchMode: selectedSearchMode,
                             filterBuilder: filterBuilder,
                         })}
+                    hint="Remove all nodes except for the ones matching the search criteria."
                 >
                     Isolate
-                </button>
+                </ButtonStretch>
             </div>
         </Subpanel>
     </form>

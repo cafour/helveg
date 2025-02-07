@@ -111,6 +111,9 @@
         </div>
         <label class="flex flex-row gap-8 align-items-center">
             Relation
+            <Hint
+                text="The relation that gives structure to the repository. Should be a tree. We recommend keeping it set to 'declares'."
+            />
             <select bind:value={$layoutOptions.tidyTree.relation}>
                 {#each relations as relation}
                     <option value={relation}>{relation}</option>
