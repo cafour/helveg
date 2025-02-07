@@ -3,6 +3,7 @@
 
     export let text: string;
     export let header: string | undefined = undefined;
+    export let shortcut: string | undefined = undefined;
     export let target: HTMLElement | null;
     export let delay: number = 0;
 
@@ -11,16 +12,31 @@
 
     const tooltip = document.createElement("div");
     tooltip.classList.add("tooltip");
+
     const rootElement = getContext<HTMLElement>("rootElement");
     rootElement.appendChild(tooltip);
+
     const headerElement = tooltip.appendChild(document.createElement("strong"));
     headerElement.style.display = "none";
+    headerElement.classList.add("tooltip-header");
+
+    const strongElement = headerElement.appendChild(document.createElement("strong"));
+
+    const shortcutElement = headerElement.appendChild(document.createElement("span"));
+    shortcutElement.style.display = "none";
+    shortcutElement.classList.add("keycap");
+
     const paragraphElement = tooltip.appendChild(document.createElement("p"));
     $: paragraphElement.innerText = text;
-    
+
     $: if (header != null) {
-        headerElement.innerText = header;
-        headerElement.style.display = "inline";
+        strongElement.innerText = header;
+        headerElement.style.display = "";
+    }
+    
+    $: if (shortcut != null) {
+        shortcutElement.innerText = shortcut;
+        shortcutElement.style.display = "";
     }
 
     $: {
@@ -61,8 +77,6 @@
     function show() {
         const rect = target!.getBoundingClientRect();
 
-        tooltip.style.left = rect.x + rect.width / 2 - tooltip.clientWidth / 2 + "px";
-
         if (tooltip.clientHeight > rect.y) {
             tooltip.classList.add("arrow-top");
             tooltip.classList.remove("arrow-bottom");
@@ -70,8 +84,20 @@
         } else {
             tooltip.classList.add("arrow-bottom");
             tooltip.classList.remove("arrow-top");
-            tooltip.style.top =
-                rect.y - rect.height - tooltip.offsetHeight + "px";
+            tooltip.style.top = rect.y - rect.height - tooltip.offsetHeight + "px";
+        }
+
+        const xMid = rect.x + rect.width / 2;
+        if (tooltip.clientWidth / 2 > xMid) {
+            tooltip.style.left = `calc(${xMid}px - 0.5 * var(--arrow-size))`;
+            tooltip.classList.add("point-left");
+        } else if (tooltip.clientWidth / 2 > document.documentElement.clientWidth - xMid) {
+            tooltip.style.left = `calc(${xMid - tooltip.clientWidth}px + 0.5 * var(--arrow-size))`;
+            tooltip.classList.add("point-right");
+        } else {
+            tooltip.style.left = xMid - tooltip.clientWidth / 2 + "px";
+            tooltip.classList.remove("point-left");
+            tooltip.classList.remove("point-right");
         }
 
         tooltip.classList.add("visible");

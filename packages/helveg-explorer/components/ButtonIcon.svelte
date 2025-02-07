@@ -8,6 +8,7 @@
     export let icon: string | undefined;
     export let name: string | undefined;
     export let hint: string | undefined;
+    export let shortcut: string | undefined;
 
     let element: HTMLElement;
 </script>
@@ -16,5 +17,5 @@
     <Icon name={icon ?? FALLBACK_ICON.name} />
 </button>
 {#if hint != null}
-    <Tooltip bind:target={element} text={hint} delay={500} header={name} />
+    <Tooltip bind:target={element} text={hint} delay={500} header={name} {shortcut} />
 {/if}

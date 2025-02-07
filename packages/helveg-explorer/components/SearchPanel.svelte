@@ -22,14 +22,17 @@
         {
             value: SearchMode.Contains,
             icon: AppIcons.ContainsMode,
+            hint: "Full-text case-insesitive search among names and comments."
         },
         {
             value: SearchMode.Regex,
             icon: AppIcons.RegexMode,
+            hint: "Search among names and comments using a regular expression."
         },
         {
             value: SearchMode.JavaScript,
             icon: AppIcons.JavaScriptMode,
+            hint: "Search among any node data using a JavaScript expression. All properties from the properties panel become variables of the expression."
         },
     ];
     let selectedSearchMode = SearchMode.Contains;

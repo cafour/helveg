@@ -157,6 +157,37 @@ function satisfiesEvent(operation: Operation<any>, event: OperationEvent): boole
     return false;
 }
 
+export function getShortcutHint(shortcut: KeyboardShortcut | undefined): string | undefined {
+    if (shortcut == null) {
+        return undefined;
+    }
+
+    let hint = "";
+    if (shortcut.modifiers != null && shortcut.modifiers != ModifierFlags.NONE) {
+        if ((shortcut.modifiers & ModifierFlags.CONTROL) === ModifierFlags.CONTROL) {
+            hint += "Ctrl + ";
+        }
+        if ((shortcut.modifiers & ModifierFlags.SHIFT) === ModifierFlags.SHIFT) {
+            hint += "Shift + ";
+        }
+        if ((shortcut.modifiers & ModifierFlags.ALT) === ModifierFlags.ALT) {
+            hint += "Alt + ";
+        }
+    }
+
+    let key = shortcut.key;
+    if (key === " ") {
+        key = "Space";
+    }
+    if (key.length === 1) {
+        key = key.toUpperCase();
+    }
+
+    hint += key;
+
+    return hint;
+}
+
 export interface TriggerOptions {
     event?: Event;
     shouldBeginExecute?: boolean;

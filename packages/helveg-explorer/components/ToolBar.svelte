@@ -2,7 +2,7 @@
     import { getContext } from "svelte";
     import { OP_COLLAPSE_ALL, OP_DIG_IN, OP_DIG_OUT, OP_EXPAND_ALL } from "../operations/op-toggle.ts";
     import { type IExplorerState } from "../explorer-state.ts";
-    import { OP_AUTOLAYOUT, OP_REFRESH } from "../operations/index.ts";
+    import { getShortcutHint, OP_AUTOLAYOUT, OP_REFRESH } from "../operations/index.ts";
     import ButtonIcon from "./ButtonIcon.svelte";
 
     const state = getContext<IExplorerState>("state");
@@ -25,6 +25,7 @@
             icon={operation.icon}
             name={operation.name}
             hint={operation.hint}
+            shortcut={getShortcutHint(operation.shortcut)}
         />
     {/each}
 </div>

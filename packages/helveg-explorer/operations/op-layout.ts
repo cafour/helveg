@@ -23,7 +23,7 @@ export const OP_REFRESH: GlobalOperation = {
     id: "refresh",
     name: "Refresh",
     scopes: OperationScope.GLOBAL,
-    hint: "Rebuild the graph and re-runs the automatic layout.",
+    hint: "Rebuild the graph and re-run the automatic layout.",
     icon: "vscode:refresh",
     shortcut: {
         key: "t",

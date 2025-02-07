@@ -16,6 +16,7 @@
     flex-direction: column;
     gap: 0.5rem;
     justify-content: flex-start;
+    overflow: visible;
 
     &.visible {
         visibility: visible;
@@ -53,4 +54,37 @@
             left: calc(50% - 0.5rem);
         }
     }
+
+    &.arrow-top.point-left,
+    &.arrow-bottom.point-left {
+        &::before {
+            left: 0;
+        }
+    }
+
+    &.arrow-top.point-right,
+    &.arrow-bottom.point-right {
+        &::before {
+            right: 0;
+            left: unset;
+        }
+    }
+
+    &>.tooltip-header {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+    }
+}
+
+.keycap {
+    text-wrap: nowrap;
+    white-space: nowrap;
+    font-family: var(--font-family-monospace);
+    background-color: var(--color-surface-700);
+    border-bottom: 3px solid var(--color-surface-900);
+    outline: 1px solid var(--color-surface-900);
+    color: var(--color-text-inverted);
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
 }
