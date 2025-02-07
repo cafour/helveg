@@ -1,3 +1,4 @@
+import { get } from "svelte/store";
 import { AppIcons } from "../const";
 import { ModifierFlags, MouseButton, OperationScope, type NodeOperation } from "./executor";
 
@@ -16,6 +17,6 @@ export const OP_REMOVE: NodeOperation = {
     scopes: OperationScope.NODE,
 
     async beginExecute(state, nodeId) {
-        await state.diagram.remove(nodeId);
+        await state.diagram.remove(nodeId, get(state.toolOptions).remove);
     }
 };
