@@ -67,7 +67,7 @@
             <div class="flex flex-row gap-8">
                 <span> ExpandedDepth </span>
                 <Hint
-                    text="The initial visible depth of the diagram. Press the Refresh button to reset the diagram to this depth."
+                    text="The initial visible depth of the diagram. Press the Refresh button to reset the diagram to this depth. Set to -1 to expand the entire graph."
                 />
                 <input type="number" min="-1" bind:value={$dataOptions.expandedDepth} />
             </div>
