@@ -58,7 +58,7 @@
             get(state.toolOptions).showProperties.shouldHighlightNeighbors,
         );
 
-        if (toolOptions.showProperties.shouldFocusPropertiesPanel) {
+        if (nodeId != null && toolOptions.showProperties.shouldFocusPropertiesPanel) {
             dock.setTab(AppPanels.Properties);
         }
     });

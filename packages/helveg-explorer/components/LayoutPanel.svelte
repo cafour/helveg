@@ -1,6 +1,13 @@
 <script lang="ts">
     import Panel from "./Panel.svelte";
-    import { Diagram, DiagramStatus, type DiagramStats, getRelations, getNodeKinds, CSHARP_RELATION_HINTS } from "../deps/helveg-diagram.ts";
+    import {
+        Diagram,
+        DiagramStatus,
+        type DiagramStats,
+        getRelations,
+        getNodeKinds,
+        CSHARP_RELATION_HINTS,
+    } from "../deps/helveg-diagram.ts";
     import { createEventDispatcher, getContext } from "svelte";
     import Icon from "./Icon.svelte";
     import Subpanel from "./Subpanel.svelte";
@@ -160,26 +167,32 @@
         <div class="flex flex-col">
             <label>
                 <input type="checkbox" bind:checked={$layoutOptions.forceAtlas2.adjustSizes} />
-                <span>AdjustSizes</span>
+                <span>Adjust sizes</span>
+                <Hint text="Prevent nodes from overlapping." />
             </label>
             <label>
                 <input type="checkbox" bind:checked={$layoutOptions.forceAtlas2.barnesHutOptimize} />
-                <span>BarnesHutOptimize</span>
+                <span>Barnes-Hut optimize</span>
+                <Hint text="Divide the nodes into regions are use them to approximate the forces." />
             </label>
             <label>
                 <input type="checkbox" bind:checked={$layoutOptions.forceAtlas2.strongGravityMode} />
-                <span>StrongGravityMode</span>
+                <span>Strong gravity mode</span>
+                <Hint
+                    text="When enabled, fravity is linear with the distance from the center of the space. When disabled, gravity is inverse quadratic."
+                />
             </label>
             <label>
                 <input type="checkbox" bind:checked={$layoutOptions.forceAtlas2.linLogMode} />
-                <span>LinLogMode</span>
+                <span>LinLog mode</span>
+                <Hint text="Use Noack's LinLog mode." />
             </label>
             <label>
                 <input type="checkbox" bind:checked={$layoutOptions.forceAtlas2.outboundAttractionDistribution} />
-                <span>OutboundAttractionDistribution</span>
+                <span>Outbound attraction distribution</span>
             </label>
             <label>
-                <div class="flex flex-row gap-8">
+                <div class="flex flex-row gap-8 space-nowrap">
                     <span>Gravity</span>
                     <input type="number" min="0" step="0.05" bind:value={$layoutOptions.forceAtlas2.gravity} />
                 </div>
@@ -193,8 +206,8 @@
                 />
             </label>
             <label>
-                <div class="flex flex-row gap-8">
-                    <span>ScalingRatio</span>
+                <div class="flex flex-row gap-8 space-nowrap">
+                    <span>Scaling ratio</span>
                     <input type="number" min="1" bind:value={$layoutOptions.forceAtlas2.scalingRatio} />
                 </div>
                 <input
@@ -207,8 +220,11 @@
                 />
             </label>
             <label>
-                <div class="flex flex-row gap-8">
-                    <span>SlowDown</span>
+                <div class="flex flex-row gap-8 space-nowrap">
+                    <span>Slow down</span>
+                    <Hint
+                        text="Prevents the node from oscillating between two positions at the cost of the algorithm converging slower."
+                    />
                     <input type="number" min="1" bind:value={$layoutOptions.forceAtlas2.slowDown} />
                 </div>
                 <input
@@ -221,8 +237,8 @@
                 />
             </label>
             <label>
-                <div class="flex flex-row gap-8">
-                    <span>BarnesHutTheta</span>
+                <div class="flex flex-row gap-8 space-nowrap">
+                    <span>Barnes-Hut theta</span>
                     <input type="number" min="0" step="0.05" bind:value={$layoutOptions.forceAtlas2.barnesHutTheta} />
                 </div>
                 <input
@@ -235,8 +251,11 @@
                 />
             </label>
             <label>
-                <div class="flex flex-row gap-8">
-                    <span>AutoStopAverageTraction</span>
+                <div class="flex flex-row gap-8 space-nowrap">
+                    <span>AutoStop average traction</span>
+                    <Hint
+                        text="When the average traction of a node drops below this value, the algorithm automatically stops. Set to -1 to disable AutoStop altogether."
+                    />
                     <input
                         type="number"
                         min="-1.0"
