@@ -30,14 +30,14 @@
             <input type="checkbox" bind:checked={$toolOptions.showProperties.shouldFixateSelectedNode} />
             Fixate selected nodes
             <Hint
-                text="Whether to keep the currently inspected node in place -- let it be ignored by the layout algorithm."
+                text="Keep the currently inspected node in place -- let it be ignored by the layout algorithm."
             />
         </label>
         <label>
             <input type="checkbox" bind:checked={$toolOptions.showProperties.shouldFocusPropertiesPanel} />
             Focus properties panel
             <Hint
-                text="Whether to open the Properties panel when you select a node."
+                text="Open the Properties panel when you select a node."
             />
         </label>
     </Subpanel>
@@ -49,22 +49,29 @@
                 text="Remove all descendants of the removed node."
             />
         </label>
+        <label>
+            <input type="checkbox" bind:checked={$toolOptions.remove.shouldRunLayout} />
+            Run layout
+            <Hint
+                text="Run the continuous layout algorithm when a node is deleted."
+            />
+        </label>
     </Subpanel>
     <Subpanel name="Toggle" icon={AppIcons.ToggleTool}>
         <label>
             <input type="checkbox" bind:checked={$toolOptions.toggle.shouldRunLayout} />
-            ShouldRunLayout
+            Run layout
             <Hint
-                text="Whether to automatically run the continuous layout algorithm after every node-expanding or node-collapsing operation."
+                text="Run the continuous layout algorithm after every node-expanding or node-collapsing operation."
             />
         </label>
     </Subpanel>
     <Subpanel name="Move" icon={AppIcons.MoveTool}>
         <label>
             <input type="checkbox" bind:checked={$toolOptions.move.shouldRunLayout} />
-            ShouldRunLayout
+            Run layout
             <Hint
-                text="Whether to automatically run the continuous layout algorithm when a node is manually moved."
+                text="Run the continuous layout algorithm when a node is manually moved."
             />
         </label>
     </Subpanel>

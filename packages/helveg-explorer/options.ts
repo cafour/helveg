@@ -1,5 +1,4 @@
 import {
-    DEFAULT_REMOVE_OPTIONS,
     type RemoveOptions,
     type ExportOptions,
     DEFAULT_EXPORT_OPTIONS,
@@ -33,7 +32,7 @@ export interface ToggleToolOptions {
 
 export const DEFAULT_TOGGLE_TOOL_OPTIONS: Readonly<ToggleToolOptions> = {
     shouldRunLayout: true,
-}
+};
 
 export interface MoveToolOptions {
     shouldRunLayout: boolean;
@@ -41,17 +40,27 @@ export interface MoveToolOptions {
 
 export const DEFAULT_MOVE_TOOL_OPTIONS: Readonly<ToggleToolOptions> = {
     shouldRunLayout: true,
+};
+
+export interface RemoveToolOptions {
+    isTransitive: boolean;
+    shouldRunLayout: boolean;
 }
 
+export const DEFAULT_REMOVE_TOOL_OPTIONS: Readonly<RemoveToolOptions> = {
+    isTransitive: true,
+    shouldRunLayout: true,
+};
+
 export interface ToolOptions {
-    remove: RemoveOptions;
+    remove: RemoveToolOptions;
     showProperties: ShowPropertiesToolOptions;
     toggle: ToggleToolOptions;
     move: MoveToolOptions;
 }
 
 export const DEFAULT_TOOL_OPTIONS: Readonly<ToolOptions> = {
-    remove: DEFAULT_REMOVE_OPTIONS,
+    remove: DEFAULT_REMOVE_TOOL_OPTIONS,
     showProperties: DEFAULT_SHOW_PROPERTIES_TOOL_OPTIONS,
     toggle: DEFAULT_TOGGLE_TOOL_OPTIONS,
     move: DEFAULT_MOVE_TOOL_OPTIONS,

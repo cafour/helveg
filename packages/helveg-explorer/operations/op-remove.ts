@@ -17,6 +17,10 @@ export const OP_REMOVE: NodeOperation = {
     scopes: OperationScope.NODE,
 
     async beginExecute(state, nodeId) {
-        await state.diagram.remove(nodeId, get(state.toolOptions).remove);
-    }
+        const options = get(state.toolOptions).remove;
+        await state.diagram.remove(nodeId, { isTransitive: options.isTransitive });
+        if (options.shouldRunLayout) {
+            await state.diagram.runLayout(false);
+        }
+    },
 };
