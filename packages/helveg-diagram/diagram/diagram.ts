@@ -765,9 +765,16 @@ export class Diagram {
                     return;
                 }
 
+                this.selectedNode = null;
+                // NB: This awful construction is here so that the dropping of nodes does not take forever due to
+                //     Sigma's and FA2-supervisor's event listeners.
+                this._sigma?.setGraph(new Graph<HelvegNodeAttributes, HelvegEdgeAttributes, HelvegGraphAttributes>());
+                // NB: Sigma doesn't clear its highlightedNodes correctly
+                ((this._sigma as any)["highlightedNodes"] as Set<string>).clear();
+
                 for (let id of filterNodes(this._model.data!, filter, true)) {
                     if (this._graph.hasNode(id)) {
-                        this._graph.dropNode(id);
+                        dropNode(this._graph, id);
                         changed = true;
                     }
                 }
@@ -775,6 +782,8 @@ export class Diagram {
         } catch (e: any) {
             this._logger.warn(e?.message ?? e?.toString() ?? "Something bad happened while isolating nodes.");
             return;
+        } finally {
+            this._sigma?.setGraph(this._graph);
         }
 
         this._logger.info(`Isolated ${this._graph.nodes().length} nodes.`);
@@ -821,7 +830,7 @@ export class Diagram {
                 if (!this._graph) {
                     return;
                 }
-                
+
                 // NB: This awful construction is here so that the dropping of nodes does not take forever due to
                 //     Sigma's and FA2-supervisor's event listeners.
                 this._sigma?.setGraph(new Graph<HelvegNodeAttributes, HelvegEdgeAttributes, HelvegGraphAttributes>());
