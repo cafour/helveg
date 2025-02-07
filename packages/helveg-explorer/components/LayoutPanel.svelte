@@ -1,12 +1,6 @@
 <script lang="ts">
     import Panel from "./Panel.svelte";
-    import {
-        Diagram,
-        DiagramStatus,
-        type DiagramStats,
-        getRelations,
-        getNodeKinds,
-    } from "../deps/helveg-diagram.ts";
+    import { Diagram, DiagramStatus, type DiagramStats, getRelations, getNodeKinds } from "../deps/helveg-diagram.ts";
     import { createEventDispatcher, getContext } from "svelte";
     import Icon from "./Icon.svelte";
     import Subpanel from "./Subpanel.svelte";
@@ -18,6 +12,10 @@
     import ToggleAllCheckbox from "./ToggleAllCheckbox.svelte";
     import Hint from "./Hint.svelte";
     import NodeKindIcon from "./NodeKindIcon.svelte";
+    import ButtonStretch from "./ButtonStretch.svelte";
+    import { OP_REFRESH } from "../operations/op-layout.ts";
+    import type { IExplorerState } from "../explorer-state.ts";
+    import { getShortcutHint } from "../operations/executor.ts";
 
     export let status: DiagramStatus;
     export let stats: DiagramStats;
@@ -25,71 +23,59 @@
     $: items = [
         { key: "Iterations", value: stats?.iterationCount.toString() },
         { key: "Speed", value: `${stats?.speed.toFixed(3)} iterations/s` },
-        { key: "Global traction", value: stats?.globalTraction.toFixed(3)},
-        { key: "Global swinging", value: stats?.globalSwinging.toFixed(3)},
-        { key: "Average traction", value: stats?.averageTraction.toFixed(3)},
-        { key: "Average swinging", value: stats?.averageSwinging.toFixed(3)},
+        { key: "Global traction", value: stats?.globalTraction.toFixed(3) },
+        { key: "Global swinging", value: stats?.globalSwinging.toFixed(3) },
+        { key: "Average traction", value: stats?.averageTraction.toFixed(3) },
+        { key: "Average swinging", value: stats?.averageSwinging.toFixed(3) },
     ];
 
     $: relations = getRelations($model.data);
 
     let dispatch = createEventDispatcher();
 
+    const state = getContext<IExplorerState>("state");
     let diagram = getContext<Diagram>("diagram");
     let model = getContext<Readable<DataModel>>("model");
     let layoutOptions = getContext<Writable<LayoutOptions>>("layoutOptions");
     let dataOptions = getContext<Writable<DataOptions>>("dataOptions");
 
     $: kinds = getNodeKinds($model.data).sort(
-        (a, b) =>
-            diagram.options.nodeKindOrder.indexOf(a) -
-            diagram.options.nodeKindOrder.indexOf(b),
+        (a, b) => diagram.options.nodeKindOrder.indexOf(a) - diagram.options.nodeKindOrder.indexOf(b),
     );
 </script>
 
 <Panel name="Layout" indent={false} id={AppPanels.Layout}>
     <Subpanel class="sticky top-0">
-        <button
-            on:click={() => dispatch("refresh")}
-            class="button-stretch primary mb-8 flex flex-row gap-4 align-items-center justify-content-center"
+        <ButtonStretch
+            class="primary mb-8 flex flex-row gap-4 align-items-center justify-content-center"
+            on:click={async () => await state.operationExecutor.triggerManually(OP_REFRESH, undefined)}
+            hint={OP_REFRESH.hint}
+            icon={OP_REFRESH.icon}
+            name={OP_REFRESH.name}
+            shortcut={getShortcutHint(OP_REFRESH.shortcut)}
         >
-            <Icon name="vscode:refresh" />
             Refresh
-        </button>
+        </ButtonStretch>
         <label>
             <div class="flex flex-row gap-8">
                 <span> ExpandedDepth </span>
                 <Hint
                     text="The initial visible depth of the diagram. Press the Refresh button to reset the diagram to this depth."
                 />
-                <input
-                    type="number"
-                    min="-1"
-                    bind:value={$dataOptions.expandedDepth}
-                />
+                <input type="number" min="-1" bind:value={$dataOptions.expandedDepth} />
             </div>
         </label>
     </Subpanel>
 
-    <Subpanel
-        name="Relations"
-        hint="Allows you to pick which relationships are visualized."
-    >
+    <Subpanel name="Relations" hint="Allows you to pick which relationships are visualized.">
         <!-- svelte-ignore a11y-label-has-associated-control -->
         <label>
-            <ToggleAllCheckbox
-                bind:selected={$dataOptions.selectedRelations}
-                all={relations}
-            />
+            <ToggleAllCheckbox bind:selected={$dataOptions.selectedRelations} all={relations} />
             <span>all</span>
         </label>
         {#each relations as relation}
             <label>
-                <input
-                    type="checkbox"
-                    bind:group={$dataOptions.selectedRelations}
-                    value={relation}
-                />
+                <input type="checkbox" bind:group={$dataOptions.selectedRelations} value={relation} />
                 <span>{relation}</span>
             </label>
         {/each}
@@ -101,19 +87,12 @@
     >
         <!-- svelte-ignore a11y-label-has-associated-control -->
         <label>
-            <ToggleAllCheckbox
-                bind:selected={$dataOptions.selectedKinds}
-                all={kinds}
-            />
+            <ToggleAllCheckbox bind:selected={$dataOptions.selectedKinds} all={kinds} />
             <span>all</span>
         </label>
         {#each kinds as kind}
             <label>
-                <input
-                    type="checkbox"
-                    bind:group={$dataOptions.selectedKinds}
-                    value={kind}
-                />
+                <input type="checkbox" bind:group={$dataOptions.selectedKinds} value={kind} />
                 <NodeKindIcon nodeKind={kind} />
                 <span>{kind}</span>
             </label>
@@ -126,10 +105,7 @@
         collapsed={true}
     >
         <div class="flex flex-row justify-content-center mb-8">
-            <button
-                on:click={() => dispatch("tidyTree")}
-                class="button-icon success-stroke"
-            >
+            <button on:click={() => dispatch("tidyTree")} class="button-icon success-stroke">
                 <Icon name="vscode:play" title="Run" />
             </button>
         </div>
@@ -177,50 +153,29 @@
 
         <div class="flex flex-col">
             <label>
-                <input
-                    type="checkbox"
-                    bind:checked={$layoutOptions.forceAtlas2.adjustSizes}
-                />
+                <input type="checkbox" bind:checked={$layoutOptions.forceAtlas2.adjustSizes} />
                 <span>AdjustSizes</span>
             </label>
             <label>
-                <input
-                    type="checkbox"
-                    bind:checked={$layoutOptions.forceAtlas2.barnesHutOptimize}
-                />
+                <input type="checkbox" bind:checked={$layoutOptions.forceAtlas2.barnesHutOptimize} />
                 <span>BarnesHutOptimize</span>
             </label>
             <label>
-                <input
-                    type="checkbox"
-                    bind:checked={$layoutOptions.forceAtlas2.strongGravityMode}
-                />
+                <input type="checkbox" bind:checked={$layoutOptions.forceAtlas2.strongGravityMode} />
                 <span>StrongGravityMode</span>
             </label>
             <label>
-                <input
-                    type="checkbox"
-                    bind:checked={$layoutOptions.forceAtlas2.linLogMode}
-                />
+                <input type="checkbox" bind:checked={$layoutOptions.forceAtlas2.linLogMode} />
                 <span>LinLogMode</span>
             </label>
             <label>
-                <input
-                    type="checkbox"
-                    bind:checked={$layoutOptions.forceAtlas2
-                        .outboundAttractionDistribution}
-                />
+                <input type="checkbox" bind:checked={$layoutOptions.forceAtlas2.outboundAttractionDistribution} />
                 <span>OutboundAttractionDistribution</span>
             </label>
             <label>
                 <div class="flex flex-row gap-8">
                     <span>Gravity</span>
-                    <input
-                        type="number"
-                        min="0"
-                        step="0.05"
-                        bind:value={$layoutOptions.forceAtlas2.gravity}
-                    />
+                    <input type="number" min="0" step="0.05" bind:value={$layoutOptions.forceAtlas2.gravity} />
                 </div>
                 <input
                     type="range"
@@ -234,11 +189,7 @@
             <label>
                 <div class="flex flex-row gap-8">
                     <span>ScalingRatio</span>
-                    <input
-                        type="number"
-                        min="1"
-                        bind:value={$layoutOptions.forceAtlas2.scalingRatio}
-                    />
+                    <input type="number" min="1" bind:value={$layoutOptions.forceAtlas2.scalingRatio} />
                 </div>
                 <input
                     type="range"
@@ -252,11 +203,7 @@
             <label>
                 <div class="flex flex-row gap-8">
                     <span>SlowDown</span>
-                    <input
-                        type="number"
-                        min="1"
-                        bind:value={$layoutOptions.forceAtlas2.slowDown}
-                    />
+                    <input type="number" min="1" bind:value={$layoutOptions.forceAtlas2.slowDown} />
                 </div>
                 <input
                     type="range"
@@ -270,12 +217,7 @@
             <label>
                 <div class="flex flex-row gap-8">
                     <span>BarnesHutTheta</span>
-                    <input
-                        type="number"
-                        min="0"
-                        step="0.05"
-                        bind:value={$layoutOptions.forceAtlas2.barnesHutTheta}
-                    />
+                    <input type="number" min="0" step="0.05" bind:value={$layoutOptions.forceAtlas2.barnesHutTheta} />
                 </div>
                 <input
                     type="range"

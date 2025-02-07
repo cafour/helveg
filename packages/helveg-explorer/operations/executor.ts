@@ -194,6 +194,11 @@ export interface TriggerOptions {
     shouldEndExecute?: boolean;
 }
 
+export const DEFAULT_MANUAL_TRIGGER_OPTIONS: TriggerOptions = {
+    shouldBeginExecute: true,
+    shouldEndExecute: true,
+};
+
 export class OperationExecutor {
     private _scopeMaps = new Map<OperationScope, Map<string, Operation<unknown>>>();
 
@@ -389,7 +394,9 @@ export class OperationExecutor {
         }
     }
 
-    public async triggerManually<TContext>(op: Operation<TContext>, context: TContext, options: TriggerOptions) {
+    public async triggerManually<TContext>(op: Operation<TContext>, context: TContext, options?: TriggerOptions) {
+        options = {...DEFAULT_MANUAL_TRIGGER_OPTIONS, ...options};
+
         const event: OperationEvent = {
             type: "manual",
             modifiers: ModifierFlags.NONE,

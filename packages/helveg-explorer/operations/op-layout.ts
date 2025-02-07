@@ -26,7 +26,7 @@ export const OP_REFRESH: GlobalOperation = {
     hint: "Rebuild the graph and re-run the automatic layout.",
     icon: "vscode:refresh",
     shortcut: {
-        key: "t",
+        key: "l",
         modifiers: ModifierFlags.CONTROL,
     },
     async beginExecute(state) {
@@ -41,7 +41,7 @@ export const OP_AUTOLAYOUT: GlobalOperation = {
     hint: "AutoLayout the current graph.",
     icon: "vscode:play-circle",
     shortcut: {
-        key: "t",
+        key: "l",
     },
     async beginExecute(state) {
         await state.diagram.autoLayout();
