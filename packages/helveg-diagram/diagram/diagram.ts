@@ -199,7 +199,8 @@ export class Diagram {
         this._nodeKeys.forEach((k) => {
             this._nodeKeyTypes[k] = "string";
             const propTypes = new Set(
-                this.modelGraph.filterNodes((_n, na) => na.model[k] !== undefined)
+                this.modelGraph
+                    .filterNodes((_n, na) => na.model[k] !== undefined)
                     .map((n) => typeof this.modelGraph.getNodeAttribute(n, "model")[k])
             );
             if (propTypes.size == 1) {
@@ -388,6 +389,13 @@ export class Diagram {
     get modifierKeyState(): Readonly<ModifierKeyState> {
         return this._modifierKeyState;
     }
+    private set modifierKeyState(newState: ModifierKeyState) {
+        if (!deepCompare(this._modifierKeyState, newState)) {
+            const oldState = { ...this._modifierKeyState };
+            Object.assign(this._modifierKeyState, newState);
+            this.events.modifierKeysChanged.trigger({ old: oldState, new: this._modifierKeyState });
+        }
+    }
 
     constructor(element: HTMLElement, options?: Partial<DiagramOptions>) {
         this._element = element;
@@ -401,6 +409,8 @@ export class Diagram {
         window.addEventListener("keydown", this.onKeyUpDown.bind(this));
         window.addEventListener("keyup", this.onKeyUpDown.bind(this));
         window.addEventListener("mousemove", this.updateModifierKeyState.bind(this));
+        window.addEventListener("focus", () => this.updateModifierKeyState({}));
+        window.addEventListener("blur", () => this.updateModifierKeyState({}));
 
         this._options = { ...DEFAULT_DIAGRAM_OPTIONS, ...options };
         this._logger = consoleLogger("diagram", this._options.logLevel);
@@ -587,7 +597,7 @@ export class Diagram {
             strongGravityMode: false,
             barnesHutOptimize: false,
             slowDown: 2,
-            autoStopAverageTraction: 2
+            autoStopAverageTraction: 2,
         });
     }
 
@@ -782,7 +792,7 @@ export class Diagram {
 
     async remove(nodeId: string, options?: RemoveOptions): Promise<void> {
         options = { ...DEFAULT_REMOVE_OPTIONS, ...options };
-        
+
         if (!this._graph) {
             this._logger.warn("Cannot remove nodes since the graph is not initialized.");
             return;
@@ -791,7 +801,7 @@ export class Diagram {
         if (!this._graph.hasNode(nodeId)) {
             throw new Error(`Cannot remove node '${nodeId}' since it does not exist in the graph.`);
         }
-        
+
         // NB: pre-emptively unset selected node so that Sigma cannot complain that you deleted it
         //     TODO: Handle better.
         this.selectedNode = null;
@@ -1021,8 +1031,8 @@ export class Diagram {
         this._sigma.on("upStage", (e) => this.events.stageUp.trigger(e.event));
         this._sigma.on("downStage", (e) => this.events.stageDown.trigger(e.event));
         this._sigma.on("doubleClickStage", (e) => this.events.stageDoubleClicked.trigger(e.event));
-        this._sigma.on("enterNode", this.onNodeEnter.bind(this));
-        this._sigma.on("leaveNode", this.onNodeLeave.bind(this));
+        this._sigma.on("enterNode", this.updateCursor.bind(this));
+        this._sigma.on("leaveNode", this.resetCursor.bind(this));
         this._sigma.on("doubleClickNode", (e) =>
             this.events.nodeDoubleClicked.trigger({
                 nodeId: e.node,
@@ -1085,20 +1095,20 @@ export class Diagram {
         );
     }
 
-    private updateModifierKeyState(e: MouseEvent | KeyboardEvent) {
+    private updateModifierKeyState(e: { altKey?: boolean; ctrlKey?: boolean; shiftKey?: boolean }) {
         const newState: ModifierKeyState = {
-            alt: e.altKey,
-            control: e.ctrlKey,
-            shift: e.shiftKey,
+            alt: e.altKey ?? false,
+            control: e.ctrlKey ?? false,
+            shift: e.shiftKey ?? false,
         };
-        if (!deepCompare(this._modifierKeyState, newState)) {
-            const oldState = { ...this._modifierKeyState };
-            Object.assign(this._modifierKeyState, newState);
-            this.events.modifierKeysChanged.trigger({ old: oldState, new: this._modifierKeyState });
+        this.modifierKeyState = newState;
+
+        if (this.hoveredNode != null) {
+            this.updateCursor();
         }
     }
 
-    private onNodeEnter(): void {
+    private updateCursor(): void {
         if (this.cursorOptions.altHoverCursor && this._modifierKeyState.alt) {
             this.element.style.cursor = this.cursorOptions.altHoverCursor;
         } else if (this.cursorOptions.controlHoverCursor && this._modifierKeyState.control) {
@@ -1110,7 +1120,7 @@ export class Diagram {
         }
     }
 
-    private onNodeLeave(event: SigmaNodeEventPayload): void {
+    private resetCursor(): void {
         this.element.style.cursor = this.cursorOptions.defaultCursor;
     }
 
@@ -1154,7 +1164,7 @@ export class Diagram {
         }
 
         if (this.hoveredNode) {
-            this.onNodeEnter();
+            this.updateCursor();
         }
     }
 }
