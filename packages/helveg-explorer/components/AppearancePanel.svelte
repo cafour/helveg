@@ -17,6 +17,8 @@
         VS_NODE_COLOR_SCHEMA,
         TYPE_FOCUS_COLOR_SCHEMA,
         CSHARP_RELATION_HINTS,
+        GlyphShape,
+        SizingMode,
     } from "../deps/helveg-diagram.ts";
     import Hint from "./Hint.svelte";
 
@@ -99,55 +101,27 @@
 
 <Panel name="Appearance" indent={false} id={AppPanels.Appearance}>
     <Subpanel name="Glyphs">
-        <label>
-            <input type="checkbox" bind:checked={$appearanceOptions.glyph.showIcons} />
-            ShowIcons
-        </label>
-        <label>
-            <input type="checkbox" bind:checked={$appearanceOptions.glyph.showOutlines} />
-            ShowOutlines
-        </label>
-        <label>
-            <input type="checkbox" bind:checked={$appearanceOptions.glyph.showLabels} />
-            ShowLabels
-        </label>
-        {#if hasDiffMetadata}
-            <label>
-                <input type="checkbox" bind:checked={$appearanceOptions.glyph.showDiffs} />
-                ShowDiffs
-            </label>
-        {/if}
-        <label>
-            <input type="checkbox" bind:checked={$appearanceOptions.glyph.showFire} />
-            ShowFire
-        </label>
-        <label>
-            <input type="checkbox" bind:checked={$appearanceOptions.glyph.isFireAnimated} />
-            IsFireAnimated
-        </label>
-        <label>
-            <input type="checkbox" bind:checked={$appearanceOptions.glyph.showCollapsedNodeIndicators} />
-            ShowCollapsedNodeIndicators
-        </label>
-        <label>
-            <input type="checkbox" bind:checked={$appearanceOptions.glyph.showHatching} />
-            ShowHatching
-        </label>
-        <label>
-            <input type="checkbox" bind:checked={$appearanceOptions.glyph.showContours} />
-            ShowContours
+        <label class="flex flex-row gap-8 align-items-center">
+            <span class="w-128 inline-block flex-shrink-0 ellipsis overflow-hidden" title="Shape">Shape</span>
+            <select bind:value={$appearanceOptions.glyph.glyphShape}>
+                {#each Object.values(GlyphShape) as shape}
+                    <option value={shape}>{shape}</option>
+                {/each}
+            </select>
         </label>
         <label class="flex flex-row gap-8 align-items-center">
-            <span class="w-128 inline-block flex-shrink-0 ellipsis overflow-hidden" title="SizingMode">SizingMode</span>
+            <span class="w-128 inline-block flex-shrink-0 ellipsis overflow-hidden" title="Sizing mode"
+                >Sizing mode</span
+            >
             <select bind:value={$appearanceOptions.glyph.sizingMode}>
-                <option value="sqrt">sqrt</option>
-                <option value="linear">linear</option>
-                <option value="log">log</option>
+                {#each Object.values(SizingMode) as mode}
+                    <option value={mode}>{mode}</option>
+                {/each}
             </select>
         </label>
         <label class="flex flex-row gap-8 align-items-center">
             <span class="w-128 inline-block flex-shrink-0 ellipsis overflow-hidden" title="Node color preset"
-                >NodeColorPreset</span
+                >Node color preset</span
             >
             <select
                 on:change={(e) => onNodeColorChanged(e.currentTarget.value)}
@@ -160,6 +134,40 @@
                 {/each}
             </select>
         </label>
+        <label>
+            <input type="checkbox" bind:checked={$appearanceOptions.glyph.showIcons} />
+            Icons
+        </label>
+        <label>
+            <input type="checkbox" bind:checked={$appearanceOptions.glyph.showLabels} />
+            Labels
+        </label>
+        <label>
+            <input type="checkbox" bind:checked={$appearanceOptions.glyph.showFire} />
+            Fire
+        </label>
+        <label>
+            <input type="checkbox" bind:checked={$appearanceOptions.glyph.isFireAnimated} />
+            Fire animation
+        </label>
+        <label>
+            <input type="checkbox" bind:checked={$appearanceOptions.glyph.showCollapsedNodeIndicators} />
+            Collapsed node indicators
+        </label>
+        <label>
+            <input type="checkbox" bind:checked={$appearanceOptions.glyph.showHatching} />
+            Hatching
+        </label>
+        <label>
+            <input type="checkbox" bind:checked={$appearanceOptions.glyph.showContours} />
+            Contours
+        </label>
+        {#if hasDiffMetadata}
+            <label>
+                <input type="checkbox" bind:checked={$appearanceOptions.glyph.showDiffs} />
+                Diffs
+            </label>
+        {/if}
     </Subpanel>
     <Subpanel name="Relation colors">
         {#each relations as relation}

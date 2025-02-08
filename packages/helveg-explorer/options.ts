@@ -6,9 +6,10 @@ import {
     DEFAULT_CSHARP_RELATION_COLORS,
     type ForceAtlas2Options,
     DEFAULT_FORCE_ATLAS2_OPTIONS,
-    type SizingMode,
     type NodeColorSchema,
+    SizingMode,
     UNIVERSAL_NODE_COLOR_SCHEMA,
+    GlyphShape,
 } from "./deps/helveg-diagram.ts";
 export { type RemoveOptions, type ExportOptions, DEFAULT_EXPORT_OPTIONS };
 
@@ -67,8 +68,8 @@ export const DEFAULT_TOOL_OPTIONS: Readonly<ToolOptions> = {
 };
 
 export interface GlyphOptions {
+    glyphShape: GlyphShape,
     showIcons: boolean;
-    showOutlines: boolean;
     showLabels: boolean;
     showFire: boolean;
     showDiffs: boolean;
@@ -81,8 +82,8 @@ export interface GlyphOptions {
 }
 
 export const DEFAULT_GLYPH_OPTIONS: GlyphOptions = {
+    glyphShape: GlyphShape.DONUT,
     showIcons: true,
-    showOutlines: true,
     showLabels: true,
     showDiffs: true,
     showFire: true,
@@ -91,7 +92,7 @@ export const DEFAULT_GLYPH_OPTIONS: GlyphOptions = {
     showCollapsedNodeIndicators: true,
     showContours: true,
     codePizza: false,
-    sizingMode: "linear",
+    sizingMode: SizingMode.LINEAR,
 };
 
 export interface CodePizzaOptions {

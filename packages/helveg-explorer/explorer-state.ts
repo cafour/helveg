@@ -129,7 +129,7 @@ export function createExplorerState(
         glyphOptions.showFire = o.glyph.showFire;
         glyphOptions.showIcons = o.glyph.showIcons;
         glyphOptions.showLabels = o.glyph.showLabels;
-        glyphOptions.showOutlines = o.glyph.showOutlines;
+        glyphOptions.glyphShape = o.glyph.glyphShape;
         glyphOptions.showDiffs = o.glyph.showDiffs;
         glyphOptions.showCollapsedNodeIndicators =
             o.glyph.showCollapsedNodeIndicators;
