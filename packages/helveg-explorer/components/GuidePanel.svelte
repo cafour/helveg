@@ -149,7 +149,7 @@
         defunct <em>Pizza Nostra</em>, which used to make the weirdest looking
         pizza I have ever seen.
     </p>
-    <p>&#169; 2020-2024 Adam Štěpánek</p>
+    <p>&#169; 2020-2025 Adam Štěpánek</p>
 
     <h3>License</h3>
     <p>

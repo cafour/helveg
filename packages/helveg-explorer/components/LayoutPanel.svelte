@@ -64,8 +64,8 @@
             Refresh
         </ButtonStretch>
         <label>
-            <div class="flex flex-row gap-8">
-                <span> ExpandedDepth </span>
+            <div class="flex flex-row gap-8 space-nowrap">
+                <span>Expanded depth</span>
                 <Hint
                     text="The initial visible depth of the diagram. Press the Refresh button to reset the diagram to this depth. Set to -1 to expand the entire graph."
                 />
@@ -92,7 +92,7 @@
     </Subpanel>
 
     <Subpanel
-        name="Node Kinds"
+        name="Node kinds"
         hint="Allows you to include or exclude nodes based on their kind. The list is sorted hierarchically with the 'largest' nodes at the top."
     >
         <!-- svelte-ignore a11y-label-has-associated-control -->

@@ -159,12 +159,12 @@
     <Subpanel name="Export image">
         <label>
             <input type="checkbox" bind:checked={$exportOptions.includeNodes} />
-            IncludeNodes
+            Nodes
         </label>
 
         <label>
             <input type="checkbox" bind:checked={$exportOptions.includeEdges} />
-            IncludeEdges
+            Edges
         </label>
 
         <label>
@@ -172,7 +172,7 @@
                 type="checkbox"
                 bind:checked={$exportOptions.includeLabels}
             />
-            IncludeLabels
+            Labels
         </label>
 
         <label>
@@ -180,7 +180,7 @@
                 type="checkbox"
                 bind:checked={$exportOptions.includeEffects}
             />
-            IncludeEffects
+            Effects
         </label>
 
         <label>
@@ -188,7 +188,7 @@
                 type="checkbox"
                 bind:checked={$exportOptions.includePizzaDough}
             />
-            IncludePizzaDough
+            Pizza dough
         </label>
 
         <label>
@@ -196,7 +196,7 @@
                 type="checkbox"
                 bind:checked={$exportOptions.includeHighlights}
             />
-            IncludeHighlights
+            Highlights
         </label>
 
         <label class="flex flex-row gap-8 align-items-center">
@@ -205,7 +205,7 @@
         </label>
 
         <label class="flex flex-row gap-8 align-items-center">
-            BackgroundColor
+            Background color
             <input type="color" bind:value={$exportOptions.backgroundColor} />
         </label>
 
