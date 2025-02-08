@@ -1,4 +1,9 @@
-import { CSHARP_NODE_STYLIST, CSHARP_RELATION_STYLIST, DEFAULT_CSHARP_RELATION_COLORS, UNIVERSAL_NODE_COLOR_SCHEMA } from "./csharp/style.ts";
+import {
+    CSHARP_NODE_STYLIST,
+    CSHARP_RELATION_STYLIST,
+    DEFAULT_CSHARP_RELATION_COLORS,
+    UNIVERSAL_NODE_COLOR_SCHEMA,
+} from "./csharp/style.ts";
 import { IconRegistry } from "./model/icons.ts";
 import { DEFAULT_ICON_ATLAS_OPTIONS } from "./rendering/iconAtlas.ts";
 import { LogSeverity, consoleLogger } from "./model/logger.ts";

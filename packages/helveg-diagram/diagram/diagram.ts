@@ -313,11 +313,7 @@ export class Diagram {
     }
     set nodeStylist(value: NodeStylist<any>) {
         this._options.nodeStylist = value;
-        this.restyleGraph({
-            nodeStylist: this.nodeStylist,
-            nodeStylistParams: this.nodeStylistParams,
-        });
-        this._sigma?.scheduleRefresh();
+        this.scheduleRestyle();
         this.events.nodeStylistChanged.trigger();
     }
 
@@ -330,11 +326,7 @@ export class Diagram {
         this._nodeStylistParams = structuredClone(value);
 
         if (this.nodeStylist != null && !deepCompare(oldValue, value)) {
-            this.restyleGraph({
-                nodeStylist: this.nodeStylist,
-                nodeStylistParams: this.nodeStylistParams,
-            });
-            this._sigma?.scheduleRefresh();
+            this.scheduleRestyle();
         }
     }
 
@@ -343,11 +335,7 @@ export class Diagram {
     }
     set edgeStylist(value: EdgeStylist<any> | undefined) {
         this._options.edgeStylist = value;
-        this.restyleGraph({
-            edgeStylist: this.edgeStylist,
-            edgeStylistParams: this.edgeStylistParams,
-        });
-        this._sigma?.scheduleRefresh();
+        this.scheduleRestyle();
         this.events.edgeStylistChanged.trigger();
     }
 
@@ -360,11 +348,7 @@ export class Diagram {
         this._edgeStylistParams = structuredClone(value);
 
         if (this.edgeStylist != null && !deepCompare(oldValue, value)) {
-            this.restyleGraph({
-                edgeStylist: this.edgeStylist,
-                edgeStylistParams: this.edgeStylistParams,
-            });
-            this._sigma?.scheduleRefresh();
+            this.scheduleRestyle();
         }
     }
 
@@ -373,11 +357,7 @@ export class Diagram {
     }
     set relationStylist(value: RelationStylist<any>) {
         this._options.relationStylist = value;
-        this.restyleGraph({
-            relationStylist: this.relationStylist,
-            relationStylistParams: this.relationStylistParams,
-        });
-        this._sigma?.scheduleRefresh();
+        this.scheduleRestyle();
         this.events.relationStylistChanged.trigger();
     }
 
@@ -390,11 +370,7 @@ export class Diagram {
         this._relationStylistParams = structuredClone(value);
 
         if (this.relationStylist != null && !deepCompare(oldValue, value)) {
-            this.restyleGraph({
-                relationStylist: this.relationStylist,
-                relationStylistParams: this.relationStylistParams,
-            });
-            this._sigma?.scheduleRefresh();
+            this.scheduleRestyle();
         }
     }
 
@@ -427,7 +403,7 @@ export class Diagram {
         Object.assign(this._options.glyphProgram, value);
 
         this.reconfigureSigma();
-        this.restyleGraph();
+        this.scheduleRestyle();
     }
 
     get cursorOptions(): Readonly<CursorOptions> {
@@ -1156,30 +1132,38 @@ export class Diagram {
             options.expandedDepth
         );
         this.events.graphChanged.trigger(this._graph);
-        this.restyleGraph();
+        this.scheduleRestyle();
 
         await this.refreshSupervisor(false, () => this._graph && this._sigma?.setGraph(this._graph));
 
         this.mode = DiagramMode.Normal;
     }
 
-    private restyleGraph(options?: StyleGraphOptions): void {
-        if (!this._graph || !this._model || !this._model.data) {
+    private _isRestyleScheduled: boolean = false;
+    private scheduleRestyle(): void {
+        if (this._isRestyleScheduled) {
             return;
         }
 
-        options ??= {
-            edgeStylist: this.edgeStylist,
-            edgeStylistParams: this.edgeStylistParams,
-            nodeStylist: this.nodeStylist,
-            nodeStylistParams: this.nodeStylistParams,
-            relationStylist: this.relationStylist,
-            relationStylistParams: this.relationStylistParams,
-        };
+        requestAnimationFrame(() => {
+            this._isRestyleScheduled = false;
+            if (!this._graph || !this._model || !this._model.data) {
+                return;
+            }
 
-        this._logger.debug(`Restyling the graph.`);
+            this._logger.debug(`Restyling the graph.`);
+            styleGraph(this._graph, this.options.glyphProgram, {
+                edgeStylist: this.edgeStylist,
+                edgeStylistParams: this.edgeStylistParams,
+                nodeStylist: this.nodeStylist,
+                nodeStylistParams: this.nodeStylistParams,
+                relationStylist: this.relationStylist,
+                relationStylistParams: this.relationStylistParams,
+            });
 
-        styleGraph(this._graph, this.options.glyphProgram, options);
+            this._sigma?.scheduleRefresh();
+        });
+        this._isRestyleScheduled = true;
     }
 
     private updateModifierKeyState(e: { altKey?: boolean; ctrlKey?: boolean; shiftKey?: boolean }) {
