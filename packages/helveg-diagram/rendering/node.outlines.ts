@@ -93,7 +93,7 @@ export class OutlinesProgram extends HelvegNodeProgram<(typeof UNIFORMS)[number]
         if (programInfo.isPicking) {
             gl.blendFunc(gl.ONE, gl.ZERO);
         } else {
-            gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+            gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         }
 
         super.drawWebGL(method, programInfo);
