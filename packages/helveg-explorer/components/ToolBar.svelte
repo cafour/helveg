@@ -11,9 +11,11 @@
 
     let className: string | undefined;
     export { className as class };
+    
+    export let style: string | undefined = undefined;
 </script>
 
-<div class="toolbar {className}">
+<div class="toolbar {className}" {style}>
     {#each operations as operation (operation.id)}
         <ButtonIcon
             class="button-icon"

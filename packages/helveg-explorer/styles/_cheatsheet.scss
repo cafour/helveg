@@ -1,0 +1,18 @@
+.cheatsheet-button {
+    pointer-events: all;
+    opacity: 0.5;
+    margin: 1rem;
+    color: var(--color-primary-500);
+
+    &:hover {
+        opacity: 1;
+    }
+}
+
+.cheatsheet {
+    position: absolute;
+    width: 100%;
+    max-width: 50rem;
+    height: 100%;
+    max-height: 40rem;
+}

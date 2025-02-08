@@ -5,7 +5,7 @@
     export interface TabDescriptor {
         name: string;
         value: string;
-        icon: string | null;
+        icon?: string;
     }
 
     export const tabDescriptorsKey = Symbol("tabDescriptors");
@@ -61,11 +61,12 @@
         localStorage.setItem(`Dock.${name}.currentTab`, $currentTab!);
     }
 
-    let className: string | undefined;
+    let className: string | undefined = undefined;
     export { className as class };
+    export let style: string | undefined = undefined;
 </script>
 
-<div class="dock flex flex-row-reverse relative {className}">
+<div class="dock flex flex-row-reverse relative {className}" {style}>
     <div class="tab-list flex flex-col">
         {#each $tabDescriptors as tabDescriptor}
             <!-- svelte-ignore a11y-no-static-element-interactions -->

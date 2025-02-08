@@ -20,6 +20,7 @@
     import TreeView from "./TreeView.svelte";
     import ToolBar from "./ToolBar.svelte";
     import Welcome from "./Welcome.svelte";
+    import CheatSheet from "./CheatSheet.svelte";
 
     export let rootElement: HTMLElement;
     setContext("rootElement", rootElement);
@@ -69,24 +70,21 @@
     });
 </script>
 
-<div
-    class="explorer-svelte flex flex-row h-100p relative pointer-events-none justify-content-between"
-    bind:this={rootElement}
->
+<div class="explorer-svelte h-100p relative pointer-events-none" bind:this={rootElement}>
     <div class="diagram-background"></div>
 
     <LoadingScreen status={$status} on:stop={() => diagram.stopLayout()} />
 
-    <TreeView class="z-2" bind:selectedNode={$selectedNode} />
+    <TreeView class="z-2" bind:selectedNode={$selectedNode} style="grid-area: TreeView;" />
 
     <!-- <ToolBox bind:selectedTool={$selectedTool} class="z-1" /> -->
-    <ToolBar class="z-1" />
+    <ToolBar class="z-1" style="grid-area: ToolBar;" />
 
     <!-- filler element -->
     <div class="filler flex-grow-1"></div>
-    <Toast />
+    <Toast style="grid-area: Toast;" />
 
-    <Dock name="panels" bind:this={dock} class="z-2" fallbackTab={AppPanels.Guide}>
+    <Dock name="panels" bind:this={dock} class="z-2" fallbackTab={AppPanels.Guide} style="grid-area: Dock;">
         <Tab name="Search" value={AppPanels.Search} icon={AppIcons.SearchPanel}>
             <SearchPanel
                 on:highlight={async (e) => {
@@ -140,5 +138,19 @@
         </Tab>
     </Dock>
     <ContextMenu />
+    <CheatSheet buttonStyle="grid-area: CheatSheetButton;"/>
     <Welcome />
 </div>
+
+<style lang="scss">
+    .explorer-svelte {
+        display: grid;
+        grid-template-areas:
+            "TreeView ToolBar Toast Dock"
+            "TreeView CheatSheetButton Toast Dock";
+        grid-template-columns:
+            auto auto 1fr auto;
+        grid-template-rows:
+            1fr auto;
+    }
+</style>

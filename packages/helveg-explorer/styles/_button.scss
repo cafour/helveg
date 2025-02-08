@@ -58,6 +58,11 @@ a.button-icon {
         background-color: var(--color-surface-200);
         outline-color: var(--color-surface-200);
     }
+    
+    &.large {
+        width: 4rem;
+        height: 4rem;
+    }
 }
 
 :is(.button-stretch, .button-icon, .button) {

@@ -155,31 +155,30 @@
                 return AppIcons.MessageToast;
         }
     }
+    export let style: string | undefined = undefined;
 </script>
 
-{#if $toaster.length}
-    <div class="toast-wrapper">
-        {#each readySlices as slice, i (slice.id)}
-            <div
-                class="toast"
-                animate:flip={{ duration }}
-                in:receive={{ key: slice.id }}
-                out:send={{ key: slice.id }}
-            >
-                <div class="toast-header">
-                    <Icon name={getToastIcon(slice.title)} />
-                    <span class="title">{slice.title}</span>
-                    <button
-                        on:click={() => toaster.popOut(slice.id)}
-                        class="button-icon primary"
-                    >
-                        {buttonDismissLabel}
-                    </button>
-                </div>
-                <div class="toast-body">
-                    {@html slice.text}
-                </div>
+<div class="toast-wrapper" {style}>
+    {#each readySlices as slice, i (slice.id)}
+        <div
+            class="toast"
+            animate:flip={{ duration }}
+            in:receive={{ key: slice.id }}
+            out:send={{ key: slice.id }}
+        >
+            <div class="toast-header">
+                <Icon name={getToastIcon(slice.title)} />
+                <span class="title">{slice.title}</span>
+                <button
+                    on:click={() => toaster.popOut(slice.id)}
+                    class="button-icon primary"
+                >
+                    {buttonDismissLabel}
+                </button>
             </div>
-        {/each}
-    </div>
-{/if}
+            <div class="toast-body">
+                {@html slice.text}
+            </div>
+        </div>
+    {/each}
+</div>
