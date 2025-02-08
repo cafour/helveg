@@ -102,7 +102,12 @@
 <Panel name="Appearance" indent={false} id={AppPanels.Appearance}>
     <Subpanel name="Glyphs">
         <label class="flex flex-row gap-8 align-items-center">
-            <span class="w-128 inline-block flex-shrink-0 ellipsis overflow-hidden" title="Shape">Shape</span>
+            <span class="w-160 inline-block flex-shrink-0 ellipsis overflow-hidden" title="Shape"
+                >Shape
+                <Hint
+                    text="The basic shape of glyphs. `None` only renders icons, `Outlines` is a legacy shape, and `Donut` is the default."
+                />
+            </span>
             <select bind:value={$appearanceOptions.glyph.glyphShape}>
                 {#each Object.values(GlyphShape) as shape}
                     <option value={shape}>{shape}</option>
@@ -110,9 +115,12 @@
             </select>
         </label>
         <label class="flex flex-row gap-8 align-items-center">
-            <span class="w-128 inline-block flex-shrink-0 ellipsis overflow-hidden" title="Sizing mode"
-                >Sizing mode</span
-            >
+            <span class="w-160 inline-block flex-shrink-0 ellipsis overflow-hidden" title="Sizing mode"
+                >Sizing mode
+                <Hint
+                    text="The method for determining node size. `Linear` is the default, `Sqrt` takes the square root of the size value, and `Log` takes the log of that value."
+                />
+            </span>
             <select bind:value={$appearanceOptions.glyph.sizingMode}>
                 {#each Object.values(SizingMode) as mode}
                     <option value={mode}>{mode}</option>
@@ -120,9 +128,12 @@
             </select>
         </label>
         <label class="flex flex-row gap-8 align-items-center">
-            <span class="w-128 inline-block flex-shrink-0 ellipsis overflow-hidden" title="Node color preset"
-                >Node color preset</span
-            >
+            <span class="w-160 inline-block flex-shrink-0 ellipsis overflow-hidden" title="Node color preset"
+                >Node color preset
+                <Hint
+                    text="The palette applied to the nodes. `Universal` is default and is usable in most situations. `TypeFocus` applies colors to type kinds, graying out most else, and lets you focus on types only. `VS` is a legacy palette based on Visual Studio. `Custom` is automatically selected when you manually change a color in the `Entity colors` panel below."
+                />
+            </span>
             <select
                 on:change={(e) => onNodeColorChanged(e.currentTarget.value)}
                 bind:value={$appearanceOptions.nodeColorPreset}
@@ -153,14 +164,17 @@
         <label>
             <input type="checkbox" bind:checked={$appearanceOptions.glyph.showCollapsedNodeIndicators} />
             Collapsed node indicators
+            <Hint text="Renders little crescent shapes beneath nodes that may be expanded." />
         </label>
         <label>
             <input type="checkbox" bind:checked={$appearanceOptions.glyph.showHatching} />
             Hatching
+            <Hint text="Renders a hatching effect over the type nodes' sector that represent non-static members." />
         </label>
         <label>
             <input type="checkbox" bind:checked={$appearanceOptions.glyph.showContours} />
             Contours
+            <Hint text="Outlines around icons that represent certain modifiers." />
         </label>
         {#if hasDiffMetadata}
             <label>
@@ -184,7 +198,7 @@
             </label>
         {/each}
     </Subpanel>
-    <Subpanel name="Entity colors">
+    <Subpanel name="Entity colors" hint="Node colors applied based on the `kind` property.">
         <div class="flex flex-row gap-8 align-items-center">
             <strong class="flex-grow-1">&nbsp;</strong>
             <strong class="w-48">Fg <Hint text="Foreground color" /></strong>
@@ -214,7 +228,10 @@
             </div>
         {/each}
     </Subpanel>
-    <Subpanel name="Type colors">
+    <Subpanel
+        name="Type colors"
+        hint="Node colors applied based on the `typeKind` property. Overrides `Entity colors` above."
+    >
         <div class="flex flex-row gap-8 align-items-center">
             <strong class="flex-grow-1">&nbsp;</strong>
             <strong class="w-48">Fg <Hint text="Foreground color" /></strong>
