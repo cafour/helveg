@@ -69,7 +69,9 @@ export enum VSColor {
     Green = "#1f801f",
 }
 
-export const DEFAULT_CSHARP_RELATION_COLORS: Record<string, string> = {
+export type RelationColorSchema = Record<Relations, string>;
+
+export const DEFAULT_CSHARP_RELATION_COLORS: RelationColorSchema = {
     [Relations.Declares]: DefaultRelationColors.Declares,
     [Relations.AssociatedWith]: DefaultRelationColors.AssociatedWith,
     [Relations.DependsOn]: DefaultRelationColors.DependsOn,
@@ -80,13 +82,9 @@ export const DEFAULT_CSHARP_RELATION_COLORS: Record<string, string> = {
     [Relations.TypeOf]: DefaultRelationColors.TypeOf,
 };
 
-export function createCsharpRelationStylist(colors: Record<string, string>): RelationStylist {
-    return (r) => {
-        return { ...FALLBACK_EDGE_STYLE, ...resolveRelationStyle(r, colors) };
-    };
+export const CSHARP_RELATION_STYLIST: RelationStylist<RelationColorSchema> = (relation, schema) => {
+    return {...FALLBACK_EDGE_STYLE, ...resolveRelationStyle(relation, schema)};
 }
-
-export const csharpRelationStylist: RelationStylist = createCsharpRelationStylist(DEFAULT_CSHARP_RELATION_COLORS);
 
 export const UNIVERSAL_NODE_COLOR_SCHEMA: Readonly<NodeColorSchema> = {
     entities: {
@@ -334,16 +332,12 @@ export const VS_NODE_COLOR_SCHEMA: Readonly<NodeColorSchema> = {
     },
 };
 
-export function createCsharpNodeStylist(colorSchema: NodeColorSchema): NodeStylist {
-    return (node: HelvegNodeAttributes) => {
-        return {
-            ...FALLBACK_NODE_STYLE,
-            ...resolveNodeStyle(colorSchema, node),
-        };
+export const CSHARP_NODE_STYLIST: NodeStylist<NodeColorSchema> = (node, schema) => {
+    return {
+        ...FALLBACK_NODE_STYLE,
+        ...resolveNodeStyle(schema, node)
     };
 }
-
-export const csharpNodeStylist: NodeStylist = createCsharpNodeStylist(UNIVERSAL_NODE_COLOR_SCHEMA);
 
 const FALLBACK_NODE_STYLE: NodeStyle = {
     icon: "vscode:pie-chart",
@@ -610,7 +604,7 @@ function resolveNodeStyle(colorSchema: NodeColorSchema, node: HelvegNodeAttribut
     return style;
 }
 
-function resolveRelationStyle(relation: string, colors?: Record<string, string>): EdgeStyle {
+function resolveRelationStyle(relation: string, colors?: RelationColorSchema): EdgeStyle {
     colors = { ...DEFAULT_CSHARP_RELATION_COLORS, ...colors };
     switch (relation) {
         case Relations.Declares:

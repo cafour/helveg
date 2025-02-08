@@ -15,12 +15,19 @@ import {
     hoveredNodeSymbol,
     toggleNode,
 } from "../model/graph.ts";
-import { Coordinates, SigmaNodeEventPayload } from "../deps/sigma.ts";
+import { Coordinates } from "../deps/sigma.ts";
 import { LogSeverity, ILogger, consoleLogger } from "../model/logger.ts";
 import { ForceAtlas2Progress, ForceAtlas2Supervisor } from "../layout/forceAltas2Supervisor.ts";
 import { wheelOfFortune } from "../layout/circular.ts";
 import tidyTree from "../layout/tidyTree.ts";
-import { configureSigma, initializeGraph, initializeSigma, initializeSupervisor, styleGraph } from "./initializers.ts";
+import {
+    configureSigma,
+    initializeGraph,
+    initializeSigma,
+    initializeSupervisor,
+    styleGraph,
+    StyleGraphOptions,
+} from "./initializers.ts";
 import { DEFAULT_GLYPH_PROGRAM_OPTIONS, GlyphProgramOptions, createGlyphProgram } from "../rendering/node.glyph.ts";
 import { DEFAULT_EXPORT_OPTIONS, ExportOptions, exportDiagram } from "../rendering/export.ts";
 import { IFilterBuilderEntry, SearchMode, buildNodeFilter, filterNodes } from "../model/filter.ts";
@@ -29,8 +36,8 @@ import {
     EdgeStylist,
     NodeStylist,
     RelationStylist,
-    fallbackNodeStylist,
-    fallbackRelationStylist,
+    FALLBACK_NODE_STYLIST,
+    FALLBACK_RELATION_STYLIST,
 } from "../model/style.ts";
 import { EMPTY_ICON_REGISTRY, IconRegistry } from "../global.ts";
 import { DataModel } from "../model/data-model.ts";
@@ -54,9 +61,12 @@ export interface DiagramOptions {
     mainRelation: string | null;
     preprocess: PreprocessFunc;
     logLevel: LogSeverity;
-    nodeStylist: NodeStylist;
-    relationStylist: RelationStylist;
-    edgeStylist?: EdgeStylist;
+    nodeStylist: NodeStylist<any>;
+    nodeStylistParams?: any;
+    relationStylist: RelationStylist<any>;
+    relationStylistParams?: any;
+    edgeStylist?: EdgeStylist<any>;
+    edgeStylistParams?: any;
     inspector: Inspector;
     nodeKindOrder: string[];
     iconRegistry: Readonly<IconRegistry>;
@@ -96,8 +106,8 @@ export const DEFAULT_DIAGRAM_OPTIONS: Readonly<DiagramOptions> = {
     mainRelation: null,
     preprocess: preprocess,
     glyphProgram: DEFAULT_GLYPH_PROGRAM_OPTIONS,
-    nodeStylist: fallbackNodeStylist,
-    relationStylist: fallbackRelationStylist,
+    nodeStylist: FALLBACK_NODE_STYLIST,
+    relationStylist: FALLBACK_RELATION_STYLIST,
     nodeKindOrder: [],
     inspector: FALLBACK_INSPECTOR,
     iconRegistry: EMPTY_ICON_REGISTRY,
@@ -298,34 +308,94 @@ export class Diagram {
         return this._logger;
     }
 
-    get nodeStylist(): NodeStylist {
+    get nodeStylist(): NodeStylist<any> {
         return this._options.nodeStylist;
     }
-    set nodeStylist(value: NodeStylist) {
+    set nodeStylist(value: NodeStylist<any>) {
         this._options.nodeStylist = value;
-        this.restyleGraph();
+        this.restyleGraph({
+            nodeStylist: this.nodeStylist,
+            nodeStylistParams: this.nodeStylistParams,
+        });
         this._sigma?.scheduleRefresh();
         this.events.nodeStylistChanged.trigger();
     }
 
-    get edgeStylist(): EdgeStylist | undefined {
+    private _nodeStylistParams: any;
+    get nodeStylistParams(): any {
+        return this._nodeStylistParams;
+    }
+    set nodeStylistParams(value: any) {
+        const oldValue = this._nodeStylistParams;
+        this._nodeStylistParams = structuredClone(value);
+
+        if (this.nodeStylist != null && !deepCompare(oldValue, value)) {
+            this.restyleGraph({
+                nodeStylist: this.nodeStylist,
+                nodeStylistParams: this.nodeStylistParams,
+            });
+            this._sigma?.scheduleRefresh();
+        }
+    }
+
+    get edgeStylist(): EdgeStylist<any> | undefined {
         return this._options.edgeStylist;
     }
-    set edgeStylist(value: EdgeStylist | undefined) {
+    set edgeStylist(value: EdgeStylist<any> | undefined) {
         this._options.edgeStylist = value;
-        this.restyleGraph();
+        this.restyleGraph({
+            edgeStylist: this.edgeStylist,
+            edgeStylistParams: this.edgeStylistParams,
+        });
         this._sigma?.scheduleRefresh();
         this.events.edgeStylistChanged.trigger();
     }
 
-    get relationStylist(): RelationStylist {
+    private _edgeStylistParams: any;
+    get edgeStylistParams() {
+        return this._edgeStylistParams;
+    }
+    set edgeStylistParams(value: any) {
+        const oldValue = this._edgeStylistParams;;
+        this._edgeStylistParams = structuredClone(value);
+
+        if (this.edgeStylist != null && !deepCompare(oldValue, value)) {
+            this.restyleGraph({
+                edgeStylist: this.edgeStylist,
+                edgeStylistParams: this.edgeStylistParams,
+            });
+            this._sigma?.scheduleRefresh();
+        }
+    }
+
+    get relationStylist(): RelationStylist<any> {
         return this._options.relationStylist;
     }
-    set relationStylist(value: RelationStylist) {
+    set relationStylist(value: RelationStylist<any>) {
         this._options.relationStylist = value;
-        this.restyleGraph();
+        this.restyleGraph({
+            relationStylist: this.relationStylist,
+            relationStylistParams: this.relationStylistParams,
+        });
         this._sigma?.scheduleRefresh();
         this.events.relationStylistChanged.trigger();
+    }
+
+    private _relationStylistParams: any;
+    get relationStylistParams() {
+        return this._relationStylistParams;
+    }
+    set relationStylistParams(value: any) {
+        const oldValue = this._relationStylistParams;
+        this._relationStylistParams = structuredClone(value);
+
+        if (this.relationStylist != null && !deepCompare(oldValue, value)) {
+            this.restyleGraph({
+                relationStylist: this.relationStylist,
+                relationStylistParams: this.relationStylistParams,
+            });
+            this._sigma?.scheduleRefresh();
+        }
     }
 
     get forceAtlas2Options(): ForceAtlas2Options {
@@ -413,6 +483,9 @@ export class Diagram {
         window.addEventListener("focus", () => this.updateModifierKeyState({}));
         window.addEventListener("blur", () => this.updateModifierKeyState({}));
 
+        this._nodeStylistParams = options?.nodeStylistParams;
+        this._relationStylistParams = options?.relationStylistParams;
+        this._edgeStylistParams = options?.edgeStylistParams;
         this._options = { ...DEFAULT_DIAGRAM_OPTIONS, ...options };
         this._logger = consoleLogger("diagram", this._options.logLevel);
         this._mainRelation = this._options.mainRelation;
@@ -1090,20 +1163,23 @@ export class Diagram {
         this.mode = DiagramMode.Normal;
     }
 
-    private restyleGraph(): void {
+    private restyleGraph(options?: StyleGraphOptions): void {
         if (!this._graph || !this._model || !this._model.data) {
             return;
         }
 
+        options ??= {
+            edgeStylist: this.edgeStylist,
+            edgeStylistParams: this.edgeStylistParams,
+            nodeStylist: this.nodeStylist,
+            nodeStylistParams: this.nodeStylistParams,
+            relationStylist: this.relationStylist,
+            relationStylistParams: this.relationStylistParams,
+        };
+
         this._logger.debug(`Restyling the graph.`);
 
-        styleGraph(
-            this._graph,
-            this.options.glyphProgram,
-            this.options.nodeStylist,
-            this.options.relationStylist,
-            this.options.edgeStylist
-        );
+        styleGraph(this._graph, this.options.glyphProgram, options);
     }
 
     private updateModifierKeyState(e: { altKey?: boolean; ctrlKey?: boolean; shiftKey?: boolean }) {

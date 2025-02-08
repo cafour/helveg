@@ -1,4 +1,4 @@
-import { csharpNodeStylist, csharpRelationStylist } from "./csharp/style.ts";
+import { CSHARP_NODE_STYLIST, CSHARP_RELATION_STYLIST, DEFAULT_CSHARP_RELATION_COLORS, UNIVERSAL_NODE_COLOR_SCHEMA } from "./csharp/style.ts";
 import { IconRegistry } from "./model/icons.ts";
 import { DEFAULT_ICON_ATLAS_OPTIONS } from "./rendering/iconAtlas.ts";
 import { LogSeverity, consoleLogger } from "./model/logger.ts";
@@ -48,9 +48,12 @@ export interface CreateDiagramOptions {
     iconSets: IconSetModel[];
     model: DataModel;
     logLevel: LogSeverity;
-    nodeStylist?: NodeStylist;
-    relationStylist?: RelationStylist;
-    edgeStylist?: EdgeStylist;
+    nodeStylist?: NodeStylist<any>;
+    nodeStylistParams?: any;
+    relationStylist?: RelationStylist<any>;
+    relationStylistParams?: any;
+    edgeStylist?: EdgeStylist<any>;
+    edgeStylistParams?: any;
     nodeKindOrder: string[];
     inspector: Inspector;
     mainRelation: string | null;
@@ -64,8 +67,10 @@ export const DEFAULT_CREATE_DIAGRAM_OPTIONS: Readonly<CreateDiagramOptions> = {
     model: EMPTY_DATA_MODEL,
     iconSets: [],
     element: null,
-    nodeStylist: csharpNodeStylist,
-    relationStylist: csharpRelationStylist,
+    nodeStylist: CSHARP_NODE_STYLIST,
+    nodeStylistParams: UNIVERSAL_NODE_COLOR_SCHEMA,
+    relationStylist: CSHARP_RELATION_STYLIST,
+    relationStylistParams: DEFAULT_CSHARP_RELATION_COLORS,
     nodeKindOrder: [...CSHARP_NODE_KIND_ORDER],
     inspector: CSHARP_INSPECTOR,
     mainRelation: null,
@@ -89,8 +94,11 @@ export function createDiagram(options?: Partial<CreateDiagramOptions>): Diagram 
     const diagram = new Diagram(opts.element, {
         logLevel: opts.logLevel,
         nodeStylist: opts.nodeStylist,
+        nodeStylistParams: opts.nodeStylistParams,
         edgeStylist: opts.edgeStylist,
+        edgeStylistParams: opts.edgeStylistParams,
         relationStylist: opts.relationStylist,
+        relationStylistParams: opts.relationStylistParams,
         nodeKindOrder: opts.nodeKindOrder,
         inspector: opts.inspector,
         mainRelation: opts.mainRelation ?? Object.keys(opts.model.data?.relations ?? {}).sort()[0] ?? null,

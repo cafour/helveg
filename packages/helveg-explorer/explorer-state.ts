@@ -8,8 +8,6 @@ import type {
     ILogger,
 } from "./deps/helveg-diagram";
 import {
-    createCsharpNodeStylist,
-    createCsharpRelationStylist,
     DEFAULT_DONUT_PROGRAM_OPTIONS,
     type HelvegEvent,
     sublogger,
@@ -117,12 +115,8 @@ export function createExplorerState(
         },
     );
     appearanceOptions.subscribe((o) => {
-        diagram.relationStylist = createCsharpRelationStylist(
-            o.relationColors!,
-        );
-        diagram.nodeStylist = createCsharpNodeStylist(
-            o.nodeColorSchema,
-        );
+        diagram.relationStylistParams = o.relationColors;
+        diagram.nodeStylistParams = o.nodeColorSchema;
 
         const glyphOptions = { ...diagram.glyphProgramOptions };
         glyphOptions.isFireAnimated = o.glyph.isFireAnimated;

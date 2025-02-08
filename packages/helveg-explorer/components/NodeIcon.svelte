@@ -7,7 +7,7 @@
     $: attr = diagram.modelGraph.getNodeAttributes(node);
 
     const diagram = getContext<Diagram>("diagram");
-    $: nodeStyle = diagram.nodeStylist(attr);
+    $: nodeStyle = diagram.nodeStylist(attr, diagram.nodeStylistParams);
 </script>
 
 <Icon name={nodeStyle.icon} title={attr.model.kind} color={nodeStyle.color} />

@@ -248,44 +248,58 @@ export function toHelvegNodeAttributes(
     return attributes;
 }
 
-export function styleGraph(
-    graph: HelvegGraph,
-    glyphProgramOptions: GlyphProgramOptions,
-    nodeStylist?: NodeStylist,
-    relationStylist?: RelationStylist,
-    edgeStylist?: EdgeStylist
-) {
+export interface StyleGraphOptions {
+    nodeStylist?: NodeStylist<any>;
+    nodeStylistParams?: any;
+    relationStylist?: RelationStylist<any>;
+    relationStylistParams?: any;
+    edgeStylist?: EdgeStylist<any>;
+    edgeStylistParams?: any;
+}
+
+export function styleGraph(graph: HelvegGraph, glyphProgramOptions: GlyphProgramOptions, options?: StyleGraphOptions) {
     const model = graph.getAttribute("model");
-    graph.forEachNode((_n, attributes) => {
-        let nodeStyle = { ...FALLBACK_NODE_STYLE };
-        if (nodeStylist) {
-            nodeStyle = { ...nodeStyle, ...nodeStylist(attributes) };
-        }
+    options ??= {};
+    if (options.nodeStylist) {
+        graph.forEachNode((_n, attributes) => {
+            let nodeStyle = { ...FALLBACK_NODE_STYLE };
+            if (options.nodeStylist) {
+                nodeStyle = { ...nodeStyle, ...options.nodeStylist(attributes, options.nodeStylistParams) };
+            }
 
-        Object.assign(attributes, toHelvegNodeAttributes(glyphProgramOptions, nodeStyle));
-    });
+            Object.assign(attributes, toHelvegNodeAttributes(glyphProgramOptions, nodeStyle));
+        });
+    }
 
-    graph.forEachEdge((edge, attributes) => {
-        if (!attributes.relation || !model.data) {
-            return;
-        }
-        const relation = model.data.relations[attributes.relation];
-        if (!relation || !relation.edges) {
-            return;
-        }
+    if (options.edgeStylist || options.relationStylist) {
+        graph.forEachEdge((edge, attributes) => {
+            if (!attributes.relation || !model.data) {
+                return;
+            }
+            const relation = model.data.relations[attributes.relation];
+            if (!relation || !relation.edges) {
+                return;
+            }
 
-        let edgeStyle = { ...FALLBACK_EDGE_STYLE };
+            let edgeStyle = { ...FALLBACK_EDGE_STYLE };
 
-        if (relationStylist) {
-            edgeStyle = { ...edgeStyle, ...relationStylist(attributes.relation) };
-        }
+            if (options.relationStylist) {
+                edgeStyle = {
+                    ...edgeStyle,
+                    ...options.relationStylist(attributes.relation, options.relationStylistParams),
+                };
+            }
 
-        if (edgeStylist) {
-            edgeStyle = { ...edgeStyle, ...edgeStylist(attributes.relation, relation.edges[edge]) };
-        }
+            if (options.edgeStylist) {
+                edgeStyle = {
+                    ...edgeStyle,
+                    ...options.edgeStylist(attributes.relation, relation.edges[edge], options.edgeStylistParams),
+                };
+            }
 
-        attributes.type = edgeStyle.type;
-        attributes.color = edgeStyle.color;
-        attributes.size = edgeStyle.width;
-    });
+            attributes.type = edgeStyle.type;
+            attributes.color = edgeStyle.color;
+            attributes.size = edgeStyle.width;
+        });
+    }
 }
