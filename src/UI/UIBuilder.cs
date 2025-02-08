@@ -321,7 +321,9 @@ $@"
     </head>
 
     <body>
-        <div id=""helveg""></div>
+        <div id=""helveg"">
+            <div id=""loading""></div>
+        </div>
         <!-- {FileName} -->
 ");
         var dataName = FileName ?? $"{Model.Name}-data.json";

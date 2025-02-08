@@ -393,7 +393,7 @@ export class Diagram {
     set glyphProgramOptions(value: GlyphProgramOptions) {
         Object.assign(this._options.glyphProgram, value);
 
-        this.reconfigureSigma();
+        this.scheduleReconfigureSigma();
         this.scheduleRestyle();
     }
 
@@ -1090,21 +1090,32 @@ export class Diagram {
                 coords: e.event,
             })
         );
-        this.reconfigureSigma();
+        this.scheduleReconfigureSigma();
     }
 
-    private reconfigureSigma(): void {
-        if (!this._sigma) {
+    private _isReconfigureSigmaScheduled: boolean = false;
+    private scheduleReconfigureSigma(): void {
+        if (this._isReconfigureSigmaScheduled) {
             return;
         }
 
-        const tmpOptions: GlyphProgramOptions = {
-            ...this.options.glyphProgram,
-            showLabels: this.options.glyphProgram.showLabels && this.mode == DiagramMode.Normal,
-            showOnlyHighlighted: this.mode == DiagramMode.Highlighting,
-        };
+        requestAnimationFrame(() => {
+            this._isReconfigureSigmaScheduled = false;
 
-        configureSigma(this._sigma, tmpOptions);
+            if (!this._sigma) {
+                return;
+            }
+
+            const tmpOptions: GlyphProgramOptions = {
+                ...this.options.glyphProgram,
+                showLabels: this.options.glyphProgram.showLabels && this.mode == DiagramMode.Normal,
+                showOnlyHighlighted: this.mode == DiagramMode.Highlighting,
+            };
+
+            configureSigma(this._sigma, tmpOptions);
+        });
+
+        this._isReconfigureSigmaScheduled = true;
     }
 
     private async refreshGraph(options: DiagramRefreshOptions): Promise<void> {

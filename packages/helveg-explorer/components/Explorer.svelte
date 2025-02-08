@@ -63,6 +63,10 @@
             dock.setTab(AppPanels.Properties);
         }
     });
+
+    onMount(() => {
+        document.getElementById("loading")?.remove();
+    });
 </script>
 
 <div
