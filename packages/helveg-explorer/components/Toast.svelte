@@ -171,6 +171,7 @@
                 <span class="title">{slice.title}</span>
                 <button
                     on:click={() => toaster.popOut(slice.id)}
+                    type="button"
                     class="button-icon primary"
                 >
                     {buttonDismissLabel}

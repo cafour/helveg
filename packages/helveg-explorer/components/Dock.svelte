@@ -48,18 +48,17 @@
         setTab(storedTab && storedTab.length ? storedTab : fallbackTab);
     });
 
-    
     export function setTab(value: string | null) {
         if (value === $currentTab) {
             return;
         }
 
-        $currentTab = (allowDeselect && $currentTab === value) ? null : value;
+        $currentTab = allowDeselect && $currentTab === value ? null : value;
         localStorage.setItem(`Dock.${name}.currentTab`, $currentTab!);
     }
 
     export function toggleTab(value: string) {
-        $currentTab = (allowDeselect && $currentTab === value) ? null : value;
+        $currentTab = allowDeselect && $currentTab === value ? null : value;
         localStorage.setItem(`Dock.${name}.currentTab`, $currentTab!);
     }
 
@@ -72,6 +71,7 @@
 
 <div class="dock flex {direction} relative {className}" {style}>
     <div class="tab-list flex {tabListDirection}">
+        <slot name="before-tab-list" />
         {#each $tabDescriptors as tabDescriptor}
             <!-- svelte-ignore a11y-no-static-element-interactions -->
             <div
@@ -89,6 +89,8 @@
                 {/if}
             </div>
         {/each}
+        <div class="flex-grow-1"></div>
+        <slot name="after-tab-list" />
     </div>
 
     <div class="tab-content">
