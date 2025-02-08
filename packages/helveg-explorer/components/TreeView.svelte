@@ -74,7 +74,7 @@
 </script>
 
 <div class="tree-view {additionalClass} flex flex-row" class:open={isOpen} {style}>
-    <Panel id={AppPanels.TreeView} name="Tree View" class="flex flex-col flex-grow-1" indent={false}>
+    <Panel id={AppPanels.TreeView} class="flex flex-col flex-grow-1" indent={false}>
         {#if items.length > 0}
             {#each items as item (item.id)}
                 <TreeViewEntry
@@ -92,7 +92,10 @@
             </p>
         {/if}
     </Panel>
-    <button class="toggle" on:click={togglePanel}>
+    <button class="toggle relative" on:click={togglePanel}>
+        <span class="absolute pt-16 uppercase light" style="writing-mode: sideways-rl; top: 0; left: 0.25rem;"
+            >Tree View</span
+        >
         <Icon title={isOpen ? "Close" : "Open"} name={isOpen ? "vscode:chevron-left" : "vscode:chevron-right"} />
     </button>
 </div>

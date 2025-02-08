@@ -32,6 +32,11 @@
         .tab-content {
             flex-grow: 1;
         }
+        
+        .tab {
+            width: 100%;
+            border-top: none;
+        }
 
         .tab-item span {
             line-height: 1;
@@ -45,7 +50,7 @@
     .cheatsheet-header {
         display: flex;
         flex-direction: row;
-        font-weight: lighter;
+        font-weight: 300;
         text-transform: uppercase;
         align-items: center;
         gap: 0.5rem;
