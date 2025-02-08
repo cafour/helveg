@@ -77,6 +77,7 @@
     }
 
     function onNodeColorChanged(preset: string) {
+        $appearanceOptions.nodeColorPreset = preset as NodeColorSchemaPreset;
         switch (preset) {
             case NodeColorSchemaPreset.Universal:
                 $appearanceOptions.nodeColorSchema = structuredClone(UNIVERSAL_NODE_COLOR_SCHEMA);
@@ -136,7 +137,7 @@
             </span>
             <select
                 on:change={(e) => onNodeColorChanged(e.currentTarget.value)}
-                bind:value={$appearanceOptions.nodeColorPreset}
+                value={$appearanceOptions.nodeColorPreset}
             >
                 {#each Object.values(NodeColorSchemaPreset) as schemaPreset}
                     <option value={schemaPreset} disabled={schemaPreset == NodeColorSchemaPreset.Custom}

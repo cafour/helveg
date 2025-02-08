@@ -322,10 +322,9 @@ export class Diagram {
         return this._nodeStylistParams;
     }
     set nodeStylistParams(value: any) {
-        const oldValue = this._nodeStylistParams;
-        this._nodeStylistParams = structuredClone(value);
+        this._nodeStylistParams = value;
 
-        if (this.nodeStylist != null && !deepCompare(oldValue, value)) {
+        if (this.nodeStylist != null) {
             this.scheduleRestyle();
         }
     }
@@ -344,10 +343,9 @@ export class Diagram {
         return this._edgeStylistParams;
     }
     set edgeStylistParams(value: any) {
-        const oldValue = this._edgeStylistParams;;
-        this._edgeStylistParams = structuredClone(value);
+        this._edgeStylistParams = value;
 
-        if (this.edgeStylist != null && !deepCompare(oldValue, value)) {
+        if (this.edgeStylist != null) {
             this.scheduleRestyle();
         }
     }
@@ -366,10 +364,9 @@ export class Diagram {
         return this._relationStylistParams;
     }
     set relationStylistParams(value: any) {
-        const oldValue = this._relationStylistParams;
-        this._relationStylistParams = structuredClone(value);
+        this._relationStylistParams = value;
 
-        if (this.relationStylist != null && !deepCompare(oldValue, value)) {
+        if (this.relationStylist != null) {
             this.scheduleRestyle();
         }
     }
@@ -394,12 +391,6 @@ export class Diagram {
         return this.options.glyphProgram;
     }
     set glyphProgramOptions(value: GlyphProgramOptions) {
-        const lastOptions = this._options.glyphProgram;
-
-        if (deepCompare(lastOptions, value)) {
-            return;
-        }
-
         Object.assign(this._options.glyphProgram, value);
 
         this.reconfigureSigma();
