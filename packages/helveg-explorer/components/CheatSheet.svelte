@@ -22,7 +22,14 @@
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <div class="cheatsheet {isOpen ? 'visible' : 'invisible'}" on:click|self={() => (isOpen = false)}>
-    <Dock name="cheatsheet" class="cheatsheet-inner" direction="flex-col" tabListDirection="row" allowDeselect={false}>
+    <Dock
+        name="cheatsheet"
+        class="cheatsheet-inner"
+        direction="flex-col"
+        tabListDirection="row"
+        allowDeselect={false}
+        fallbackTab="controls"
+    >
         <div class="cheatsheet-header" slot="before-tab-list">
             <Icon name="vscode:question" />
             CheatSheet

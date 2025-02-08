@@ -6,10 +6,8 @@
     import PropertiesPanel from "./PropertiesPanel.svelte";
     import AppearancePanel from "./AppearancePanel.svelte";
     import LayoutPanel from "./LayoutPanel.svelte";
-    import GuidePanel from "./GuidePanel.svelte";
     import { onMount, setContext } from "svelte";
     import Toast from "./Toast.svelte";
-    import ToolBox from "./ToolBox.svelte";
     import ToolsPanel from "./ToolsPanel.svelte";
     import { type Diagram, type ModifierKeyStateChange } from "../deps/helveg-diagram.ts";
     import { AppIcons, AppPanels, AppTools } from "../const.ts";
@@ -87,7 +85,7 @@
     <div class="filler flex-grow-1"></div>
     <Toast style="grid-area: Toast;" />
 
-    <Dock name="panels" bind:this={dock} class="z-2" fallbackTab={AppPanels.Guide} style="grid-area: Dock;">
+    <Dock name="panels" bind:this={dock} class="z-2" fallbackTab={AppPanels.Search} style="grid-area: Dock;">
         <Tab name="Search" value={AppPanels.Search} icon={AppIcons.SearchPanel}>
             <SearchPanel
                 on:highlight={async (e) => {
@@ -135,9 +133,6 @@
         </Tab>
         <Tab name="Document" value={AppPanels.Document} icon={AppIcons.DocumentPanel}>
             <DocumentPanel on:export={(e) => diagram.save(e.detail)} />
-        </Tab>
-        <Tab name="Guide" value={AppPanels.Guide} icon={AppIcons.GuidePanel}>
-            <GuidePanel />
         </Tab>
     </Dock>
     <ContextMenu />
