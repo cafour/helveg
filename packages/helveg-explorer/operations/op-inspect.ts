@@ -4,7 +4,6 @@ import {
     OperationScope,
     type GlobalOperation,
     type NodeOperation,
-    type Operation,
     type StageOperation,
 } from "./executor";
 
@@ -34,6 +33,7 @@ export const OP_GLOBAL_DESELECT: GlobalOperation = {
     shortcut: {
         key: "Escape",
     },
+    hint: "Deselect the currently selected node.",
 
     keyDown(state) {
         state.diagram.selectedNode = null;

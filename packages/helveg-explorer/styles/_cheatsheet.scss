@@ -38,7 +38,7 @@
             padding: 0.5rem;
             border-top: none;
 
-            > p {
+            >p {
                 margin: 0.5rem 0;
             }
 
@@ -64,6 +64,7 @@
         align-items: center;
         gap: 0.5rem;
         padding: 0 0.5rem;
+        color: var(--color-text);
 
         .icon {
             width: 1rem;

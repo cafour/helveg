@@ -1,6 +1,7 @@
 <script lang="ts">
     import AboutInfo from "./AboutInfo.svelte";
     import ButtonIcon from "./ButtonIcon.svelte";
+    import ControlsInfo from "./ControlsInfo.svelte";
     import Dock from "./Dock.svelte";
     import GlyphInfo from "./GlyphInfo.svelte";
     import Icon from "./Icon.svelte";
@@ -47,7 +48,9 @@
                 ✕
             </button>
         </div>
-        <Tab name="Controls" value="controls">This will a list of controls.</Tab>
+        <Tab name="Controls" value="controls">
+            <ControlsInfo />
+        </Tab>
         <Tab name="Glyphs" value="glyphs">
             <GlyphInfo />
         </Tab>
