@@ -1,6 +1,7 @@
 <script lang="ts">
 </script>
 
+<h2 class="extrabold mb-8">About</h2>
 <p>
     <em>Helveg</em> is the product of my studies at the
     <a href="https://www.fi.muni.cz/" target="_blank">Faculty of Informatics, Masaryk University</a>.
@@ -12,6 +13,7 @@
     the weirdest looking pizza I have ever seen.
 </p>
 
+<h2 class="extrabold mb-8 mt-16">License</h2>
 <p>
     <em>Helveg</em> is licensed under the
     <a href="https://opensource.org/license/bsd-3-clause/" target="_blank">3-Clause BSD license</a>.

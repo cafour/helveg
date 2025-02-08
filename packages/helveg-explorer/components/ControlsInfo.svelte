@@ -38,11 +38,9 @@
 
 <div class="grid grid-cols-2 gap-16">
     <div>
-        <h2 class="extrabold mb-8">Node operations</h2>
-        <ControlsList operations={nodeOperations} />
+        <ControlsList operations={nodeOperations} name="Node operations"/>
     </div>
     <div>
-        <h2 class="extrabold mb-8">Global operations</h2>
-        <ControlsList operations={globalOperations} />
+        <ControlsList operations={globalOperations} name="Global operations"/>
     </div>
 </div>

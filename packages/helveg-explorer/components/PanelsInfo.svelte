@@ -3,6 +3,7 @@
     import Icon from "./Icon.svelte";
 </script>
 
+<h2 class="extrabold mb-8">Panels</h2>
 <dl class="theme-helveg">
     <dt>
         <Icon name={AppIcons.SearchPanel} class="w-16 inline-block" /> Search

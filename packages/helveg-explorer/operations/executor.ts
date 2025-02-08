@@ -157,23 +157,31 @@ function satisfiesEvent(operation: Operation<any>, event: OperationEvent): boole
     return false;
 }
 
+export function getModifiersHint(modifiers: ModifierFlags | undefined): string {
+    let hint = "";
+    if (modifiers != null && modifiers != ModifierFlags.NONE) {
+        if ((modifiers & ModifierFlags.CONTROL) === ModifierFlags.CONTROL) {
+            hint += "Ctrl";
+        }
+        if ((modifiers & ModifierFlags.SHIFT) === ModifierFlags.SHIFT) {
+            hint += hint.length > 0 ? " + " : "";
+            hint += "Shift";
+        }
+        if ((modifiers & ModifierFlags.ALT) === ModifierFlags.ALT) {
+            hint += hint.length > 0 ? " + " : "";
+            hint += "Alt";
+        }
+    }
+    return hint;
+}
+
 export function getShortcutHint(shortcut: KeyboardShortcut | undefined): string | undefined {
     if (shortcut == null) {
         return undefined;
     }
 
-    let hint = "";
-    if (shortcut.modifiers != null && shortcut.modifiers != ModifierFlags.NONE) {
-        if ((shortcut.modifiers & ModifierFlags.CONTROL) === ModifierFlags.CONTROL) {
-            hint += "Ctrl + ";
-        }
-        if ((shortcut.modifiers & ModifierFlags.SHIFT) === ModifierFlags.SHIFT) {
-            hint += "Shift + ";
-        }
-        if ((shortcut.modifiers & ModifierFlags.ALT) === ModifierFlags.ALT) {
-            hint += "Alt + ";
-        }
-    }
+    let hint = getModifiersHint(shortcut.modifiers);
+    hint += hint.length > 0 ? " + " : "";
 
     let key = shortcut.key;
     if (key === " ") {
@@ -185,6 +193,30 @@ export function getShortcutHint(shortcut: KeyboardShortcut | undefined): string 
 
     hint += key;
 
+    return hint;
+}
+
+export function getMouseButtonHint(button: MouseButton, isDouble: boolean) {
+    let hint = "";
+    hint += isDouble ? "double " : "";
+    switch (button) {
+        case MouseButton.MAIN:
+            hint += "click";
+            break;
+        case MouseButton.AUXILILARY:
+            hint += "middle click";
+            break;
+        case MouseButton.SECONDARY:
+            hint += "right click";
+            break;
+        case MouseButton.FOURTH:
+            hint += "fourth button click";
+            break;
+        case MouseButton.FIFTH:
+            hint += "fifth button click";
+            break;
+    }
+    hint = hint[0].toUpperCase() + hint.substring(1);
     return hint;
 }
 
@@ -395,7 +427,7 @@ export class OperationExecutor {
     }
 
     public async triggerManually<TContext>(op: Operation<TContext>, context: TContext, options?: TriggerOptions) {
-        options = {...DEFAULT_MANUAL_TRIGGER_OPTIONS, ...options};
+        options = { ...DEFAULT_MANUAL_TRIGGER_OPTIONS, ...options };
 
         const event: OperationEvent = {
             type: "manual",

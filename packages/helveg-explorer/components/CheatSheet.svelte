@@ -5,7 +5,7 @@
     import Dock from "./Dock.svelte";
     import GlyphInfo from "./GlyphInfo.svelte";
     import Icon from "./Icon.svelte";
-    import PanelList from "./PanelList.svelte";
+    import PanelsInfo from "./PanelsInfo.svelte";
     import Tab from "./Tab.svelte";
 
     let isOpen = false;
@@ -55,7 +55,7 @@
             <GlyphInfo />
         </Tab>
         <Tab name="Panels" value="panels">
-            <PanelList />
+            <PanelsInfo />
         </Tab>
         <Tab name="About" value="about">
             <AboutInfo />
