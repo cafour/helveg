@@ -19,6 +19,7 @@
     import ContextMenu from "./ContextMenu.svelte";
     import TreeView from "./TreeView.svelte";
     import ToolBar from "./ToolBar.svelte";
+    import Welcome from "./Welcome.svelte";
 
     export let rootElement: HTMLElement;
     setContext("rootElement", rootElement);
@@ -135,4 +136,5 @@
         </Tab>
     </Dock>
     <ContextMenu />
+    <Welcome />
 </div>

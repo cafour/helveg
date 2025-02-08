@@ -12,6 +12,7 @@
     } from "../deps/helveg-diagram.ts";
     import * as Options from "../options.ts";
     import { version } from "../package.json";
+    import { WELCOME_VISIBLE } from "./Welcome.svelte";
 
     $: metadataItems = [
         { key: "Name", value: $model.name },
@@ -56,6 +57,7 @@
         appearanceOptions.set(structuredClone(Options.DEFAULT_APPEARANCE_OPTIONS));
         layoutOptions.set(structuredClone(Options.DEFAULT_LAYOUT_OPTIONS));
         toolOptions.set(structuredClone(Options.DEFAULT_TOOL_OPTIONS));
+        WELCOME_VISIBLE.set(true);
         await diagram.reset();
     }
 

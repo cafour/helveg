@@ -2,7 +2,7 @@
     import Icon from "./Icon.svelte";
     import Tooltip from "./Tooltip.svelte";
 
-    let className: string | undefined;
+    let className: string | undefined = undefined;
     export { className as class };
     export let icon: string | undefined = undefined;
     export let name: string | undefined = undefined;
