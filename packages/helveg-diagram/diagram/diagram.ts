@@ -323,6 +323,7 @@ export class Diagram {
     }
     set nodeStylistParams(value: any) {
         this._nodeStylistParams = value;
+        this.events.nodeStylistParamsChanged.trigger();
 
         if (this.nodeStylist != null) {
             this.scheduleRestyle();
@@ -484,6 +485,7 @@ export class Diagram {
         mainRelationChanged: new HelvegEvent<string | null>("helveg.diagram.mainRelationChanged"),
         modifierKeysChanged: new HelvegEvent<ModifierKeyStateChange>("helveg.diagram.modifierKeysChanged"),
         nodeStylistChanged: new HelvegEvent<void>("helveg.diagram.nodeStylistChanged"),
+        nodeStylistParamsChanged: new HelvegEvent<void>("helveg.diagram.nodeStylistParamsChanged"),
         edgeStylistChanged: new HelvegEvent<void>("helveg.diagram.edgeStylistChanged"),
         relationStylistChanged: new HelvegEvent<void>("helveg.diagram.relationStylistChanged"),
     } as const;

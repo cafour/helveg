@@ -31,10 +31,14 @@
 
         .tab-content {
             flex-grow: 1;
+            overflow-y: scroll;
+            scrollbar-width: thin;
+            scrollbar-color: var(--color-surface-100) var(--color-surface-50);
         }
 
         .tab {
             width: 100%;
+            height: auto;
             padding: 0.5rem;
             border-top: none;
 

@@ -558,7 +558,6 @@ function resolveNodeStyle(colorSchema: NodeColorSchema, node: HelvegNodeAttribut
     if (
         model.isStatic &&
         (model.typeKind === "Class" ||
-            model.typeKind === "Struct" ||
             (model.kind === "Field" && !model.isConst) ||
             model.kind === "Property" ||
             model.kind === "Event" ||
