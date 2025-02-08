@@ -1,6 +1,6 @@
 <script lang="ts">
     import AboutInfo from "./AboutInfo.svelte";
-import ButtonIcon from "./ButtonIcon.svelte";
+    import ButtonIcon from "./ButtonIcon.svelte";
     import Dock from "./Dock.svelte";
     import GlyphInfo from "./GlyphInfo.svelte";
     import Icon from "./Icon.svelte";
@@ -27,14 +27,19 @@ import ButtonIcon from "./ButtonIcon.svelte";
             <Icon name="vscode:question" />
             CheatSheet
         </div>
-        <button
-            on:click={() => (isOpen = false)}
-            type="button"
-            class="button-icon primary close-button"
-            slot="after-tab-list"
-        >
-            ✕
-        </button>
+        <div slot="after-tab-list" class="flex flex-row">
+            <a
+                href="https://helveg.net/user-guide/"
+                class="button-stretch light-surface flex flex-row gap-4 align-items-center justify-content-center"
+                target="_blank"
+            >
+                <Icon name="vscode:link-external" class="w-16" />
+                Documentation
+            </a>
+            <button on:click={() => (isOpen = false)} type="button" class="button-icon primary close-button">
+                ✕
+            </button>
+        </div>
         <Tab name="Controls" value="controls">This will a list of controls.</Tab>
         <Tab name="Glyphs" value="glyphs">
             <GlyphInfo />
