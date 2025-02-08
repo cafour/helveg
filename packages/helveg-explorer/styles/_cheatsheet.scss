@@ -12,7 +12,25 @@
 .cheatsheet {
     position: absolute;
     width: 100%;
-    max-width: 50rem;
     height: 100%;
-    max-height: 40rem;
+    background-color: #00000088;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    pointer-events: all;
+
+    &>.cheatsheet-inner {
+        width: 100%;
+        max-width: 50rem;
+        height: 100%;
+        max-height: 40rem;
+
+        background-color: var(--color-surface-50);
+
+        .tab-content {
+            flex-grow: 1;
+        }
+    }
 }
