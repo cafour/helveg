@@ -32,7 +32,7 @@
 
         <p>
             If this is your first time using Helveg, you may want to go through the interactive tutorial or at least
-            look at the cheatsheet. If at any point you need to access either of them click on the questionmark in the
+            look at the cheatsheet. If at any point you need to access either of them, click on the questionmark in the
             lower left corner of the screen.
         </p>
 
