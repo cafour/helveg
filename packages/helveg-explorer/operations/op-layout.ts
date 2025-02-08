@@ -1,5 +1,6 @@
 import { DiagramStatus } from "@cafour/helveg-diagram";
 import { ModifierFlags, OperationScope, type GlobalOperation } from "./executor";
+import { get } from "svelte/store";
 
 export const OP_LAYOUT: GlobalOperation = {
     id: "layout",
@@ -30,7 +31,12 @@ export const OP_REFRESH: GlobalOperation = {
         modifiers: ModifierFlags.CONTROL,
     },
     async beginExecute(state) {
-        await state.diagram.refresh();
+        const dataOptions = get(state.dataOptions);
+        await state.diagram.refresh({
+            selectedRelations: dataOptions.selectedRelations,
+            selectedKinds: dataOptions.selectedKinds,
+            expandedDepth: dataOptions.expandedDepth,
+        });
     },
 };
 
