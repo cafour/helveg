@@ -54,11 +54,14 @@
         }
 
         const toolOptions = get(state.toolOptions);
-        await diagram.highlightNode(
+        const highlightResult = await diagram.highlightNode(
             nodeId,
             get(state.toolOptions).showProperties.shouldHighlightSubtree,
             get(state.toolOptions).showProperties.shouldHighlightNeighbors,
         );
+        if (highlightResult.hasExpanded === true) {
+            await diagram.runLayout(false);
+        }
 
         if (nodeId != null && toolOptions.showProperties.shouldFocusPropertiesPanel) {
             dock.setTab(AppPanels.Properties);
@@ -138,7 +141,7 @@
         </Tab>
     </Dock>
     <ContextMenu />
-    <CheatSheet buttonStyle="grid-area: CheatSheetButton;"/>
+    <CheatSheet buttonStyle="grid-area: CheatSheetButton;" />
     <Welcome />
 </div>
 
@@ -148,9 +151,7 @@
         grid-template-areas:
             "TreeView ToolBar Toast Dock"
             "TreeView CheatSheetButton Toast Dock";
-        grid-template-columns:
-            auto auto 1fr auto;
-        grid-template-rows:
-            1fr auto;
+        grid-template-columns: auto auto 1fr auto;
+        grid-template-rows: 1fr auto;
     }
 </style>

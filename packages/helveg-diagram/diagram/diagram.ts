@@ -736,17 +736,21 @@ export class Diagram {
         nodeId: string | null,
         includeSubtree: boolean,
         includeNeighbors: boolean
-    ): Promise<void> {
+    ): Promise<{hasExpanded: boolean}> {
+        const result: {hasExpanded: boolean} = {
+            hasExpanded: false
+        };
+        
         if (nodeId === null) {
             this._logger.debug("Clearing node highlights.");
             this._graph?.forEachNode((_, a) => (a.highlighted = false));
             this.mode = DiagramMode.Normal;
             this._sigma?.refresh();
-            return;
+            return result;
         }
 
         if (!this._graph || !this._graph?.hasNode(nodeId)) {
-            return;
+            return result;
         }
 
         this._graph.forEachNode((n) => this._graph?.setNodeAttribute(n, "highlighted", false));
@@ -768,14 +772,16 @@ export class Diagram {
         }
 
         const nodeAttributes = this._graph.getNodeAttributes(nodeId);
-        if (nodeAttributes.collapsed) {
+        if (nodeAttributes.hidden === true) {
             await this.refreshSupervisor(true, () =>
                 expandPathsTo(this._graph!, nodeId, this.options.mainRelation ?? undefined)
             );
+            result.hasExpanded = true;
         }
 
         this.mode = DiagramMode.Highlighting;
         this._sigma?.refresh();
+        return result;
     }
 
     public async isolate(

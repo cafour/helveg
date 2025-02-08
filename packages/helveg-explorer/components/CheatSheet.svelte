@@ -35,5 +35,6 @@
         <Tab name="Controls" value="controls">This will a list of controls.</Tab>
         <Tab name="Glyphs" value="glyphs">This will a look at glyphs.</Tab>
         <Tab name="Panels" value="panels">This will a look at panels.</Tab>
+        <Tab name="About" value="about">This will a look at panels.</Tab>
     </Dock>
 </div>
