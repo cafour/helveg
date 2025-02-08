@@ -53,3 +53,13 @@ textarea {
         z-index: 1000;
     }
 }
+
+dl {
+    dt {
+        font-weight: bold;
+    }
+
+    dd {
+        margin-left: 1rem;
+    }
+}

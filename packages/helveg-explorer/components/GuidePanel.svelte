@@ -116,7 +116,7 @@
     <ul>
         <li>
             <strong>"Staticness"</strong>: If the line is dashed, the entity is
-            static; if it is solid, it is tied to an instance.
+        static; if it is solid, it is tied to an instance.
         </li>
         <li>
             <strong>Instance member count</strong>: The number of instance

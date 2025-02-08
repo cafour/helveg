@@ -1,7 +1,10 @@
 <script lang="ts">
-    import ButtonIcon from "./ButtonIcon.svelte";
+    import AboutInfo from "./AboutInfo.svelte";
+import ButtonIcon from "./ButtonIcon.svelte";
     import Dock from "./Dock.svelte";
+    import GlyphInfo from "./GlyphInfo.svelte";
     import Icon from "./Icon.svelte";
+    import PanelList from "./PanelList.svelte";
     import Tab from "./Tab.svelte";
 
     let isOpen = false;
@@ -33,8 +36,14 @@
             ✕
         </button>
         <Tab name="Controls" value="controls">This will a list of controls.</Tab>
-        <Tab name="Glyphs" value="glyphs">This will a look at glyphs.</Tab>
-        <Tab name="Panels" value="panels">This will a look at panels.</Tab>
-        <Tab name="About" value="about">This will a look at panels.</Tab>
+        <Tab name="Glyphs" value="glyphs">
+            <GlyphInfo />
+        </Tab>
+        <Tab name="Panels" value="panels">
+            <PanelList />
+        </Tab>
+        <Tab name="About" value="about">
+            <AboutInfo />
+        </Tab>
     </Dock>
 </div>

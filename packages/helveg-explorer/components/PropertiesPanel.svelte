@@ -99,7 +99,7 @@
                             <Icon
                                 name={getDiagnosticIcon(diagnostic)}
                                 title={diagnostic.severity}
-                                additionalClasses={getDiagnosticClass(diagnostic)}
+                                class={getDiagnosticClass(diagnostic)}
                             />
                             <strong>{diagnostic.id}</strong>
                         </div>
