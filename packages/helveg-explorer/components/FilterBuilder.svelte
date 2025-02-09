@@ -9,6 +9,7 @@
     import { getContext } from "svelte";
     import type { IExplorerState } from "../explorer-state";
     import { writable } from "svelte/store";
+
     const nodeKeyTypes = getContext<IExplorerState>("state").diagram.nodeKeyTypes;
     const nodeKeys = getContext<IExplorerState>("state").diagram.nodeKeys.filter(
         (k) =>
@@ -91,8 +92,12 @@
             on:change={() => onPropertyChanged(i)}
             class="flex-grow-0 flex-shrink-0 w-auto text-xs"
         >
-            {#each nodeKeys as key}
-                <option value={key}>{key}</option>
+            {#each nodeKeyCategories as cat}
+                <optgroup label={cat.name}>
+                    {#each cat.properties as prop}
+                        <option value={prop}>{prop}</option>
+                    {/each}
+                </optgroup>
             {/each}
         </select>
         <select
