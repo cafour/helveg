@@ -20,6 +20,10 @@
     align-items: center;
     z-index: 10;
     pointer-events: all;
+    
+    &.hidden {
+        display: none;
+    }
 
     &>.cheatsheet-inner {
         width: 100%;

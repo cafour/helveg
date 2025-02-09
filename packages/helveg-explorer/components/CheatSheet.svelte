@@ -22,7 +22,7 @@
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <!-- svelte-ignore a11y-click-events-have-key-events -->
-<div class="cheatsheet {isOpen ? 'visible' : 'invisible'}" on:click|self={() => (isOpen = false)}>
+<div class="cheatsheet {isOpen ? '' : 'hidden'}" on:click|self={() => (isOpen = false)}>
     <Dock
         name="cheatsheet"
         class="cheatsheet-inner"
