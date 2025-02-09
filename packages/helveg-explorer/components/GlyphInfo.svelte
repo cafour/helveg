@@ -13,6 +13,7 @@
     import { getContext } from "svelte";
     import NodeKindIcon from "./NodeKindIcon.svelte";
     import CHEATSHEET_DONUT from "../img/cheatsheet_donut.svg";
+    import CHEATSHEET_CONTOURS from "../img/cheatsheet_contours.svg";
 
     let diagram = getContext<Diagram>("diagram");
     let model = getContext<Readable<DataModel>>("model");
@@ -28,14 +29,14 @@
     ];
 
     const specialGlyphs = [
-        { nodeKind: EntityKind.Field, isConst: true, name: "Constant field"},
-        { nodeKind: EntityKind.Field, isEnumItem: true, name: "Enum member field"},
-        { nodeKind: EntityKind.Method, methodKind: MethodKind.Constructor, name: "Constructor"},
-        { nodeKind: EntityKind.Method, methodKind: MethodKind.Destructor, name: "Destructor"},
-        { nodeKind: EntityKind.Method, methodKind: MethodKind.UserDefinedOperator, name: "Operator"},
-        { nodeKind: EntityKind.Type, typeKind: TypeKind.Class, isRecord: true, name: "Record class"},
-        { nodeKind: EntityKind.Type, typeKind: TypeKind.Struct, isRecord: true, name: "Record struct"},
-        { nodeKind: EntityKind.Property, isIndexer: true, name: "Indexer property"},
+        { nodeKind: EntityKind.Field, isConst: true, name: "Constant field" },
+        { nodeKind: EntityKind.Field, isEnumItem: true, name: "Enum member field" },
+        { nodeKind: EntityKind.Method, methodKind: MethodKind.Constructor, name: "Constructor" },
+        { nodeKind: EntityKind.Method, methodKind: MethodKind.Destructor, name: "Destructor" },
+        { nodeKind: EntityKind.Method, methodKind: MethodKind.UserDefinedOperator, name: "Operator" },
+        { nodeKind: EntityKind.Type, typeKind: TypeKind.Class, isRecord: true, name: "Record class" },
+        { nodeKind: EntityKind.Type, typeKind: TypeKind.Struct, isRecord: true, name: "Record struct" },
+        { nodeKind: EntityKind.Property, isIndexer: true, name: "Indexer property" },
     ];
 </script>
 
@@ -56,10 +57,7 @@
             <span class="text-xs">Specific common combinations of kinds and properties have specialized icons:</span>
             {#each specialGlyphs as special}
                 <div class="flex flex-row align-items-center gap-8">
-                    <NodeKindIcon
-                        {...special}
-                        class="w-32"
-                    />
+                    <NodeKindIcon {...special} class="w-32" />
                     <span>{special.name}</span>
                 </div>
             {/each}
@@ -133,8 +131,16 @@
         </div>
         <div class="flex flex-col gap-8">
             <strong class="extrabold">Donuts</strong>
-            <span class="text-xs">Types have a donut chart surrounding their icon. It can be used to gleam the size of the type as well as its ratio of static to instance members.</span>
+            <span class="text-xs"
+                >Types have a donut chart surrounding their icon. It can be used to gleam the size of the type as well
+                as its ratio of static to instance members.</span
+            >
             {@html CHEATSHEET_DONUT}
+        </div>
+        <div class="flex flex-col gap-8">
+            <strong class="extrabold">Abstract and sealed</strong>
+            <span class="text-xs">Abstract and sealed types and members have contours surrounding their icon. The sealed modifier creates an uninterrupted octagon, while the abstract modifier forms a partial hexagon:</span>
+            {@html CHEATSHEET_CONTOURS}
         </div>
     </div>
 </div>
