@@ -30,7 +30,8 @@
             "ESNext.AsyncIterable",
         ],
         "types": [
-            "svelte"
+            "svelte",
+            "./images.d.ts",
         ],
         "preserveWatchOutput": true
     },

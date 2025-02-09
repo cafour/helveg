@@ -12,6 +12,7 @@
     } from "../deps/helveg-diagram.ts";
     import { getContext } from "svelte";
     import NodeKindIcon from "./NodeKindIcon.svelte";
+    import CHEATSHEET_DONUT from "../img/cheatsheet_donut.svg";
 
     let diagram = getContext<Diagram>("diagram");
     let model = getContext<Readable<DataModel>>("model");
@@ -129,6 +130,11 @@
                     <span>Static {staticKind.typeKind ?? staticKind.nodeKind}</span>
                 </div>
             {/each}
+        </div>
+        <div class="flex flex-col gap-8">
+            <strong class="extrabold">Donuts</strong>
+            <span class="text-xs">Types have a donut chart surrounding their icon. It can be used to gleam the size of the type as well as its ratio of static to instance members.</span>
+            {@html CHEATSHEET_DONUT}
         </div>
     </div>
 </div>
