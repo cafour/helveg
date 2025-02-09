@@ -709,20 +709,16 @@ export class Diagram {
 
             this.mode = DiagramMode.Highlighting;
 
-            if (this._model.data) {
-                Object.entries(this._model.data.nodes).forEach(([id, node]) => {
-                    if (this._graph?.hasNode(id) && (!expandedOnly || !this._graph.getNodeAttribute(id, "hidden"))) {
-                        const isHighlighted = filter!(node);
-                        if (isHighlighted) {
-                            results.push(id);
-                            if (!expandedOnly) {
-                                expandPathsTo(this._graph, id, this.mainRelation ?? undefined);
-                            }
-                        }
-                        this._graph.setNodeAttribute(id, "highlighted", isHighlighted);
+            this._graph.filterNodes((n, na) => {
+                const matches = filter(na);
+                if (matches) {
+                    results.push(n);
+                    if (!expandedOnly) {
+                        expandPathsTo(this._graph!, n, this.mainRelation ?? undefined);
                     }
-                });
-            }
+                }
+                na.highlighted = matches;
+            });
 
             this._sigma?.refresh();
         } catch (e: any) {
@@ -738,11 +734,11 @@ export class Diagram {
         nodeId: string | null,
         includeSubtree: boolean,
         includeNeighbors: boolean
-    ): Promise<{hasExpanded: boolean}> {
-        const result: {hasExpanded: boolean} = {
-            hasExpanded: false
+    ): Promise<{ hasExpanded: boolean }> {
+        const result: { hasExpanded: boolean } = {
+            hasExpanded: false,
         };
-        
+
         if (nodeId === null) {
             this._logger.debug("Clearing node highlights.");
             this._graph?.forEachNode((_, a) => (a.highlighted = false));
@@ -820,7 +816,7 @@ export class Diagram {
                 // NB: Sigma doesn't clear its highlightedNodes correctly
                 ((this._sigma as any)["highlightedNodes"] as Set<string>).clear();
 
-                for (let id of filterNodes(this._model.data!, filter, true)) {
+                for (let id of filterNodes(this._graph, filter, true)) {
                     if (this._graph.hasNode(id)) {
                         dropNode(this._graph, id);
                         changed = true;
