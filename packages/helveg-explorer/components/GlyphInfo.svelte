@@ -2,7 +2,6 @@
     import type { Readable } from "svelte/store";
     import {
         EntityKind,
-        getNodeKinds,
         LimitedTypeKind,
         MemberAccessibility,
         MethodKind,
@@ -14,6 +13,7 @@
     import NodeKindIcon from "./NodeKindIcon.svelte";
     import CHEATSHEET_DONUT from "../img/cheatsheet_donut.svg";
     import CHEATSHEET_CONTOURS from "../img/cheatsheet_contours.svg";
+    import CHEATSHEET_EFFECTS from "../img/cheatsheet_effects.svg";
 
     let diagram = getContext<Diagram>("diagram");
     let model = getContext<Readable<DataModel>>("model");
@@ -61,6 +61,11 @@
                     <span>{special.name}</span>
                 </div>
             {/each}
+        </div>
+        <div class="flex flex-col gap-8">
+            <strong class="extrabold">Errors and warnings</strong>
+            <span class="text-xs">Compiler diagnostics are represented by animated effects:</span>
+            {@html CHEATSHEET_EFFECTS}
         </div>
     </div>
 
