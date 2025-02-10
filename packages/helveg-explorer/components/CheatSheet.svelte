@@ -31,8 +31,7 @@
         allowDeselect={false}
         fallbackTab="controls"
     >
-        <div class="cheatsheet-header" slot="before-tab-list">
-            <Icon name="vscode:question" />
+        <div class="cheatsheet-header" slot="before-tab-list">  
             CheatSheet
         </div>
         <div slot="after-tab-list" class="flex flex-row">
