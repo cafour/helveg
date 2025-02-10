@@ -36,8 +36,6 @@
         .tab-content {
             flex-grow: 1;
             overflow-y: scroll;
-            scrollbar-width: thin;
-            scrollbar-color: var(--color-surface-100) var(--color-surface-50);
         }
 
         .tab {
@@ -80,7 +78,7 @@
         }
     }
     
-    svg {
+    svg text {
         font-family: var(--font-family-base) !important;
     }
 }
