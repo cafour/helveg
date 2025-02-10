@@ -14,6 +14,7 @@
     import CHEATSHEET_DONUT from "../img/cheatsheet_donut.svg";
     import CHEATSHEET_CONTOURS from "../img/cheatsheet_contours.svg";
     import CHEATSHEET_EFFECTS from "../img/cheatsheet_effects.svg";
+    import CHEATSHEET_COLLAPSED_NODE_INDICATOR from "../img/cheatsheet_collapsed_node_indicator.svg";
 
     let diagram = getContext<Diagram>("diagram");
     let model = getContext<Readable<DataModel>>("model");
@@ -144,8 +145,18 @@
         </div>
         <div class="flex flex-col gap-8">
             <strong class="extrabold">Abstract and sealed</strong>
-            <span class="text-xs">Abstract and sealed types and members have contours surrounding their icon. The sealed modifier creates an uninterrupted octagon, while the abstract modifier forms a partial hexagon:</span>
+            <span class="text-xs"
+                >Abstract and sealed types and members have contours surrounding their icon. The sealed modifier creates
+                an uninterrupted octagon, while the abstract modifier forms a partial hexagon:</span
+            >
             {@html CHEATSHEET_CONTOURS}
+        </div>
+        <div class="flex flex-col gap-8">
+            <strong class="extrabold">Collapsed node indicator</strong>
+            <span class="text-xs"
+                >Nodes that can be expanded (for example using the Toggle action) have a crescent below them:</span
+            >
+            {@html CHEATSHEET_COLLAPSED_NODE_INDICATOR}
         </div>
     </div>
 </div>
