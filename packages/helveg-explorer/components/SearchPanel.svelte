@@ -18,12 +18,12 @@
         {
             value: SearchMode.Contains,
             icon: AppIcons.ContainsMode,
-            hint: "Full-text case-insesitive search among names and comments.",
+            hint: "Full-text case-insensitive in node names.",
         },
         {
             value: SearchMode.Regex,
             icon: AppIcons.RegexMode,
-            hint: "Search among names and comments using a regular expression.",
+            hint: "Search among node names using a regular expression.",
         },
         {
             value: SearchMode.JavaScript,
