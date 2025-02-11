@@ -17,9 +17,20 @@
 <script lang="ts">
     import ButtonStretch from "./ButtonStretch.svelte";
     import { writable } from "svelte/store";
+    import { TUTORIAL_VISIBLE } from "./Tutorial.svelte";
+
+    function startWithTutorial() {
+        $WELCOME_VISIBLE = false;
+        $TUTORIAL_VISIBLE = true;
+    }
+
+    function startWithoutTutorial() {
+        $WELCOME_VISIBLE = false;
+        $TUTORIAL_VISIBLE = false;
+    }
 </script>
 
-<div class="welcome {$WELCOME_VISIBLE ? 'visible' : 'invisible'}">
+<div class="welcome {$WELCOME_VISIBLE ? '' : 'hidden'}">
     <div class="inner">
         <h1>Welcome to Helveg!</h1>
 
@@ -39,8 +50,8 @@
         <p></p>
 
         <div class="flex flex-row gap-16">
-            <ButtonStretch class="primary" on:click={() => ($WELCOME_VISIBLE = false)}>Start tutorial</ButtonStretch>
-            <ButtonStretch class="primary" on:click={() => ($WELCOME_VISIBLE = false)}
+            <ButtonStretch class="primary" on:click={() => startWithTutorial()}>Start tutorial</ButtonStretch>
+            <ButtonStretch class="primary" on:click={() => startWithoutTutorial()}
                 >Continue without tutorial</ButtonStretch
             >
         </div>

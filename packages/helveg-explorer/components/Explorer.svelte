@@ -19,6 +19,7 @@
     import ToolBar from "./ToolBar.svelte";
     import Welcome from "./Welcome.svelte";
     import CheatSheet from "./CheatSheet.svelte";
+    import Tutorial from "./Tutorial.svelte";
 
     export let rootElement: HTMLElement;
     setContext("rootElement", rootElement);
@@ -138,6 +139,7 @@
     <ContextMenu />
     <CheatSheet buttonStyle="grid-area: CheatSheetButton;" />
     <Welcome />
+    <Tutorial />
 </div>
 
 <style lang="scss">

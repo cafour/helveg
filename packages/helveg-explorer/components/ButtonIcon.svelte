@@ -10,11 +10,12 @@
     export let name: string | undefined = undefined;
     export let hint: string | undefined = undefined;
     export let shortcut: string | undefined = undefined;
+    export let disabled: boolean = false;
 
     let element: HTMLElement;
 </script>
 
-<button class="button-icon {className}" on:click bind:this={element} {style}>
+<button class="button-icon {className}" on:click bind:this={element} {style} {disabled}>
     <Icon name={icon ?? FALLBACK_ICON.name} />
 </button>
 

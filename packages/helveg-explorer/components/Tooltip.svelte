@@ -1,5 +1,6 @@
 <script lang="ts">
     import { getContext } from "svelte";
+    import { setPopupPosition } from "../popups";
 
     export let text: string;
     export let header: string | undefined = undefined;
@@ -75,35 +76,10 @@
     }
 
     function show() {
-        const rect = target!.getBoundingClientRect();
-
-        if (tooltip.clientHeight > rect.y) {
-            tooltip.classList.add("arrow-top");
-            tooltip.classList.remove("arrow-bottom");
-            tooltip.style.top = rect.y + rect.height + "px";
-        } else {
-            tooltip.classList.add("arrow-bottom");
-            tooltip.classList.remove("arrow-top");
-            tooltip.style.top = rect.y - rect.height - tooltip.offsetHeight + "px";
-        }
-
-        const xMid = rect.x + rect.width / 2;
-        if (tooltip.clientWidth / 2 > xMid) {
-            tooltip.style.left = `calc(${xMid}px - 0.5 * var(--arrow-size))`;
-            tooltip.classList.add("point-left");
-        } else if (tooltip.clientWidth / 2 > document.documentElement.clientWidth - xMid) {
-            tooltip.style.left = `calc(${xMid - tooltip.clientWidth}px + 0.5 * var(--arrow-size))`;
-            tooltip.classList.add("point-right");
-        } else {
-            tooltip.style.left = xMid - tooltip.clientWidth / 2 + "px";
-            tooltip.classList.remove("point-left");
-            tooltip.classList.remove("point-right");
-        }
-
-        tooltip.classList.add("visible");
+        setPopupPosition(tooltip, target!);
     }
 
     function hide() {
-        tooltip.classList.remove("visible");
+        tooltip.classList.add("hidden");
     }
 </script>

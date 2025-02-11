@@ -36,6 +36,7 @@
         "preserveWatchOutput": true
     },
     "include": [
+        "*.ts",
         "**/*.ts",
         "**/*.svelte",
         "**/*.d.ts",
