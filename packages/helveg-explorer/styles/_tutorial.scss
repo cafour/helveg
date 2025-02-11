@@ -4,6 +4,12 @@
     background-color: var(--color-surface-100);
     border: 0.25rem solid var(--color-surface-200);
     max-width: 30rem;
+    z-index: 90;
+    
+    &.hidden {
+        top: -9999px;
+        visibility: hidden;
+    }
 
     .tutorial-header {
         display: flex;

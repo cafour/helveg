@@ -17,8 +17,9 @@
     justify-content: flex-start;
     overflow: visible;
 
-    &.visible {
-        visibility: visible;
+    &.hidden {
+        top: -9999px;
+        visibility: hidden;
     }
 
     &::before {
