@@ -41,7 +41,7 @@
     ];
 </script>
 
-<div class="grid grid-cols-2">
+<div class="grid grid-cols-2 gap-16">
     <!-- Left column -->
     <div class="flex flex-col gap-16">
         <div class="flex flex-col gap-8">

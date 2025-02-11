@@ -1,0 +1,71 @@
+{
+    "analyzer": {
+        "name": "helveg",
+        "version": "0.0.0"
+    },
+    "createdOn": "today",
+    "data": {
+        "nodes": {
+            "test:001": {
+                "name": "[A]",
+                "kind": "Solution"
+            },
+            "test:002": {
+                "name": "[B]",
+                "kind": "Project"
+            },
+            "test:011": {
+                "name": "[E]",
+                "kind": "Namespace"
+            },
+            "test:012": {
+                "name": "[F]",
+                "kind": "Type",
+                "typeKind": "Class"
+            },
+            "test:020": {
+                "name": "[G]",
+                "kind": "Type",
+                "typeKind": "Struct"
+            },
+            "test:022": {
+                "name": "[G]",
+                "kind": "Type",
+                "typeKind": "Interface"
+            },
+            "test:024": {
+                "name": "[G]",
+                "kind": "Type",
+                "typeKind": "Delegate"
+            },
+            "test:021": {
+                "name": "[F]",
+                "kind": "Type",
+                "typeKind": "Class",
+                "isRecord": true
+            },
+            "test:013": {
+                "name": "[J]",
+                "kind": "Field" 
+            },
+            "test:014": {
+                "name": "[K]",
+                "kind": "Property"
+            },
+            "test:015": {
+                "name": "[L]",
+                "kind": "Event"
+            },
+            "test:016": {
+                "name": "[M]",
+                "kind": "Method"
+            },
+            "test:018": {
+                "name": "[N]",
+                "kind": "Parameter"
+            }
+        },
+        "relations": {}
+    },
+    "name": "glyphs"
+}
