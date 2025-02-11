@@ -43,6 +43,7 @@ export * from "./random.ts";
 export * from "./rendering/node.glyph.ts";
 export * from "./rendering/node.donut.ts";
 export { default as createDonutProgram } from "./rendering/node.donut.ts";
+export { default as createIconProgram } from "./rendering/node.icon.ts";
 export type * from "./layout/forceAtlas2Iterate.ts";
 
 // TODO: This is not the best...

@@ -41,10 +41,10 @@ export class IconProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
         this.texture = gl.createTexture() as WebGLTexture;
         const refreshTexture = (a: IconAtlas) => {
             this.rebindTexture(a, gl);
-            this.renderer.scheduleRefresh();
+            this.renderer?.scheduleRefresh();
         };
         options.iconAtlas.redrawn.subscribe(refreshTexture);
-        this.renderer.on("kill", () => options.iconAtlas.redrawn.unsubscribe(refreshTexture));
+        this.renderer?.on("kill", () => options.iconAtlas.redrawn.unsubscribe(refreshTexture));
 
         this.rebindTexture(options.iconAtlas, gl);
     }
