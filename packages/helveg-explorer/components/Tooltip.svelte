@@ -12,7 +12,7 @@
     let originalTitle: string | null = null;
 
     const tooltip = document.createElement("div");
-    tooltip.classList.add("tooltip");
+    tooltip.classList.add("tooltip", "hidden");
 
     const rootElement = getContext<HTMLElement>("rootElement");
     rootElement.appendChild(tooltip);

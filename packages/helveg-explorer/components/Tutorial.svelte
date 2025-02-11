@@ -32,8 +32,12 @@
 
         currentIndex = index;
         const position = messages[currentIndex].position;
-        if (position.elementId) {
-            setPopupPosition(element, document.getElementById(position.elementId)!);
+        if (position.elementQuery) {
+            setPopupPosition(element, document.querySelector(position.elementQuery)!);
+            element.style.top = "";
+            element.style.bottom = "";
+            element.style.left = "";
+            element.style.right = "";
         } else {
             element.style.top = position.top ?? "";
             element.style.bottom = position.bottom ?? "";
