@@ -51,5 +51,6 @@ export const OP_AUTOLAYOUT: GlobalOperation = {
     },
     async beginExecute(state) {
         await state.diagram.autoLayout();
+        await state.diagram.runLayout(false);
     },
 };
