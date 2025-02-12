@@ -42,7 +42,7 @@
     setContext("appearanceOptions", state.appearanceOptions);
     setContext("exportOptions", state.exportOptions);
     setContext("toolOptions", state.toolOptions);
-    const { status, stats, selectedNode, dataOptions } = state;
+    const { status, stats, selectedNode, dataOptions, toolOptions } = state;
 
     let dock: Dock;
     let searchResults: string[];
@@ -52,17 +52,16 @@
             return;
         }
 
-        const toolOptions = get(state.toolOptions);
         const highlightResult = await diagram.highlightNode(
             nodeId,
-            get(state.toolOptions).showProperties.shouldHighlightSubtree,
-            get(state.toolOptions).showProperties.shouldHighlightNeighbors,
+            get(toolOptions).showProperties.shouldHighlightSubtree,
+            get(toolOptions).showProperties.shouldHighlightNeighbors,
         );
         if (highlightResult.hasExpanded === true) {
             await diagram.runLayout(false);
         }
 
-        if (nodeId != null && toolOptions.showProperties.shouldFocusPropertiesPanel) {
+        if (nodeId != null && get(toolOptions).showProperties.shouldFocusPropertiesPanel) {
             dock.setTab(AppPanels.Properties);
         }
     });
@@ -96,11 +95,15 @@
                         e.detail.expandedOnly,
                         e.detail.filterBuilder,
                     );
-                    await diagram.runLayout(false);
+                    if ($toolOptions.search.shouldRunLayout) {
+                        await diagram.runLayout(false);
+                    }
                 }}
                 on:isolate={async (e) => {
                     await diagram.isolate(e.detail.searchText, e.detail.searchMode, e.detail.filterBuilder);
-                    await diagram.runLayout(false);
+                    if ($toolOptions.search.shouldRunLayout) {
+                        await diagram.runLayout(false);
+                    }
                 }}
                 on:selected={(e) => {
                     diagram.selectedNode = e.detail;

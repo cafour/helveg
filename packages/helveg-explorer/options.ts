@@ -53,11 +53,20 @@ export const DEFAULT_REMOVE_TOOL_OPTIONS: Readonly<RemoveToolOptions> = {
     shouldRunLayout: true,
 };
 
+export interface SearchToolOptions {
+    shouldRunLayout: boolean;
+}
+
+export const DEFAULT_SEARCH_TOOL_OPTIONS: Readonly<SearchToolOptions> = {
+    shouldRunLayout: true,
+};
+
 export interface ToolOptions {
     remove: RemoveToolOptions;
     showProperties: ShowPropertiesToolOptions;
     toggle: ToggleToolOptions;
     move: MoveToolOptions;
+    search: SearchToolOptions;
 }
 
 export const DEFAULT_TOOL_OPTIONS: Readonly<ToolOptions> = {
@@ -65,6 +74,7 @@ export const DEFAULT_TOOL_OPTIONS: Readonly<ToolOptions> = {
     showProperties: DEFAULT_SHOW_PROPERTIES_TOOL_OPTIONS,
     toggle: DEFAULT_TOGGLE_TOOL_OPTIONS,
     move: DEFAULT_MOVE_TOOL_OPTIONS,
+    search: DEFAULT_SEARCH_TOOL_OPTIONS,
 };
 
 export interface GlyphOptions {

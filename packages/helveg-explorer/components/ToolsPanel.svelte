@@ -75,4 +75,13 @@
             />
         </label>
     </Subpanel>
+    <Subpanel name="Search" icon={AppIcons.SearchPanel}>
+        <label>
+            <input type="checkbox" bind:checked={$toolOptions.search.shouldRunLayout} />
+            Run layout
+            <Hint
+                text="Run the continuous layout algorithm after a Highlight or Isolate operation."
+            />
+        </label>
+    </Subpanel>
 </Panel>
