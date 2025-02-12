@@ -73,6 +73,8 @@ export interface MouseOperationEvent extends OperationEvent {
     isDouble: boolean;
     coords: Coordinates;
     hasMoved: boolean;
+    distance: number;
+    duration: number;
 }
 
 export interface KeyOperationEvent extends OperationEvent {
@@ -261,6 +263,9 @@ export class OperationExecutor {
         window.addEventListener("keydown", (e) => this.onKeyDown(e));
         window.addEventListener("keyup", (e) => this.onKeyUp(e));
 
+        let nodeDownDate: number = 0;
+        let nodeDownDistance: number = 0;
+        let nodeDownCoords: Coordinates = { x: 0, y: 0 };
         state.diagram.events.nodeDown.subscribe(async (e) => {
             this.mousePressed.add(MouseButton.MAIN);
             const operationEvent: MouseOperationEvent = {
@@ -269,22 +274,33 @@ export class OperationExecutor {
                 modifiers: this.pressedModifiers,
                 hasMoved: this.hasMoved,
                 isDouble: false,
+                duration: 0,
+                distance: 0,
                 type: "mouseDown",
             };
+            nodeDownDate = Date.now();
+            nodeDownDistance = 0;
+            nodeDownCoords = e.coords;
             await this.trigger(OperationScope.GLOBAL | OperationScope.NODE, e.nodeId, operationEvent, {
                 shouldBeginExecute: true,
             });
         });
         state.diagram.events.nodeUp.subscribe(async (e) => {
             this.mousePressed.delete(MouseButton.MAIN);
+            nodeDownDistance += Math.abs(nodeDownCoords.x - e.coords.x) + Math.abs(nodeDownCoords.y - e.coords.y);
             const operationEvent: MouseOperationEvent = {
                 button: MouseButton.MAIN,
                 coords: e.coords,
                 modifiers: this.pressedModifiers,
                 hasMoved: this.hasMoved,
                 isDouble: false,
+                duration: Date.now() - nodeDownDate,
+                distance: nodeDownDistance,
                 type: "mouseUp",
             };
+            nodeDownDate = 0;
+            nodeDownDistance = 0;
+            nodeDownCoords = { x: 0, y: 0 };
             await this.trigger(OperationScope.GLOBAL | OperationScope.NODE, e.nodeId, operationEvent, {
                 shouldEndExecute: true,
             });
@@ -296,6 +312,8 @@ export class OperationExecutor {
                 modifiers: this.pressedModifiers,
                 hasMoved: this.hasMoved,
                 isDouble: true,
+                duration: -1,
+                distance: -1,
                 type: "mouseDown",
             };
             await this.trigger(OperationScope.GLOBAL | OperationScope.NODE, e.nodeId, operationEvent, {
@@ -304,16 +322,24 @@ export class OperationExecutor {
         });
         state.diagram.events.nodeMove.subscribe(async (e) => {
             this._hasMoved = this._mousePressed.size > 0;
+            nodeDownDistance += Math.abs(nodeDownCoords.x - e.coords.x) + Math.abs(nodeDownCoords.y - e.coords.y);
             const operationEvent: MouseOperationEvent = {
                 button: MouseButton.MAIN,
                 coords: e.coords,
                 modifiers: this.pressedModifiers,
                 hasMoved: this.hasMoved,
                 isDouble: true,
+                duration: Date.now() - nodeDownDate,
+                distance: nodeDownDistance,
                 type: "mouseMove",
             };
+            nodeDownCoords = e.coords;
             await this.trigger(OperationScope.GLOBAL | OperationScope.NODE, e.nodeId, operationEvent, {});
         });
+
+        let stageDownDate: number = 0;
+        let stageDownDistance: number = 0;
+        let stageDownCoords: Coordinates = { x: 0, y: 0 };
         state.diagram.events.stageDown.subscribe(async (e) => {
             this.mousePressed.add(MouseButton.MAIN);
             const operationEvent: MouseOperationEvent = {
@@ -322,22 +348,33 @@ export class OperationExecutor {
                 modifiers: this.pressedModifiers,
                 hasMoved: this.hasMoved,
                 isDouble: false,
+                duration: 0,
+                distance: 0,
                 type: "mouseDown",
             };
+            stageDownDate = Date.now();
+            stageDownDistance = 0;
+            stageDownCoords = e;
             await this.trigger(OperationScope.GLOBAL | OperationScope.STAGE, undefined, operationEvent, {
                 shouldBeginExecute: true,
             });
         });
         state.diagram.events.stageUp.subscribe(async (e) => {
             this.mousePressed.delete(MouseButton.MAIN);
+            stageDownDistance += Math.abs(stageDownCoords.x - e.x) + Math.abs(stageDownCoords.y - e.y);
             const operationEvent: MouseOperationEvent = {
                 button: MouseButton.MAIN,
                 coords: e,
                 modifiers: this.pressedModifiers,
                 hasMoved: this.hasMoved,
                 isDouble: false,
+                duration: Date.now() - stageDownDate,
+                distance: stageDownDistance,
                 type: "mouseUp",
             };
+            stageDownDate = -1;
+            stageDownDistance = 0;
+            stageDownCoords = { x: 0, y: 0 };
             await this.trigger(OperationScope.GLOBAL | OperationScope.STAGE, undefined, operationEvent, {
                 shouldEndExecute: true,
             });
@@ -349,6 +386,8 @@ export class OperationExecutor {
                 modifiers: this.pressedModifiers,
                 hasMoved: this.hasMoved,
                 isDouble: true,
+                duration: -1,
+                distance: -1,
                 type: "mouseDown",
             };
             await this.trigger(OperationScope.GLOBAL | OperationScope.STAGE, undefined, operationEvent, {
@@ -357,12 +396,15 @@ export class OperationExecutor {
         });
         state.diagram.events.stageMove.subscribe(async (e) => {
             this._hasMoved = this._mousePressed.size > 0;
+            stageDownDistance += Math.abs(stageDownCoords.x - e.x) + Math.abs(stageDownCoords.y - e.y);
             const operationEvent: MouseOperationEvent = {
                 button: MouseButton.MAIN,
                 coords: e,
                 modifiers: this.pressedModifiers,
                 hasMoved: this.hasMoved,
                 isDouble: true,
+                duration: Date.now() - stageDownDate,
+                distance: stageDownDistance,
                 type: "mouseMove",
             };
             await this.trigger(OperationScope.GLOBAL | OperationScope.STAGE, undefined, operationEvent, {});

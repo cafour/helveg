@@ -51,7 +51,7 @@ export const OP_STAGE_DESELECT: StageOperation = {
     },
 
     mouseUp(state, _context, event) {
-        if (!event.hasMoved) {
+        if (event.duration < 300 && event.distance < 100) {
             state.diagram.selectedNode = null;
         }
 
