@@ -307,7 +307,7 @@ export const CSHARP_RELATION_HINTS: Record<string, string> = {
     declares: "An entity declares another. For example: a class type declares a method.",
     inheritsFrom: "A type inherits from another class or implements an interface.",
     typeOf: "A property/field/event/parameter is of a certain type.",
-    returns: "A method/property override a base method/property.",
+    returns: "A method returns a type.",
     overrides: "A method/property override a base method/property.",
     associatedWith: "A property is associated with its getter and setter, backing field with an auto-property, etc.",
     dependsOn: "A project dependency on another project or an external library.",
