@@ -50,6 +50,8 @@ export function buildNodeFilter(
     variableNames?: string[],
     filterBuilder?: IFilterBuilderEntry[]
 ): NodeFilter | null {
+    searchText?.trim();
+
     let filter: NodeFilter | null = null;
     const isTextEmpty = searchText == null || searchText.trim() == "";
 
