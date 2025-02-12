@@ -9,6 +9,7 @@
     import { getContext } from "svelte";
     import type { IExplorerState } from "../explorer-state";
     import { writable } from "svelte/store";
+    import FilterBuilderSelect, { type SelectItem } from "./FilterBuilderSelect.svelte";
 
     const nodeKeyTypes = getContext<IExplorerState>("state").diagram.nodeKeyTypes;
     const nodeKeys = getContext<IExplorerState>("state").diagram.nodeKeys.filter(
@@ -51,26 +52,32 @@
         properties: miscKeys.sort(),
     });
 
+    const selectItems: SelectItem[] = nodeKeyCategories.flatMap((c) =>
+        c.properties.map((p) => {
+            return {
+                value: p,
+                label: p,
+                group: c.name,
+            };
+        }),
+    );
+
     let entries = writable<IFilterBuilderEntry[]>([]);
     export let filterBuilder = [];
     $: filterBuilder = $entries;
 
-    function createEntry(e: Event & { currentTarget: EventTarget & HTMLSelectElement }) {
-        if (e.currentTarget.value) {
+    let newItem: string | undefined = undefined;
+    function createEntry(e: CustomEvent) {
+        if (newItem) {
             $entries = [
                 ...$entries,
                 {
-                    property: e.currentTarget.value,
+                    property: newItem,
                     operation: FilterBuilderOperation.Equals,
-                    value:
-                        nodeKeyTypes[e.currentTarget.value] === "string"
-                            ? ""
-                            : nodeKeyTypes[e.currentTarget.value] === "number"
-                              ? 0
-                              : true,
+                    value: nodeKeyTypes[newItem] === "string" ? "" : nodeKeyTypes[newItem] === "number" ? 0 : true,
                 },
             ];
-            e.currentTarget.value = "";
+            newItem = undefined;
         }
     }
 
@@ -83,23 +90,32 @@
     function removeEntry(index: number) {
         $entries = $entries.toSpliced(index, 1);
     }
+
+    function onFocus(e: CustomEvent) {
+        console.log(e);
+        const input = e.detail.target as HTMLElement;
+        const inputRect = input.getBoundingClientRect();
+        const offset = inputRect.top + inputRect.height;
+
+        let container = input;
+        while (container != null && !container.classList.contains("filter-builder-select")) {
+            container = container.parentElement as HTMLElement;
+        }
+
+        container.style.setProperty("--list-max-height", `calc(100vh - ${Math.ceil(offset)}px - 1rem)`);
+    }
 </script>
 
 {#each $entries as entry, i}
     <div class="flex flex-row">
-        <select
+        <FilterBuilderSelect
+            items={selectItems}
             bind:value={entry.property}
             on:change={() => onPropertyChanged(i)}
-            class="flex-grow-0 flex-shrink-0 w-auto text-xs"
-        >
-            {#each nodeKeyCategories as cat}
-                <optgroup label={cat.name}>
-                    {#each cat.properties as prop}
-                        <option value={prop}>{prop}</option>
-                    {/each}
-                </optgroup>
-            {/each}
-        </select>
+            class="flex-grow-0 flex-shrink-0 w-auto"
+            clearable={false}
+            --width="9rem"
+        />
         <select
             bind:value={entry.operation}
             disabled={nodeKeyTypes[entry.property] == "boolean"}
@@ -129,14 +145,5 @@
 {/each}
 
 <div>
-    <select on:change={createEntry} class="text-xs">
-        <option value="">Select a property</option>
-        {#each nodeKeyCategories as cat}
-            <optgroup label={cat.name}>
-                {#each cat.properties as prop}
-                    <option value={prop}>{prop}</option>
-                {/each}
-            </optgroup>
-        {/each}
-    </select>
+    <FilterBuilderSelect items={selectItems} on:focus={onFocus} bind:value={newItem} on:change={createEntry} />
 </div>

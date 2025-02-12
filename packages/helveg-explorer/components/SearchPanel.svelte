@@ -99,7 +99,7 @@
             </div>
         </Subpanel>
     </form>
-    <Subpanel name={"Results (" + results.length + ")"} indent={false} isCollapsible={false}>
+    <Subpanel name={"Results (" + results.length + ")"} indent={false} isCollapsible={false} class="noborder">
         <div class="flex flex-col">
             {#each nodeResults as node}
                 <!-- svelte-ignore a11y-click-events-have-key-events -->
