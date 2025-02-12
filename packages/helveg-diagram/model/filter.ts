@@ -72,7 +72,7 @@ export function buildNodeFilter(
         filter = (node: HelvegNodeAttributes) => node.model.name != null && regex.test(node.model.name);
     }
 
-    if (mode === SearchMode.JavaScript) {
+    if (!isTextEmpty && mode === SearchMode.JavaScript) {
         if (!variableNames || variableNames.length == 0) {
             return null;
         }
