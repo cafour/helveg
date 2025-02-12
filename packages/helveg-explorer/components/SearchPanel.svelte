@@ -57,7 +57,7 @@
                 filterBuilder: filterBuilder,
             })}
     >
-        <Subpanel>
+        <Subpanel class="noborder">
             <div class="flex flex-row gap-4">
                 <ResizingTextarea bind:value={searchText} class="monospace" />
                 <RadioGroup
@@ -69,11 +69,16 @@
             </div>
             <label>
                 <input type="checkbox" bind:checked={expandedOnly} />
-                <span>ExpandedOnly</span>
+                <span>Expanded only</span>
                 <Hint text="Search only among the currently visible nodes." />
             </label>
         </Subpanel>
-        <Subpanel name="Filters" hint="Filters that must ALL be true for a node to appear among the results.">
+        <Subpanel
+            name="Filters"
+            hint="Filters that must ALL be true for a node to appear among the results."
+            isCollapsible={false}
+            class="noborder"
+        >
             <FilterBuilder bind:filterBuilder />
         </Subpanel>
         <Subpanel>
@@ -94,22 +99,20 @@
             </div>
         </Subpanel>
     </form>
-    {#if results.length > 0}
-        <Subpanel name={"Results (" + results.length + ")"} indent={false} isCollapsible={false}>
-            <div class="flex flex-col">
-                {#each nodeResults as node}
-                    <!-- svelte-ignore a11y-click-events-have-key-events -->
-                    <!-- svelte-ignore a11y-no-static-element-interactions -->
-                    <div
-                        class="flex flex-row search-item"
-                        class:selected={node.id == diagram.selectedNode}
-                        on:click={() => dispatch("selected", node.id)}
-                    >
-                        <NodeIcon node={node.id} />
-                        <span>{node.name}</span>
-                    </div>
-                {/each}
-            </div>
-        </Subpanel>
-    {/if}
+    <Subpanel name={"Results (" + results.length + ")"} indent={false} isCollapsible={false}>
+        <div class="flex flex-col">
+            {#each nodeResults as node}
+                <!-- svelte-ignore a11y-click-events-have-key-events -->
+                <!-- svelte-ignore a11y-no-static-element-interactions -->
+                <div
+                    class="flex flex-row search-item"
+                    class:selected={node.id == diagram.selectedNode}
+                    on:click={() => dispatch("selected", node.id)}
+                >
+                    <NodeIcon node={node.id} />
+                    <span>{node.name}</span>
+                </div>
+            {/each}
+        </div>
+    </Subpanel>
 </Panel>

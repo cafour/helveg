@@ -34,8 +34,16 @@
 .subpanel {
     border-bottom: 1px solid var(--color-surface-100);
 
+    &.noborder {
+        border-bottom: none;
+    }
+
     .subpanel-header {
         font-weight: bold;
+
+        &:disabled {
+            cursor: default;
+        }
     }
 
     .indent {
