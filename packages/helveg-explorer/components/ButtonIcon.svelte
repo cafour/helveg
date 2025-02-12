@@ -11,11 +11,12 @@
     export let hint: string | undefined = undefined;
     export let shortcut: string | undefined = undefined;
     export let disabled: boolean = false;
+    export let tabindex: number | undefined = undefined;
 
     let element: HTMLElement;
 </script>
 
-<button class="button-icon {className}" on:click bind:this={element} {style} {disabled}>
+<button class="button-icon {className}" on:click bind:this={element} {style} {disabled} {tabindex}>
     <Icon name={icon ?? FALLBACK_ICON.name} />
 </button>
 
