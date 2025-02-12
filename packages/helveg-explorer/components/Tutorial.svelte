@@ -34,15 +34,13 @@
         const position = messages[currentIndex].position;
         if (position.elementQuery) {
             setPopupPosition(element, document.querySelector(position.elementQuery)!);
-            element.style.top = "";
-            element.style.bottom = "";
-            element.style.left = "";
-            element.style.right = "";
         } else {
             element.style.top = position.top ?? "";
             element.style.bottom = position.bottom ?? "";
             element.style.left = position.left ?? "";
             element.style.right = position.right ?? "";
+            element.classList.remove("arrow-top");
+            element.classList.remove("arrow-bottom");
         }
     }
 

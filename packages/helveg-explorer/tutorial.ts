@@ -57,9 +57,7 @@ export const TUTORIAL_MESSAGES: TutorialMessage[] = [
         header: "Toolbar",
         message: "The Toolbar contains basic graph operations. Try them out!",
         position: {
-            // elementQuery: ".toolbar"
-            bottom: "6rem",
-            left: "4rem"
+            elementQuery: ".toolbar",
         }
     },
     {

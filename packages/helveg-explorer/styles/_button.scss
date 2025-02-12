@@ -23,15 +23,11 @@
     }
 }
 
-input.button-stretch,
-button.button-stretch,
-a.button-stretch {
+.button-stretch {
     width: 100%;
 }
 
-input.button-icon,
-button.button-icon,
-a.button-icon {
+.button-icon {
     width: 2rem;
     height: 2rem;
     flex-shrink: 0;
@@ -65,7 +61,9 @@ a.button-icon {
     }
 }
 
-:is(.button-stretch, .button-icon, .button) {
+.button-stretch,
+.button-icon,
+.button {
     &.primary {
         background-color: var(--color-primary-500);
         color: var(--color-text-on-primary);
