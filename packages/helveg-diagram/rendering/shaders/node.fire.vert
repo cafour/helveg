@@ -5,6 +5,7 @@ precision mediump float;
 in vec2 a_position;
 in float a_size;
 in float a_intensity;
+in vec4 a_overrideColor;
 
 uniform float u_sizeRatio;
 uniform float u_pixelRatio;
@@ -110,6 +111,11 @@ void main()
     if (a_intensity < 1.0) {
         v_color = TOP_COLOR;
         v_color.a = fireResult.z;
+        return;
+    }
+
+    if (a_overrideColor.a > 0.0f) {
+        v_color = a_overrideColor;
         return;
     }
 

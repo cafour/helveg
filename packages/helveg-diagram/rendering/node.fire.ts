@@ -1,4 +1,4 @@
-import { ProgramDefinition, RenderParams, ProgramInfo } from "../deps/sigma.ts";
+import { ProgramDefinition, RenderParams, ProgramInfo, floatColor } from "../deps/sigma.ts";
 import { HelvegNodeAttributes, HelvegNodeProgram, HelvegNodeProgramType, HelvegSigma } from "../model/graph.ts";
 import { FireStatus } from "../model/style.ts";
 import vertSrc from "./shaders/node.fire.vert";
@@ -19,7 +19,7 @@ export const DEFAULT_FIRE_PROGRAM_OPTIONS: FireProgramOptions = {
 
 export default function createFireProgram(options?: Partial<FireProgramOptions>): HelvegNodeProgramType {
     if (options === undefined) {
-        options = {...DEFAULT_FIRE_PROGRAM_OPTIONS};
+        options = { ...DEFAULT_FIRE_PROGRAM_OPTIONS };
     } else {
         provideDefaults(options, DEFAULT_FIRE_PROGRAM_OPTIONS);
     }
@@ -34,7 +34,7 @@ export default function createFireProgram(options?: Partial<FireProgramOptions>)
 const { UNSIGNED_BYTE, FLOAT } = WebGL2RenderingContext;
 const UNIFORMS = ["u_sizeRatio", "u_pixelRatio", "u_matrix", "u_time", "u_normalizationRatio"];
 
-export class FireProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
+export class FireProgram extends HelvegNodeProgram<(typeof UNIFORMS)[number]> {
     constructor(
         gl: WebGLRenderingContext,
         pickingBuffer: WebGLFramebuffer,
@@ -44,7 +44,7 @@ export class FireProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
         super(gl, pickingBuffer, renderer);
     }
 
-    getDefinition(): ProgramDefinition<typeof UNIFORMS[number]> {
+    getDefinition(): ProgramDefinition<(typeof UNIFORMS)[number]> {
         return {
             VERTICES: 1,
             VERTEX_SHADER_SOURCE: vertSrc,
@@ -54,7 +54,8 @@ export class FireProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
             ATTRIBUTES: [
                 { name: "a_position", size: 2, type: FLOAT },
                 { name: "a_size", size: 1, type: FLOAT },
-                { name: "a_intensity", size: 1, type: FLOAT }
+                { name: "a_intensity", size: 1, type: FLOAT },
+                { name: "a_overrideColor", size: 4, type: UNSIGNED_BYTE, normalized: true },
             ],
         };
     }
@@ -62,16 +63,15 @@ export class FireProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
     processVisibleItem(nodeIndex: number, offset: number, data: HelvegNodeAttributes): void {
         const array = this.array;
 
-        const useIntensity = !this.options.showOnlyHighlighted || data.highlighted === true;
+        const isGray = this.options.showOnlyHighlighted && data.highlighted === false;
 
-        let intensity = data.fire === FireStatus.Smoke ? 0.5
-            : data.fire === FireStatus.Flame ? 1
-                : 0;
+        let intensity = data.fire === FireStatus.Smoke ? 0.5 : data.fire === FireStatus.Flame ? 1 : 0;
 
         array[offset++] = data.x ?? 0;
         array[offset++] = data.y ?? 0;
         array[offset++] = data.size ?? 2;
-        array[offset++] = useIntensity ? intensity : 0;
+        array[offset++] = intensity;
+        array[offset++] = isGray ? floatColor("#ccccccff") : floatColor("#00000000");
     }
 
     setUniforms(params: RenderParams, programInfo: ProgramInfo): void {
@@ -81,9 +81,10 @@ export class FireProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
         gl.uniform1f(u_pixelRatio, params.pixelRatio);
         gl.uniformMatrix3fv(u_matrix, false, params.matrix);
         gl.uniform1f(u_time, this.options.isFireAnimated ? performance.now() / 1000.0 : 42.0);
-        gl.uniform1f(u_normalizationRatio,
-            (1.0 / this.renderer.getGraphToViewportRatio())
-            / (this.renderer as any).normalizationFunction.ratio * 0.90);
+        gl.uniform1f(
+            u_normalizationRatio,
+            (1.0 / this.renderer.getGraphToViewportRatio() / (this.renderer as any).normalizationFunction.ratio) * 0.9
+        );
     }
 
     drawWebGL(method: number, programInfo: ProgramInfo): void {
@@ -91,7 +92,7 @@ export class FireProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
         gl.drawArraysInstanced(method, 0, this.verticesCount, this.options.particleCount);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     }
-    
+
     protected renderProgram(params: RenderParams, programInfo: ProgramInfo): void {
         if (programInfo.isPicking) {
             return;
