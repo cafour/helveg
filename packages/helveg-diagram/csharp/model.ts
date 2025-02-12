@@ -198,6 +198,8 @@ export interface CSharpNode extends MultigraphNode {
     arity?: number;
     parameterCount?: number;
     path?: string;
+    diagnosticCount?: number;
+    hasDiagnostics?: boolean;
     hasErrors?: boolean;
     errorCount?: number;
     hasWarnings?: boolean;
@@ -287,7 +289,7 @@ export const CSHARP_PROP_CATEGORIES: Readonly<PropCategory[]> = [
     },
     {
         name: "Diagnostics",
-        properties: ["hasErrors", "hasWarnings", "errorCount", "warningCount"],
+        properties: ["hasDiagnostics", "diagnosticCount", "hasErrors", "errorCount", "hasWarnings", "warningCount"],
     },
     {
         name: "Comments",
