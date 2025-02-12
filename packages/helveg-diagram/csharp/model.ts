@@ -223,11 +223,12 @@ export const CSHARP_PROP_CATEGORIES: Readonly<PropCategory[]> = [
     },
     {
         name: "Solution and Projects",
-        properties: ["path"],
+        properties: ["isSolution", "isProject", "path"],
     },
     {
         name: "Types",
         properties: [
+            "isType",
             "typeKind",
             "baseType",
             "arity",
@@ -246,23 +247,24 @@ export const CSHARP_PROP_CATEGORIES: Readonly<PropCategory[]> = [
     },
     {
         name: "Methods",
-        properties: ["methodKind", "parameterCount", "returnType", "isAsync", "isExtensionMethod", "isInitOnly"],
+        properties: ["isMethod", "methodKind", "parameterCount", "returnType", "isAsync", "isExtensionMethod", "isInitOnly"],
     },
     {
         name: "Fields",
-        properties: ["fieldType", "isEnumItem", "isConst"],
+        properties: ["isField", "fieldType", "isEnumItem", "isConst"],
     },
     {
         name: "Properties",
-        properties: ["propertyType", "isIndexer"],
+        properties: ["isProperty", "propertyType", "isIndexer"],
     },
     {
         name: "Events",
-        properties: ["eventType"],
+        properties: ["isEvent", "eventType"],
     },
     {
         name: "Parameters",
         properties: [
+            "isParameter",
             "parameterType",
             "ordinal",
             "isParams",

@@ -38,6 +38,9 @@ export function preprocess(model: DataModel, options?: Partial<PreprocessOptions
         node.hasWarnings = node.warningCount > 0;
         node.commentCount = node.comments?.length ?? 0;
         node.hasComments = node.commentCount > 0;
+        if (node.kind) {
+            node[`is${node.kind}`] = true;
+        }
 
         graph.addNode(nodeId, {
             id: nodeId,
@@ -76,12 +79,12 @@ export function preprocess(model: DataModel, options?: Partial<PreprocessOptions
                             .filter((dst) => dst != undefined)
                     )
             );
-            rootHierarchy.each(node => {
+            rootHierarchy.each((node) => {
                 const attr = graph.getNodeAttributes(node.data);
                 attr.model!["childCount"] = node.children?.length ?? 0;
                 attr.model!["descendantCount"] = node.descendants().length;
                 attr.model!["treeHeight"] = node.height;
-            })
+            });
         }
     }
 
