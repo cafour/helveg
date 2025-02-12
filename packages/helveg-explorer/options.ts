@@ -40,7 +40,7 @@ export interface MoveToolOptions {
 }
 
 export const DEFAULT_MOVE_TOOL_OPTIONS: Readonly<ToggleToolOptions> = {
-    shouldRunLayout: true,
+    shouldRunLayout: false,
 };
 
 export interface RemoveToolOptions {
