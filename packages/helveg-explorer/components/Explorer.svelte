@@ -87,7 +87,7 @@
     <Toast style="grid-area: Toast;" />
 
     <Dock name="panels" bind:this={dock} class="z-2" fallbackTab={AppPanels.QuickStart} style="grid-area: Dock;">
-        <Tab name="Quick Start" value={AppPanels.QuickStart} icon={AppIcons.QucikStartPanel}>
+        <Tab name="Quick Start" value={AppPanels.QuickStart} icon={AppIcons.QuickStartPanel}>
             <QuickStartPanel />
         </Tab>
         <Tab name="Search" value={AppPanels.Search} icon={AppIcons.SearchPanel}>

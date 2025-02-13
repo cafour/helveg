@@ -6,6 +6,14 @@
 <h2 class="extrabold mb-8">Panels</h2>
 <dl class="theme-helveg">
     <dt>
+        <Icon name={AppIcons.QuickStartPanel} class="w-16 inline-block" /> Quick Start
+    </dt>
+    <dd>
+        <p>Enables you to quickly start using Helveg based on predefined presets.</p>
+        <p>The presets set options in the Data, Layout, and Appearance panels and run the layout.</p>
+    </dd>
+
+    <dt>
         <Icon name={AppIcons.SearchPanel} class="w-16 inline-block" /> Search
     </dt>
     <dd>
