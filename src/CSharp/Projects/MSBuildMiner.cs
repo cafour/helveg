@@ -298,28 +298,22 @@ public class MSBuildMiner : IMiner, IDisposable
 
         }
 
-        var dependenciesBuilder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<AssemblyDependency>>();
         if (targetFrameworks.Length == 0)
         {
-            var dependencies = await ResolveDependencies(project, msbuildProject, null, cancellationToken);
-            dependenciesBuilder.Add(Const.Unknown, dependencies);
+            project = await ResolveDependencies(project, msbuildProject, null, cancellationToken);
         }
         else
         {
             foreach (var targetFramework in targetFrameworks)
             {
-                var dependencies = await ResolveDependencies(project, msbuildProject, targetFramework, cancellationToken);
-                dependenciesBuilder.Add(targetFramework, dependencies);
+                project = await ResolveDependencies(project, msbuildProject, targetFramework, cancellationToken);
             }
         }
 
-        return project with
-        {
-            AssemblyDependencies = dependenciesBuilder.ToImmutable()
-        };
+        return project;
     }
 
-    private async Task<ImmutableArray<AssemblyDependency>> ResolveDependencies(
+    private async Task<Project> ResolveDependencies(
         Project project,
         MSB.Evaluation.Project msbuildProject,
         string? targetFramework,
@@ -335,8 +329,34 @@ public class MSBuildMiner : IMiner, IDisposable
         }
 
         var instance = msbuildProject.CreateProjectInstance();
-        var projects = instance.GetItems("ProjectReference");
-        var packages = instance.GetItems("PackageReference");
+        
+        // NB: This solution of obtaining direct project and package reference is unoptimal and probably broken in more
+        //     than one place. This whole MSBuild miner could use a whole lot of redesigning. I hope I get to fixing it
+        //     someday.
+        var projectRefs = instance.GetItems("ProjectReference");
+        var directProjectDeps = projectRefs
+            .Select(p => NullIfEmpty(p.GetMetadataValue("FullPath"))!)
+            .Where(p => p is not null)
+            .Select(p => new ProjectDependency
+            {
+                Path = p!
+            })
+            .ToImmutableArray();
+        var packageRefs = instance.GetItems("PackageReference");
+        var directPackageDeps = packageRefs
+            .Select(p => new PackageDependency
+            {
+                Name = NullIfEmpty(p.GetMetadataValue("Identity"))!,
+                Version = NullIfEmpty(p.GetMetadataValue("Version"))
+            })
+            .Where(p => p.Name is not null)
+            .ToImmutableArray();
+
+        project = project with
+        {
+            ProjectDependencies = project.ProjectDependencies.Add(targetFramework ?? Const.Unknown, directProjectDeps),
+            PackageDependencies = project.PackageDependencies.Add(targetFramework ?? Const.Unknown, directPackageDeps),
+        };
 
         var targets = new List<string>();
         if (Options.ShouldRestore)
@@ -355,26 +375,42 @@ public class MSBuildMiner : IMiner, IDisposable
         var buildResult = await BuildAsync(buildManager, buildRequest);
         if (buildResult.OverallResult == MSB.Execution.BuildResultCode.Failure)
         {
-            return ImmutableArray<AssemblyDependency>.Empty;
+            return project;
         }
 
         if (!buildResult.ResultsByTarget.TryGetValue(CSConst.ResolveReferencesTarget, out var targetResult))
         {
-            return ImmutableArray<AssemblyDependency>.Empty;
+            return project;
         }
 
         var builder = ImmutableArray.CreateBuilder<AssemblyDependency>();
         foreach (var item in targetResult.Items)
         {
-            var metadata = GetAllMetadata(item);
-            builder.Add(await ResolveDependency(project, item, cancellationToken));
+            var dependency = await ResolveDependency(
+                project,
+                item,
+                directProjectDeps,
+                directPackageDeps,
+                cancellationToken);
+
+            if (dependency is not null)
+            {
+                builder.Add(dependency);
+            }
         }
-        return builder.ToImmutable();
+        project = project with
+        {
+            AssemblyDependencies = project.AssemblyDependencies
+                .Add(targetFramework ?? Const.Unknown, builder.ToImmutable())
+        };
+        return project;
     }
 
-    private async Task<AssemblyDependency> ResolveDependency(
+    private async Task<AssemblyDependency?> ResolveDependency(
         Project project,
         MSB.Framework.ITaskItem item,
+        ImmutableArray<ProjectDependency> directProjectDeps,
+        ImmutableArray<PackageDependency> directPackageDeps,
         CancellationToken cancellationToken = default)
     {
         var workspace = GetWorkspace();
@@ -387,15 +423,19 @@ public class MSBuildMiner : IMiner, IDisposable
         var packageId = NullIfEmpty(item.GetMetadata("NuGetPackageId"));
         var packageVersion = NullIfEmpty(item.GetMetadata("NuGetPackageVersion"));
 
-        var projectReferencePath = NullIfEmpty(item.GetMetadata("OriginalProjectReferenceItemSpec"))
-            ?? NullIfEmpty(item.GetMetadata("ProjectReferenceOriginalItemSpec"));
+        var projectReferencePath = NullIfEmpty(item.GetMetadata("MSBuildSourceProjectFile"));
 
         // 1. See if it is a part of framework.
         var frameworkName = NullIfEmpty(item.GetMetadata("FrameworkReferenceName"));
         var frameworkVersion = NullIfEmpty(item.GetMetadata("FrameworkReferenceVersion"));
 
-        if (Options.IncludeExternalDependencies && !string.IsNullOrEmpty(frameworkName))
+        if (!string.IsNullOrEmpty(frameworkName))
         {
+            if (!Options.IncludeExternalDependencies)
+            {
+                return null;
+            }
+
             using var frameworkHandle = await GetOrAddFramework(frameworkName, frameworkVersion, cancellationToken);
             if (frameworkHandle.Entity is not null)
             {
@@ -431,6 +471,12 @@ public class MSBuildMiner : IMiner, IDisposable
 
         if (!string.IsNullOrEmpty(projectReferencePath))
         {
+            if (!directProjectDeps
+                .Any(p => p.Path.Equals(projectReferencePath, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                return null;
+            }
+
             projectReferencePath = new FileInfo(Path.Combine(Path.GetDirectoryName(project.Path) ?? "", projectReferencePath)).FullName;
 
             var solution = workspace.Roots.Values.OfType<Solution>().Single(r => r.Token == project.ContainingSolution);
@@ -455,8 +501,17 @@ public class MSBuildMiner : IMiner, IDisposable
         }
 
         using var eds = await GetExternalDependencySource();
-        if (Options.IncludeExternalDependencies && eds.Entity is not null)
+        if (eds.Entity is not null)
         {
+            if (!Options.IncludeExternalDependencies)
+            {
+                return null;
+            }
+
+            if (!directPackageDeps.Any(p => p.Name.Equals(packageId, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                return null;
+            }
 
             var existingLibrary = eds.Entity.Libraries
                 .FirstOrDefault(a => a.Identity == dependency.Identity);
