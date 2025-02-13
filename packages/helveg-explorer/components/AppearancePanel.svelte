@@ -76,26 +76,37 @@
         seed++;
     }
 
+    let nodeColorPreset: NodeColorSchemaPreset = $appearanceOptions.nodeColorPreset;
     function onNodeColorChanged(preset: string) {
-        $appearanceOptions.nodeColorPreset = preset as NodeColorSchemaPreset;
-        switch (preset) {
-            case NodeColorSchemaPreset.Universal:
-                $appearanceOptions.nodeColorSchema = structuredClone(UNIVERSAL_NODE_COLOR_SCHEMA);
-                entityColors = $appearanceOptions.nodeColorSchema.entities;
-                typeColors = $appearanceOptions.nodeColorSchema.types;
-                break;
-            case NodeColorSchemaPreset.TypeFocus:
-                $appearanceOptions.nodeColorSchema = structuredClone(TYPE_FOCUS_COLOR_SCHEMA);
-                entityColors = $appearanceOptions.nodeColorSchema.entities;
-                typeColors = $appearanceOptions.nodeColorSchema.types;
-                break;
-            case NodeColorSchemaPreset.VS:
-                $appearanceOptions.nodeColorSchema = structuredClone(VS_NODE_COLOR_SCHEMA);
-                entityColors = $appearanceOptions.nodeColorSchema.entities;
-                typeColors = $appearanceOptions.nodeColorSchema.types;
-                break;
-        }
+        appearanceOptions.update((o) => {
+            o.nodeColorPreset = preset as NodeColorSchemaPreset;
+            switch (preset) {
+                case NodeColorSchemaPreset.Universal:
+                    $appearanceOptions.nodeColorSchema = structuredClone(UNIVERSAL_NODE_COLOR_SCHEMA);
+                    entityColors = o.nodeColorSchema.entities;
+                    typeColors = o.nodeColorSchema.types;
+                    break;
+                case NodeColorSchemaPreset.TypeFocus:
+                    $appearanceOptions.nodeColorSchema = structuredClone(TYPE_FOCUS_COLOR_SCHEMA);
+                    entityColors = o.nodeColorSchema.entities;
+                    typeColors = o.nodeColorSchema.types;
+                    break;
+                case NodeColorSchemaPreset.VS:
+                    $appearanceOptions.nodeColorSchema = structuredClone(VS_NODE_COLOR_SCHEMA);
+                    entityColors = o.nodeColorSchema.entities;
+                    typeColors = o.nodeColorSchema.types;
+                    break;
+            }
+            return o;
+        });
     }
+
+    appearanceOptions.subscribe((o) => {
+        if (o.nodeColorPreset !== nodeColorPreset) {
+            onNodeColorChanged(o.nodeColorPreset);
+        }
+        nodeColorPreset = o.nodeColorPreset;
+    });
 
     $: hasDiffMetadata = Object.values($model.data?.nodes ?? {}).some((n) => n.diff !== undefined);
 </script>
@@ -137,7 +148,7 @@
             </span>
             <select
                 on:change={(e) => onNodeColorChanged(e.currentTarget.value)}
-                value={$appearanceOptions.nodeColorPreset}
+                value={nodeColorPreset}
             >
                 {#each Object.values(NodeColorSchemaPreset) as schemaPreset}
                     <option value={schemaPreset} disabled={schemaPreset == NodeColorSchemaPreset.Custom}

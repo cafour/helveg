@@ -1,4 +1,5 @@
 export enum AppIcons {
+    QucikStartPanel = "vscode:rocket",
     LayoutPanel = "vscode:type-hierarchy",
     AppearancePanel = "vscode:symbol-color",
     ToolsPanel = "vscode:tools",
@@ -34,6 +35,7 @@ export enum AppIcons {
 
 export enum AppPanels {
     Unknown = "unknown-panel",
+    QuickStart = "quick-start",
     Data = "data-panel",
     Layout = "layout-panel",
     Appearance = "appearance-panel",

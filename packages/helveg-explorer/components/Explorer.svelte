@@ -20,6 +20,7 @@
     import Welcome from "./Welcome.svelte";
     import CheatSheet from "./CheatSheet.svelte";
     import Tutorial from "./Tutorial.svelte";
+    import QuickStartPanel from "./QuickStartPanel.svelte";
 
     export let rootElement: HTMLElement;
     setContext("rootElement", rootElement);
@@ -85,7 +86,10 @@
     <div class="filler flex-grow-1"></div>
     <Toast style="grid-area: Toast;" />
 
-    <Dock name="panels" bind:this={dock} class="z-2" fallbackTab={AppPanels.Search} style="grid-area: Dock;">
+    <Dock name="panels" bind:this={dock} class="z-2" fallbackTab={AppPanels.QuickStart} style="grid-area: Dock;">
+        <Tab name="Quick Start" value={AppPanels.QuickStart} icon={AppIcons.QucikStartPanel}>
+            <QuickStartPanel />
+        </Tab>
         <Tab name="Search" value={AppPanels.Search} icon={AppIcons.SearchPanel}>
             <SearchPanel
                 on:highlight={async (e) => {

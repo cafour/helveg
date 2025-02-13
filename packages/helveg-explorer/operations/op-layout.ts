@@ -37,6 +37,7 @@ export const OP_REFRESH: GlobalOperation = {
             selectedKinds: dataOptions.selectedKinds,
             expandedDepth: dataOptions.expandedDepth,
         });
+        await state.diagram.runLayout(false);
     },
 };
 
