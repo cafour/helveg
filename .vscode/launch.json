@@ -10,6 +10,8 @@
       "args": [
         "--preset",
         "Docs",
+        "-ea",
+        "WithoutSymbols",
         "--verbose",
         "--mode",
         "SingleFile",

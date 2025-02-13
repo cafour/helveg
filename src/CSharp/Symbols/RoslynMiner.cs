@@ -38,34 +38,28 @@ public class RoslynMiner : IMiner
     {
         workspaceRef.SetTarget(workspace);
 
-        var solutions = workspace.Roots.Values.OfType<Solution>().ToArray();
-        if (solutions.Length == 0)
+        MSBuildWorkspace? msbuildWorkspace = null;
+        Solution? solution = null;
+        using (var solutionHandle = await workspace.GetSolutionExclusively(logger, cancellationToken))
         {
-            logger.LogError("The workspace contains no Solution therefore no symbols can be mined.");
-            return;
-        }
-        else if (solutions.Length > 1)
-        {
-            logger.LogError("The workspace contains multiple solutions but RoslynMiner can only mine one.");
-            return;
-        }
-
-        var solution = solutions[0];
-        using var msbuildWorkspace = await OpenMSBuildWorkspace(solution.Path
-            ?? solution.Projects.SingleOrDefault()?.Path, cancellationToken);
-        if (msbuildWorkspace is null)
-        {
-            return;
-        }
-
-        using (var solutionHandle = await workspace.GetRootExclusively<Solution>(solution.Id, cancellationToken))
-        {
-            if (solutionHandle.Entity is null)
+            if (solutionHandle is null || solutionHandle.Entity is null)
             {
-                logger.LogError("The solution has been removed from the workspace while the miner was running.");
                 return;
             }
 
+            var workspacePath = solutionHandle.Entity.Path ?? solutionHandle.Entity.Projects.SingleOrDefault()?.Path;
+            if (workspacePath is null)
+            {
+                return;
+            }
+
+            msbuildWorkspace = await OpenMSBuildWorkspace(workspacePath, cancellationToken);
+            if (msbuildWorkspace is null)
+            {
+                return;
+            }
+
+            solution = solutionHandle.Entity;
             solutionHandle.Entity = solutionHandle.Entity with
             {
                 Diagnostics = solutionHandle.Entity.Diagnostics.AddRange(
@@ -80,6 +74,7 @@ public class RoslynMiner : IMiner
                         })))
             };
         }
+
 
         // match helveg projects with roslyn projects
         var matchedProjects = solution.Projects.Join(msbuildWorkspace.CurrentSolution.Projects,
