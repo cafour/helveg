@@ -34,6 +34,12 @@ export enum Contour {
     DashedHexagon = 2.0,
 }
 
+export enum DiagnosticIndicatorStyle {
+    NONE = "none",
+    WARNING = "warning",
+    ERROR = "error"
+}
+
 export function floatOutlineWidths(outlines: Outlines): number {
     if (!outlines) {
         return 0;
@@ -93,6 +99,7 @@ export interface NodeStyle {
     slices: Slices;
     fire: FireStatus;
     contour: Contour;
+    diagnosticIndicator: DiagnosticIndicatorStyle;
 }
 
 export const FALLBACK_NODE_ICON = "vscode:pie-chart";
@@ -105,6 +112,7 @@ export const FALLBACK_NODE_STYLE: NodeStyle = {
     slices: { stroked: 0, solid: 1, width: 0 },
     fire: FireStatus.None,
     contour: Contour.None,
+    diagnosticIndicator: DiagnosticIndicatorStyle.NONE,
 };
 
 export interface EdgeStyle {

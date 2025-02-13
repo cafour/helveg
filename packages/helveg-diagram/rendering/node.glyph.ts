@@ -8,6 +8,7 @@ import createOutlinesProgram, { DEFAULT_OUTLINES_PROGRAM_OPTIONS, OutlinesProgra
 import createPizzaProgram, { DEFAULT_PIZZA_PROGRAM_OPTIONS, PizzaProgramOptions } from "./pizza.ts";
 import createDonutProgram, { DEFAULT_DONUT_PROGRAM_OPTIONS, DonutProgramOptions } from "./node.donut.ts";
 import { HelvegAbstractNodeProgram, HelvegNodeProgramType, HelvegSigma } from "../model/graph.ts";
+import createDiagnosticProgram, { DEFAULT_DIAGNOSTIC_PROGRAM_OPTIONS, DiagnosticProgram, DiagnosticProgramOptions } from "./node.diagnostic.ts";
 
 export enum SizingMode {
     LINEAR = "linear",
@@ -27,11 +28,13 @@ export interface GlyphProgramOptions
         FireProgramOptions,
         PizzaProgramOptions,
         DiffProgramOptions,
-        DonutProgramOptions {
+        DonutProgramOptions,
+        DiagnosticProgramOptions {
     showIcons: boolean;
     showFire: boolean;
     showLabels: boolean;
     showDiffs: boolean;
+    showDiagnostics: boolean;
     glyphShape: GlyphShape;
     sizingMode: SizingMode;
 }
@@ -41,8 +44,10 @@ export const DEFAULT_GLYPH_PROGRAM_OPTIONS: GlyphProgramOptions = {
     showFire: true,
     showLabels: false,
     showDiffs: false,
+    showDiagnostics: true,
     glyphShape: GlyphShape.DONUT,
     sizingMode: SizingMode.LINEAR,
+    ...DEFAULT_DIAGNOSTIC_PROGRAM_OPTIONS,
     ...DEFAULT_ICON_PROGRAM_OPTIONS,
     ...DEFAULT_OUTLINES_PROGRAM_OPTIONS,
     ...DEFAULT_DONUT_PROGRAM_OPTIONS,
@@ -60,6 +65,7 @@ export function createGlyphProgram(options: GlyphProgramOptions, logger?: ILogge
         private effectsProgram: AbstractNodeProgram;
         private pizzaProgram: AbstractNodeProgram;
         private diffProgram: AbstractNodeProgram;
+        private diagnosticProgram: AbstractNodeProgram;
 
         constructor(gl: WebGLRenderingContext, pickingBuffer: WebGLFramebuffer, renderer: HelvegSigma) {
             // NB: The effects extension's lifetime is as long as of this program.
@@ -76,6 +82,8 @@ export function createGlyphProgram(options: GlyphProgramOptions, logger?: ILogge
             this.pizzaProgram = new (createPizzaProgram(options))(gl, pickingBuffer, renderer);
 
             this.diffProgram = new (createDiffProgram(options))(gl, pickingBuffer, renderer);
+
+            this.diagnosticProgram = new (createDiagnosticProgram(options))(gl, pickingBuffer, renderer);
         }
 
         process(nodeIndex: number, offset: number, data: NodeDisplayData): void {
@@ -85,6 +93,7 @@ export function createGlyphProgram(options: GlyphProgramOptions, logger?: ILogge
             this.effectsProgram.process(nodeIndex, offset, data);
             this.pizzaProgram.process(nodeIndex, offset, data);
             this.diffProgram.process(nodeIndex, offset, data);
+            this.diagnosticProgram.process(nodeIndex, offset, data);
         }
 
         reallocate(capacity: number): void {
@@ -94,6 +103,7 @@ export function createGlyphProgram(options: GlyphProgramOptions, logger?: ILogge
             this.effectsProgram.reallocate(capacity);
             this.pizzaProgram.reallocate(capacity);
             this.diffProgram.reallocate(capacity);
+            this.diagnosticProgram.reallocate(capacity);
         }
 
         render(params: RenderParams): void {
@@ -103,7 +113,7 @@ export function createGlyphProgram(options: GlyphProgramOptions, logger?: ILogge
             // NB: let the effects extension handle this on its own since it manages its own canvas
             this.effectsProgram.render(params);
             if (!options.isPizzaEnabled) {
-                switch(options.glyphShape) {
+                switch (options.glyphShape) {
                     case GlyphShape.DONUT:
                         this.donutProgram.render(params);
                         break;
@@ -119,6 +129,10 @@ export function createGlyphProgram(options: GlyphProgramOptions, logger?: ILogge
                 if (options.showDiffs) {
                     this.diffProgram.render(params);
                 }
+
+                if (options.showDiagnostics) {
+                    this.diagnosticProgram.render(params);
+                }
             }
         }
 
@@ -132,6 +146,7 @@ export function createGlyphProgram(options: GlyphProgramOptions, logger?: ILogge
             this.effectsProgram.kill();
             this.pizzaProgram.kill();
             this.diffProgram.kill();
+            this.diagnosticProgram.kill();
         }
     };
 }

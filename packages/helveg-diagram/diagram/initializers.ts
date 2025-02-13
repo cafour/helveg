@@ -244,6 +244,7 @@ export function toHelvegNodeAttributes(
     attributes.slices = nodeStyle.slices;
     attributes.fire = nodeStyle.fire;
     attributes.contour = nodeStyle.contour;
+    attributes.diagnosticIndicator = nodeStyle.diagnosticIndicator;
 
     return attributes;
 }

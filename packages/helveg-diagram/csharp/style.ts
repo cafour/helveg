@@ -2,6 +2,7 @@ import { HelvegNodeAttributes } from "../global.ts";
 import { MultigraphNode } from "../model/data-model.ts";
 import {
     Contour,
+    DiagnosticIndicatorStyle,
     EdgeStyle,
     FALLBACK_EDGE_STYLE,
     FireStatus,
@@ -347,6 +348,7 @@ const FALLBACK_NODE_STYLE: NodeStyle = {
     slices: { solid: 0, stroked: 0, width: 0 },
     fire: FireStatus.None,
     contour: Contour.None,
+    diagnosticIndicator: DiagnosticIndicatorStyle.NONE
 };
 
 const PARTIAL_STYLES = new Map<EntityKind | TypeKind, Partial<NodeStyle>>()

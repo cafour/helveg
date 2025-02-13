@@ -11,7 +11,7 @@ import {
 } from "../deps/sigma.ts";
 import { AbstractNodeProgram, WorkaroundNodeProgram } from "../rendering/workaround_node.ts";
 import { DataModel, Multigraph, MultigraphEdge, MultigraphNode, MultigraphNodeDiffStatus } from "./data-model.ts";
-import { Outlines, FireStatus, Slices, Contour } from "./style.ts";
+import { Outlines, FireStatus, Slices, Contour, DiagnosticIndicatorStyle } from "./style.ts";
 
 export interface HelvegNodeAttributes extends NodeDisplayData, Attributes {
     id: string;
@@ -32,6 +32,7 @@ export interface HelvegNodeAttributes extends NodeDisplayData, Attributes {
     childCount?: number;
     descendantCount?: number;
     contour?: Contour;
+    diagnosticIndicator?: DiagnosticIndicatorStyle;
     [key: string]: unknown;
 }
 
