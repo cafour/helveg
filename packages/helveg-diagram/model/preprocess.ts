@@ -30,7 +30,7 @@ export function preprocess(model: DataModel, options?: Partial<PreprocessOptions
 
     for (const nodeId of Object.keys(model.data.nodes)) {
         const node = model.data.nodes[nodeId];
-        node.diagnosticCount = node.diagnostics?.length;
+        node.diagnosticCount = node.diagnostics?.length ?? 0;
         node.hasDiagnostics = node.diagnosticCount > 0;
         node.errorCount = node.diagnostics?.filter((d) => d.severity === "error").length ?? 0;
         node.hasErrors = node.errorCount > 0;
