@@ -62,6 +62,14 @@ export const TUTORIAL_MESSAGES: TutorialMessage[] = [
         },
     },
     {
+        header: "Quick Start Panel",
+        message: "The Quick Start panel allows you to set most of Helveg's options at once based on your use case.",
+        position: {
+            bottom: "6rem",
+            left: "4rem",
+        },
+    },
+    {
         header: "Search Panel",
         message: "The Search panel allows you to filter the graph using a full-text search or various filters.",
         position: {
