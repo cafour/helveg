@@ -11,9 +11,11 @@ using System.Collections.Generic;
 
 namespace Helveg.CSharp.Projects;
 
-public class MSBuildMiner : IMiner
+public class MSBuildMiner : IMiner, IDisposable
 {
     private readonly ILogger<MSBuildMiner> logger;
+    private readonly MSB.Execution.BuildManager buildManager = new();
+
     private int counter = 0;
     private WeakReference<Workspace?> workspaceRef = new(null);
     private NumericToken edsToken
@@ -144,12 +146,12 @@ public class MSBuildMiner : IMiner
     private Solution? GetSolution(string path, CancellationToken cancellationToken = default)
     {
         var targetFile = CSConst.FindSource(path, logger);
-        if(targetFile is null)
+        if (targetFile is null)
         {
             return null;
         }
         path = targetFile;
-        
+
         var fileExtension = Path.GetExtension(path);
 
         var solution = new Solution
@@ -208,6 +210,7 @@ public class MSBuildMiner : IMiner
             return;
         }
 
+
         try
         {
             var projectCollection = new MSB.Evaluation.ProjectCollection(Options.MSBuildProperties);
@@ -221,7 +224,7 @@ public class MSBuildMiner : IMiner
                     }
                 }
             };
-            MSB.Execution.BuildManager.DefaultBuildManager.BeginBuild(buildParams);
+            buildManager.BeginBuild(buildParams);
 
             var projects = await Task.WhenAll(solutionHandle.Entity.Projects
                 .Select(async p => await MineProject(p, projectCollection, cancellationToken)));
@@ -232,7 +235,7 @@ public class MSBuildMiner : IMiner
         }
         finally
         {
-            MSB.Execution.BuildManager.DefaultBuildManager.EndBuild();
+            buildManager.EndBuild();
         }
 
     }
@@ -347,7 +350,7 @@ public class MSBuildMiner : IMiner
             projectName,
             targetFramework,
             string.Join(", ", targets));
-        var buildResult = await BuildAsync(MSB.Execution.BuildManager.DefaultBuildManager, buildRequest);
+        var buildResult = await BuildAsync(buildManager, buildRequest);
         if (buildResult.OverallResult == MSB.Execution.BuildResultCode.Failure)
         {
             return ImmutableArray<Dependency>.Empty;
@@ -570,5 +573,11 @@ public class MSBuildMiner : IMiner
     private static string? NullIfEmpty(string? value)
     {
         return string.IsNullOrEmpty(value) ? null : value;
+    }
+
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
+        buildManager.Dispose();
     }
 }

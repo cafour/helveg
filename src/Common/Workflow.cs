@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Helveg;
 
-public class Workflow
+public class Workflow : IDisposable
 {
     private readonly List<IMiner> miners = new();
 
@@ -18,6 +18,18 @@ public class Workflow
     {
         miners.Add(miner);
         return this;
+    }
+
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
+        foreach (var miner in miners)
+        {
+            if (miner is IDisposable disposableMiner)
+            {
+                disposableMiner.Dispose();
+            }
+        }
     }
 
     public async Task<Workspace> Run(DataSource source, CancellationToken cancellationToken = default)
