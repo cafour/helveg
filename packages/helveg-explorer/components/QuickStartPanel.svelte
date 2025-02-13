@@ -32,6 +32,7 @@
             appearanceOptions.nodeColorPreset = NodeColorSchemaPreset.Universal;
             return appearanceOptions;
         });
+        (document.activeElement as HTMLElement)?.blur();
         await state.operationExecutor.triggerManually(OP_REFRESH, undefined);
     }
 
@@ -49,6 +50,7 @@
             appearanceOptions.nodeColorPreset = NodeColorSchemaPreset.Universal;
             return appearanceOptions;
         });
+        (document.activeElement as HTMLElement)?.blur();
         await state.operationExecutor.triggerManually(OP_REFRESH, undefined);
     }
 
@@ -69,6 +71,7 @@
             appearanceOptions.nodeColorPreset = NodeColorSchemaPreset.TypeFocus;
             return appearanceOptions;
         });
+        (document.activeElement as HTMLElement)?.blur();
         await state.operationExecutor.triggerManually(OP_REFRESH, undefined);
     }
 
@@ -94,6 +97,7 @@
             appearanceOptions.nodeColorPreset = NodeColorSchemaPreset.Universal;
             return appearanceOptions;
         });
+        (document.activeElement as HTMLElement)?.blur();
         await state.operationExecutor.triggerManually(OP_REFRESH, undefined);
     }
 </script>
