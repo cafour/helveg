@@ -53,7 +53,7 @@ public class VisualizationProjectVisitor : ProjectVisitor
         node.Path = project.Path;
         node.Kind = CSConst.KindOf<Project>();
 
-        graph.AddEdges(CSRelations.DependsOn, project.Dependencies
+        graph.AddEdges(CSRelations.DependsOn, project.AssemblyDependencies
             .SelectMany(d => d.Value)
             .Distinct()
             .Where(d => d.Token.HasValue)

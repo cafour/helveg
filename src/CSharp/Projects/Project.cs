@@ -42,8 +42,14 @@ public record Project : EntityBase
         }
     }
 
-    public ImmutableDictionary<string, ImmutableArray<Dependency>> Dependencies { get; init; }
-        = ImmutableDictionary<string, ImmutableArray<Dependency>>.Empty;
+    public ImmutableDictionary<string, ImmutableArray<AssemblyDependency>> AssemblyDependencies { get; init; }
+        = ImmutableDictionary<string, ImmutableArray<AssemblyDependency>>.Empty;
+
+    public ImmutableDictionary<string, ImmutableArray<ProjectDependency>> ProjectDependencies { get; init; }
+        = ImmutableDictionary<string, ImmutableArray<ProjectDependency>>.Empty;
+
+    public ImmutableDictionary<string, ImmutableArray<PackageDependency>> PackageDependencies { get; init; }
+        = ImmutableDictionary<string, ImmutableArray<PackageDependency>>.Empty;
 
     public override void Accept(IEntityVisitor visitor)
     {

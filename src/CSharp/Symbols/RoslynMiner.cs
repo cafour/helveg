@@ -367,11 +367,11 @@ public class RoslynMiner : IMiner
         // 2. Figure out what set of dependencies to use.
         var targetFramework = ParseTargetFramework(roslynProject.Name);
 
-        if (string.IsNullOrEmpty(targetFramework) && project.Dependencies.Count == 1)
+        if (string.IsNullOrEmpty(targetFramework) && project.AssemblyDependencies.Count == 1)
         {
             // Since MSBuildWorkspace omits the " (<TargetFramework>)" project name suffix when there's just one
             // target framework, assign the only one directly.
-            targetFramework = project.Dependencies.Keys.SingleOrDefault();
+            targetFramework = project.AssemblyDependencies.Keys.SingleOrDefault();
         }
 
         if (string.IsNullOrEmpty(targetFramework))
@@ -381,7 +381,7 @@ public class RoslynMiner : IMiner
             return;
         }
 
-        if (!project.Dependencies.TryGetValue(targetFramework, out var dependencies))
+        if (!project.AssemblyDependencies.TryGetValue(targetFramework, out var dependencies))
         {
             logger.LogError("No dependencies for the '{}' target framework were mined for the '{}' project but " +
                 "MSBuildWorkspace references them.", targetFramework, project.Name);

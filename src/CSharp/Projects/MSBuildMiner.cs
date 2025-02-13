@@ -298,7 +298,7 @@ public class MSBuildMiner : IMiner, IDisposable
 
         }
 
-        var dependenciesBuilder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<Dependency>>();
+        var dependenciesBuilder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<AssemblyDependency>>();
         if (targetFrameworks.Length == 0)
         {
             var dependencies = await ResolveDependencies(project, msbuildProject, null, cancellationToken);
@@ -315,11 +315,11 @@ public class MSBuildMiner : IMiner, IDisposable
 
         return project with
         {
-            Dependencies = dependenciesBuilder.ToImmutable()
+            AssemblyDependencies = dependenciesBuilder.ToImmutable()
         };
     }
 
-    private async Task<ImmutableArray<Dependency>> ResolveDependencies(
+    private async Task<ImmutableArray<AssemblyDependency>> ResolveDependencies(
         Project project,
         MSB.Evaluation.Project msbuildProject,
         string? targetFramework,
@@ -335,6 +335,8 @@ public class MSBuildMiner : IMiner, IDisposable
         }
 
         var instance = msbuildProject.CreateProjectInstance();
+        var projects = instance.GetItems("ProjectReference");
+        var packages = instance.GetItems("PackageReference");
 
         var targets = new List<string>();
         if (Options.ShouldRestore)
@@ -353,30 +355,31 @@ public class MSBuildMiner : IMiner, IDisposable
         var buildResult = await BuildAsync(buildManager, buildRequest);
         if (buildResult.OverallResult == MSB.Execution.BuildResultCode.Failure)
         {
-            return ImmutableArray<Dependency>.Empty;
+            return ImmutableArray<AssemblyDependency>.Empty;
         }
 
         if (!buildResult.ResultsByTarget.TryGetValue(CSConst.ResolveReferencesTarget, out var targetResult))
         {
-            return ImmutableArray<Dependency>.Empty;
+            return ImmutableArray<AssemblyDependency>.Empty;
         }
 
-        var builder = ImmutableArray.CreateBuilder<Dependency>();
+        var builder = ImmutableArray.CreateBuilder<AssemblyDependency>();
         foreach (var item in targetResult.Items)
         {
+            var metadata = GetAllMetadata(item);
             builder.Add(await ResolveDependency(project, item, cancellationToken));
         }
         return builder.ToImmutable();
     }
 
-    private async Task<Dependency> ResolveDependency(
+    private async Task<AssemblyDependency> ResolveDependency(
         Project project,
         MSB.Framework.ITaskItem item,
         CancellationToken cancellationToken = default)
     {
         var workspace = GetWorkspace();
 
-        var dependency = new Dependency
+        var dependency = new AssemblyDependency
         {
             Identity = AssemblyId.Create(item)
         };
@@ -579,5 +582,15 @@ public class MSBuildMiner : IMiner, IDisposable
     {
         GC.SuppressFinalize(this);
         buildManager.Dispose();
+    }
+
+    public static ImmutableDictionary<string, string> GetAllMetadata(MSB.Framework.ITaskItem taskItem)
+    {
+        var builder = ImmutableDictionary.CreateBuilder<string, string>();
+        foreach (var name in taskItem.MetadataNames)
+        {
+            builder[(string)name] = taskItem.GetMetadata((string)name);
+        }
+        return builder.ToImmutable();
     }
 }
