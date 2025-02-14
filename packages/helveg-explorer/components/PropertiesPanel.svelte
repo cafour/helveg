@@ -1,7 +1,9 @@
 <script lang="ts">
-    import type {
-        MultigraphDiagnostic,
-        MultigraphNode,
+    import {
+        sortProps,
+        type HelvegNodeAttributes,
+        type MultigraphDiagnostic,
+        type MultigraphNode,
     } from "../deps/helveg-diagram.ts";
     import KeyValueList from "./KeyValueList.svelte";
     import Panel from "./Panel.svelte";
@@ -15,26 +17,49 @@
     import { getContext } from "svelte";
 
     const state = getContext<IExplorerState>("state");
-    
+
+    interface PropGroup {
+        name: string;
+        props: { name: string; value: any }[];
+    }
+
     export let node: string | null = null;
-    $: nodeAttr = node ? state.diagram.graph?.getNodeAttributes(node) : undefined;
-    $: nodeModel = nodeAttr?.model;
-    $: nodeItems =
-        [
-            ...Object.entries(nodeModel ?? {}).filter(
-                ([k, v]) =>
-                    k !== "diagnostics" &&
-                    k !== "comments" &&
-                    !k.startsWith("$"),
-            ),
-        ]
-            .map((p) => ({
-                key: p[0]!,
-                value: p[1],
-            }))
-            .sort((a, b) => a.key.localeCompare(b.key)) ?? [];
-    $: diagnostics = nodeModel?.diagnostics ?? [];
-    $: comments = nodeModel?.comments ?? [];
+    $: nodeAttr = node != null ? state.diagram.graph?.getNodeAttributes(node) : undefined;
+    $: propGroups = getPropGroups(nodeAttr);
+
+    function getPropGroups(node: HelvegNodeAttributes | undefined): PropGroup[] {
+        if (node == null) {
+            return [];
+        }
+
+        const propNames = Object.keys(node.model).filter(
+            (k) => k !== "diagnostics" && k !== "comments" && !k.startsWith("$"),
+        );
+        const categories = sortProps(propNames);
+        return categories.map<PropGroup>((c) => {
+            return {
+                name: c[0],
+                props: c[1].map((p) => {
+                    return {
+                        name: p,
+                        value: node.model[p],
+                    };
+                }),
+            };
+        });
+    }
+    // $: nodeAttr = node ? state.diagram.graph?.getNodeAttributes(node) : undefined;
+    // $: nodeModel = nodeAttr?.model;
+    // $: nodeItems =
+
+    //         .reduce()
+    //         .map((p) => ({
+    //             key: p[0]!,
+    //             value: p[1],
+    //         }))
+    //         .sort((a, b) => a.key.localeCompare(b.key)) ?? [];
+    $: diagnostics = nodeAttr?.model.diagnostics ?? [];
+    $: comments = nodeAttr?.model.comments ?? [];
 
     function getDiagnosticIcon(diagnostic: MultigraphDiagnostic) {
         switch (diagnostic.severity) {
@@ -50,7 +75,7 @@
                 return AppIcons.UnknownDiagnostic;
         }
     }
-    
+
     function getDiagnosticClass(diagnostic: MultigraphDiagnostic) {
         switch (diagnostic.severity) {
             case "info":
@@ -71,9 +96,7 @@
     </Subpanel>
     {#if node == null}
         <span class="indent"
-            >Click on a node with the <Icon
-                name={AppIcons.ShowPropertiesTool}
-            /> tool or in the Tree View to view its properties.</span
+            >Click on a node with the <Icon name={AppIcons.ShowPropertiesTool} /> tool or in the Tree View to view its properties.</span
         >
     {:else}
         {#if comments.length > 0}
@@ -81,9 +104,7 @@
                 {#each comments as comment}
                     <div class="comment flex flex-col gap-2 px-16 pb-16">
                         {#if comment.format == "markdown"}
-                            {@html dompurify.sanitize(
-                                marked.parse(comment.content).toString(),
-                            )}
+                            {@html dompurify.sanitize(marked.parse(comment.content).toString())}
                         {:else}
                             <p>{comment.content}</p>
                         {/if}
@@ -108,8 +129,29 @@
                 {/each}
             </Subpanel>
         {/if}
-        <Subpanel name="Details">
-            <KeyValueList bind:items={nodeItems} />
+        <Subpanel name="Details" indent={false}>
+            {#each propGroups as group (group.name)}
+                <div class="flex flex-col border-b-1" style="border-color: var(--color-surface-200);">
+                    <strong
+                        class="border-b-1 px-8 pt-8 pb-2"
+                        style="border-color: var(--color-surface-200);"
+                        >{group.name}</strong
+                    >
+                    {#each group.props as prop, index (prop.name)}
+                        <div
+                            class="flex flex-row flex-wrap justify-content-between px-8 py-2"
+                            style="background-color: {index % 2 == 0
+                                ? 'var(--color-surface-100)'
+                                : 'var(--color-surface-75)'};"
+                        >
+                            <span class="pr-32">{prop.name}</span>
+                            <span class="overflow-hidden ellipsis space-nowrap monospace" title={prop.value}>
+                                {prop.value}
+                            </span>
+                        </div>
+                    {/each}
+                </div>
+            {/each}
         </Subpanel>
     {/if}
 </Panel>

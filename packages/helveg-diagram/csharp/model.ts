@@ -247,7 +247,15 @@ export const CSHARP_PROP_CATEGORIES: Readonly<PropCategory[]> = [
     },
     {
         name: "Methods",
-        properties: ["isMethod", "methodKind", "parameterCount", "returnType", "isAsync", "isExtensionMethod", "isInitOnly"],
+        properties: [
+            "isMethod",
+            "methodKind",
+            "parameterCount",
+            "returnType",
+            "isAsync",
+            "isExtensionMethod",
+            "isInitOnly",
+        ],
     },
     {
         name: "Fields",
@@ -302,6 +310,42 @@ export const CSHARP_PROP_CATEGORIES: Readonly<PropCategory[]> = [
         properties: ["version", "fileVersion", "cultureName", "publicKeyToken", "targetFramework"],
     },
 ];
+
+export const CSHARP_CATEGORY_TO_PROP_MAPPING: Readonly<Map<string, { props: string[]; index: number }>> = new Map(
+    CSHARP_PROP_CATEGORIES.map((c, i) => [c.name, { props: c.properties, index: i }])
+);
+
+export const CSHARP_PROP_TO_CATEGORY_MAPPING: Readonly<Map<string, { category: string; index: number }>> = new Map(
+    CSHARP_PROP_CATEGORIES.flatMap((c) => c.properties.map((p, i) => [p, { category: c.name, index: i }]))
+);
+
+export const CSHARP_FALLBACK_CATEGORY_NAME = "Miscellaneous";
+
+export function sortProps(props: string[]) {
+    const map = props.reduce((m, p) => {
+        const category = CSHARP_PROP_TO_CATEGORY_MAPPING.get(p)?.category ?? CSHARP_FALLBACK_CATEGORY_NAME;
+        if (!m.has(category)) {
+            m.set(category, []);
+        }
+
+        m.get(category)!.push(p);
+        return m;
+    }, new Map<string, string[]>());
+    map.entries().forEach(([name, props]) => {
+        const canonicalOrder = CSHARP_CATEGORY_TO_PROP_MAPPING.get(name);
+        if (canonicalOrder != null) {
+            props.sort((a, b) => canonicalOrder.props.indexOf(a) - canonicalOrder.props.indexOf(b));
+        } else {
+            props.sort((a, b) => a.localeCompare(b));
+        }
+    });
+    const result = [...map.entries()].sort(
+        (a, b) =>
+            (CSHARP_CATEGORY_TO_PROP_MAPPING.get(a[0])?.index ?? Number.MAX_SAFE_INTEGER) -
+            (CSHARP_CATEGORY_TO_PROP_MAPPING.get(b[0])?.index ?? Number.MAX_SAFE_INTEGER)
+    );
+    return result;
+}
 
 export const CSHARP_RELATION_HINTS: Record<string, string> = {
     declares: "An entity declares another. For example: a class type declares a method.",
