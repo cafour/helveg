@@ -49,14 +49,23 @@
     $: kinds = getNodeKinds($model.data).sort(
         (a, b) => diagram.options.nodeKindOrder.indexOf(a) - diagram.options.nodeKindOrder.indexOf(b),
     );
+
+    let isDirty: boolean = false;
+
+    function makeDirty() {
+        isDirty = true;
+    }
 </script>
 
 <Panel name="Layout" indent={false} id={AppPanels.Layout}>
     <Subpanel class="sticky top-0" indent={false}>
-        <div class="px-8 pt-8">
+        <div class="px-8 pt-8 flex flex-col">
             <ButtonStretch
                 class="primary flex flex-row gap-4 align-items-center justify-content-center"
-                on:click={async () => await state.operationExecutor.triggerManually(OP_REFRESH, undefined)}
+                on:click={async () => {
+                    isDirty = false;
+                    await state.operationExecutor.triggerManually(OP_REFRESH, undefined);
+                }}
                 hint={OP_REFRESH.hint}
                 icon={OP_REFRESH.icon}
                 name={OP_REFRESH.name}
@@ -64,6 +73,9 @@
             >
                 Refresh
             </ButtonStretch>
+            <span class:hidden={!isDirty} class="text-xs text-center" style="color: var(--color-warning-500);"
+                >Changes require a refresh!</span
+            >
         </div>
         <Subpanel class="noborder" name="Refresh options" collapsed={true}>
             <label>
@@ -79,9 +91,7 @@
                 <div class="flex flex-row gap-8 space-nowrap">
                     <input type="checkbox" bind:checked={$dataOptions.shouldKeepVisible} />
                     <span>Keep visible</span>
-                    <Hint
-                        text="Keep the nodes that are visible in the current graph."
-                    />
+                    <Hint text="Keep the nodes that are visible in the current graph." />
                 </div>
             </label>
         </Subpanel>
@@ -90,12 +100,17 @@
     <Subpanel name="Relations" hint="Allows you to pick which relationships are visualized.">
         <!-- svelte-ignore a11y-label-has-associated-control -->
         <label>
-            <ToggleAllCheckbox bind:selected={$dataOptions.selectedRelations} all={relations} />
+            <ToggleAllCheckbox bind:selected={$dataOptions.selectedRelations} all={relations} on:change={makeDirty} />
             <span>all</span>
         </label>
         {#each relations as relation}
             <label>
-                <input type="checkbox" bind:group={$dataOptions.selectedRelations} value={relation} />
+                <input
+                    type="checkbox"
+                    bind:group={$dataOptions.selectedRelations}
+                    value={relation}
+                    on:change={makeDirty}
+                />
                 <span>{relation}</span>
                 {#if CSHARP_RELATION_HINTS[relation] != null}
                     <Hint text={CSHARP_RELATION_HINTS[relation]} />
@@ -110,12 +125,12 @@
     >
         <!-- svelte-ignore a11y-label-has-associated-control -->
         <label>
-            <ToggleAllCheckbox bind:selected={$dataOptions.selectedKinds} all={kinds} />
+            <ToggleAllCheckbox bind:selected={$dataOptions.selectedKinds} all={kinds} on:change={makeDirty} />
             <span>all</span>
         </label>
         {#each kinds as kind}
             <label>
-                <input type="checkbox" bind:group={$dataOptions.selectedKinds} value={kind} />
+                <input type="checkbox" bind:group={$dataOptions.selectedKinds} value={kind} on:change={makeDirty} />
                 <NodeKindIcon nodeKind={kind} />
                 <span>{kind}</span>
             </label>

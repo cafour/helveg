@@ -36,6 +36,7 @@
         (document.activeElement as HTMLElement)?.blur();
         await state.operationExecutor.triggerManually(OP_REFRESH, undefined);
         state.dataOptions.update((dataOptions) => {
+            dataOptions.expandedDepth = undefined;
             dataOptions.shouldKeepVisible = true;
             return dataOptions;
         });
@@ -59,6 +60,7 @@
         (document.activeElement as HTMLElement)?.blur();
         await state.operationExecutor.triggerManually(OP_REFRESH, undefined);
         state.dataOptions.update((dataOptions) => {
+            dataOptions.expandedDepth = undefined;
             dataOptions.shouldKeepVisible = true;
             return dataOptions;
         });
@@ -85,6 +87,7 @@
         (document.activeElement as HTMLElement)?.blur();
         await state.operationExecutor.triggerManually(OP_REFRESH, undefined);
         state.dataOptions.update((dataOptions) => {
+            dataOptions.expandedDepth = undefined;
             dataOptions.shouldKeepVisible = true;
             return dataOptions;
         });
@@ -116,6 +119,7 @@
         (document.activeElement as HTMLElement)?.blur();
         await state.operationExecutor.triggerManually(OP_REFRESH, undefined);
         state.dataOptions.update((dataOptions) => {
+            dataOptions.expandedDepth = undefined;
             dataOptions.shouldKeepVisible = true;
             return dataOptions;
         });
