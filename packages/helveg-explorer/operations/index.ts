@@ -2,7 +2,7 @@ import type { IExplorerState } from "../explorer-state.ts";
 import { OperationExecutor } from "./executor.ts";
 import { OP_GLOBAL_DESELECT, OP_INSPECT, OP_STAGE_DESELECT } from "./op-inspect.ts";
 import { OP_AUTOLAYOUT, OP_LAYOUT, OP_REFRESH } from "./op-layout.ts";
-import { OP_MOVE } from "./op-move.ts";
+import { OP_MOVE, OP_MOVE_STOP } from "./op-move.ts";
 import { OP_REMOVE } from "./op-remove.ts";
 import { OP_TOGGLE, OP_DIG_IN, OP_DIG_OUT, OP_COLLAPSE_ALL, OP_EXPAND_ALL } from "./op-toggle.ts";
 
@@ -16,6 +16,7 @@ export * from "./op-layout.ts";
 export function createDefaultExecutor(state: IExplorerState): OperationExecutor {
     const executor = new OperationExecutor(state);
     executor.register(OP_MOVE);
+    executor.register(OP_MOVE_STOP);
     executor.register(OP_INSPECT);
     executor.register(OP_GLOBAL_DESELECT);
     executor.register(OP_STAGE_DESELECT);

@@ -28,3 +28,17 @@ export const OP_MOVE: NodeOperation = {
         state.diagram.dragNode(null);
     },
 };
+
+export const OP_MOVE_STOP: NodeOperation = {
+    id: "move-stop",
+    name: "Stop move",
+    hint: "Stop moving when the user releases shift.",
+    scopes: OperationScope.GLOBAL | OperationScope.NODE,
+    shortcut: {
+        key: "Shift",
+    },
+
+    keyUp(state) {
+        state.diagram.dragNode(null);
+    },
+};
