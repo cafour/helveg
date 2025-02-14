@@ -176,7 +176,7 @@
             <Hint text="Renders little crescent shapes beneath nodes that may be expanded." />
         </label>
         <label>
-            <input type="checkbox" bind:checked={$appearanceOptions.glyph.showCollapsedNodeIndicators} />
+            <input type="checkbox" bind:checked={$appearanceOptions.glyph.showDiagnosticIndicators} />
             Diagnostic indicators
             <Hint
                 text="An error or warning icon indicating that an error or warning is located somewhere in the node's subtree."

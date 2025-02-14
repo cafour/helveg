@@ -18,9 +18,11 @@ import {
 } from "../model/graph.ts";
 import { ILogger, Logger, sublogger } from "../model/logger.ts";
 import {
+    DiagnosticIndicatorStyle,
     EdgeStylist,
     FALLBACK_EDGE_STYLE,
     FALLBACK_NODE_STYLE,
+    FireStatus,
     NodeStyle,
     NodeStylist,
     OutlineStyle,
@@ -271,6 +273,32 @@ export function styleGraph(graph: HelvegGraph, glyphProgramOptions: GlyphProgram
             Object.assign(attributes, toHelvegNodeAttributes(glyphProgramOptions, nodeStyle));
         });
     }
+
+    graph.forEachNode((_n, attributes) => {
+        if (attributes.fire && attributes.fire !== FireStatus.None) {
+            const indicator =
+                attributes.fire === FireStatus.Flame
+                    ? DiagnosticIndicatorStyle.ERROR
+                    : DiagnosticIndicatorStyle.WARNING;
+            let current: HelvegNodeAttributes | null = attributes;
+            while (current != null) {
+                if (
+                    current.diagnosticIndicator === DiagnosticIndicatorStyle.ERROR ||
+                    (indicator === DiagnosticIndicatorStyle.ERROR &&
+                        current.diagnosticIndicator === DiagnosticIndicatorStyle.WARNING)
+                ) {
+                    break;
+                }
+
+                current.diagnosticIndicator = indicator;
+                const parentEdge: string | undefined = graph.findInEdge(
+                    current.id,
+                    (_e, ea, s) => ea.relation === "declares"
+                );
+                current = parentEdge != null ? graph.getSourceAttributes(parentEdge) : null;
+            }
+        }
+    });
 
     if (options.edgeStylist || options.relationStylist) {
         graph.forEachEdge((edge, attributes) => {
