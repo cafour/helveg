@@ -90,7 +90,7 @@ function walkBackwards(
 }
 
 function inspectNamespace(graph: HelvegGraph, node: HelvegNodeAttributes): InspectionExpression {
-    if (node.name === "global") {
+    if (node.model.name === "global") {
         return {
             tokens: [keyword("global", "isGlobal"), trivia(" "), keyword("namespace", "kind")],
         };
@@ -101,7 +101,13 @@ function inspectNamespace(graph: HelvegGraph, node: HelvegNodeAttributes): Inspe
     };
 
     expression.tokens.push(
-        ...walkBackwards(graph, node, ".", "declares", (n) => n.kind != EntityKind.Namespace || n.name == "global")
+        ...walkBackwards(
+            graph,
+            node,
+            ".",
+            "declares",
+            (n) => n.kind != EntityKind.Namespace || n.model.name == "global"
+        )
     );
 
     return expression;
@@ -193,7 +199,7 @@ function inspectType(graph: HelvegGraph, node: HelvegNodeAttributes): Inspection
     const expression: InspectionExpression = {
         tokens: [],
     };
-    
+
     const model = node.model as CSharpNode;
 
     expression.tokens.push(...accessibility(node));
