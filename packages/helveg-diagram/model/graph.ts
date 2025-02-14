@@ -33,6 +33,7 @@ export interface HelvegNodeAttributes extends NodeDisplayData, Attributes {
     descendantCount?: number;
     contour?: Contour;
     diagnosticIndicator?: DiagnosticIndicatorStyle;
+    depth?: number;
     [key: string]: unknown;
 }
 

@@ -12,6 +12,7 @@ import {
     expandNode,
     expandPathsTo,
     findRoots,
+    getParent,
     hoveredNodeSymbol,
     toggleNode,
 } from "../model/graph.ts";
@@ -939,14 +940,17 @@ export class Diagram {
 
         await this.refreshSupervisor(true, () => {
             if (collapse) {
-                this.graph
-                    ?.filterNodes((_n, na) => !na.hidden && (na.collapsed || na.childCount === 0))
-                    .flatMap((n) =>
-                        this.graph!.filterInEdges(n, (_e, ea) => ea.relation === this.mainRelation!).map((e) =>
-                            this.graph!.source(e)
-                        )
-                    )
-                    .forEach((n) => collapseNode(this.graph!, n, this.mainRelation!));
+                const maxVisibleDepth = this.graph
+                    ?.filterNodes((_n, na) => !na.hidden && (!na.collapsed || na.childCount === 0))
+                    .reduce((md, node) => Math.max(md, this.graph?.getNodeAttribute(node, "depth") ?? -1), -1);
+                this.graph?.forEachNode((_n, na) => {
+                    if (!na.hidden && na.depth == maxVisibleDepth) {
+                        const parent = getParent(this.graph!, na, this.mainRelation ?? undefined);
+                        if (parent != null) {
+                            collapseNode(this.graph!, parent.id, this.mainRelation ?? undefined);
+                        }
+                    }
+                });
             } else {
                 this.graph
                     ?.filterNodes((_n, na) => !na.hidden && na.collapsed)

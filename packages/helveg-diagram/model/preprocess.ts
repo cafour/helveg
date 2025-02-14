@@ -84,6 +84,7 @@ export function preprocess(model: DataModel, options?: Partial<PreprocessOptions
                 attr.model!["childCount"] = node.children?.length ?? 0;
                 attr.model!["descendantCount"] = node.descendants().length;
                 attr.model!["treeHeight"] = node.height;
+                attr.depth = node.depth;
             });
         }
     }
