@@ -39,10 +39,10 @@ export class DiagnosticProgram extends IconProgram {
 
         const useColor = !this.diagnosticOptions.showOnlyHighlighted || data.highlighted === true;
 
-        const indicatorSize = (data.baseSize ?? 2) * 0.25;
+        const indicatorSize = (data.size ?? 2) * 0.25;
         const params = this.renderer.getRenderParams();
         const posOffset =
-            ((data.size + indicatorSize * 1.9) * params.correctionRatio) /
+            ((data.size + indicatorSize * 2) * params.correctionRatio) /
             params.sizeRatio;
 
         array[offset++] = (data.x ?? 0) - posOffset;
@@ -54,7 +54,7 @@ export class DiagnosticProgram extends IconProgram {
             data.diagnosticIndicator === DiagnosticIndicatorStyle.ERROR
                 ? "helveg:DiagnosticError"
                 : data.diagnosticIndicator === DiagnosticIndicatorStyle.WARNING
-                ? "helveg:DiagnosticWarnining"
+                ? "helveg:DiagnosticWarning"
                 : null;
 
         let atlasEntry = icon ? this.diagnosticOptions.iconAtlas.entries[icon] : null;

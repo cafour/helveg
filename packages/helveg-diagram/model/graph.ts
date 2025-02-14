@@ -384,3 +384,8 @@ export function dropNode(graph: HelvegGraph, node: string) {
 
     graph.dropNode(node);
 }
+
+export function getParent(graph: HelvegGraph, node: HelvegNodeAttributes, relation: string = "declares") {
+    const parentEdge: string | undefined = graph.findInEdge(node.id, (_e, ea) => ea.relation === relation);
+    return parentEdge != null ? graph.getSourceAttributes(parentEdge) : null;
+}

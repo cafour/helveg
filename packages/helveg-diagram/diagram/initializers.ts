@@ -13,6 +13,7 @@ import {
     dropNode,
     expandNode,
     findRoots,
+    getParent,
     hoveredNodeSymbol,
     isHoverEnabledSymbol,
 } from "../model/graph.ts";
@@ -280,7 +281,7 @@ export function styleGraph(graph: HelvegGraph, glyphProgramOptions: GlyphProgram
                 attributes.fire === FireStatus.Flame
                     ? DiagnosticIndicatorStyle.ERROR
                     : DiagnosticIndicatorStyle.WARNING;
-            let current: HelvegNodeAttributes | null = attributes;
+            let current = getParent(graph, attributes);
             while (current != null) {
                 if (
                     current.diagnosticIndicator === DiagnosticIndicatorStyle.ERROR ||
@@ -291,11 +292,7 @@ export function styleGraph(graph: HelvegGraph, glyphProgramOptions: GlyphProgram
                 }
 
                 current.diagnosticIndicator = indicator;
-                const parentEdge: string | undefined = graph.findInEdge(
-                    current.id,
-                    (_e, ea, s) => ea.relation === "declares"
-                );
-                current = parentEdge != null ? graph.getSourceAttributes(parentEdge) : null;
+                current = getParent(graph, current);
             }
         }
     });
