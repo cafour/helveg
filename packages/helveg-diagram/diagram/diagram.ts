@@ -54,6 +54,7 @@ export interface DiagramRefreshOptions {
     selectedRelations?: string[];
     selectedKinds?: string[];
     expandedDepth?: number;
+    shouldKeepVisible?: boolean;
 }
 
 export interface DiagramOptions {
@@ -1135,7 +1136,10 @@ export class Diagram {
             this.mainRelation ?? undefined,
             options.selectedRelations ?? (this.mainRelation ? [this.mainRelation] : []),
             options.selectedKinds,
-            options.expandedDepth
+            options.expandedDepth,
+            options.shouldKeepVisible !== true
+                ? undefined
+                : new Set<string>(this._graph?.filterNodes((_n, a) => a.hidden === false))
         );
         this.events.graphChanged.trigger(this._graph);
         this.scheduleRestyle();

@@ -12,6 +12,7 @@ import {
     collapseNode,
     dropNode,
     expandNode,
+    expandPathsTo,
     findRoots,
     getParent,
     hoveredNodeSymbol,
@@ -116,7 +117,8 @@ export function initializeGraph(
     mainRelation?: string,
     selectedRelations?: string[],
     selectedKinds?: string[],
-    expandedDepth?: number
+    expandedDepth?: number,
+    visibleNodes?: Set<string>
 ): HelvegGraph {
     const graph = modelGraph.copy();
 
@@ -147,6 +149,12 @@ export function initializeGraph(
                 },
             });
         });
+    }
+
+    if (mainRelation !== undefined && visibleNodes !== undefined && visibleNodes.size > 0) {
+        for (const node of visibleNodes) {
+            expandPathsTo(graph, node, mainRelation);
+        }
     }
 
     return graph;

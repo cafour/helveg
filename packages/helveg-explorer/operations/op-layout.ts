@@ -36,6 +36,7 @@ export const OP_REFRESH: GlobalOperation = {
             selectedRelations: dataOptions.selectedRelations,
             selectedKinds: dataOptions.selectedKinds,
             expandedDepth: dataOptions.expandedDepth,
+            shouldKeepVisible: dataOptions.shouldKeepVisible,
         });
         await state.diagram.runLayout(false);
     },

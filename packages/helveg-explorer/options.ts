@@ -165,11 +165,13 @@ export interface DataOptions {
     selectedRelations: string[];
     selectedKinds: string[];
     expandedDepth?: number;
+    shouldKeepVisible: boolean;
 }
 
 export const DEFAULT_DATA_OPTIONS: Readonly<DataOptions> = {
     selectedRelations: [],
     selectedKinds: [],
+    shouldKeepVisible: true,
 };
 
 export interface ExplorerOptions {

@@ -26,6 +26,7 @@
                 "Parameter",
             ];
             dataOptions.selectedRelations = ["declares", "typeOf", "returns", "dependsOn", "inheritsFrom"];
+            dataOptions.shouldKeepVisible = false;
             return dataOptions;
         });
         state.appearanceOptions.update((appearanceOptions) => {
@@ -34,6 +35,10 @@
         });
         (document.activeElement as HTMLElement)?.blur();
         await state.operationExecutor.triggerManually(OP_REFRESH, undefined);
+        state.dataOptions.update((dataOptions) => {
+            dataOptions.shouldKeepVisible = true;
+            return dataOptions;
+        });
     }
 
     async function dependencies() {
@@ -44,6 +49,7 @@
                 "Package"
             ];
             dataOptions.selectedRelations = ["dependsOn"];
+            dataOptions.shouldKeepVisible = false;
             return dataOptions;
         });
         state.appearanceOptions.update((appearanceOptions) => {
@@ -52,6 +58,10 @@
         });
         (document.activeElement as HTMLElement)?.blur();
         await state.operationExecutor.triggerManually(OP_REFRESH, undefined);
+        state.dataOptions.update((dataOptions) => {
+            dataOptions.shouldKeepVisible = true;
+            return dataOptions;
+        });
     }
 
     async function allTypes() {
@@ -65,6 +75,7 @@
                 "TypeParameter"
             ];
             dataOptions.selectedRelations = ["declares", "inheritsFrom"];
+            dataOptions.shouldKeepVisible = false;
             return dataOptions;
         });
         state.appearanceOptions.update((appearanceOptions) => {
@@ -73,6 +84,10 @@
         });
         (document.activeElement as HTMLElement)?.blur();
         await state.operationExecutor.triggerManually(OP_REFRESH, undefined);
+        state.dataOptions.update((dataOptions) => {
+            dataOptions.shouldKeepVisible = true;
+            return dataOptions;
+        });
     }
 
     async function birdseyeView() {
@@ -91,6 +106,7 @@
                 "Parameter",
             ];
             dataOptions.selectedRelations = ["declares", "typeOf", "returns", "dependsOn", "inheritsFrom"];
+            dataOptions.shouldKeepVisible = false;
             return dataOptions;
         });
         state.appearanceOptions.update((appearanceOptions) => {
@@ -99,6 +115,10 @@
         });
         (document.activeElement as HTMLElement)?.blur();
         await state.operationExecutor.triggerManually(OP_REFRESH, undefined);
+        state.dataOptions.update((dataOptions) => {
+            dataOptions.shouldKeepVisible = true;
+            return dataOptions;
+        });
     }
 </script>
 

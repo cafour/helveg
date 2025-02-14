@@ -52,26 +52,39 @@
 </script>
 
 <Panel name="Layout" indent={false} id={AppPanels.Layout}>
-    <Subpanel class="sticky top-0">
-        <ButtonStretch
-            class="primary mb-8 flex flex-row gap-4 align-items-center justify-content-center"
-            on:click={async () => await state.operationExecutor.triggerManually(OP_REFRESH, undefined)}
-            hint={OP_REFRESH.hint}
-            icon={OP_REFRESH.icon}
-            name={OP_REFRESH.name}
-            shortcut={getShortcutHint(OP_REFRESH.shortcut)}
-        >
-            Refresh
-        </ButtonStretch>
-        <label>
-            <div class="flex flex-row gap-8 space-nowrap">
-                <span>Expanded depth</span>
-                <Hint
-                    text="The initial visible depth of the diagram. Press the Refresh button to reset the diagram to this depth. Set to -1 to expand the entire graph."
-                />
-                <input type="number" min="-1" bind:value={$dataOptions.expandedDepth} />
-            </div>
-        </label>
+    <Subpanel class="sticky top-0" indent={false}>
+        <div class="px-8 pt-8">
+            <ButtonStretch
+                class="primary flex flex-row gap-4 align-items-center justify-content-center"
+                on:click={async () => await state.operationExecutor.triggerManually(OP_REFRESH, undefined)}
+                hint={OP_REFRESH.hint}
+                icon={OP_REFRESH.icon}
+                name={OP_REFRESH.name}
+                shortcut={getShortcutHint(OP_REFRESH.shortcut)}
+            >
+                Refresh
+            </ButtonStretch>
+        </div>
+        <Subpanel class="noborder" name="Refresh options" collapsed={true}>
+            <label>
+                <div class="flex flex-row gap-8 space-nowrap">
+                    <span>Expanded depth</span>
+                    <Hint
+                        text="The initial visible depth of the diagram. Press the Refresh button to reset the diagram to this depth. Set to -1 to expand the entire graph."
+                    />
+                    <input type="number" min="-1" bind:value={$dataOptions.expandedDepth} />
+                </div>
+            </label>
+            <label>
+                <div class="flex flex-row gap-8 space-nowrap">
+                    <input type="checkbox" bind:checked={$dataOptions.shouldKeepVisible} />
+                    <span>Keep visible</span>
+                    <Hint
+                        text="Keep the nodes that are visible in the current graph."
+                    />
+                </div>
+            </label>
+        </Subpanel>
     </Subpanel>
 
     <Subpanel name="Relations" hint="Allows you to pick which relationships are visualized.">
