@@ -36,6 +36,7 @@ export default function tidyTree(graph: HelvegGraph, rootId: string, options?: P
             graph.setNodeAttribute(node.data, "y", opts.offset.y + y * Math.sin(x));
             graph.setNodeAttribute(node.data, "inInitialPosition", true);
             graph.setNodeAttribute(node.data, "childCount", node.children?.length ?? 0);
+            graph.setNodeAttribute(node.data, "descendantCount", node.descendants().length);
         }
     })
 }

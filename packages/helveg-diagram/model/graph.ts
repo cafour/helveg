@@ -1,11 +1,21 @@
 import { hierarchy, HierarchyNode } from "../deps/d3-hierarchy.ts";
 import { Attributes, EdgeEntry, GraphEvents } from "../deps/graphology.ts";
 import Graph from "../deps/graphology.ts";
-import { NodeDisplayData, EdgeDisplayData } from "../deps/sigma.ts";
-import { Multigraph, MultigraphNodeDiffStatus } from "./data-model.ts";
-import { Outlines, FireStatus, Slices, Contour } from "./style.ts";
+import {
+    NodeDisplayData,
+    EdgeDisplayData,
+    Sigma,
+    NodeProgramType,
+    NodeLabelDrawingFunction,
+    NodeHoverDrawingFunction,
+} from "../deps/sigma.ts";
+import { AbstractNodeProgram, WorkaroundNodeProgram } from "../rendering/workaround_node.ts";
+import { DataModel, Multigraph, MultigraphEdge, MultigraphNode, MultigraphNodeDiffStatus } from "./data-model.ts";
+import { Outlines, FireStatus, Slices, Contour, DiagnosticIndicatorStyle } from "./style.ts";
 
-export interface HelvegNodeAttributes extends Partial<NodeDisplayData>, Attributes {
+export interface HelvegNodeAttributes extends NodeDisplayData, Attributes {
+    id: string;
+    model: MultigraphNode;
     style?: string;
     kind?: string;
     icon?: string;
@@ -20,15 +30,67 @@ export interface HelvegNodeAttributes extends Partial<NodeDisplayData>, Attribut
     inInitialPosition?: boolean;
     backgroundColor?: string;
     childCount?: number;
+    descendantCount?: number;
     contour?: Contour;
+    diagnosticIndicator?: DiagnosticIndicatorStyle;
+    depth?: number;
+    [key: string]: unknown;
 }
 
 export interface HelvegEdgeAttributes extends Partial<EdgeDisplayData>, Attributes {
+    model?: MultigraphEdge;
     relation?: string;
     style?: string;
 }
 
-export type HelvegGraph = Graph<HelvegNodeAttributes, HelvegEdgeAttributes>;
+export interface HelvegGraphAttributes extends Attributes {
+    model: DataModel;
+    roots?: Set<string>;
+}
+
+export type HelvegGraph = Graph<HelvegNodeAttributes, HelvegEdgeAttributes, HelvegGraphAttributes>;
+
+export const EMPTY_GRAPH: Readonly<HelvegGraph> = new Graph<
+    HelvegNodeAttributes,
+    HelvegEdgeAttributes,
+    HelvegGraphAttributes
+>();
+
+// HACK: Sigma does not allow to disable hovering on nodes, so we have to track it ourselves.
+export const isHoverEnabledSymbol = Symbol("isHoverEnabled");
+export const hoveredNodeSymbol = Symbol("hoveredNode");
+
+export type HelvegSigma = Sigma<HelvegNodeAttributes, HelvegEdgeAttributes, HelvegGraphAttributes> & {
+    [isHoverEnabledSymbol]: boolean;
+    [hoveredNodeSymbol]: string | null;
+};
+
+export type HelvegAbstractNodeProgram = AbstractNodeProgram<
+    HelvegNodeAttributes,
+    HelvegEdgeAttributes,
+    HelvegGraphAttributes
+>;
+
+export type HelvegNodeProgramType = NodeProgramType<HelvegNodeAttributes, HelvegEdgeAttributes, HelvegGraphAttributes>;
+
+export abstract class HelvegNodeProgram<Uniform extends string> extends WorkaroundNodeProgram<
+    Uniform,
+    HelvegNodeAttributes,
+    HelvegEdgeAttributes,
+    HelvegGraphAttributes
+> {}
+
+export type HelvegNodeLabelDrawingFunction = NodeLabelDrawingFunction<
+    HelvegNodeAttributes,
+    HelvegEdgeAttributes,
+    HelvegGraphAttributes
+>;
+
+export type HelvegNodeHoverDrawingFunction = NodeHoverDrawingFunction<
+    HelvegNodeAttributes,
+    HelvegEdgeAttributes,
+    HelvegGraphAttributes
+>;
 
 export function findRoots(graph: Graph, relation?: string) {
     let roots = new Set<string>();
@@ -65,12 +127,20 @@ export function collapseNode(graph: Graph, nodeId: string, relation?: string) {
     });
 }
 
-export function expandNode(
-    graph: HelvegGraph,
-    nodeId: string,
-    recursive: boolean = false,
-    relation?: string
-) {
+export interface ExpandNodeOptions {
+    recursive?: boolean;
+    relation?: string;
+    shouldExpandSingleChildren?: boolean;
+}
+
+export const DEFAULT_EXPAND_NODE_OPTIONS: ExpandNodeOptions = {
+    recursive: false,
+    relation: undefined,
+    shouldExpandSingleChildren: true,
+};
+
+export function expandNode(graph: HelvegGraph, nodeId: string, options?: ExpandNodeOptions) {
+    options = { ...DEFAULT_EXPAND_NODE_OPTIONS, ...options };
     let nodeSize = graph.getNodeAttribute(nodeId, "size") ?? 2;
     let x = graph.getNodeAttribute(nodeId, "x");
     let y = graph.getNodeAttribute(nodeId, "y");
@@ -79,7 +149,7 @@ export function expandNode(
 
     let neighborEdges: EdgeEntry<Partial<HelvegNodeAttributes>, Partial<HelvegEdgeAttributes>>[] = [];
     for (let edge of graph.outboundEdgeEntries(nodeId)) {
-        if (!relation || edge.attributes.relation === relation) {
+        if (!options.relation || edge.attributes.relation === options.relation) {
             neighborEdges.push(edge);
         }
     }
@@ -89,18 +159,21 @@ export function expandNode(
             return;
         }
 
-        let dist = (nodeSize + (neighbor.attributes.size ?? 2));
+        let dist = nodeSize + (neighbor.attributes.size ?? 2);
         neighbor.targetAttributes.hidden = false;
-        if (neighbor.sourceAttributes.inInitialPosition !== true
-            && neighbor.targetAttributes.inInitialPosition !== true) {
+        if (
+            neighbor.sourceAttributes.inInitialPosition !== true &&
+            neighbor.targetAttributes.inInitialPosition !== true
+        ) {
             neighbor.targetAttributes.x = x + dist * Math.cos((i / neighborEdges.length) * 2 * Math.PI);
             neighbor.targetAttributes.y = y + dist * Math.sin((i / neighborEdges.length) * 2 * Math.PI);
             neighbor.targetAttributes.inInitialPosition = false;
         }
 
-        const shouldExpandChild = recursive || neighborEdges.length === 1;
+        const shouldExpandChild =
+            options.recursive || (neighborEdges.length === 1 && options.shouldExpandSingleChildren);
         if (shouldExpandChild) {
-            expandNode(graph, neighbor.target, recursive, relation);
+            expandNode(graph, neighbor.target, options);
         }
     });
 }
@@ -112,21 +185,20 @@ export function expandPathsTo(graph: HelvegGraph, nodeId: string, relation?: str
             return;
         }
         if (sa.collapsed === true && (!relation || a.relation === relation)) {
-            expandNode(graph, s, false, relation);
+            expandNode(graph, s, { relation });
             expandPathsTo(graph, s, relation);
         }
     });
 }
 
-export function toggleNode(graph: HelvegGraph, nodeId: string, relation?: string) {
-    if (graph.getNodeAttribute(nodeId, "collapsed")) {
-        expandNode(graph, nodeId, false, relation);
+export function toggleNode(graph: HelvegGraph, nodeId: string, relation?: string, shouldExpand?: boolean) {
+    shouldExpand ??= graph.getNodeAttribute(nodeId, "collapsed");
+    if (shouldExpand) {
+        expandNode(graph, nodeId, { relation });
     } else {
         collapseNode(graph, nodeId, relation);
     }
 }
-
-export const MULTIGRAPH_NODE_KEY = Symbol();
 
 export function getRelations(graph: Multigraph | null | undefined): string[] {
     if (!graph || !graph.relations) {
@@ -142,8 +214,8 @@ export function getNodeKinds(graph: Multigraph | null | undefined): string[] {
     }
 
     return Object.values(graph.nodes)
-        .filter(n => n.kind)
-        .map(n => n.kind!)
+        .filter((n) => n.kind)
+        .map((n) => n.kind!)
         .filter((v, i, a) => a.indexOf(v) === i)
         .sort();
 }
@@ -155,7 +227,7 @@ export interface HelvegTree {
 }
 
 export interface HelvegForest {
-    roots: HelvegTree[]
+    roots: HelvegTree[];
 }
 
 export function getForest(graph: HelvegGraph | undefined, relation: string, nodeKindOrder?: string[]): HelvegForest {
@@ -166,10 +238,17 @@ export function getForest(graph: HelvegGraph | undefined, relation: string, node
     const rootIds = findRoots(graph, relation);
     const roots: HelvegTree[] = [];
     for (const rootId of rootIds) {
-        const root = hierarchy(rootId, nodeId =>
-            <string[]>graph.mapOutboundEdges(nodeId, (_edge, attr, _src, dst, _srcAttr, _dstAttr) =>
-                attr.relation && attr.relation === relation ? dst : undefined)
-                .filter(dst => dst != undefined));
+        const root = hierarchy(
+            rootId,
+            (nodeId) =>
+                <string[]>(
+                    graph
+                        .mapOutboundEdges(nodeId, (_edge, attr, _src, dst, _srcAttr, _dstAttr) =>
+                            attr.relation && attr.relation === relation ? dst : undefined
+                        )
+                        .filter((dst) => dst != undefined)
+                )
+        );
 
         function convertD3Node(node: HierarchyNode<string>): HelvegTree {
             let children = undefined;
@@ -184,7 +263,7 @@ export function getForest(graph: HelvegGraph | undefined, relation: string, node
             return {
                 id: node.data,
                 node: graph!.getNodeAttributes(node.data),
-                children: children
+                children: children,
             };
         }
 
@@ -209,16 +288,15 @@ export function getForestItems(forest: HelvegForest): HelvegForestItem[] {
         const item: HelvegForestItem = {
             id: node.id,
             node: node.node,
-            depth: depth
+            depth: depth,
         };
         items.push(item);
-        item.children = node.children === undefined ? undefined
-            : node.children.map(c => visit(c, depth + 1));
-        item.children?.forEach(c => c.parent = item);
+        item.children = node.children === undefined ? undefined : node.children.map((c) => visit(c, depth + 1));
+        item.children?.forEach((c) => (c.parent = item));
         return item;
     }
 
-    forest.roots.forEach(t => visit(t));
+    forest.roots.forEach((t) => visit(t));
     return items;
 }
 
@@ -236,7 +314,7 @@ const HELVEG_GRAPH_EVENTS: HelvegGraphEvent[] = [
     "edgeAttributesUpdated",
     "eachNodeAttributesUpdated",
     "eachEdgeAttributesUpdated",
-]
+];
 
 export function getAllGraphListeners(graph: HelvegGraph): Record<HelvegGraphEvent, any[]> {
     const listeners: Record<string, any[]> = {};
@@ -253,11 +331,62 @@ export function removeAllGraphListeners(graph: HelvegGraph): void {
     }
 }
 
-
 export function setAllGraphListeners(graph: HelvegGraph, listeners: Record<HelvegGraphEvent, any[]>): void {
     for (const event of HELVEG_GRAPH_EVENTS) {
         for (const listener of listeners[event]) {
             graph.addListener(event, listener);
         }
     }
+}
+
+export function dropNode(graph: HelvegGraph, node: string) {
+    const newEdges: { relation: string; source: string; target: string; undirected: boolean }[] = [];
+
+    graph.forEachInboundEdge(node, (ie, iea, is, it) => {
+        if (iea.relation == null) {
+            return;
+        }
+
+        const relationModel = graph.getAttributes().model!.data!.relations[iea.relation];
+        if (!relationModel.isTransitive) {
+            return;
+        }
+
+        graph.forEachOutboundEdge(it, (oe, oea, _os, ot, _osa, _ota, undirected) => {
+            if (ie === oe || oea.relation !== iea.relation) {
+                return;
+            }
+
+            newEdges.push({
+                relation: iea.relation!,
+                source: is,
+                target: ot,
+                undirected: undirected,
+            });
+        });
+    });
+
+    for (const e of newEdges) {
+        const edgeKey = `${e.relation};${e.source};${e.target}`;
+        if (graph.hasEdge(edgeKey)) {
+            return;
+        }
+
+        if (e.undirected) {
+            graph.addUndirectedEdgeWithKey(edgeKey, e.source, e.target, {
+                relation: e.relation,
+            });
+        } else {
+            graph.addDirectedEdgeWithKey(edgeKey, e.source, e.target, {
+                relation: e.relation,
+            });
+        }
+    }
+
+    graph.dropNode(node);
+}
+
+export function getParent(graph: HelvegGraph, node: HelvegNodeAttributes, relation: string = "declares") {
+    const parentEdge: string | undefined = graph.findInEdge(node.id, (_e, ea) => ea.relation === relation);
+    return parentEdge != null ? graph.getSourceAttributes(parentEdge) : null;
 }

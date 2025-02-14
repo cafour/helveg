@@ -7,7 +7,7 @@
 
     export let name: string;
     export let value: string;
-    export let icon: string | null;
+    export let icon: string | undefined = undefined;
 
     $: isSelected = value === $currentTab;
 

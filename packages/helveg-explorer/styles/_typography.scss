@@ -53,3 +53,17 @@ textarea {
         z-index: 1000;
     }
 }
+
+dl {
+    dt {
+        font-weight: bold;
+    }
+
+    dd {
+        margin-left: 1rem;
+    }
+}
+
+.explorer {
+    scrollbar-color: var(--color-surface-200) var(--color-surface-50);
+}

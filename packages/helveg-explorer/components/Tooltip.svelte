@@ -1,7 +1,10 @@
 <script lang="ts">
     import { getContext } from "svelte";
+    import { setPopupPosition } from "../popups";
 
     export let text: string;
+    export let header: string | undefined = undefined;
+    export let shortcut: string | undefined = undefined;
     export let target: HTMLElement | null;
     export let delay: number = 0;
 
@@ -9,12 +12,32 @@
     let originalTitle: string | null = null;
 
     const tooltip = document.createElement("div");
-    tooltip.classList.add("tooltip");
+    tooltip.classList.add("tooltip", "hidden");
+
     const rootElement = getContext<HTMLElement>("rootElement");
     rootElement.appendChild(tooltip);
 
-    $: if (tooltip) {
-        tooltip.innerText = text;
+    const headerElement = tooltip.appendChild(document.createElement("strong"));
+    headerElement.style.display = "none";
+    headerElement.classList.add("tooltip-header");
+
+    const strongElement = headerElement.appendChild(document.createElement("strong"));
+
+    const shortcutElement = headerElement.appendChild(document.createElement("span"));
+    shortcutElement.style.display = "none";
+    shortcutElement.classList.add("keycap");
+
+    const paragraphElement = tooltip.appendChild(document.createElement("p"));
+    $: paragraphElement.innerText = text;
+
+    $: if (header != null) {
+        strongElement.innerText = header;
+        headerElement.style.display = "";
+    }
+    
+    $: if (shortcut != null) {
+        shortcutElement.innerText = shortcut;
+        shortcutElement.style.display = "";
     }
 
     $: {
@@ -53,25 +76,10 @@
     }
 
     function show() {
-        const rect = target!.getBoundingClientRect();
-
-        tooltip.style.left = rect.x - tooltip.clientWidth / 2 + "px";
-
-        if (tooltip.clientHeight > rect.y) {
-            tooltip.classList.add("arrow-top");
-            tooltip.classList.remove("arrow-bottom");
-            tooltip.style.top = rect.y + rect.height + "px";
-        } else {
-            tooltip.classList.add("arrow-bottom");
-            tooltip.classList.remove("arrow-top");
-            tooltip.style.top =
-                rect.y - rect.height - tooltip.offsetHeight + "px";
-        }
-
-        tooltip.classList.add("visible");
+        setPopupPosition(tooltip, target!);
     }
 
     function hide() {
-        tooltip.classList.remove("visible");
+        tooltip.classList.add("hidden");
     }
 </script>

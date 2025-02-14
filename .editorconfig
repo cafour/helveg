@@ -1,7 +1,12 @@
 [*]
 guidelines = 120
 rulers = 120
+max_line_length = 120
 
 [*.svelte]
+indent_size = 4
+indent_style = space
+
+[*.{js,ts}]
 indent_size = 4
 indent_style = space

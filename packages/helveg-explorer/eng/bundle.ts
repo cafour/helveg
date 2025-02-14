@@ -30,6 +30,7 @@ const mod = await esbuild.context({
     splitting: false,
     write: true,
     bundle: true,
+    minify: false,
     // platform: "browser",
     target: "esnext",
     tsconfig: "./tsconfig.json",
@@ -37,6 +38,12 @@ const mod = await esbuild.context({
     plugins: [
         esbuildSvelte({
             preprocess: sveltePreprocess(),
+            compilerOptions: {
+                dev: true,
+            },
+            moduleCompilerOptions: {
+                dev: true
+            }
         }),
         sassPlugin({
             loadPaths: [

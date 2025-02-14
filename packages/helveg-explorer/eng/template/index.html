@@ -20,7 +20,9 @@
 </head>
 
 <body>
-    <div id="helveg"></div>
+    <div id="helveg">
+        <div id="loading"></div>
+    </div>
     <script type="application/json" id="helveg-data" src="helveg-data.json"></script>
 
     <script type="application/json" class="helveg-icons" src="./helveg-icons-helveg.json"></script>
@@ -41,11 +43,11 @@
             mainRelation: "declares",
             refresh: {
                 expandedDepth: 1,
-                selectedRelations: ["declares"],
+                selectedRelations: ["declares", "typeOf", "returns", "dependsOn", "inheritsFrom"],
                 selectedKinds: ["Solution", "Project", "Namespace", "Type", "Method", "Property", "Event", "Field", "Parameter", "TypeParameter"]
             }
         });
-        await window.diagram.resetLayout();
+        await window.diagram.reset();
         helveg.createExplorer(diagram);
     </script>
 

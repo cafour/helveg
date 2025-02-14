@@ -1,5 +1,5 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-  
+<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <TargetFrameworks>$(DefaultLibraryFrameworks)</TargetFrameworks>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -12,22 +12,27 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- NB: Even though Helveg itself really only needs the Microsoft.Build assembly, we need to directly reference all MSBuild transitive dependencies (i.e. those of Roslyn) so that NuGet doesn't restore them and copy them to the build folder. That results in weird errors since MSBuildLocator won't locate them in the SDK directory because the copy-local file takes priority. -->
     <PackageReference Include="Microsoft.Build" Version="17.12.6">
       <ExcludeAssets>runtime</ExcludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Build.Locator" Version="1.7.8" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.12.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="4.12.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
-    <!-- NuGet.ProjectModel is required since Microsoft.Build.Locator doesn't load NuGet assemblies
-      see https://github.com/dotnet/roslyn/issues/36072 -->
-    <!-- NuGet.ProjectModel generates a conflict which the following dependency resolves -->
-    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
-    <PackageReference Include="NuGet.ProjectModel" Version="6.12.1">
+    <PackageReference Include="Microsoft.Build.Framework" Version="17.12.6">
       <ExcludeAssets>runtime</ExcludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.12.6">
+      <ExcludeAssets>runtime</ExcludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="17.12.6">
+      <ExcludeAssets>runtime</ExcludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Build.Locator" Version="1.7.8" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.10.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="4.10.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.1" />
   </ItemGroup>
 
 </Project>

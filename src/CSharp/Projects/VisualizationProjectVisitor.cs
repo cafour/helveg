@@ -28,7 +28,7 @@ public class VisualizationProjectVisitor : ProjectVisitor
         {
             return;
         }
-        
+
         var node = graph.GetNode<CSharpNode>(entity.Id);
         node.Diff = entity.DiffStatus.ToMultigraphDiffStatus();
     }
@@ -53,11 +53,17 @@ public class VisualizationProjectVisitor : ProjectVisitor
         node.Path = project.Path;
         node.Kind = CSConst.KindOf<Project>();
 
-        graph.AddEdges(CSRelations.DependsOn, project.Dependencies
+        graph.AddEdges(CSRelations.DependsOn, project.AssemblyDependencies
             .SelectMany(d => d.Value)
             .Distinct()
             .Where(d => d.Token.HasValue)
             .Select(d => new MultigraphEdge(project.Id, d.Token)));
+
+        graph.AddEdges(CSRelations.DependsOn, project.PackageDependencies
+            .SelectMany(d => d.Value)
+            .Where(d => d.Token.HasValue)
+            .Select(d => d.Token)
+            .Select(t => new MultigraphEdge(project.Id, t)));
 
         var assemblies = project.Extensions.OfType<AssemblyExtension>().ToArray();
         if (assemblies.Length > 0)
@@ -93,7 +99,7 @@ public class VisualizationProjectVisitor : ProjectVisitor
             // don't add the node, if it will have been empty
             return;
         }
-        
+
         base.VisitExternalDependencySource(externalDependencySource);
 
         var node = graph.GetNode<CSharpNode>(externalDependencySource.Token, externalDependencySource.Name);

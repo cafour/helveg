@@ -3,10 +3,11 @@
     import type { Diagram, MultigraphNode } from "../deps/helveg-diagram.ts";
     import Icon from "./Icon.svelte";
 
-    export let node: MultigraphNode;
+    export let node: string;
+    $: attr = diagram.modelGraph.getNodeAttributes(node);
 
     const diagram = getContext<Diagram>("diagram");
-    $: nodeStyle = diagram.nodeStylist(node);
+    $: nodeStyle = diagram.nodeStylist(attr, diagram.nodeStylistParams);
 </script>
 
-<Icon name={nodeStyle.icon} title={node.kind} color={nodeStyle.color} />
+<Icon name={nodeStyle.icon} title={attr.model.kind} color={nodeStyle.color} />

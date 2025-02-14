@@ -22,7 +22,7 @@
             class="button primary mt-16 flex flex-row gap-4 align-items-center justify-content-center"
             on:click={() => dispatch("stop")}
         >
-            <Icon name="vscode:debug-stop" additionalClasses="w-16"/>
+            <Icon name="vscode:debug-stop" class="w-16"/>
             Stop
         </button>
     {/if}

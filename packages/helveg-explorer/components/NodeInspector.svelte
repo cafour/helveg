@@ -1,13 +1,13 @@
 <script lang="ts">
-    import { Diagram, type MultigraphNode } from "../deps/helveg-diagram.ts";
+    import { Diagram, type HelvegNodeAttributes } from "../deps/helveg-diagram.ts";
     import { getContext } from "svelte";
     import NodePreview from "./NodePreview.svelte";
 
     const diagram = getContext<Diagram>("diagram");
 
-    export let node: MultigraphNode | null;
+    export let node: HelvegNodeAttributes | undefined = undefined;
     $: inspection = node
-        ? diagram.options.inspector(diagram.model.data!, node)
+        ? diagram.options.inspector(diagram.modelGraph, node)
         : null;
 </script>
 

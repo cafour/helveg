@@ -1,4 +1,5 @@
 import { MultigraphEdge, MultigraphNode } from "./data-model.ts";
+import { HelvegNodeAttributes } from "./graph.ts";
 
 let INT8 = new Int8Array(4);
 let INT32 = new Int32Array(INT8.buffer);
@@ -6,7 +7,7 @@ let FLOAT32 = new Float32Array(INT8.buffer);
 
 export enum OutlineStyle {
     Solid = 0,
-    Dashed = 1
+    Dashed = 1,
 }
 
 export interface Outline {
@@ -15,12 +16,13 @@ export interface Outline {
 }
 
 export interface Slices {
-    stroked: number,
-    solid: number,
-    width: number,
+    stroked: number;
+    solid: number;
+    width: number;
 }
 
-export type Outlines = []
+export type Outlines =
+    | []
     | [Outline]
     | [Outline, Outline]
     | [Outline, Outline, Outline]
@@ -30,7 +32,13 @@ export enum Contour {
     None = 0.0,
     FullOctagon = 1.0,
     DashedHexagon = 2.0,
-};
+}
+
+export enum DiagnosticIndicatorStyle {
+    NONE = "none",
+    WARNING = "warning",
+    ERROR = "error"
+}
 
 export function floatOutlineWidths(outlines: Outlines): number {
     if (!outlines) {
@@ -43,11 +51,11 @@ export function floatOutlineWidths(outlines: Outlines): number {
     let w3 = outlines[3]?.width ?? 0;
     let totalWidth = w0 + w1 + w2 + w3;
 
-    let l0 = (w0 / totalWidth * 255) & 0xff;
-    let l1 = (w1 / totalWidth * 255) & 0xff;
-    let l2 = (w2 / totalWidth * 255) & 0xff;
-    let l3 = (w3 / totalWidth * 255) & 0xff;
-    INT32[0] = (l0 | l1 << 8 | l2 << 16 | l3 << 24) & 0xffffffff;
+    let l0 = ((w0 / totalWidth) * 255) & 0xff;
+    let l1 = ((w1 / totalWidth) * 255) & 0xff;
+    let l2 = ((w2 / totalWidth) * 255) & 0xff;
+    let l3 = ((w3 / totalWidth) * 255) & 0xff;
+    INT32[0] = (l0 | (l1 << 8) | (l2 << 16) | (l3 << 24)) & 0xffffffff;
     return FLOAT32[0];
 }
 
@@ -60,7 +68,7 @@ export function floatOutlineStyles(outlines: Outlines): number {
     let s1 = outlines[1]?.style ?? OutlineStyle.Solid;
     let s2 = outlines[2]?.style ?? OutlineStyle.Solid;
     let s3 = outlines[3]?.style ?? OutlineStyle.Solid;
-    INT32[0] = (s0 | s1 << 8 | s2 << 16 | s3 << 24) & 0xffffffff;
+    INT32[0] = (s0 | (s1 << 8) | (s2 << 16) | (s3 << 24)) & 0xffffffff;
     return FLOAT32[0];
 }
 
@@ -79,7 +87,7 @@ export function getOutlinesTotalWidth(outlines: Outlines): number {
 export enum FireStatus {
     None = "none",
     Smoke = "smoke",
-    Flame = "flame"
+    Flame = "flame",
 }
 
 export interface NodeStyle {
@@ -91,6 +99,7 @@ export interface NodeStyle {
     slices: Slices;
     fire: FireStatus;
     contour: Contour;
+    diagnosticIndicator: DiagnosticIndicatorStyle;
 }
 
 export const FALLBACK_NODE_ICON = "vscode:pie-chart";
@@ -103,6 +112,7 @@ export const FALLBACK_NODE_STYLE: NodeStyle = {
     slices: { stroked: 0, solid: 1, width: 0 },
     fire: FireStatus.None,
     contour: Contour.None,
+    diagnosticIndicator: DiagnosticIndicatorStyle.NONE,
 };
 
 export interface EdgeStyle {
@@ -114,21 +124,14 @@ export interface EdgeStyle {
 export const FALLBACK_EDGE_STYLE: EdgeStyle = {
     color: "#202020",
     width: 1,
-    type: "line"
+    type: "line",
 };
 
-export type NodeStylist = (node: MultigraphNode) => NodeStyle;
-export type RelationStylist = (relation: string) => EdgeStyle;
-export type EdgeStylist = (relation: string, edge: MultigraphEdge) => EdgeStyle;
+export type NodeStylist<TParams> = (node: HelvegNodeAttributes, params: TParams) => NodeStyle;
+export const FALLBACK_NODE_STYLIST: NodeStylist<undefined> = (_node: MultigraphNode, _params) => FALLBACK_NODE_STYLE;
 
-export function fallbackNodeStylist(_node: MultigraphNode): NodeStyle {
-    return FALLBACK_NODE_STYLE;
-}
+export type RelationStylist<TParams> = (relation: string, params: TParams) => EdgeStyle;
+export const FALLBACK_RELATION_STYLIST: RelationStylist<undefined> = (_relation, _params) => FALLBACK_EDGE_STYLE;
 
-export function fallbackRelationStylist(_relation: string) {
-    return FALLBACK_EDGE_STYLE;
-}
-
-export function fallbackEdgeStylist(_relation: string, _edge: MultigraphEdge) {
-    return FALLBACK_EDGE_STYLE;
-}
+export type EdgeStylist<TParams> = (relation: string, edge: MultigraphEdge, params: TParams) => EdgeStyle;
+export const FALLBACK_EDGE_STYLIST: EdgeStylist<undefined> = (_relation, _edge, _params) => FALLBACK_EDGE_STYLE;

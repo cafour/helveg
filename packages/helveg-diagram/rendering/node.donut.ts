@@ -1,17 +1,7 @@
-import {
-    floatColor,
-    InstancedProgramDefinition,
-    ProgramInfo,
-    RenderParams,
-    Sigma,
-} from "../deps/sigma.ts";
-import {
-    HelvegNodeProgram,
-    HelvegNodeProgramType,
-} from "../diagram/initializers.ts";
+import { floatColor, InstancedProgramDefinition, ProgramInfo, RenderParams, Sigma } from "../deps/sigma.ts";
 import vertSrc from "./shaders/node.donut.vert";
 import fragSrc from "./shaders/node.donut.frag";
-import { HelvegNodeAttributes } from "../model/graph.ts";
+import { HelvegNodeAttributes, HelvegNodeProgram, HelvegNodeProgramType, HelvegSigma } from "../model/graph.ts";
 import { FALLBACK_NODE_STYLE } from "../global.ts";
 import chroma from "chroma-js";
 import { provideDefaults } from "../common/object.ts";
@@ -32,48 +22,35 @@ export const DEFAULT_DONUT_PROGRAM_OPTIONS: DonutProgramOptions = {
     showContours: true,
 };
 
-export default function createDonutProgram(
-    options?: Partial<DonutProgramOptions>,
-): HelvegNodeProgramType {
+export default function createDonutProgram(options?: Partial<DonutProgramOptions>): HelvegNodeProgramType {
     // NB: Cannot use options = {...DEFAULT_DONUT_PROGRAM_OPTIONS, ...options} because we need to keep the original
     //     object.
     if (options === undefined) {
-        options = {...DEFAULT_DONUT_PROGRAM_OPTIONS};
+        options = { ...DEFAULT_DONUT_PROGRAM_OPTIONS };
     } else {
         provideDefaults(options, DEFAULT_DONUT_PROGRAM_OPTIONS);
     }
     return class extends DonutProgram {
-        constructor(
-            gl: WebGLRenderingContext,
-            pickingBuffer: WebGLFramebuffer,
-            renderer: Sigma,
-        ) {
+        constructor(gl: WebGLRenderingContext, pickingBuffer: WebGLFramebuffer, renderer: HelvegSigma) {
             super(gl, pickingBuffer, renderer, options as DonutProgramOptions);
         }
     };
 }
 
 const { UNSIGNED_BYTE, FLOAT } = WebGLRenderingContext;
-const UNIFORMS = [
-    "u_sizeRatio",
-    "u_pixelRatio",
-    "u_correctionRatio",
-    "u_matrix",
-    "u_gap",
-    "u_hatchingWidth",
-];
+const UNIFORMS = ["u_sizeRatio", "u_pixelRatio", "u_correctionRatio", "u_matrix", "u_gap", "u_hatchingWidth"];
 
-export class DonutProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
+export class DonutProgram extends HelvegNodeProgram<(typeof UNIFORMS)[number]> {
     constructor(
         gl: WebGLRenderingContext,
         pickingBuffer: WebGLFramebuffer,
-        renderer: Sigma,
-        private options: DonutProgramOptions,
+        renderer: HelvegSigma,
+        private options: DonutProgramOptions
     ) {
         super(gl, pickingBuffer, renderer);
     }
 
-    getDefinition(): InstancedProgramDefinition<typeof UNIFORMS[number]> {
+    getDefinition(): InstancedProgramDefinition<(typeof UNIFORMS)[number]> {
         return {
             VERTICES: 3,
             VERTEX_SHADER_SOURCE: vertSrc,
@@ -115,41 +92,29 @@ export class DonutProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
             ],
             // NB: Data for an equilateral triangle that the donut is carved from.
             CONSTANT_ATTRIBUTES: [{ name: "a_angle", size: 1, type: FLOAT }],
-            CONSTANT_DATA: [[(0 * Math.PI) / 3], [(2 * Math.PI) / 3], [
-                (4 * Math.PI) / 3,
-            ]],
+            CONSTANT_DATA: [[(0 * Math.PI) / 3], [(2 * Math.PI) / 3], [(4 * Math.PI) / 3]],
         };
     }
 
-    processVisibleItem(
-        nodeIndex: number,
-        offset: number,
-        data: HelvegNodeAttributes,
-    ): void {
+    processVisibleItem(nodeIndex: number, offset: number, data: HelvegNodeAttributes): void {
         const array = this.array;
-        const useColor = !this.options.showOnlyHighlighted ||
-            data.highlighted === true;
+        const useColor = !this.options.showOnlyHighlighted || data.highlighted === true;
 
         array[offset++] = nodeIndex;
         array[offset++] = data.x ?? 0;
         array[offset++] = data.y ?? 0;
         array[offset++] = data.baseSize ?? 2;
-        array[offset++] = data.slices?.stroked ??
-            FALLBACK_NODE_STYLE.slices.solid;
-        array[offset++] = data.slices?.solid ??
-            FALLBACK_NODE_STYLE.slices.stroked;
-        array[offset++] = data.slices?.width ??
-            FALLBACK_NODE_STYLE.slices.width;
+        array[offset++] = data.slices?.stroked ?? FALLBACK_NODE_STYLE.slices.solid;
+        array[offset++] = data.slices?.solid ?? FALLBACK_NODE_STYLE.slices.stroked;
+        array[offset++] = data.slices?.width ?? FALLBACK_NODE_STYLE.slices.width;
 
         const color = data.color ?? FALLBACK_NODE_STYLE.color;
-        const backgroundColor = data.backgroundColor ??
-            chroma(color).brighten(1).desaturate(1).hex();
+        const backgroundColor = data.backgroundColor ?? chroma(color).brighten(1).desaturate(1).hex();
 
         array[offset++] = floatColor(useColor ? color : "#999999");
         array[offset++] = floatColor(useColor ? backgroundColor : "#cccccc");
         array[offset++] =
-            (data.childCount ?? 0) > 0 && data.collapsed === true &&
-                this.options.showCollapsedNodeIndicators
+            (data.childCount ?? 0) > 0 && data.collapsed === true && this.options.showCollapsedNodeIndicators
                 ? 1.0
                 : 0.0;
         array[offset++] = this.options.showContours ? data.contour ?? 0.0 : 0.0;
@@ -157,22 +122,11 @@ export class DonutProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
 
     setUniforms(params: RenderParams, programInfo: ProgramInfo): void {
         const { gl, uniformLocations } = programInfo;
-        const {
-            u_sizeRatio,
-            u_pixelRatio,
-            u_correctionRatio,
-            u_matrix,
-            u_gap,
-            u_hatchingWidth,
-        } = uniformLocations;
+        const { u_sizeRatio, u_pixelRatio, u_correctionRatio, u_matrix, u_gap, u_hatchingWidth } = uniformLocations;
         gl.uniform1f(u_sizeRatio, params.sizeRatio);
         gl.uniform1f(u_pixelRatio, params.pixelRatio);
         gl.uniform1f(u_correctionRatio, params.correctionRatio);
-        gl.uniform1f(
-            u_hatchingWidth,
-            this.options.hatchingWidth * params.correctionRatio /
-                params.sizeRatio,
-        );
+        gl.uniform1f(u_hatchingWidth, (this.options.hatchingWidth * params.correctionRatio) / params.sizeRatio);
         gl.uniformMatrix3fv(u_matrix, false, params.matrix);
         gl.uniform1f(u_gap, 1);
     }
@@ -183,7 +137,6 @@ export class DonutProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
             gl.blendFunc(gl.ONE, gl.ZERO);
         } else {
             gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-            // gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
         }
 
         super.drawWebGL(method, programInfo);

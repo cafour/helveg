@@ -147,8 +147,8 @@ public static class Program
         var msbuildInstance = MSBuildLocator.RegisterDefaults();
         logger.LogDebug("Using MSBuild at '{}'.", msbuildInstance.MSBuildPath);
 
-        var msbuildProperties = config.BuildProperties.ToImmutableDictionary();
-        var workflow = new Workflow()
+        var msbuildProperties = config.BuildProperties;
+        using var workflow = new Workflow()
             .AddMSBuild(
                 options: new MSBuildMinerOptions
                 {

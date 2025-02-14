@@ -1,10 +1,9 @@
-import { Sigma, RenderParams, ProgramInfo, InstancedProgramDefinition, floatColor } from "../deps/sigma.ts";
-import { HelvegNodeAttributes } from "../model/graph.ts";
+import { RenderParams, ProgramInfo, InstancedProgramDefinition, floatColor } from "../deps/sigma.ts";
+import { HelvegNodeAttributes, HelvegNodeProgram, HelvegNodeProgramType, HelvegSigma } from "../model/graph.ts";
 import { FALLBACK_NODE_ICON, FALLBACK_NODE_STYLE } from "../model/style.ts";
 import { EMPTY_ICON_ATLAS, IconAtlas, IconAtlasEntryStatus } from "./iconAtlas.ts";
 import vertSrc from "./shaders/node.icon.vert";
 import fragSrc from "./shaders/node.icon.frag";
-import { HelvegNodeProgram, HelvegNodeProgramType } from "../diagram/initializers.ts";
 
 const { UNSIGNED_BYTE, FLOAT } = WebGLRenderingContext;
 
@@ -13,28 +12,30 @@ const UNIFORMS = ["u_sizeRatio", "u_pixelRatio", "u_correctionRatio", "u_matrix"
 export interface IconProgramOptions {
     iconAtlas: Readonly<IconAtlas>;
     showOnlyHighlighted: boolean;
+    iconCorner: { x: number; y: number };
 }
 
 export const DEFAULT_ICON_PROGRAM_OPTIONS: IconProgramOptions = {
     iconAtlas: EMPTY_ICON_ATLAS,
-    showOnlyHighlighted: false
+    showOnlyHighlighted: false,
+    iconCorner: { x: 0, y: 0 },
 };
 
 export default function createIconProgram(options: IconProgramOptions): HelvegNodeProgramType {
     return class extends IconProgram {
-        constructor(gl: WebGLRenderingContext, pickingBuffer: WebGLFramebuffer, renderer: Sigma) {
+        constructor(gl: WebGLRenderingContext, pickingBuffer: WebGLFramebuffer, renderer: HelvegSigma) {
             super(gl, pickingBuffer, renderer, options);
         }
     };
 }
 
-export class IconProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
+export class IconProgram extends HelvegNodeProgram<(typeof UNIFORMS)[number]> {
     texture: WebGLTexture;
 
     constructor(
         gl: WebGLRenderingContext,
         pickingBuffer: WebGLFramebuffer,
-        renderer: Sigma,
+        renderer: HelvegSigma,
         private options: IconProgramOptions
     ) {
         super(gl, pickingBuffer, renderer);
@@ -42,15 +43,15 @@ export class IconProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
         this.texture = gl.createTexture() as WebGLTexture;
         const refreshTexture = (a: IconAtlas) => {
             this.rebindTexture(a, gl);
-            this.renderer.scheduleRefresh();
+            this.renderer?.scheduleRefresh();
         };
         options.iconAtlas.redrawn.subscribe(refreshTexture);
-        this.renderer.on("kill", () => options.iconAtlas.redrawn.unsubscribe(refreshTexture));
+        this.renderer?.on("kill", () => options.iconAtlas.redrawn.unsubscribe(refreshTexture));
 
         this.rebindTexture(options.iconAtlas, gl);
     }
 
-    getDefinition(): InstancedProgramDefinition<typeof UNIFORMS[number]> {
+    getDefinition(): InstancedProgramDefinition<(typeof UNIFORMS)[number]> {
         return {
             VERTICES: 3,
             VERTEX_SHADER_SOURCE: vertSrc,
@@ -61,7 +62,8 @@ export class IconProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
                 { name: "a_position", size: 2, type: FLOAT },
                 { name: "a_iconSize", size: 1, type: FLOAT },
                 {
-                    name: "a_color", size: 4,
+                    name: "a_color",
+                    size: 4,
                     type: UNSIGNED_BYTE,
                     normalized: true,
                 },
@@ -77,14 +79,12 @@ export class IconProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
         const array = this.array;
         this.options.iconAtlas.tryAddIcon(data.icon ?? FALLBACK_NODE_ICON);
 
-        const useColor = (!this.options.showOnlyHighlighted || data.highlighted === true);
+        const useColor = !this.options.showOnlyHighlighted || data.highlighted === true;
 
-        array[offset++] = data.x ?? 0;
-        array[offset++] = data.y ?? 0;
+        array[offset++] = data.x ?? 0 + this.options.iconCorner.x * data.size;
+        array[offset++] = data.y ?? 0 + this.options.iconCorner.y * data.size;
         array[offset++] = data.iconSize ?? data.baseSize ?? data.size ?? 1;
-        array[offset++] = floatColor(
-            useColor ? data.color ?? FALLBACK_NODE_STYLE.color : "#777777"
-        );
+        array[offset++] = floatColor(useColor ? data.color ?? FALLBACK_NODE_STYLE.color : "#777777");
 
         let atlasEntry = this.options.iconAtlas.entries[data.icon ?? FALLBACK_NODE_ICON];
         if (atlasEntry && atlasEntry.status === IconAtlasEntryStatus.Rendered) {
@@ -99,12 +99,12 @@ export class IconProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
             array[offset++] = 0;
             array[offset++] = 0;
         }
-
     }
 
     setUniforms(params: RenderParams, programInfo: ProgramInfo): void {
         const { gl, uniformLocations } = programInfo;
-        const { u_sizeRatio, u_pixelRatio, u_correctionRatio, u_matrix, u_atlas, u_invert } = uniformLocations;
+        const { u_sizeRatio, u_pixelRatio, u_correctionRatio, u_matrix, u_atlas, u_invert, u_corner } =
+            uniformLocations;
 
         gl.uniform1f(u_sizeRatio, params.sizeRatio);
         gl.uniform1f(u_pixelRatio, params.pixelRatio);
@@ -126,11 +126,10 @@ export class IconProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
         super.renderProgram(params, programInfo);
     }
 
-
     private rebindTexture(iconAtlas: Readonly<IconAtlas>, gl: WebGLRenderingContext) {
         gl.bindTexture(gl.TEXTURE_2D, this.texture);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, iconAtlas.texture);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);

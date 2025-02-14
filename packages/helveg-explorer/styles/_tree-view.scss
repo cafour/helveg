@@ -15,6 +15,11 @@
     > button.toggle {
         border: 1px solid var(--color-surface-100);
         background-color: var(--color-surface-50);
+        width: 2rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
 
         &:hover {
             background-color: var(--color-surface-100);

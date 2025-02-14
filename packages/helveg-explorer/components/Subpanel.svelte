@@ -20,6 +20,7 @@
             on:click={() => (collapsed = !collapsed)}
             title={collapsed ? "Expand" : "Collapse"}
             disabled={!isCollapsible}
+            type="button"
         >
             {#if isCollapsible}
                 <button class="flex flex-col justify-content-center">

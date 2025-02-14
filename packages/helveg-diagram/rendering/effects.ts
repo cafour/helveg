@@ -1,9 +1,8 @@
-import { Attributes } from "graphology-types";
-import { NodeDisplayData, RenderParams, AbstractNodeProgram, Sigma, getPixelRatio, NodeHoverDrawingFunction, NodeLabelDrawingFunction } from "../deps/sigma.ts";
-import { HelvegNodeProgramType } from "../diagram/initializers.ts";
+import { NodeDisplayData, RenderParams, Sigma, getPixelRatio } from "../deps/sigma.ts";
 import { ILogger } from "../model/logger.ts";
 import { FireProgram } from "./node.fire.ts";
 import { GlyphProgramOptions } from "./node.glyph.ts";
+import { HelvegAbstractNodeProgram, HelvegNodeProgramType, HelvegSigma } from "../model/graph.ts";
 
 interface ProgramCallbacks {
     process(nodeIndex: number, offset: number, data: NodeDisplayData): void;
@@ -12,12 +11,12 @@ interface ProgramCallbacks {
     kill(): void;
 }
 
-class ParamsReportingProgram implements AbstractNodeProgram {
+class ParamsReportingProgram implements HelvegAbstractNodeProgram {
     constructor(private callbacks: Partial<ProgramCallbacks>) {
     }
 
-    drawLabel: NodeLabelDrawingFunction<Attributes, Attributes, Attributes> | undefined = undefined;
-    drawHover: NodeHoverDrawingFunction<Attributes, Attributes, Attributes> | undefined = undefined;
+    drawLabel = undefined;
+    drawHover = undefined;
 
     process(nodeIndex: number, offset: number, data: NodeDisplayData): void {
         if (this.callbacks.process) {
@@ -48,7 +47,7 @@ export class SigmaEffectsExtension {
     // NB: This counter ensures that each instance of the extension gets its own canvas.
     private static counter: number = 0;
 
-    private sigma: Sigma = null!;
+    private sigma: HelvegSigma = null!;
     private canvas: HTMLCanvasElement = null!;
     private gl: WebGL2RenderingContext = null!;
     private renderParams: RenderParams | null = null;
@@ -59,7 +58,7 @@ export class SigmaEffectsExtension {
     constructor(private options: GlyphProgramOptions, private logger?: ILogger) {
         let self = this;
         this._reportingProgram = class extends ParamsReportingProgram {
-            constructor(gl: WebGLRenderingContext, pickingBuffer: WebGLFramebuffer, renderer: Sigma) {
+            constructor(gl: WebGLRenderingContext, pickingBuffer: WebGLFramebuffer, renderer: HelvegSigma) {
                 self.initialize(renderer);
                 super({
                     process: self.fireProgram.process.bind(self.fireProgram),
@@ -74,7 +73,7 @@ export class SigmaEffectsExtension {
         return this._reportingProgram;
     }
 
-    private initialize(sigma: Sigma) {
+    private initialize(sigma: HelvegSigma) {
         if (this.sigma) {
             this.logger?.debug("The effects extension has already been initialized.");
             return;

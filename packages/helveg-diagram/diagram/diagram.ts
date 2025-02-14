@@ -1,123 +1,164 @@
 import { HelvegEvent } from "../common/event.ts";
-import { HelvegEdgeAttributes, HelvegGraph, HelvegNodeAttributes, MULTIGRAPH_NODE_KEY, expandPathsTo, findRoots, removeAllGraphListeners, toggleNode } from "../model/graph.ts";
-import { Coordinates, SigmaNodeEventPayload } from "../deps/sigma.ts";
+import {
+    EMPTY_GRAPH,
+    HelvegEdgeAttributes,
+    HelvegGraph,
+    HelvegGraphAttributes,
+    HelvegNodeAttributes,
+    HelvegNodeProgramType,
+    HelvegSigma,
+    collapseNode,
+    dropNode,
+    expandNode,
+    expandPathsTo,
+    findRoots,
+    getParent,
+    hoveredNodeSymbol,
+    toggleNode,
+} from "../model/graph.ts";
+import { Coordinates } from "../deps/sigma.ts";
 import { LogSeverity, ILogger, consoleLogger } from "../model/logger.ts";
 import { ForceAtlas2Progress, ForceAtlas2Supervisor } from "../layout/forceAltas2Supervisor.ts";
 import { wheelOfFortune } from "../layout/circular.ts";
 import tidyTree from "../layout/tidyTree.ts";
-import { HelvegSigma, HelvegNodeProgramType, configureSigma, hoveredNodeSymbol, initializeGraph, initializeSigma, initializeSupervisor, styleGraph } from "./initializers.ts";
+import {
+    configureSigma,
+    initializeGraph,
+    initializeSigma,
+    initializeSupervisor,
+    styleGraph,
+    StyleGraphOptions,
+} from "./initializers.ts";
 import { DEFAULT_GLYPH_PROGRAM_OPTIONS, GlyphProgramOptions, createGlyphProgram } from "../rendering/node.glyph.ts";
 import { DEFAULT_EXPORT_OPTIONS, ExportOptions, exportDiagram } from "../rendering/export.ts";
 import { IFilterBuilderEntry, SearchMode, buildNodeFilter, filterNodes } from "../model/filter.ts";
 import { bfsGraph } from "../model/traversal.ts";
-import { EdgeStylist, NodeStylist, RelationStylist, fallbackEdgeStylist, fallbackNodeStylist, fallbackRelationStylist } from "../model/style.ts";
+import {
+    EdgeStylist,
+    NodeStylist,
+    RelationStylist,
+    FALLBACK_NODE_STYLIST,
+    FALLBACK_RELATION_STYLIST,
+} from "../model/style.ts";
 import { EMPTY_ICON_REGISTRY, IconRegistry } from "../global.ts";
 import { DataModel } from "../model/data-model.ts";
 import { EMPTY_DATA_MODEL } from "../model/const.ts";
-import { inferSettings } from "graphology-layout-forceatlas2";
+import { ForceAtlas2Settings, inferSettings } from "graphology-layout-forceatlas2";
 import { deepCompare } from "../common/deep-compare.ts";
 import { FALLBACK_INSPECTOR, Inspector } from "../model/inspect.ts";
 import Graph from "../deps/graphology.ts";
+import type { ForceAtlas2Options } from "../layout/forceAtlas2Iterate.ts";
+import { Full } from "../common/full.ts";
+import { preprocess, PreprocessFunc } from "../model/preprocess.ts";
 
 export interface DiagramRefreshOptions {
-    selectedRelations?: string[],
-    selectedKinds?: string[],
-    expandedDepth?: number
+    selectedRelations?: string[];
+    selectedKinds?: string[];
+    expandedDepth?: number;
+    shouldKeepVisible?: boolean;
 }
 
 export interface DiagramOptions {
-    glyphProgram: GlyphProgramOptions,
-    mainRelation: string | null,
-    logLevel: LogSeverity,
-    nodeStylist: NodeStylist,
-    relationStylist: RelationStylist,
-    edgeStylist?: EdgeStylist,
-    inspector: Inspector,
-    nodeKindOrder: string[],
-    iconRegistry: Readonly<IconRegistry>,
-    refresh: DiagramRefreshOptions,
-    forceAtlas2: ForceAtlas2Options,
-    cursor: CursorOptions,
-}
-
-export interface ForceAtlas2Options {
-    linLogMode?: boolean;
-    outboundAttractionDistribution?: boolean;
-    adjustSizes?: boolean;
-    edgeWeightInfluence?: number;
-    scalingRatio?: number;
-    strongGravityMode?: boolean;
-    gravity?: number;
-    slowDown?: number;
-    barnesHutOptimize?: boolean;
-    barnesHutTheta?: number;
+    glyphProgram: GlyphProgramOptions;
+    mainRelation: string | null;
+    preprocess: PreprocessFunc;
+    logLevel: LogSeverity;
+    nodeStylist: NodeStylist<any>;
+    nodeStylistParams?: any;
+    relationStylist: RelationStylist<any>;
+    relationStylistParams?: any;
+    edgeStylist?: EdgeStylist<any>;
+    edgeStylistParams?: any;
+    inspector: Inspector;
+    nodeKindOrder: string[];
+    iconRegistry: Readonly<IconRegistry>;
+    refresh: DiagramRefreshOptions;
+    forceAtlas2: ForceAtlas2Options;
+    cursor: CursorOptions;
 }
 
 export interface CursorOptions {
-    defaultCursor: string,
-    hoverCursor: string,
-    shiftHoverCursor?: string,
+    defaultCursor: string;
+    hoverCursor: string;
+    shiftHoverCursor?: string;
     controlHoverCursor?: string;
     altHoverCursor?: string;
 }
 
 export const DEFAULT_FORCE_ATLAS2_OPTIONS: Readonly<ForceAtlas2Options> = {
-    ...inferSettings(1024),
+    ...(inferSettings(1024) as Full<ForceAtlas2Settings>),
     adjustSizes: true,
     barnesHutOptimize: false,
+    strongGravityMode: false,
     barnesHutTheta: 0.5,
     edgeWeightInfluence: 1,
     linLogMode: false,
     outboundAttractionDistribution: false,
+    slowDown: 3,
+    autoStopAverageTraction: 1.0,
 };
 
 export const DEFAULT_CURSOR_OPTIONS: Readonly<CursorOptions> = {
     defaultCursor: "default",
     hoverCursor: "pointer",
-}
+};
 
 export const DEFAULT_DIAGRAM_OPTIONS: Readonly<DiagramOptions> = {
     logLevel: LogSeverity.Info,
     mainRelation: null,
+    preprocess: preprocess,
     glyphProgram: DEFAULT_GLYPH_PROGRAM_OPTIONS,
-    nodeStylist: fallbackNodeStylist,
-    relationStylist: fallbackRelationStylist,
+    nodeStylist: FALLBACK_NODE_STYLIST,
+    relationStylist: FALLBACK_RELATION_STYLIST,
     nodeKindOrder: [],
     inspector: FALLBACK_INSPECTOR,
     iconRegistry: EMPTY_ICON_REGISTRY,
     refresh: {},
     forceAtlas2: DEFAULT_FORCE_ATLAS2_OPTIONS,
-    cursor: DEFAULT_CURSOR_OPTIONS
+    cursor: DEFAULT_CURSOR_OPTIONS,
 };
 
 export enum DiagramMode {
     Normal = "normal",
-    Highlighting = "highlighting"
+    Highlighting = "highlighting",
 }
 
 export enum DiagramStatus {
     Stopped = "stopped",
     Running = "running",
-    RunningInBackground = "runningInBackground"
+    RunningInBackground = "runningInBackground",
 }
 
 export interface DiagramStats {
     iterationCount: number;
     speed: number;
+    globalTraction: number;
+    globalSwinging: number;
+    averageTraction: number;
+    averageSwinging: number;
 }
+
+const DEFAULT_DIAGRAM_STATS: Readonly<DiagramStats> = {
+    iterationCount: 0,
+    speed: 0,
+    globalSwinging: 0,
+    globalTraction: 0,
+    averageTraction: 0,
+    averageSwinging: 0,
+};
 
 export interface RemoveOptions {
     isTransitive: boolean;
 }
 
 export const DEFAULT_REMOVE_OPTIONS: RemoveOptions = {
-    isTransitive: true
+    isTransitive: true,
 };
 
 export interface AutoLayoutOptions {
     roughIterationFactor: number;
     adjustIterationFactor: number;
-};
+}
 
 export const DEFAULT_AUTO_LAYOUT_OPTIONS: AutoLayoutOptions = {
     roughIterationFactor: 1.5,
@@ -131,42 +172,54 @@ export interface ModifierKeyState {
 }
 
 export interface ModifierKeyStateChange {
-    old: Readonly<ModifierKeyState>,
-    new: Readonly<ModifierKeyState>
-};
+    old: Readonly<ModifierKeyState>;
+    new: Readonly<ModifierKeyState>;
+}
 
 export class Diagram {
     private _element: HTMLElement;
-    get element(): HTMLElement { return this._element; }
+    get element(): HTMLElement {
+        return this._element;
+    }
 
     private _sigmaElement: HTMLElement;
-    get sigmaElement(): HTMLElement { return this._sigmaElement; }
+    get sigmaElement(): HTMLElement {
+        return this._sigmaElement;
+    }
 
     private _options: DiagramOptions;
-    get options(): Readonly<DiagramOptions> { return this._options; }
+    get options(): Readonly<DiagramOptions> {
+        return this._options;
+    }
+
+    private _modelGraph: HelvegGraph = EMPTY_GRAPH;
+    get modelGraph(): Readonly<HelvegGraph> {
+        return this._modelGraph;
+    }
 
     private _model: DataModel = EMPTY_DATA_MODEL;
-    get model(): DataModel { return this._model; }
+    get model(): DataModel {
+        return this._model;
+    }
     set model(value: DataModel) {
         this._model = value;
-        if (this._model.data) {
-            this._nodeKeys = Object.values(this._model.data.nodes)
-                .flatMap(n => Object.keys(n))
-                .filter((v, i, a) => a.indexOf(v) === i);
-            this._nodeKeyTypes = {};
-            this._nodeKeys.forEach(k => {
-                this._nodeKeyTypes[k] = "string";
-                const propTypes = new Set(
-                    Object.values(this.model.data!.nodes)
-                        .filter(n => n[k] !== undefined)
-                        .map(n => typeof n[k])
-                );
-                if (propTypes.size == 1) {
-                    this._nodeKeyTypes[k] = propTypes.values().next().value ?? "string";
-                }
-            });
-            Object.entries(this._model.data.nodes).forEach(([key, value]) => (value as any)[MULTIGRAPH_NODE_KEY] = key);
-        }
+        this._modelGraph = this.options.preprocess(this._model);
+        this._nodeKeys = this._modelGraph
+            .mapNodes((_n, na) => na.model)
+            .flatMap((n) => Object.keys(n))
+            .filter((v, i, a) => a.indexOf(v) === i);
+        this._nodeKeyTypes = {};
+        this._nodeKeys.forEach((k) => {
+            this._nodeKeyTypes[k] = "string";
+            const propTypes = new Set(
+                this.modelGraph
+                    .filterNodes((_n, na) => na.model[k] !== undefined)
+                    .map((n) => typeof this.modelGraph.getNodeAttribute(n, "model")[k])
+            );
+            if (propTypes.size == 1) {
+                this._nodeKeyTypes[k] = propTypes.values().next().value ?? "string";
+            }
+        });
         this.events.modelChanged.trigger(value);
 
         // NB: Runs without awaiting.
@@ -174,106 +227,197 @@ export class Diagram {
         this.refreshSigma();
     }
 
-    private _stats: DiagramStats = { iterationCount: -1, speed: -1.0 };
-    get stats(): DiagramStats { return this._stats; }
-    private set stats(value: DiagramStats) { this._stats = value; this.events.statsChanged.trigger(value); }
+    private _stats: DiagramStats = structuredClone(DEFAULT_DIAGRAM_STATS);
+    get stats(): DiagramStats {
+        return this._stats;
+    }
+    private set stats(value: DiagramStats) {
+        this._stats = value;
+        this.events.statsChanged.trigger(value);
+    }
 
     private _mainRelation: string | null;
-    get mainRelation(): string | null { return this._mainRelation; }
+    get mainRelation(): string | null {
+        return this._mainRelation;
+    }
     set mainRelation(value: string | null) {
         this._mainRelation = value;
         this.events.mainRelationChanged.trigger(value);
     }
 
     private _status: DiagramStatus = DiagramStatus.Stopped;
-    get status(): DiagramStatus { return this._status; }
-    private set status(value: DiagramStatus) { this._status = value; this.events.statusChanged.trigger(value); };
+    get status(): DiagramStatus {
+        return this._status;
+    }
+    private set status(value: DiagramStatus) {
+        this._status = value;
+        this.events.statusChanged.trigger(value);
+    }
 
     private _mode: DiagramMode = DiagramMode.Normal;
-    get mode(): DiagramMode { return this._mode; }
+    get mode(): DiagramMode {
+        return this._mode;
+    }
     private set mode(value: DiagramMode) {
         this._mode = value;
         this._options.glyphProgram.showOnlyHighlighted = this._mode === DiagramMode.Highlighting;
         this.events.modeChanged.trigger(value);
     }
 
+    private _shouldFixateSelectedNode: boolean = true;
+    get shouldFixateSelectedNode(): boolean {
+        return this._shouldFixateSelectedNode;
+    }
+    set shouldFixateSelectedNode(value: boolean) {
+        this._shouldFixateSelectedNode = value;
+        if (this._selectedNode != null) {
+            this._graph?.setNodeAttribute(this._selectedNode, "fixed", value);
+        }
+    }
+
     private _selectedNode: string | null = null;
-    get selectedNode(): string | null { return this._selectedNode; }
-    set selectedNode(value: string | null) { this._selectedNode = value; this.events.nodeSelected.trigger(value); }
+    get selectedNode(): string | null {
+        return this._selectedNode;
+    }
+    set selectedNode(value: string | null) {
+        if (this.shouldFixateSelectedNode && this._selectedNode != null) {
+            this._graph?.setNodeAttribute(this._selectedNode, "fixed", false);
+        }
 
-    get hoveredNode(): string | null { return this._sigma?.[hoveredNodeSymbol] ?? null; }
+        this._selectedNode = value;
 
-    private _canDragNodes: boolean = false;
-    get canDragNodes(): boolean { return this._canDragNodes; }
-    set canDragNodes(value: boolean) { this._canDragNodes = value; }
+        if (this.shouldFixateSelectedNode && this._selectedNode != null) {
+            this._graph?.setNodeAttribute(this._selectedNode, "fixed", true);
+        }
+
+        this.events.nodeSelected.trigger(value);
+    }
+
+    get hoveredNode(): string | null {
+        return this._sigma?.[hoveredNodeSymbol] ?? null;
+    }
 
     private _draggedNode: string | null = null;
-    get draggedNode(): string | null { return this._draggedNode; };
-    private set draggedNode(value: string | null) { this._draggedNode = value; }
+    get draggedNode(): string | null {
+        return this._draggedNode;
+    }
+    private set draggedNode(value: string | null) {
+        this._draggedNode = value;
+    }
 
     private _logger: ILogger;
-    get logger(): ILogger { return this._logger; }
+    get logger(): ILogger {
+        return this._logger;
+    }
 
-    get nodeStylist(): NodeStylist { return this._options.nodeStylist; }
-    set nodeStylist(value: NodeStylist) {
+    get nodeStylist(): NodeStylist<any> {
+        return this._options.nodeStylist;
+    }
+    set nodeStylist(value: NodeStylist<any>) {
         this._options.nodeStylist = value;
-        this.restyleGraph();
-        this._sigma?.scheduleRefresh();
+        this.scheduleRestyle();
         this.events.nodeStylistChanged.trigger();
     }
 
-    get edgeStylist(): EdgeStylist | undefined { return this._options.edgeStylist; }
-    set edgeStylist(value: EdgeStylist | undefined) {
-        this._options.edgeStylist = value;
-        this.restyleGraph();
-        this._sigma?.scheduleRefresh();
-        this.events.edgeStylistChanged.trigger();
-    };
+    private _nodeStylistParams: any;
+    get nodeStylistParams(): any {
+        return this._nodeStylistParams;
+    }
+    set nodeStylistParams(value: any) {
+        this._nodeStylistParams = value;
+        this.events.nodeStylistParamsChanged.trigger();
 
-    get relationStylist(): RelationStylist { return this._options.relationStylist; }
-    set relationStylist(value: RelationStylist) {
+        if (this.nodeStylist != null) {
+            this.scheduleRestyle();
+        }
+    }
+
+    get edgeStylist(): EdgeStylist<any> | undefined {
+        return this._options.edgeStylist;
+    }
+    set edgeStylist(value: EdgeStylist<any> | undefined) {
+        this._options.edgeStylist = value;
+        this.scheduleRestyle();
+        this.events.edgeStylistChanged.trigger();
+    }
+
+    private _edgeStylistParams: any;
+    get edgeStylistParams() {
+        return this._edgeStylistParams;
+    }
+    set edgeStylistParams(value: any) {
+        this._edgeStylistParams = value;
+
+        if (this.edgeStylist != null) {
+            this.scheduleRestyle();
+        }
+    }
+
+    get relationStylist(): RelationStylist<any> {
+        return this._options.relationStylist;
+    }
+    set relationStylist(value: RelationStylist<any>) {
         this._options.relationStylist = value;
-        this.restyleGraph();
-        this._sigma?.scheduleRefresh();
+        this.scheduleRestyle();
         this.events.relationStylistChanged.trigger();
     }
 
-    get forceAtlas2Options(): ForceAtlas2Options { return this._options.forceAtlas2; }
+    private _relationStylistParams: any;
+    get relationStylistParams() {
+        return this._relationStylistParams;
+    }
+    set relationStylistParams(value: any) {
+        this._relationStylistParams = value;
+
+        if (this.relationStylist != null) {
+            this.scheduleRestyle();
+        }
+    }
+
+    get forceAtlas2Options(): ForceAtlas2Options {
+        return this._options.forceAtlas2;
+    }
     set forceAtlas2Options(value: ForceAtlas2Options) {
         this._options.forceAtlas2 = value;
         this.refreshSupervisor(true);
     }
 
     private _graph?: HelvegGraph;
-    get graph() { return this._graph; }
+    get graph() {
+        return this._graph;
+    }
     private _sigma?: HelvegSigma;
     private _supervisor?: ForceAtlas2Supervisor;
     private _glyphProgram: HelvegNodeProgramType;
 
-    get glyphProgramOptions(): GlyphProgramOptions { return this.options.glyphProgram; }
+    get glyphProgramOptions(): GlyphProgramOptions {
+        return this.options.glyphProgram;
+    }
     set glyphProgramOptions(value: GlyphProgramOptions) {
-        const lastOptions = this._options.glyphProgram;
-
-        if (deepCompare(lastOptions, value)) {
-            return;
-        }
-
         Object.assign(this._options.glyphProgram, value);
 
-        this.reconfigureSigma();
-        this.restyleGraph();
+        this.scheduleReconfigureSigma();
+        this.scheduleRestyle();
     }
 
-    get cursorOptions(): Readonly<CursorOptions> { return this.options.cursor; }
-    set cursorOptions(value: CursorOptions) { this._options.cursor = value; }
+    get cursorOptions(): Readonly<CursorOptions> {
+        return this.options.cursor;
+    }
+    set cursorOptions(value: CursorOptions) {
+        this._options.cursor = value;
+    }
 
     // used when building JS filters
     // TODO: likely move to its own place somewhere else
     private _nodeKeys: string[] = [];
-    get nodeKeys(): readonly string[] { return this._nodeKeys; }
+    get nodeKeys(): readonly string[] {
+        return this._nodeKeys;
+    }
 
     private _nodeKeyTypes: Record<string, string> = {};
-    get nodeKeyTypes(): Record<string, string> { return this._nodeKeyTypes; }
+    get nodeKeyTypes(): Record<string, string> {
+        return this._nodeKeyTypes;
+    }
 
     // used for refreshing
     private _lastRefreshOptions: DiagramRefreshOptions;
@@ -281,9 +425,18 @@ export class Diagram {
     private _modifierKeyState: ModifierKeyState = {
         alt: false,
         control: false,
-        shift: false
+        shift: false,
     };
-    get modifierKeyState(): Readonly<ModifierKeyState> { return this._modifierKeyState; }
+    get modifierKeyState(): Readonly<ModifierKeyState> {
+        return this._modifierKeyState;
+    }
+    private set modifierKeyState(newState: ModifierKeyState) {
+        if (!deepCompare(this._modifierKeyState, newState)) {
+            const oldState = { ...this._modifierKeyState };
+            Object.assign(this._modifierKeyState, newState);
+            this.events.modifierKeysChanged.trigger({ old: oldState, new: this._modifierKeyState });
+        }
+    }
 
     constructor(element: HTMLElement, options?: Partial<DiagramOptions>) {
         this._element = element;
@@ -297,7 +450,12 @@ export class Diagram {
         window.addEventListener("keydown", this.onKeyUpDown.bind(this));
         window.addEventListener("keyup", this.onKeyUpDown.bind(this));
         window.addEventListener("mousemove", this.updateModifierKeyState.bind(this));
+        window.addEventListener("focus", () => this.updateModifierKeyState({}));
+        window.addEventListener("blur", () => this.updateModifierKeyState({}));
 
+        this._nodeStylistParams = options?.nodeStylistParams;
+        this._relationStylistParams = options?.relationStylistParams;
+        this._edgeStylistParams = options?.edgeStylistParams;
         this._options = { ...DEFAULT_DIAGRAM_OPTIONS, ...options };
         this._logger = consoleLogger("diagram", this._options.logLevel);
         this._mainRelation = this._options.mainRelation;
@@ -315,27 +473,33 @@ export class Diagram {
         graphChanged: new HelvegEvent<HelvegGraph | undefined>("helveg.diagram.graphChanged"),
         statsChanged: new HelvegEvent<DiagramStats>("helveg.diagram.statsChanged"),
         nodeSelected: new HelvegEvent<string | null>("helveg.diagram.nodeSelected"),
-        nodeClicked: new HelvegEvent<string>("helveg.diagram.nodeClicked"),
-        nodeDoubleClicked: new HelvegEvent<string>("helveg.diagram.nodeDoubleClicked"),
+
+        nodeDown: new HelvegEvent<{ nodeId: string; coords: Coordinates }>("helveg.diagram.nodeDown"),
+        nodeUp: new HelvegEvent<{ nodeId: string; coords: Coordinates }>("helveg.diagram.nodeUp"),
+        nodeDoubleClicked: new HelvegEvent<{ nodeId: string; coords: Coordinates }>("helveg.diagram.nodeDoubleClicked"),
+        nodeMove: new HelvegEvent<{ nodeId: string; coords: Coordinates }>("helveg.diagram.nodeMove"),
+
+        stageDown: new HelvegEvent<Coordinates>("helveg.diagram.stageDown"),
+        stageUp: new HelvegEvent<Coordinates>("helveg.diagram.stageUp"),
+        stageDoubleClicked: new HelvegEvent<Coordinates>("helveg.diagram.stageDoubleClicked"),
+        stageMove: new HelvegEvent<Coordinates>("helveg.diagram.stageMove"),
+
         mainRelationChanged: new HelvegEvent<string | null>("helveg.diagram.mainRelationChanged"),
         modifierKeysChanged: new HelvegEvent<ModifierKeyStateChange>("helveg.diagram.modifierKeysChanged"),
         nodeStylistChanged: new HelvegEvent<void>("helveg.diagram.nodeStylistChanged"),
+        nodeStylistParamsChanged: new HelvegEvent<void>("helveg.diagram.nodeStylistParamsChanged"),
         edgeStylistChanged: new HelvegEvent<void>("helveg.diagram.edgeStylistChanged"),
         relationStylistChanged: new HelvegEvent<void>("helveg.diagram.relationStylistChanged"),
     } as const;
 
-    // NB: private state for gestures
-    private _gestures = {
-        hasPanned: false,
-        isCaptorDown: false
-    };
+    private _finiteBackgroundLayoutExecutor:
+        | {
+              resolve: () => void;
+              reject: (reason?: any) => void;
+          }
+        | undefined;
 
-    private _finiteBackgroundLayoutExecutor: {
-        resolve: () => void,
-        reject: (reason?: any) => void
-    } | undefined;
-
-    async resetLayout(): Promise<void> {
+    public async resetLayout(): Promise<void> {
         if (!this._graph) {
             this._logger.debug("Cannot reset layout since the graph is not initialized.");
             return;
@@ -369,19 +533,23 @@ export class Diagram {
                 relation: this.mainRelation,
                 offset: {
                     x: radius * Math.cos(theta * i),
-                    y: radius * Math.sin(theta * i)
-                }
+                    y: radius * Math.sin(theta * i),
+                },
             });
             i++;
         }
 
-        this.stats = { iterationCount: 0, speed: 0 };
+        this.stats = structuredClone(DEFAULT_DIAGRAM_STATS);
         if (this._sigma) {
             this._sigma.scheduleRefresh();
         }
     }
 
-    async runLayout(inBackground: boolean, iterationCount?: number, options?: ForceAtlas2Options): Promise<void> {
+    public async runLayout(
+        inBackground: boolean,
+        iterationCount?: number,
+        options?: Partial<ForceAtlas2Options>
+    ): Promise<void> {
         if (!this._graph) {
             this._logger.debug("Cannot run since the graph is not initialized.");
             return;
@@ -394,9 +562,9 @@ export class Diagram {
 
         this._logger.debug("Running the layout.");
 
-        this._graph.forEachNode((n, a) => a.inInitialPosition = false);
+        this._graph.forEachNode((n, a) => (a.inInitialPosition = false));
 
-        await this._supervisor.start(inBackground, iterationCount, options);
+        this._supervisor.start(inBackground, iterationCount, options);
 
         this.refreshStatus();
 
@@ -407,17 +575,17 @@ export class Diagram {
             if (iterationCount && iterationCount >= 0) {
                 await new Promise<void>((resolve, reject) => {
                     this._finiteBackgroundLayoutExecutor = {
-                        resolve, reject
+                        resolve,
+                        reject,
                     };
                 });
             }
-
         } else if (!this._sigma) {
             this.refreshSigma();
         }
     }
 
-    async stopLayout(): Promise<void> {
+    public async stopLayout(): Promise<void> {
         if (!this._graph) {
             this._logger.debug("Cannot stop since the graph is not initialized.");
             return;
@@ -426,7 +594,7 @@ export class Diagram {
         this._logger.debug("Stopping the layout.");
 
         if (this._supervisor?.isRunning) {
-            await this._supervisor.stop();
+            this._supervisor.stop();
             this.refreshStatus();
 
             if (!this._sigma) {
@@ -439,7 +607,7 @@ export class Diagram {
         }
     }
 
-    async autoLayout(options?: AutoLayoutOptions): Promise<void> {
+    public async autoLayout(options?: AutoLayoutOptions): Promise<void> {
         options = { ...DEFAULT_AUTO_LAYOUT_OPTIONS, ...options };
 
         if (!this._graph) {
@@ -459,40 +627,33 @@ export class Diagram {
         // rough phase: strong gravity, barnes-hut optimize
         const roughIterationCount = Math.max(100, Math.sqrt(visibleNodeCount) * options.roughIterationFactor);
         this.logger?.debug(`AutoLayout: Running ${Math.floor(roughIterationCount)} rough iterations.`);
-        await this.runLayout(
-            true,
-            roughIterationCount,
-            {
-                adjustSizes: false,
-                strongGravityMode: true,
-                barnesHutOptimize: true,
-                slowDown: 1
-            }
-        );
+        await this.runLayout(true, roughIterationCount, {
+            adjustSizes: false,
+            strongGravityMode: true,
+            barnesHutOptimize: true,
+            slowDown: 1,
+        });
 
         // adjust phase: weak gravity, adjust sizes
-        const adjustIterationCount = Math.max(300, Math.sqrt(visibleNodeCount) * options.adjustIterationFactor);
+        const adjustIterationCount = Math.max(600, Math.sqrt(visibleNodeCount) * options.adjustIterationFactor);
         this.logger?.debug(`AutoLayout: Running ${Math.floor(adjustIterationCount)} adjust iterations.`);
-        await this.runLayout(
-            true,
-            adjustIterationCount,
-            {
-                adjustSizes: true,
-                strongGravityMode: false,
-                barnesHutOptimize: false,
-                slowDown: 2
-            }
-        );
+        await this.runLayout(true, adjustIterationCount, {
+            adjustSizes: true,
+            strongGravityMode: false,
+            barnesHutOptimize: false,
+            slowDown: 2,
+            autoStopAverageTraction: 2,
+        });
     }
 
-    save(options?: ExportOptions): void {
+    public save(options?: ExportOptions): void {
         if (!this._graph) {
-            this._logger.debug("Cannot save since the graph is not initialized.")
+            this._logger.debug("Cannot save since the graph is not initialized.");
             return;
         }
 
         if (!this._sigma) {
-            this._logger.debug("Cannot save since the sigma instance is not initialized.")
+            this._logger.debug("Cannot save since the sigma instance is not initialized.");
             return;
         }
 
@@ -505,20 +666,20 @@ export class Diagram {
         }
     }
 
-    exportPositions(): Record<string, Coordinates> {
+    public exportPositions(): Record<string, Coordinates> {
         const result: Record<string, Coordinates> = {};
         if (this._graph) {
             this._graph.forEachNode((node, attributes) => {
                 result[node] = {
                     x: attributes.x ?? 0,
-                    y: attributes.y ?? 0
+                    y: attributes.y ?? 0,
                 };
             });
         }
         return result;
     }
 
-    importPositions(value: Record<string, Coordinates>) {
+    public importPositions(value: Record<string, Coordinates>) {
         this._graph?.forEachNode((node, attributes) => {
             if (value[node]) {
                 attributes.x = value[node].x;
@@ -527,7 +688,7 @@ export class Diagram {
         });
     }
 
-    highlight(
+    public highlight(
         searchText: string | null,
         searchMode: SearchMode,
         expandedOnly: boolean = false,
@@ -543,34 +704,27 @@ export class Diagram {
             let filter = buildNodeFilter(searchText, searchMode, this._nodeKeys, filterBuilder);
             if (filter === null) {
                 this.mode = DiagramMode.Normal;
-                this._graph.forEachNode((_, a) => a.highlighted = undefined);
+                this._graph.forEachNode((_, a) => (a.highlighted = false));
                 this._sigma?.refresh();
                 return [];
             }
 
             this.mode = DiagramMode.Highlighting;
 
-            if (this._model.data) {
-                Object.entries(this._model.data.nodes).forEach(([id, node]) => {
-                    if (this._graph?.hasNode(id) && (!expandedOnly || !this._graph.getNodeAttribute(id, "hidden"))) {
-                        const isHighlighted = filter!(node);
-                        if (isHighlighted) {
-                            results.push(id);
-                            if (!expandedOnly) {
-                                expandPathsTo(this._graph, id, this.mainRelation ?? undefined);
-                            }
-                        }
-                        this._graph.setNodeAttribute(id, "highlighted", isHighlighted);
+            this._graph.filterNodes((n, na) => {
+                const matches = filter(na);
+                if (matches) {
+                    results.push(n);
+                    if (!expandedOnly) {
+                        expandPathsTo(this._graph!, n, this.mainRelation ?? undefined);
                     }
-                });
-            }
+                }
+                na.highlighted = matches;
+            });
 
             this._sigma?.refresh();
-        }
-        catch (e: any) {
-            this._logger.warn(e?.message
-                ?? e?.toString()
-                ?? "Something bad happened while highlighting nodes.");
+        } catch (e: any) {
+            this._logger.warn(e?.message ?? e?.toString() ?? "Something bad happened while highlighting nodes.");
             return [];
         }
 
@@ -578,17 +732,25 @@ export class Diagram {
         return results;
     }
 
-    async highlightNode(nodeId: string | null, includeSubtree: boolean, includeNeighbors: boolean): Promise<void> {
+    public async highlightNode(
+        nodeId: string | null,
+        includeSubtree: boolean,
+        includeNeighbors: boolean
+    ): Promise<{ hasExpanded: boolean }> {
+        const result: { hasExpanded: boolean } = {
+            hasExpanded: false,
+        };
+
         if (nodeId === null) {
             this._logger.debug("Clearing node highlights.");
-            this._graph?.forEachNode((_, a) => a.highlighted = undefined);
+            this._graph?.forEachNode((_, a) => (a.highlighted = false));
             this.mode = DiagramMode.Normal;
             this._sigma?.refresh();
-            return;
+            return result;
         }
 
         if (!this._graph || !this._graph?.hasNode(nodeId)) {
-            return;
+            return result;
         }
 
         this._graph.forEachNode((n) => this._graph?.setNodeAttribute(n, "highlighted", false));
@@ -599,7 +761,7 @@ export class Diagram {
                 relation: this.mainRelation,
                 callback: (_, attr) => {
                     attr!.highlighted = true;
-                }
+                },
             });
         }
 
@@ -610,16 +772,19 @@ export class Diagram {
         }
 
         const nodeAttributes = this._graph.getNodeAttributes(nodeId);
-        if (nodeAttributes.collapsed) {
+        if (nodeAttributes.hidden === true) {
             await this.refreshSupervisor(true, () =>
-                expandPathsTo(this._graph!, nodeId, this.options.mainRelation ?? undefined));
+                expandPathsTo(this._graph!, nodeId, this.options.mainRelation ?? undefined)
+            );
+            result.hasExpanded = true;
         }
 
         this.mode = DiagramMode.Highlighting;
         this._sigma?.refresh();
+        return result;
     }
 
-    async isolate(
+    public async isolate(
         searchText: string | null,
         searchMode: SearchMode,
         filterBuilder?: IFilterBuilderEntry[]
@@ -646,33 +811,37 @@ export class Diagram {
                     return;
                 }
 
-                for (let id of filterNodes(this._model.data!, filter, true)) {
+                this.selectedNode = null;
+                // NB: This awful construction is here so that the dropping of nodes does not take forever due to
+                //     Sigma's and FA2-supervisor's event listeners.
+                this._sigma?.setGraph(new Graph<HelvegNodeAttributes, HelvegEdgeAttributes, HelvegGraphAttributes>());
+                // NB: Sigma doesn't clear its highlightedNodes correctly
+                ((this._sigma as any)["highlightedNodes"] as Set<string>).clear();
+
+                for (let id of filterNodes(this._graph, filter, true)) {
                     if (this._graph.hasNode(id)) {
-                        this._graph.dropNode(id);
+                        dropNode(this._graph, id);
                         changed = true;
                     }
                 }
             });
-
-        }
-        catch (e: any) {
-            this._logger.warn(e?.message
-                ?? e?.toString()
-                ?? "Something bad happened while isolating nodes.");
+        } catch (e: any) {
+            this._logger.warn(e?.message ?? e?.toString() ?? "Something bad happened while isolating nodes.");
             return;
+        } finally {
+            this._sigma?.setGraph(this._graph);
         }
 
         this._logger.info(`Isolated ${this._graph.nodes().length} nodes.`);
         this.events.graphChanged.trigger(this._graph);
     }
 
-
-    async refresh(options?: DiagramRefreshOptions): Promise<void> {
+    public async refresh(options?: DiagramRefreshOptions): Promise<void> {
         await this.refreshGraph(options ?? this._lastRefreshOptions);
         await this.autoLayout();
     }
 
-    reset(): Promise<void> {
+    public reset(): Promise<void> {
         this.mainRelation = this.options.mainRelation;
         return this.refresh(this.options.refresh);
     }
@@ -689,29 +858,34 @@ export class Diagram {
             throw new Error(`Cannot remove node '${nodeId}' since it does not exist in the graph.`);
         }
 
+        // NB: pre-emptively unset selected node so that Sigma cannot complain that you deleted it
+        //     TODO: Handle better.
+        this.selectedNode = null;
+
         let removedCount = 0;
         if (!options.isTransitive && !this._graph.getNodeAttributes(nodeId).collapsed) {
-            this._graph.dropNode(nodeId);
+            // NB: drop the node but preserve the transitive relations
+            dropNode(this._graph, nodeId);
             removedCount = 1;
         } else {
             let reachable = bfsGraph(this._graph, nodeId, {
-                relation: this.mainRelation
+                relation: this.mainRelation,
             });
 
-            // NB: This awful construction is here so that the dropping of nodes does not take forever due to
-            //     Sigma's and FA2-supervisor's event listeners.
             await this.refreshSupervisor(true, () => {
                 if (!this._graph) {
                     return;
                 }
 
-                this._sigma?.setGraph(new Graph<HelvegNodeAttributes, HelvegEdgeAttributes>());
+                // NB: This awful construction is here so that the dropping of nodes does not take forever due to
+                //     Sigma's and FA2-supervisor's event listeners.
+                this._sigma?.setGraph(new Graph<HelvegNodeAttributes, HelvegEdgeAttributes, HelvegGraphAttributes>());
                 // NB: Sigma doesn't clear its highlightedNodes correctly
                 ((this._sigma as any)["highlightedNodes"] as Set<string>).clear();
-                reachable.forEach(id => this._graph!.dropNode(id));
-                this._graph!.forEachNode((_, a) => a.highlighted = undefined);
+                reachable.forEach((id) => this._graph!.dropNode(id));
+                this._graph!.forEachNode((_, a) => (a.highlighted = false));
                 this._sigma?.setGraph(this._graph);
-            })
+            });
 
             removedCount = reachable.size;
         }
@@ -729,7 +903,60 @@ export class Diagram {
             return;
         }
 
-        await this.refreshSupervisor(true, () => toggleNode(this._graph!, nodeId, this.mainRelation ?? undefined));
+        if (!this.mainRelation) {
+            this._logger.warn("Cannot toggle nodes since the main relation is unset.");
+            return;
+        }
+
+        await this.refreshSupervisor(true, () => toggleNode(this._graph!, nodeId, this.mainRelation!));
+    }
+
+    async toggleAll(shouldExpand?: boolean): Promise<void> {
+        if (!this._graph) {
+            this._logger.warn("Cannot toggle nodes since the graph is not initialized.");
+            return;
+        }
+
+        if (!this.mainRelation) {
+            this._logger.warn("Cannot toggle nodes since the main relation is unset.");
+            return;
+        }
+
+        await this.refreshSupervisor(true, () => {
+            this.graph!.forEachNode((n) => toggleNode(this.graph!, n, this.mainRelation!, shouldExpand));
+        });
+    }
+
+    async dig(collapse: boolean = false): Promise<void> {
+        if (!this._graph) {
+            this._logger.warn("Cannot toggle nodes since the graph is not initialized.");
+            return;
+        }
+
+        if (!this.mainRelation) {
+            this._logger.warn("Cannot toggle nodes since the main relation is unset.");
+            return;
+        }
+
+        await this.refreshSupervisor(true, () => {
+            if (collapse) {
+                const maxVisibleDepth = this.graph
+                    ?.filterNodes((_n, na) => !na.hidden && (!na.collapsed || na.childCount === 0))
+                    .reduce((md, node) => Math.max(md, this.graph?.getNodeAttribute(node, "depth") ?? -1), -1);
+                this.graph?.forEachNode((_n, na) => {
+                    if (!na.hidden && na.depth == maxVisibleDepth) {
+                        const parent = getParent(this.graph!, na, this.mainRelation ?? undefined);
+                        if (parent != null) {
+                            collapseNode(this.graph!, parent.id, this.mainRelation ?? undefined);
+                        }
+                    }
+                });
+            } else {
+                this.graph
+                    ?.filterNodes((_n, na) => !na.hidden && na.collapsed)
+                    .forEach((n) => expandNode(this.graph!, n, { relation: this.mainRelation! }));
+            }
+        });
     }
 
     /**
@@ -751,34 +978,38 @@ export class Diagram {
             if (modify) {
                 modify();
             }
-        }
-        finally {
+        } finally {
             if (!this._graph) {
                 return;
             }
 
             try {
                 this._sigma?.refresh();
-            } catch { }
+            } catch {}
 
             this._supervisor = initializeSupervisor(
                 this._graph,
                 this.onSupervisorProgress.bind(this),
                 this.onSupervisorStopped.bind(this),
+                this.onSupervisorUpdated.bind(this),
                 this.options.forceAtlas2,
-                this.logger);
-            if (shouldLayoutContinue
-                && (lastStatus === DiagramStatus.Running || lastStatus === DiagramStatus.RunningInBackground)) {
-                await this._supervisor.start(lastStatus === DiagramStatus.RunningInBackground);
+                this.logger
+            );
+            if (
+                shouldLayoutContinue &&
+                (lastStatus === DiagramStatus.Running || lastStatus === DiagramStatus.RunningInBackground)
+            ) {
+                this._supervisor.start(lastStatus === DiagramStatus.RunningInBackground);
                 this.refreshStatus();
             }
         }
     }
 
     private refreshStatus() {
-        this.status = this._supervisor?.isRunning === true && this._supervisor?.isInBackground === true
-            ? DiagramStatus.RunningInBackground
-            : this._supervisor?.isRunning === true
+        this.status =
+            this._supervisor?.isRunning === true && this._supervisor?.isInBackground === true
+                ? DiagramStatus.RunningInBackground
+                : this._supervisor?.isRunning === true
                 ? DiagramStatus.Running
                 : DiagramStatus.Stopped;
     }
@@ -786,7 +1017,11 @@ export class Diagram {
     private onSupervisorProgress(message: ForceAtlas2Progress) {
         this.stats = {
             iterationCount: message.iterationCount,
-            speed: message.speed
+            speed: message.iterationsPerSecond,
+            globalSwinging: message.globalSwinging,
+            globalTraction: message.globalTraction,
+            averageSwinging: message.averageSwinging,
+            averageTraction: message.averageTraction,
         };
     }
 
@@ -799,7 +1034,14 @@ export class Diagram {
         if (!this._sigma) {
             this.refreshSigma();
         }
+    }
 
+    private onSupervisorUpdated() {
+        this._sigma?.refresh({
+            partialGraph: { nodes: (this._supervisor?.nodeIds as string[]) ?? [] },
+            schedule: true,
+            skipIndexation: false,
+        });
     }
 
     private refreshSigma(): void {
@@ -813,35 +1055,76 @@ export class Diagram {
             this._sigma.kill();
         }
 
-        this._sigma = initializeSigma(
-            this._sigmaElement,
-            this._graph,
-            this._glyphProgram,
-            this.onNodeClick.bind(this),
-            this.onNodeDown.bind(this),
-            undefined,
-            this.onDown.bind(this),
-            this.onUp.bind(this),
-            this.onMove.bind(this)
+        this._sigma = initializeSigma(this._sigmaElement, this._graph, this._glyphProgram);
+        const mouse = this._sigma.getMouseCaptor();
+        const touch = this._sigma.getTouchCaptor();
+        // mouse.on("mousedown", this.onDown.bind(this));
+        // touch.on("touchdown", (e) => this.onDown(e.touches[0]));
+        // mouse.on("mouseup", this.onUp.bind(this));
+        // touch.on("touchup", (e) => this.onUp(e.touches[0]));
+        mouse.on("mousemovebody", (e) => {
+            if (this.onMove(e) === false) {
+                // prevent Sigma from moving the camera
+                e.preventSigmaDefault();
+                e.original.preventDefault();
+                e.original.stopPropagation();
+            }
+        });
+        touch.on("touchmove", (e) => {
+            if (e.touches.length == 1) {
+                this.onMove(e.touches[0]);
+                e.original.preventDefault();
+            }
+        });
+        this._sigma.on("downNode", (e) =>
+            this.events.nodeDown.trigger({
+                nodeId: e.node,
+                coords: e.event,
+            })
         );
-        this._sigma.on("enterNode", this.onNodeEnter.bind(this));
-        this._sigma.on("leaveNode", this.onNodeLeave.bind(this));
-        this._sigma.on("doubleClickNode", this.onNodeDoubleClick.bind(this));
-        this.reconfigureSigma();
+        this._sigma.on("upNode", (e) =>
+            this.events.nodeUp.trigger({
+                nodeId: e.node,
+                coords: e.event,
+            })
+        );
+        this._sigma.on("upStage", (e) => this.events.stageUp.trigger(e.event));
+        this._sigma.on("downStage", (e) => this.events.stageDown.trigger(e.event));
+        this._sigma.on("doubleClickStage", (e) => this.events.stageDoubleClicked.trigger(e.event));
+        this._sigma.on("enterNode", this.updateCursor.bind(this));
+        this._sigma.on("leaveNode", this.resetCursor.bind(this));
+        this._sigma.on("doubleClickNode", (e) =>
+            this.events.nodeDoubleClicked.trigger({
+                nodeId: e.node,
+                coords: e.event,
+            })
+        );
+        this.scheduleReconfigureSigma();
     }
 
-    private reconfigureSigma(): void {
-        if (!this._sigma) {
+    private _isReconfigureSigmaScheduled: boolean = false;
+    private scheduleReconfigureSigma(): void {
+        if (this._isReconfigureSigmaScheduled) {
             return;
         }
 
-        const tmpOptions: GlyphProgramOptions = {
-            ...this.options.glyphProgram,
-            showLabels: this.options.glyphProgram.showLabels && this.mode == DiagramMode.Normal,
-            showOnlyHighlighted: this.mode == DiagramMode.Highlighting
-        };
+        requestAnimationFrame(() => {
+            this._isReconfigureSigmaScheduled = false;
 
-        configureSigma(this._sigma, tmpOptions);
+            if (!this._sigma) {
+                return;
+            }
+
+            const tmpOptions: GlyphProgramOptions = {
+                ...this.options.glyphProgram,
+                showLabels: this.options.glyphProgram.showLabels && this.mode == DiagramMode.Normal,
+                showOnlyHighlighted: this.mode == DiagramMode.Highlighting,
+            };
+
+            configureSigma(this._sigma, tmpOptions);
+        });
+
+        this._isReconfigureSigmaScheduled = true;
     }
 
     private async refreshGraph(options: DiagramRefreshOptions): Promise<void> {
@@ -853,66 +1136,64 @@ export class Diagram {
         this._logger.debug(`Refreshing the graph to match the '${this._model.name}' model.`);
 
         this._graph = initializeGraph(
-            this._model,
+            this._modelGraph,
             this.mainRelation ?? undefined,
             options.selectedRelations ?? (this.mainRelation ? [this.mainRelation] : []),
             options.selectedKinds,
-            options.expandedDepth);
+            options.expandedDepth,
+            options.shouldKeepVisible !== true
+                ? undefined
+                : new Set<string>(this._graph?.filterNodes((_n, a) => a.hidden === false))
+        );
         this.events.graphChanged.trigger(this._graph);
-        this.restyleGraph();
+        this.scheduleRestyle();
 
         await this.refreshSupervisor(false, () => this._graph && this._sigma?.setGraph(this._graph));
 
         this.mode = DiagramMode.Normal;
     }
 
-    private restyleGraph(): void {
-        if (!this._graph || !this._model || !this._model.data) {
+    private _isRestyleScheduled: boolean = false;
+    private scheduleRestyle(): void {
+        if (this._isRestyleScheduled) {
             return;
         }
 
-        this._logger.debug(`Restyling the graph.`);
+        requestAnimationFrame(() => {
+            this._isRestyleScheduled = false;
+            if (!this._graph || !this._model || !this._model.data) {
+                return;
+            }
 
-        styleGraph(
-            this._graph,
-            this._model,
-            this.options.glyphProgram,
-            this.options.nodeStylist,
-            this.options.relationStylist,
-            this.options.edgeStylist,
-            this.logger);
+            this._logger.debug(`Restyling the graph.`);
+            styleGraph(this._graph, this.options.glyphProgram, {
+                edgeStylist: this.edgeStylist,
+                edgeStylistParams: this.edgeStylistParams,
+                nodeStylist: this.nodeStylist,
+                nodeStylistParams: this.nodeStylistParams,
+                relationStylist: this.relationStylist,
+                relationStylistParams: this.relationStylistParams,
+            });
+
+            this._sigma?.scheduleRefresh();
+        });
+        this._isRestyleScheduled = true;
     }
 
-    private onNodeClick(event: SigmaNodeEventPayload): void {
-        this.events.nodeClicked.trigger(event.node);
-    }
-
-    private onNodeDown(event: SigmaNodeEventPayload): void {
-        if (this._canDragNodes) {
-            this.draggedNode = event.node;
-            this._graph?.setNodeAttribute(event.node, "highlighted", true);
-            this._graph?.setNodeAttribute(event.node, "fixed", true);
-        }
-    }
-
-    private onNodeDoubleClick(event: SigmaNodeEventPayload): void {
-        this.events.nodeDoubleClicked.trigger(event.node);
-    }
-
-    private updateModifierKeyState(e: MouseEvent | KeyboardEvent) {
+    private updateModifierKeyState(e: { altKey?: boolean; ctrlKey?: boolean; shiftKey?: boolean }) {
         const newState: ModifierKeyState = {
-            alt: e.altKey,
-            control: e.ctrlKey,
-            shift: e.shiftKey
+            alt: e.altKey ?? false,
+            control: e.ctrlKey ?? false,
+            shift: e.shiftKey ?? false,
         };
-        if (!deepCompare(this._modifierKeyState, newState)) {
-            const oldState = { ...this._modifierKeyState };
-            Object.assign(this._modifierKeyState, newState);
-            this.events.modifierKeysChanged.trigger({ old: oldState, new: this._modifierKeyState });
+        this.modifierKeyState = newState;
+
+        if (this.hoveredNode != null) {
+            this.updateCursor();
         }
     }
 
-    private onNodeEnter(): void {
+    private updateCursor(): void {
         if (this.cursorOptions.altHoverCursor && this._modifierKeyState.alt) {
             this.element.style.cursor = this.cursorOptions.altHoverCursor;
         } else if (this.cursorOptions.controlHoverCursor && this._modifierKeyState.control) {
@@ -924,41 +1205,36 @@ export class Diagram {
         }
     }
 
-    private onNodeLeave(event: SigmaNodeEventPayload): void {
+    private resetCursor(): void {
         this.element.style.cursor = this.cursorOptions.defaultCursor;
     }
 
-    private onDown(_event: Coordinates): void {
-        this._gestures.isCaptorDown = true;
-        this._gestures.hasPanned = false;
-    }
-
-    private onUp(_coords: Coordinates): void {
-        if (this.draggedNode) {
+    public dragNode(nodeId: string | null) {
+        if (this.draggedNode !== nodeId && this.draggedNode) {
             this._graph?.setNodeAttribute(this.draggedNode, "highlighted", false);
             this._graph?.setNodeAttribute(this.draggedNode, "fixed", false);
-            this.draggedNode = null;
         }
 
-        if (!this._gestures.hasPanned) {
-            // deselect the node and possibly unhighlight nodes
-            this.selectedNode = null;
-        }
+        this.draggedNode = nodeId;
 
-        this._gestures.hasPanned = false;
-        this._gestures.isCaptorDown = false;
+        if (this.draggedNode !== null) {
+            this._graph?.setNodeAttribute(nodeId, "highlighted", true);
+            this._graph?.setNodeAttribute(nodeId, "fixed", true);
+        }
     }
 
     private onMove(coords: Coordinates): boolean {
-        if (this._gestures.isCaptorDown) {
-            this._gestures.hasPanned = true;
+        if (this.draggedNode) {
+            this.events.nodeMove.trigger({ nodeId: this.draggedNode, coords: coords });
+        } else {
+            this.events.stageMove.trigger(coords);
         }
 
         if (!this.draggedNode || !this._sigma || !this._graph) {
             return true;
         }
 
-        const pos = this._sigma.viewportToGraph(coords)
+        const pos = this._sigma.viewportToGraph(coords);
 
         this._graph.setNodeAttribute(this.draggedNode, "x", pos.x);
         this._graph.setNodeAttribute(this.draggedNode, "y", pos.y);
@@ -973,7 +1249,7 @@ export class Diagram {
         }
 
         if (this.hoveredNode) {
-            this.onNodeEnter();
+            this.updateCursor();
         }
     }
 }

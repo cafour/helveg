@@ -1,11 +1,36 @@
-import forceAtlas2, { ForceAtlas2Settings, inferSettings } from "../deps/graphology-layout-forceatlas2.ts";
-import Graph from "../deps/graphology.ts";
-import { Sigma, Coordinates, DEFAULT_SETTINGS, NodeProgramType, SigmaNodeEventPayload, SigmaStageEventPayload } from "../deps/sigma.ts";
+import { ForceAtlas2Settings, inferSettings } from "../deps/graphology-layout-forceatlas2.ts";
+import { Sigma, DEFAULT_SETTINGS, NodeProgramType, AbstractNodeProgram } from "../deps/sigma.ts";
 import { ForceAtlas2Progress, ForceAtlas2Supervisor } from "../layout/forceAltas2Supervisor.ts";
-import { DataModel, Multigraph, MultigraphRelation } from "../model/data-model.ts";
-import { HelvegEdgeAttributes, HelvegGraph, HelvegNodeAttributes, collapseNode, expandNode, findRoots, toggleNode } from "../model/graph.ts";
+import { DataModel, Multigraph } from "../model/data-model.ts";
+import {
+    HelvegEdgeAttributes,
+    HelvegGraph,
+    HelvegGraphAttributes,
+    HelvegNodeAttributes,
+    HelvegNodeProgramType,
+    HelvegSigma,
+    collapseNode,
+    dropNode,
+    expandNode,
+    expandPathsTo,
+    findRoots,
+    getParent,
+    hoveredNodeSymbol,
+    isHoverEnabledSymbol,
+} from "../model/graph.ts";
 import { ILogger, Logger, sublogger } from "../model/logger.ts";
-import { EdgeStylist, FALLBACK_EDGE_STYLE, FALLBACK_NODE_STYLE, NodeStyle, NodeStylist, OutlineStyle, Outlines, RelationStylist, getOutlinesTotalWidth } from "../model/style.ts";
+import {
+    DiagnosticIndicatorStyle,
+    EdgeStylist,
+    FALLBACK_EDGE_STYLE,
+    FALLBACK_NODE_STYLE,
+    FireStatus,
+    NodeStyle,
+    NodeStylist,
+    OutlineStyle,
+    Outlines,
+    RelationStylist,
+} from "../model/style.ts";
 import { bfsGraph, bfsMultigraph } from "../model/traversal.ts";
 import { GlyphProgramOptions, SizingMode } from "../rendering/node.glyph.ts";
 import { WorkaroundNodeProgram } from "../rendering/workaround_node.ts";
@@ -14,41 +39,23 @@ export function initializeSupervisor(
     graph: HelvegGraph,
     onSupervisorProgress: (progress: ForceAtlas2Progress) => void,
     onSupervisorStopped: () => void,
+    onSupervisorUpdated: () => void,
     settings?: ForceAtlas2Settings,
     logger?: ILogger
 ): ForceAtlas2Supervisor {
-
     settings ??= { ...inferSettings(graph), adjustSizes: true };
     const supervisor = new ForceAtlas2Supervisor(graph, settings, logger ? sublogger(logger, "fa2") : undefined);
     supervisor.progress.subscribe(onSupervisorProgress);
     supervisor.stopped.subscribe(onSupervisorStopped);
+    supervisor.updated.subscribe(onSupervisorUpdated);
     return supervisor;
 }
-
-// HACK: Sigma does not allow to disable hovering on nodes, so we have to track it ourselves.
-export const isHoverEnabledSymbol = Symbol("isHoverEnabled");
-export const hoveredNodeSymbol = Symbol("hoveredNode");
-
-export type HelvegSigma = Sigma<HelvegNodeAttributes, HelvegEdgeAttributes>
-    & { [isHoverEnabledSymbol]: boolean, [hoveredNodeSymbol]: string | null };
-
-export type HelvegNodeProgramType = NodeProgramType<HelvegNodeAttributes, HelvegEdgeAttributes>;
-
-export abstract class HelvegNodeProgram<Uniform extends string>
-    extends WorkaroundNodeProgram<Uniform, HelvegNodeAttributes, HelvegEdgeAttributes> { };
 
 export function initializeSigma(
     element: HTMLElement,
     graph: HelvegGraph,
-    glyphProgram: HelvegNodeProgramType,
-    onClick?: (payload: SigmaNodeEventPayload) => void,
-    onNodeDown?: (payload: SigmaNodeEventPayload) => void,
-    onStageDown?: (payload: SigmaStageEventPayload) => void,
-    onDown?: (coords: Coordinates) => void,
-    onUp?: (coords: Coordinates) => void,
-    onMove?: (coords: Coordinates) => boolean | void
+    glyphProgram: HelvegNodeProgramType
 ): HelvegSigma {
-
     const sigma = new Sigma(graph, element, {
         nodeProgramClasses: {
             glyph: glyphProgram,
@@ -58,50 +65,13 @@ export function initializeSigma(
         itemSizesReference: "positions",
         zoomToSizeRatioFunction: (ratio) => ratio,
     }) as HelvegSigma;
+
+    // graph.removeAllListeners("eachNodeAttributesUpdated");
+
     sigma[isHoverEnabledSymbol] = false;
     sigma[hoveredNodeSymbol] = null;
 
-    if (onClick) {
-        sigma.on("clickNode", onClick);
-    }
-
-    if (onNodeDown) {
-        sigma.on("downNode", onNodeDown);
-    }
-
-    if (onStageDown) {
-        sigma.on("downStage", onStageDown);
-    }
-
-    if (onDown) {
-        sigma.getMouseCaptor().on("mousedown", e => onDown(e));
-        sigma.getTouchCaptor().on("touchdown", e => onDown(e.touches[0]));
-    }
-
-    if (onUp) {
-        sigma.getMouseCaptor().on("mouseup", onUp);
-        sigma.getTouchCaptor().on("touchup", e => onUp(e.touches[0]));
-    }
-
-    if (onMove) {
-        sigma.getMouseCaptor().on("mousemovebody", e => {
-            if (onMove(e) === false) {
-                // prevent Sigma from moving the camera
-                e.preventSigmaDefault();
-                e.original.preventDefault();
-                e.original.stopPropagation();
-            }
-
-        });
-        sigma.getTouchCaptor().on("touchmove", e => {
-            if (e.touches.length == 1) {
-                onMove(e.touches[0]);
-                e.original.preventDefault();
-            }
-        });
-    }
-
-    sigma.on("enterNode", e => {
+    sigma.on("enterNode", (e) => {
         if (sigma[isHoverEnabledSymbol]) {
             sigma[hoveredNodeSymbol] = e.node;
         } else {
@@ -109,30 +79,27 @@ export function initializeSigma(
             // HACK: This is IMHO currently the only way to force Sigma *not to* render hovered nodes.
             (sigma as any).hoveredNode = null;
         }
-    })
+    });
 
-    sigma.on("leaveNode", e => {
+    sigma.on("leaveNode", (e) => {
         if (sigma[isHoverEnabledSymbol]) {
             sigma[hoveredNodeSymbol] = null;
             // HACK: This is IMHO currently the only way to force Sigma *not to* render hovered nodes.
             (sigma as any).hoveredNode = null;
         }
-    })
+    });
 
-    sigma.getMouseCaptor().on("doubleClick", e => {
+    sigma.getMouseCaptor().on("doubleClick", (e) => {
         e.preventSigmaDefault();
     });
-    sigma.getTouchCaptor().on("doubletap", e => {
+    sigma.getTouchCaptor().on("doubletap", (e) => {
         e.preventSigmaDefault();
     });
 
     return sigma;
 }
 
-export function configureSigma(
-    sigma: HelvegSigma,
-    options: GlyphProgramOptions
-) {
+export function configureSigma(sigma: HelvegSigma, options: GlyphProgramOptions) {
     sigma.setSetting("renderLabels", options.showLabels);
     if (options.isPizzaEnabled) {
         // sigma.setSetting("zoomToSizeRatioFunction", (cameraRatio) => cameraRatio);
@@ -146,62 +113,48 @@ export function configureSigma(
 }
 
 export function initializeGraph(
-    model: DataModel,
+    modelGraph: Readonly<HelvegGraph>,
     mainRelation?: string,
     selectedRelations?: string[],
     selectedKinds?: string[],
-    expandedDepth?: number
+    expandedDepth?: number,
+    visibleNodes?: Set<string>
 ): HelvegGraph {
+    const graph = modelGraph.copy();
 
-    const graph = new Graph<HelvegNodeAttributes, HelvegEdgeAttributes>({
-        multi: true,
-        allowSelfLoops: true,
-        type: "directed"
-    });
-
-    if (!model.data) {
-        return graph;
+    if (selectedKinds != null) {
+        graph.forEachNode((n, na) => {
+            if (na.kind == null || !selectedKinds.includes(na.kind)) {
+                dropNode(graph, n);
+            }
+        });
     }
 
-    for (const nodeId in model.data.nodes) {
-        const node = model.data.nodes[nodeId];
-        if (!node.kind || !selectedKinds || selectedKinds.includes(node.kind)) {
-            graph.addNode(nodeId, {
-                label: node.name ?? nodeId,
-                x: 0,
-                y: 0,
-                kind: node.kind,
-                diff: node.diff
-            });
-        }
-    }
-
-    selectedRelations ??= Object.keys(model.data.relations);
-    for (const relationId of selectedRelations) {
-        const relation = model.data.relations[relationId];
-        if (!relation) {
-            continue;
-        }
-
-        if (relation.isTransitive) {
-            addTransitiveRelation(graph, model.data, relationId);
-        } else {
-            addRegularRelation(graph, model.data, relationId);
-        }
+    if (selectedRelations != null) {
+        graph.forEachEdge((e, ea) => {
+            if (ea.relation == null || !selectedRelations.includes(ea.relation)) {
+                graph.dropEdge(e);
+            }
+        });
     }
 
     if (mainRelation !== undefined && expandedDepth !== undefined && expandedDepth >= 0) {
         const mainRoots = findRoots(graph, mainRelation);
-        mainRoots.forEach(r => {
+        mainRoots.forEach((r) => {
             collapseNode(graph, r, mainRelation);
             bfsGraph(graph, r, {
                 maxDepth: expandedDepth - 1,
                 callback: (n, _a, d) => {
-                    expandNode(graph, n, false, mainRelation);
-                }
-
+                    expandNode(graph, n, { relation: mainRelation });
+                },
             });
         });
+    }
+
+    if (mainRelation !== undefined && visibleNodes !== undefined && visibleNodes.size > 0) {
+        for (const node of visibleNodes) {
+            expandPathsTo(graph, node, mainRelation);
+        }
     }
 
     return graph;
@@ -216,7 +169,7 @@ function addRegularRelation(graph: HelvegGraph, multigraph: Multigraph, relation
     for (let [id, edge] of Object.entries(relation.edges)) {
         if (graph.hasNode(edge.src) && graph.hasNode(edge.dst)) {
             graph.addDirectedEdgeWithKey(`${relationId};${id}`, edge.src, edge.dst, {
-                relation: relationId
+                relation: relationId,
             });
         }
     }
@@ -231,14 +184,14 @@ function addTransitiveRelation(graph: HelvegGraph, multigraph: Multigraph, relat
     addRegularRelation(graph, multigraph, relationId);
 
     graph.forEachNode((id, a) => {
-        // find nodes that are reachable from the current node, stop at those that are already in the graph 
+        // find nodes that are reachable from the current node, stop at those that are already in the graph
         const transitiveChildren = bfsMultigraph(multigraph, id, {
             relation: relationId,
-            callback: n => n === id || !graph.hasNode(n)
+            callback: (n) => n === id || !graph.hasNode(n),
         });
 
         // add the transitive edges and remove the unincluded nodes
-        transitiveChildren.forEach(child => {
+        transitiveChildren.forEach((child) => {
             if (child === id) {
                 // the node doesn't have an edge to itself
                 return;
@@ -248,7 +201,7 @@ function addTransitiveRelation(graph: HelvegGraph, multigraph: Multigraph, relat
                 let edgeKey = `declares;${id};${child}`;
                 if (!graph.hasEdge(edgeKey)) {
                     graph.addDirectedEdgeWithKey(edgeKey, id, child, {
-                        relation: relationId
+                        relation: relationId,
                     });
                 }
             }
@@ -258,7 +211,7 @@ function addTransitiveRelation(graph: HelvegGraph, multigraph: Multigraph, relat
 
 export function toHelvegNodeAttributes(
     glyphProgramOptions: GlyphProgramOptions,
-    nodeStyle: NodeStyle,
+    nodeStyle: NodeStyle
 ): Partial<HelvegNodeAttributes> {
     const attributes: Partial<HelvegNodeAttributes> = {};
 
@@ -289,7 +242,7 @@ export function toHelvegNodeAttributes(
             default:
                 return value;
         }
-    }
+    };
 
     attributes.size = getSize(glyphProgramOptions.sizingMode, attributes.size);
     attributes.iconSize = getSize(glyphProgramOptions.sizingMode, attributes.iconSize);
@@ -302,56 +255,85 @@ export function toHelvegNodeAttributes(
     attributes.slices = nodeStyle.slices;
     attributes.fire = nodeStyle.fire;
     attributes.contour = nodeStyle.contour;
+    attributes.diagnosticIndicator = nodeStyle.diagnosticIndicator;
 
     return attributes;
 }
 
-export function styleGraph(
-    graph: HelvegGraph,
-    model: DataModel,
-    glyphProgramOptions: GlyphProgramOptions,
-    nodeStylist?: NodeStylist,
-    relationStylist?: RelationStylist,
-    edgeStylist?: EdgeStylist,
-    logger?: ILogger) {
+export interface StyleGraphOptions {
+    nodeStylist?: NodeStylist<any>;
+    nodeStylistParams?: any;
+    relationStylist?: RelationStylist<any>;
+    relationStylistParams?: any;
+    edgeStylist?: EdgeStylist<any>;
+    edgeStylistParams?: any;
+}
 
-    graph.forEachNode((node, attributes) => {
+export function styleGraph(graph: HelvegGraph, glyphProgramOptions: GlyphProgramOptions, options?: StyleGraphOptions) {
+    const model = graph.getAttribute("model");
+    options ??= {};
+    if (options.nodeStylist) {
+        graph.forEachNode((_n, attributes) => {
+            let nodeStyle = { ...FALLBACK_NODE_STYLE };
+            if (options.nodeStylist) {
+                nodeStyle = { ...nodeStyle, ...options.nodeStylist(attributes, options.nodeStylistParams) };
+            }
 
-        if (!model.data || !model.data.nodes[node]) {
-            logger?.debug(`Node '${node}' does not exist in the model.`);
-            return;
+            Object.assign(attributes, toHelvegNodeAttributes(glyphProgramOptions, nodeStyle));
+        });
+    }
+
+    graph.forEachNode((_n, attributes) => {
+        if (attributes.fire && attributes.fire !== FireStatus.None) {
+            const indicator =
+                attributes.fire === FireStatus.Flame
+                    ? DiagnosticIndicatorStyle.ERROR
+                    : DiagnosticIndicatorStyle.WARNING;
+            let current = getParent(graph, attributes);
+            while (current != null) {
+                if (
+                    current.diagnosticIndicator === DiagnosticIndicatorStyle.ERROR ||
+                    (indicator === DiagnosticIndicatorStyle.ERROR &&
+                        current.diagnosticIndicator === DiagnosticIndicatorStyle.WARNING)
+                ) {
+                    break;
+                }
+
+                current.diagnosticIndicator = indicator;
+                current = getParent(graph, current);
+            }
         }
-
-        let nodeStyle = { ...FALLBACK_NODE_STYLE };
-        if (nodeStylist) {
-            nodeStyle = { ...nodeStyle, ...nodeStylist(model.data.nodes[node]) };
-        }
-
-        Object.assign(attributes, toHelvegNodeAttributes(glyphProgramOptions, nodeStyle));
     });
 
-    graph.forEachEdge((edge, attributes) => {
-        if (!attributes.relation || !model.data) {
-            return;
-        }
+    if (options.edgeStylist || options.relationStylist) {
+        graph.forEachEdge((edge, attributes) => {
+            if (!attributes.relation || !model.data) {
+                return;
+            }
+            const relation = model.data.relations[attributes.relation];
+            if (!relation || !relation.edges) {
+                return;
+            }
 
-        const relation = model.data.relations[attributes.relation];
-        if (!relation || !relation.edges) {
-            return;
-        }
+            let edgeStyle = { ...FALLBACK_EDGE_STYLE };
 
-        let edgeStyle = { ...FALLBACK_EDGE_STYLE };
+            if (options.relationStylist) {
+                edgeStyle = {
+                    ...edgeStyle,
+                    ...options.relationStylist(attributes.relation, options.relationStylistParams),
+                };
+            }
 
-        if (relationStylist) {
-            edgeStyle = { ...edgeStyle, ...relationStylist(attributes.relation) };
-        }
+            if (options.edgeStylist) {
+                edgeStyle = {
+                    ...edgeStyle,
+                    ...options.edgeStylist(attributes.relation, relation.edges[edge], options.edgeStylistParams),
+                };
+            }
 
-        if (edgeStylist) {
-            edgeStyle = { ...edgeStyle, ...edgeStylist(attributes.relation, relation.edges[edge]) };
-        }
-
-        attributes.type = edgeStyle.type;
-        attributes.color = edgeStyle.color;
-        attributes.size = edgeStyle.width;
-    });
+            attributes.type = edgeStyle.type;
+            attributes.color = edgeStyle.color;
+            attributes.size = edgeStyle.width;
+        });
+    }
 }

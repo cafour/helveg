@@ -69,7 +69,7 @@ float octagonContour() {
     float field = cos(floor(0.5f + angle / radius) * radius - angle) * length(v_diffVector);
     field /= v_radii.x;
 
-    float outline = (field < 0.9f ? 1.0f : 0.0f) - (field < 0.8f ? 1.0f : 0.0f);
+    float outline = (field < 0.9f ? 1.0f : 0.0f) - (field < 0.82f ? 1.0f : 0.0f);
     return outline;
 }
 
@@ -83,7 +83,7 @@ float hexagonContour() {
     field /= v_radii.x;
     stripes = stripes < 0.98f ? 1.0f : 0.0f;
 
-    float outline = (field < 0.85f ? 1.0f : 0.0f) - (field < 0.75f ? 1.0f : 0.0f);
+    float outline = (field < 0.85f ? 1.0f : 0.0f) - (field < 0.77f ? 1.0f : 0.0f);
     return outline * stripes;
 }
 

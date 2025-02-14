@@ -6,7 +6,7 @@
         type DiagramStats,
         getRelations,
         getNodeKinds,
-        FALLBACK_NODE_STYLE,
+        CSHARP_RELATION_HINTS,
     } from "../deps/helveg-diagram.ts";
     import { createEventDispatcher, getContext } from "svelte";
     import Icon from "./Icon.svelte";
@@ -19,6 +19,10 @@
     import ToggleAllCheckbox from "./ToggleAllCheckbox.svelte";
     import Hint from "./Hint.svelte";
     import NodeKindIcon from "./NodeKindIcon.svelte";
+    import ButtonStretch from "./ButtonStretch.svelte";
+    import { OP_REFRESH } from "../operations/op-layout.ts";
+    import type { IExplorerState } from "../explorer-state.ts";
+    import { getShortcutHint } from "../operations/executor.ts";
 
     export let status: DiagramStatus;
     export let stats: DiagramStats;
@@ -26,58 +30,77 @@
     $: items = [
         { key: "Iterations", value: stats?.iterationCount.toString() },
         { key: "Speed", value: `${stats?.speed.toFixed(3)} iterations/s` },
+        { key: "Global traction", value: stats?.globalTraction.toFixed(3) },
+        { key: "Global swinging", value: stats?.globalSwinging.toFixed(3) },
+        { key: "Average traction", value: stats?.averageTraction.toFixed(3) },
+        { key: "Average swinging", value: stats?.averageSwinging.toFixed(3) },
     ];
 
     $: relations = getRelations($model.data);
 
     let dispatch = createEventDispatcher();
 
+    const state = getContext<IExplorerState>("state");
     let diagram = getContext<Diagram>("diagram");
     let model = getContext<Readable<DataModel>>("model");
     let layoutOptions = getContext<Writable<LayoutOptions>>("layoutOptions");
     let dataOptions = getContext<Writable<DataOptions>>("dataOptions");
 
     $: kinds = getNodeKinds($model.data).sort(
-        (a, b) =>
-            diagram.options.nodeKindOrder.indexOf(a) -
-            diagram.options.nodeKindOrder.indexOf(b),
+        (a, b) => diagram.options.nodeKindOrder.indexOf(a) - diagram.options.nodeKindOrder.indexOf(b),
     );
+
+    let isDirty: boolean = false;
+
+    function makeDirty() {
+        isDirty = true;
+    }
 </script>
 
 <Panel name="Layout" indent={false} id={AppPanels.Layout}>
-    <Subpanel class="sticky top-0">
-        <button
-            on:click={() => dispatch("refresh")}
-            class="button-stretch primary mb-8 flex flex-row gap-4 align-items-center justify-content-center"
-        >
-            <Icon name="vscode:refresh" />
-            Run Layout
-        </button>
-        <label>
-            <div class="flex flex-row gap-8">
-                <span> ExpandedDepth </span>
-                <Hint
-                    text="The initial visible depth of the diagram. Press the Refresh button to reset the diagram to this depth."
-                />
-                <input
-                    type="number"
-                    min="-1"
-                    bind:value={$dataOptions.expandedDepth}
-                />
-            </div>
-        </label>
+    <Subpanel class="sticky top-0" indent={false}>
+        <div class="px-8 pt-8 flex flex-col">
+            <ButtonStretch
+                class="primary flex flex-row gap-4 align-items-center justify-content-center"
+                on:click={async () => {
+                    isDirty = false;
+                    await state.operationExecutor.triggerManually(OP_REFRESH, undefined);
+                }}
+                hint={OP_REFRESH.hint}
+                icon={OP_REFRESH.icon}
+                name={OP_REFRESH.name}
+                shortcut={getShortcutHint(OP_REFRESH.shortcut)}
+            >
+                Refresh
+            </ButtonStretch>
+            <span class:hidden={!isDirty} class="text-xs text-center" style="color: var(--color-warning-500);"
+                >Changes require a refresh!</span
+            >
+        </div>
+        <Subpanel class="noborder" name="Refresh options" collapsed={true}>
+            <label>
+                <div class="flex flex-row gap-8 space-nowrap">
+                    <span>Expanded depth</span>
+                    <Hint
+                        text="The initial visible depth of the diagram. Press the Refresh button to reset the diagram to this depth. Set to -1 to expand the entire graph."
+                    />
+                    <input type="number" min="-1" bind:value={$dataOptions.expandedDepth} />
+                </div>
+            </label>
+            <label>
+                <div class="flex flex-row gap-8 space-nowrap">
+                    <input type="checkbox" bind:checked={$dataOptions.shouldKeepVisible} />
+                    <span>Keep visible</span>
+                    <Hint text="Keep the nodes that are visible in the current graph." />
+                </div>
+            </label>
+        </Subpanel>
     </Subpanel>
 
-    <Subpanel
-        name="Relations"
-        hint="Allows you to pick which relationships are visualized."
-    >
+    <Subpanel name="Relations" hint="Allows you to pick which relationships are visualized.">
         <!-- svelte-ignore a11y-label-has-associated-control -->
         <label>
-            <ToggleAllCheckbox
-                bind:selected={$dataOptions.selectedRelations}
-                all={relations}
-            />
+            <ToggleAllCheckbox bind:selected={$dataOptions.selectedRelations} all={relations} on:change={makeDirty} />
             <span>all</span>
         </label>
         {#each relations as relation}
@@ -86,31 +109,28 @@
                     type="checkbox"
                     bind:group={$dataOptions.selectedRelations}
                     value={relation}
+                    on:change={makeDirty}
                 />
                 <span>{relation}</span>
+                {#if CSHARP_RELATION_HINTS[relation] != null}
+                    <Hint text={CSHARP_RELATION_HINTS[relation]} />
+                {/if}
             </label>
         {/each}
     </Subpanel>
 
     <Subpanel
-        name="Node Kinds"
+        name="Node kinds"
         hint="Allows you to include or exclude nodes based on their kind. The list is sorted hierarchically with the 'largest' nodes at the top."
     >
         <!-- svelte-ignore a11y-label-has-associated-control -->
         <label>
-            <ToggleAllCheckbox
-                bind:selected={$dataOptions.selectedKinds}
-                all={kinds}
-            />
+            <ToggleAllCheckbox bind:selected={$dataOptions.selectedKinds} all={kinds} on:change={makeDirty} />
             <span>all</span>
         </label>
         {#each kinds as kind}
             <label>
-                <input
-                    type="checkbox"
-                    bind:group={$dataOptions.selectedKinds}
-                    value={kind}
-                />
+                <input type="checkbox" bind:group={$dataOptions.selectedKinds} value={kind} on:change={makeDirty} />
                 <NodeKindIcon nodeKind={kind} />
                 <span>{kind}</span>
             </label>
@@ -123,15 +143,15 @@
         collapsed={true}
     >
         <div class="flex flex-row justify-content-center mb-8">
-            <button
-                on:click={() => dispatch("tidyTree")}
-                class="button-icon success-stroke"
-            >
+            <button on:click={() => dispatch("tidyTree")} class="button-icon success-stroke">
                 <Icon name="vscode:play" title="Run" />
             </button>
         </div>
         <label class="flex flex-row gap-8 align-items-center">
             Relation
+            <Hint
+                text="The relation that gives structure to the repository. Should be a tree. We recommend keeping it set to 'declares'."
+            />
             <select bind:value={$layoutOptions.tidyTree.relation}>
                 {#each relations as relation}
                     <option value={relation}>{relation}</option>
@@ -174,50 +194,35 @@
 
         <div class="flex flex-col">
             <label>
-                <input
-                    type="checkbox"
-                    bind:checked={$layoutOptions.forceAtlas2.adjustSizes}
-                />
-                <span>AdjustSizes</span>
+                <input type="checkbox" bind:checked={$layoutOptions.forceAtlas2.adjustSizes} />
+                <span>Adjust sizes</span>
+                <Hint text="Prevent nodes from overlapping." />
             </label>
             <label>
-                <input
-                    type="checkbox"
-                    bind:checked={$layoutOptions.forceAtlas2.barnesHutOptimize}
-                />
-                <span>BarnesHutOptimize</span>
+                <input type="checkbox" bind:checked={$layoutOptions.forceAtlas2.barnesHutOptimize} />
+                <span>Barnes-Hut optimize</span>
+                <Hint text="Divide the nodes into regions are use them to approximate the forces." />
             </label>
             <label>
-                <input
-                    type="checkbox"
-                    bind:checked={$layoutOptions.forceAtlas2.strongGravityMode}
+                <input type="checkbox" bind:checked={$layoutOptions.forceAtlas2.strongGravityMode} />
+                <span>Strong gravity mode</span>
+                <Hint
+                    text="When enabled, fravity is linear with the distance from the center of the space. When disabled, gravity is inverse quadratic."
                 />
-                <span>StrongGravityMode</span>
             </label>
             <label>
-                <input
-                    type="checkbox"
-                    bind:checked={$layoutOptions.forceAtlas2.linLogMode}
-                />
-                <span>LinLogMode</span>
+                <input type="checkbox" bind:checked={$layoutOptions.forceAtlas2.linLogMode} />
+                <span>LinLog mode</span>
+                <Hint text="Use Noack's LinLog mode." />
             </label>
             <label>
-                <input
-                    type="checkbox"
-                    bind:checked={$layoutOptions.forceAtlas2
-                        .outboundAttractionDistribution}
-                />
-                <span>OutboundAttractionDistribution</span>
+                <input type="checkbox" bind:checked={$layoutOptions.forceAtlas2.outboundAttractionDistribution} />
+                <span>Outbound attraction distribution</span>
             </label>
             <label>
-                <div class="flex flex-row gap-8">
+                <div class="flex flex-row gap-8 space-nowrap">
                     <span>Gravity</span>
-                    <input
-                        type="number"
-                        min="0"
-                        step="0.05"
-                        bind:value={$layoutOptions.forceAtlas2.gravity}
-                    />
+                    <input type="number" min="0" step="0.05" bind:value={$layoutOptions.forceAtlas2.gravity} />
                 </div>
                 <input
                     type="range"
@@ -229,13 +234,9 @@
                 />
             </label>
             <label>
-                <div class="flex flex-row gap-8">
-                    <span>ScalingRatio</span>
-                    <input
-                        type="number"
-                        min="1"
-                        bind:value={$layoutOptions.forceAtlas2.scalingRatio}
-                    />
+                <div class="flex flex-row gap-8 space-nowrap">
+                    <span>Scaling ratio</span>
+                    <input type="number" min="1" bind:value={$layoutOptions.forceAtlas2.scalingRatio} />
                 </div>
                 <input
                     type="range"
@@ -247,13 +248,12 @@
                 />
             </label>
             <label>
-                <div class="flex flex-row gap-8">
-                    <span>SlowDown</span>
-                    <input
-                        type="number"
-                        min="1"
-                        bind:value={$layoutOptions.forceAtlas2.slowDown}
+                <div class="flex flex-row gap-8 space-nowrap">
+                    <span>Slow down</span>
+                    <Hint
+                        text="Prevents the node from oscillating between two positions at the cost of the algorithm converging slower."
                     />
+                    <input type="number" min="1" bind:value={$layoutOptions.forceAtlas2.slowDown} />
                 </div>
                 <input
                     type="range"
@@ -265,14 +265,9 @@
                 />
             </label>
             <label>
-                <div class="flex flex-row gap-8">
-                    <span>BarnesHutTheta</span>
-                    <input
-                        type="number"
-                        min="0"
-                        step="0.05"
-                        bind:value={$layoutOptions.forceAtlas2.barnesHutTheta}
-                    />
+                <div class="flex flex-row gap-8 space-nowrap">
+                    <span>Barnes-Hut theta</span>
+                    <input type="number" min="0" step="0.05" bind:value={$layoutOptions.forceAtlas2.barnesHutTheta} />
                 </div>
                 <input
                     type="range"
@@ -281,6 +276,28 @@
                     max="5"
                     step="0.05"
                     bind:value={$layoutOptions.forceAtlas2.barnesHutTheta}
+                />
+            </label>
+            <label>
+                <div class="flex flex-row gap-8 space-nowrap">
+                    <span>AutoStop average traction</span>
+                    <Hint
+                        text="When the average traction of a node drops below this value, the algorithm automatically stops. Set to -1 to disable AutoStop altogether."
+                    />
+                    <input
+                        type="number"
+                        min="-1.0"
+                        step="0.1"
+                        bind:value={$layoutOptions.forceAtlas2.autoStopAverageTraction}
+                    />
+                </div>
+                <input
+                    type="range"
+                    class="w-100p"
+                    min="-1"
+                    max="10"
+                    step="0.1"
+                    bind:value={$layoutOptions.forceAtlas2.autoStopAverageTraction}
                 />
             </label>
             <!-- <label>

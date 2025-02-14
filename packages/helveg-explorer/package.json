@@ -61,5 +61,8 @@
         "typescript": "^5.4.5",
         "uniformcss": "^1.5.4",
         "yargs": "^17.7.2"
+    },
+    "dependencies": {
+        "svelte-select": "^5.8.3"
     }
 }

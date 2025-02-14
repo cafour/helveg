@@ -1,9 +1,10 @@
 import { MultigraphNode, Multigraph } from "./data-model.ts";
+import { HelvegGraph, HelvegNodeAttributes } from "./graph.ts";
 
 export enum SearchMode {
     Contains = "contains",
     Regex = "regex",
-    JavaScript = "js"
+    JavaScript = "js",
 }
 
 export enum FilterBuilderOperation {
@@ -14,37 +15,34 @@ export enum FilterBuilderOperation {
     LessThan = "<",
     LessThanEquals = "<=",
     Contains = "contains",
-    Matches = "matches"
+    Matches = "matches",
 }
 
 export const OPERATORS_BY_TYPE: Record<string, FilterBuilderOperation[]> = {
-    "string": [
+    string: [
         FilterBuilderOperation.Equals,
         FilterBuilderOperation.NotEquals,
         FilterBuilderOperation.Contains,
         FilterBuilderOperation.Matches,
     ],
-    "number": [
+    number: [
         FilterBuilderOperation.Equals,
         FilterBuilderOperation.NotEquals,
         FilterBuilderOperation.GreaterThan,
         FilterBuilderOperation.GreaterThanEquals,
         FilterBuilderOperation.LessThan,
-        FilterBuilderOperation.LessThanEquals
+        FilterBuilderOperation.LessThanEquals,
     ],
-    "boolean": [
-        FilterBuilderOperation.Equals,
-        FilterBuilderOperation.NotEquals
-    ]
-}
+    boolean: [FilterBuilderOperation.Equals, FilterBuilderOperation.NotEquals],
+};
 
 export interface IFilterBuilderEntry {
-    property: string,
-    operation: FilterBuilderOperation,
-    value: string | number | boolean
+    property: string;
+    operation: FilterBuilderOperation;
+    value: string | number | boolean;
 }
 
-export type NodeFilter = (node: MultigraphNode) => boolean;
+export type NodeFilter = (node: HelvegNodeAttributes) => boolean;
 
 export function buildNodeFilter(
     searchText: string | null,
@@ -52,6 +50,7 @@ export function buildNodeFilter(
     variableNames?: string[],
     filterBuilder?: IFilterBuilderEntry[]
 ): NodeFilter | null {
+    searchText?.trim();
 
     let filter: NodeFilter | null = null;
     const isTextEmpty = searchText == null || searchText.trim() == "";
@@ -66,31 +65,31 @@ export function buildNodeFilter(
 
     if (!isTextEmpty && mode === SearchMode.Contains) {
         let lowerCaseText = searchText.toLowerCase();
-        filter = (node: MultigraphNode) => node.name != null
-            && node.name.toLowerCase().includes(lowerCaseText);
+        filter = (node: HelvegNodeAttributes) =>
+            node.model.name != null && node.model.name.toLowerCase().includes(lowerCaseText);
     }
 
     if (!isTextEmpty && mode === SearchMode.Regex) {
         let regex = new RegExp(searchText, "i");
-        filter = (node: MultigraphNode) => node.name != null && regex.test(node.name);
+        filter = (node: HelvegNodeAttributes) => node.model.name != null && regex.test(node.model.name);
     }
 
-    if (mode === SearchMode.JavaScript) {
+    if (!isTextEmpty && mode === SearchMode.JavaScript) {
         if (!variableNames || variableNames.length == 0) {
             return null;
         }
 
-        let fn = new Function("n", `let { ${variableNames.join(', ')} } = n; return !!(${searchText});`);
-        filter = fn as (node: MultigraphNode) => boolean;
+        let fn = new Function("n", `let { ${variableNames.join(", ")} } = n.model; return !!(${searchText});`);
+        filter = fn as (node: HelvegNodeAttributes) => boolean;
     }
 
     if (!filter) {
-        throw new Error(`'${mode}' is an unknown search mode.`)
+        throw new Error(`'${mode}' is an unknown search mode.`);
     }
 
     if (filterBuilder) {
         const innerFilter = filter;
-        filter = (node: MultigraphNode) => {
+        filter = (node: HelvegNodeAttributes) => {
             if (!innerFilter(node)) {
                 return false;
             }
@@ -100,90 +99,81 @@ export function buildNodeFilter(
                     throw new Error(`A filter for '${entry.property}' cannot be empty.`);
                 }
 
-                if (node[entry.property] === undefined) {
+                const propertyValue = node.model[entry.property];
+
+                if (propertyValue === undefined) {
                     return false;
                 }
 
                 switch (entry.operation) {
                     case FilterBuilderOperation.Equals:
-                        if (typeof node[entry.property] === "string") {
-                            if ((<string>node[entry.property]).toLowerCase()
-                                !== entry.value.toString().toLowerCase().trim()) {
+                        if (typeof propertyValue === "string") {
+                            if ((<string>propertyValue).toLowerCase() !== entry.value.toString().toLowerCase().trim()) {
                                 return false;
                             }
-                        } else if (node[entry.property] !== entry.value) {
+                        } else if (propertyValue !== entry.value) {
                             return false;
                         }
                         break;
                     case FilterBuilderOperation.NotEquals:
-                        if (typeof node[entry.property] === "string") {
-                            if ((<string>node[entry.property]).toLowerCase()
-                                === entry.value.toString().toLowerCase().trim()) {
+                        if (typeof propertyValue === "string") {
+                            if ((<string>propertyValue).toLowerCase() === entry.value.toString().toLowerCase().trim()) {
                                 return false;
                             }
-                        } else if (node[entry.property] === entry.value) {
+                        } else if (propertyValue === entry.value) {
                             return false;
                         }
                         break;
                     case FilterBuilderOperation.Contains:
-                        if (typeof node[entry.property] !== "string"
-                            || !(<string>node[entry.property]).toLowerCase()
-                                .includes(entry.value.toString().toLowerCase().trim())) {
+                        if (
+                            typeof propertyValue !== "string" ||
+                            !(<string>propertyValue).toLowerCase().includes(entry.value.toString().toLowerCase().trim())
+                        ) {
                             return false;
                         }
                         break;
                     case FilterBuilderOperation.Matches:
                         let regex = new RegExp(entry.value.toString(), "i");
-                        if (typeof node[entry.property] !== "string"
-                            || !regex.test(node[entry.property])) {
+                        if (typeof propertyValue !== "string" || !regex.test(propertyValue)) {
                             return false;
                         }
                         break;
                     case FilterBuilderOperation.GreaterThan:
-                        if (typeof node[entry.property] !== "number"
-                            || node[entry.property] <= (<number>entry.value)) {
+                        if (typeof propertyValue !== "number" || propertyValue <= <number>entry.value) {
                             return false;
                         }
                         break;
                     case FilterBuilderOperation.GreaterThanEquals:
-                        if (typeof node[entry.property] !== "number"
-                            || node[entry.property] < (<number>entry.value)) {
+                        if (typeof propertyValue !== "number" || propertyValue < <number>entry.value) {
                             return false;
                         }
                         break;
                     case FilterBuilderOperation.LessThan:
-                        if (typeof node[entry.property] !== "number"
-                            || node[entry.property] >= (<number>entry.value)) {
+                        if (typeof propertyValue !== "number" || propertyValue >= <number>entry.value) {
                             return false;
                         }
                         break;
                     case FilterBuilderOperation.LessThanEquals:
-                        if (typeof node[entry.property] !== "number"
-                            || node[entry.property] > (<number>entry.value)) {
+                        if (typeof propertyValue !== "number" || propertyValue > <number>entry.value) {
                             return false;
                         }
                         break;
                     default:
-                        throw new Error(`Filter operation '${entry.operation}' is not supported.`)
+                        throw new Error(`Filter operation '${entry.operation}' is not supported.`);
                 }
             }
 
             return true;
-        }
+        };
     }
 
     return filter;
 }
 
-export function* filterNodes(graph: Multigraph, filter: NodeFilter | null, invert: boolean = false) {
+export function filterNodes(graph: HelvegGraph, filter: NodeFilter | null, invert: boolean = false) {
     if (!filter) {
-        return;
+        return [];
     }
 
-    for (let id in graph.nodes) {
-        // '!=' works as logical XOR here
-        if (filter(graph.nodes[id]) != invert) {
-            yield id;
-        }
-    }
+    return graph.filterNodes((_n, na) => filter(na) != invert);
 }

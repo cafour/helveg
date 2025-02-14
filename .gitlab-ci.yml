@@ -15,7 +15,7 @@ build:
     - apk update && apk add nodejs-current npm
     - dotnet tool restore
 
-    - corepack enable && corepack prepare pnpm@latest --activate
+    - npm install -g corepack@latest --force && npx corepack enable && npx corepack prepare pnpm@latest --activate
     - pnpm config set store-dir .pnpm-store/
     - pnpm install
     - pnpm run git-version

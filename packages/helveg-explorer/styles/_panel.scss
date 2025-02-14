@@ -14,7 +14,7 @@
         h5,
         h6 {
             border-bottom: 1px solid var(--color-surface-100);
-            font-weight: lighter;
+            font-weight: 300;
             text-transform: uppercase;
             padding: 0.5rem 0.5rem;
         }
@@ -28,15 +28,22 @@
         height: 100%;
         overflow-y: auto;
         scrollbar-width: thin;
-        scrollbar-color: var(--color-surface-100) var(--color-surface-50);
     }
 }
 
 .subpanel {
     border-bottom: 1px solid var(--color-surface-100);
 
+    &.noborder {
+        border-bottom: none;
+    }
+
     .subpanel-header {
         font-weight: bold;
+
+        &:disabled {
+            cursor: default;
+        }
     }
 
     .indent {
@@ -131,16 +138,6 @@
         margin-top: 1rem;
         margin-bottom: 1rem;
         font-size: 1.5rem;
-    }
-
-    dl {
-        dt {
-            font-weight: bold;
-        }
-
-        dd {
-            margin-left: 1rem;
-        }
     }
 
     table {

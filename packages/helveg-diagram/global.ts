@@ -1,12 +1,18 @@
-import { csharpNodeStylist, csharpRelationStylist } from "./csharp/style.ts";
+import {
+    CSHARP_NODE_STYLIST,
+    CSHARP_RELATION_STYLIST,
+    DEFAULT_CSHARP_RELATION_COLORS,
+    UNIVERSAL_NODE_COLOR_SCHEMA,
+} from "./csharp/style.ts";
 import { IconRegistry } from "./model/icons.ts";
-import { DEFAULT_ICON_ATLAS_OPTIONS } from "./rendering/iconAtlas.ts"
+import { DEFAULT_ICON_ATLAS_OPTIONS } from "./rendering/iconAtlas.ts";
 import { LogSeverity, consoleLogger } from "./model/logger.ts";
 import { EdgeStylist, NodeStylist, RelationStylist } from "./model/style.ts";
 import { IconAtlas } from "./rendering/iconAtlas.ts";
 import { DEFAULT_GLYPH_PROGRAM_OPTIONS } from "./rendering/node.glyph.ts";
 import { requireJsonScript } from "./model/data.ts";
-import { DEFAULT_FORCE_ATLAS2_OPTIONS, Diagram, DiagramRefreshOptions, ForceAtlas2Options } from "./diagram/diagram.ts";
+import { DEFAULT_FORCE_ATLAS2_OPTIONS, Diagram, DiagramRefreshOptions } from "./diagram/diagram.ts";
+import type { ForceAtlas2Options } from "./layout/forceAtlas2Iterate.ts";
 import { EMPTY_DATA_MODEL } from "./model/const.ts";
 import { IconSetModel } from "./model/icon-set-model.ts";
 import { DataModel } from "./model/data-model.ts";
@@ -19,7 +25,7 @@ export * from "./common/event.ts";
 export * from "./model/const.ts";
 export * from "./model/data.ts";
 export * from "./model/filter.ts";
-export * from "./model/graph.ts"
+export * from "./model/graph.ts";
 export * from "./model/icons.ts";
 export * from "./model/logger.ts";
 export * from "./model/style.ts";
@@ -37,24 +43,29 @@ export * from "./random.ts";
 export * from "./rendering/node.glyph.ts";
 export * from "./rendering/node.donut.ts";
 export { default as createDonutProgram } from "./rendering/node.donut.ts";
+export { default as createIconProgram } from "./rendering/node.icon.ts";
+export type * from "./layout/forceAtlas2Iterate.ts";
 
 // TODO: This is not the best...
 export type * from "./deps/sigma.ts";
 
 export interface CreateDiagramOptions {
-    element: HTMLElement | null,
-    iconSets: IconSetModel[],
-    model: DataModel,
-    logLevel: LogSeverity,
-    nodeStylist?: NodeStylist,
-    relationStylist?: RelationStylist,
-    edgeStylist?: EdgeStylist,
-    nodeKindOrder: string[],
-    inspector: Inspector,
-    mainRelation: string | null,
-    iconSize: number,
-    refresh: DiagramRefreshOptions,
-    forceAtlas2: ForceAtlas2Options
+    element: HTMLElement | null;
+    iconSets: IconSetModel[];
+    model: DataModel;
+    logLevel: LogSeverity;
+    nodeStylist?: NodeStylist<any>;
+    nodeStylistParams?: any;
+    relationStylist?: RelationStylist<any>;
+    relationStylistParams?: any;
+    edgeStylist?: EdgeStylist<any>;
+    edgeStylistParams?: any;
+    nodeKindOrder: string[];
+    inspector: Inspector;
+    mainRelation: string | null;
+    iconSize: number;
+    refresh: DiagramRefreshOptions;
+    forceAtlas2: ForceAtlas2Options;
 }
 
 export const DEFAULT_CREATE_DIAGRAM_OPTIONS: Readonly<CreateDiagramOptions> = {
@@ -62,14 +73,16 @@ export const DEFAULT_CREATE_DIAGRAM_OPTIONS: Readonly<CreateDiagramOptions> = {
     model: EMPTY_DATA_MODEL,
     iconSets: [],
     element: null,
-    nodeStylist: csharpNodeStylist,
-    relationStylist: csharpRelationStylist,
+    nodeStylist: CSHARP_NODE_STYLIST,
+    nodeStylistParams: UNIVERSAL_NODE_COLOR_SCHEMA,
+    relationStylist: CSHARP_RELATION_STYLIST,
+    relationStylistParams: DEFAULT_CSHARP_RELATION_COLORS,
     nodeKindOrder: [...CSHARP_NODE_KIND_ORDER],
     inspector: CSHARP_INSPECTOR,
     mainRelation: null,
     iconSize: DEFAULT_ICON_ATLAS_OPTIONS.iconSize,
     refresh: {},
-    forceAtlas2: DEFAULT_FORCE_ATLAS2_OPTIONS
+    forceAtlas2: DEFAULT_FORCE_ATLAS2_OPTIONS,
 };
 
 export function createDiagram(options?: Partial<CreateDiagramOptions>): Diagram {
@@ -82,23 +95,26 @@ export function createDiagram(options?: Partial<CreateDiagramOptions>): Diagram 
     }
 
     const iconRegistry = new IconRegistry(consoleLogger("iconRegistry", opts.logLevel));
-    opts.iconSets?.forEach(s => iconRegistry.register(s));
+    opts.iconSets?.forEach((s) => iconRegistry.register(s));
 
     const diagram = new Diagram(opts.element, {
         logLevel: opts.logLevel,
         nodeStylist: opts.nodeStylist,
+        nodeStylistParams: opts.nodeStylistParams,
         edgeStylist: opts.edgeStylist,
+        edgeStylistParams: opts.edgeStylistParams,
         relationStylist: opts.relationStylist,
+        relationStylistParams: opts.relationStylistParams,
         nodeKindOrder: opts.nodeKindOrder,
         inspector: opts.inspector,
         mainRelation: opts.mainRelation ?? Object.keys(opts.model.data?.relations ?? {}).sort()[0] ?? null,
         iconRegistry: iconRegistry,
         glyphProgram: {
             ...DEFAULT_GLYPH_PROGRAM_OPTIONS,
-            iconAtlas: new IconAtlas(iconRegistry, { iconSize: opts.iconSize })
+            iconAtlas: new IconAtlas(iconRegistry, { iconSize: opts.iconSize }),
         },
-        refresh: options?.refresh
-    })
+        refresh: options?.refresh,
+    });
     diagram.model = opts.model;
     return diagram;
 }
@@ -119,4 +135,3 @@ export async function loadIconSets(selector: string): Promise<IconSetModel[]> {
 export function loadModel(element: Element): Promise<DataModel> {
     return requireJsonScript(element);
 }
-

@@ -1,9 +1,8 @@
-import { Sigma, ProgramDefinition, RenderParams, ProgramInfo } from "../deps/sigma.ts";
-import { HelvegNodeAttributes } from "../model/graph.ts";
+import { ProgramDefinition, RenderParams, ProgramInfo } from "../deps/sigma.ts";
+import { HelvegNodeAttributes, HelvegNodeProgram, HelvegSigma } from "../model/graph.ts";
 import { PizzaProgramOptions } from "./pizza.ts";
 import vertSrc from "./shaders/node.pizzaSauce.vert";
 import fragSrc from "./shaders/node.pizzaSauce.frag";
-import { HelvegNodeProgram } from "../diagram/initializers.ts";
 
 /*
 ** PIZZA TERMINOLOGY **
@@ -21,7 +20,7 @@ export class PizzaSauceProgram extends HelvegNodeProgram<typeof UNIFORMS[number]
     constructor(
         gl: WebGLRenderingContext,
         pickingBuffer: WebGLFramebuffer,
-        renderer: Sigma,
+        renderer: HelvegSigma,
         private options: PizzaProgramOptions
     ) {
         super(gl, pickingBuffer, renderer);

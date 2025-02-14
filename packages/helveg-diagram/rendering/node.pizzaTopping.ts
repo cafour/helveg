@@ -1,12 +1,10 @@
-import { Sigma, ProgramDefinition, RenderParams, ProgramInfo } from "../deps/sigma.ts";
-import { HelvegNodeAttributes } from "../model/graph.ts";
-import { FALLBACK_NODE_ICON } from "../model/style.ts";
+import { ProgramDefinition, RenderParams, ProgramInfo } from "../deps/sigma.ts";
+import { HelvegNodeAttributes, HelvegNodeProgram, HelvegSigma } from "../model/graph.ts";
 import { IconAtlasEntryStatus, IconAtlas } from "./iconAtlas.ts";
 import { PizzaProgramOptions } from "./pizza.ts";
 import vertSrc from "./shaders/node.pizzaTopping.vert";
 import fragSrc from "./shaders/node.pizzaTopping.frag";
 import { FALLBACK_PIZZA_ICON } from "../global.ts";
-import { HelvegNodeProgram } from "../diagram/initializers.ts";
 
 const { UNSIGNED_BYTE, FLOAT } = WebGLRenderingContext;
 
@@ -18,7 +16,7 @@ export class PizzaToppingProgram extends HelvegNodeProgram<typeof UNIFORMS[numbe
     constructor(
         gl: WebGLRenderingContext,
         pickingBuffer: WebGLFramebuffer,
-        renderer: Sigma,
+        renderer: HelvegSigma,
         private options: PizzaProgramOptions
     ) {
         super(gl, pickingBuffer, renderer);

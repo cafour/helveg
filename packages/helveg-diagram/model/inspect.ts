@@ -1,5 +1,4 @@
-import { Multigraph, MultigraphNode } from "./data-model.ts";
-import { MULTIGRAPH_NODE_KEY } from "./graph.ts";
+import { HelvegGraph, HelvegNodeAttributes } from "./graph.ts";
 
 export interface Inspection {
     expression: InspectionExpression;
@@ -23,7 +22,7 @@ export enum InspectionTokenKind {
     Identifier = "identifier",
 }
 
-export type Inspector = (graph: Multigraph, node: MultigraphNode) => Inspection;
+export type Inspector = (graph: HelvegGraph, node: HelvegNodeAttributes) => Inspection;
 
 export const FALLBACK_INSPECTOR: Inspector = (_graph, node) => {
     return {
@@ -31,7 +30,7 @@ export const FALLBACK_INSPECTOR: Inspector = (_graph, node) => {
             tokens: [
                 name(node, InspectionTokenKind.Identifier, "name"),
                 trivia(" ("),
-                keyword(node.kind ?? "unknown", "kind"),
+                keyword(node.model.kind ?? "unknown", "kind"),
                 trivia(")")
             ]
         }
@@ -81,12 +80,12 @@ export function type(text: string, associatedPropertyName?: string, hint?: strin
 export const MISSING_TEXT = "<missing>";
 
 export function name(
-    node: MultigraphNode,
+    node: HelvegNodeAttributes,
     kind: InspectionTokenKind = InspectionTokenKind.Identifier,
     associatedPropertyName: string = "name"
 ): InspectionToken {
     return {
-        text: node.name ?? MISSING_TEXT,
+        text: node.model.name ?? MISSING_TEXT,
         kind: kind,
         associatedPropertyName: associatedPropertyName
     };

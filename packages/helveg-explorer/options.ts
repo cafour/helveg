@@ -1,53 +1,111 @@
-import { DEFAULT_REMOVE_OPTIONS, type RemoveOptions, type ExportOptions, DEFAULT_EXPORT_OPTIONS, PizzaIcons, DEFAULT_CSHARP_RELATION_COLORS, type ForceAtlas2Options, DEFAULT_FORCE_ATLAS2_OPTIONS, type SizingMode, type NodeColorSchema, UNIVERSAL_NODE_COLOR_SCHEMA } from "./deps/helveg-diagram.ts";
+import {
+    type RemoveOptions,
+    type ExportOptions,
+    DEFAULT_EXPORT_OPTIONS,
+    PizzaIcons,
+    DEFAULT_CSHARP_RELATION_COLORS,
+    type ForceAtlas2Options,
+    DEFAULT_FORCE_ATLAS2_OPTIONS,
+    type NodeColorSchema,
+    SizingMode,
+    UNIVERSAL_NODE_COLOR_SCHEMA,
+    GlyphShape,
+} from "./deps/helveg-diagram.ts";
 export { type RemoveOptions, type ExportOptions, DEFAULT_EXPORT_OPTIONS };
 
 export interface ShowPropertiesToolOptions {
     shouldHighlightSubtree: boolean;
     shouldHighlightNeighbors: boolean;
+    shouldFixateSelectedNode: boolean;
+    shouldFocusPropertiesPanel: boolean;
 }
 
 export const DEFAULT_SHOW_PROPERTIES_TOOL_OPTIONS: Readonly<ShowPropertiesToolOptions> = {
     shouldHighlightSubtree: false,
-    shouldHighlightNeighbors: false
+    shouldHighlightNeighbors: false,
+    shouldFixateSelectedNode: true,
+    shouldFocusPropertiesPanel: true,
+};
+
+export interface ToggleToolOptions {
+    shouldRunLayout: boolean;
+}
+
+export const DEFAULT_TOGGLE_TOOL_OPTIONS: Readonly<ToggleToolOptions> = {
+    shouldRunLayout: true,
+};
+
+export interface MoveToolOptions {
+    shouldRunLayout: boolean;
+}
+
+export const DEFAULT_MOVE_TOOL_OPTIONS: Readonly<ToggleToolOptions> = {
+    shouldRunLayout: false,
+};
+
+export interface RemoveToolOptions {
+    isTransitive: boolean;
+    shouldRunLayout: boolean;
+}
+
+export const DEFAULT_REMOVE_TOOL_OPTIONS: Readonly<RemoveToolOptions> = {
+    isTransitive: true,
+    shouldRunLayout: true,
+};
+
+export interface SearchToolOptions {
+    shouldRunLayout: boolean;
+}
+
+export const DEFAULT_SEARCH_TOOL_OPTIONS: Readonly<SearchToolOptions> = {
+    shouldRunLayout: true,
 };
 
 export interface ToolOptions {
-    remove: RemoveOptions;
+    remove: RemoveToolOptions;
     showProperties: ShowPropertiesToolOptions;
+    toggle: ToggleToolOptions;
+    move: MoveToolOptions;
+    search: SearchToolOptions;
 }
 
 export const DEFAULT_TOOL_OPTIONS: Readonly<ToolOptions> = {
-    remove: DEFAULT_REMOVE_OPTIONS,
-    showProperties: DEFAULT_SHOW_PROPERTIES_TOOL_OPTIONS
-}
+    remove: DEFAULT_REMOVE_TOOL_OPTIONS,
+    showProperties: DEFAULT_SHOW_PROPERTIES_TOOL_OPTIONS,
+    toggle: DEFAULT_TOGGLE_TOOL_OPTIONS,
+    move: DEFAULT_MOVE_TOOL_OPTIONS,
+    search: DEFAULT_SEARCH_TOOL_OPTIONS,
+};
 
 export interface GlyphOptions {
+    glyphShape: GlyphShape,
     showIcons: boolean;
-    showOutlines: boolean;
     showLabels: boolean;
     showFire: boolean;
     showDiffs: boolean;
     showHatching: boolean;
     isFireAnimated: boolean;
     showCollapsedNodeIndicators: boolean;
+    showDiagnosticIndicators: boolean;
     showContours: boolean;
     codePizza: boolean;
-    sizingMode: SizingMode
+    sizingMode: SizingMode;
 }
 
 export const DEFAULT_GLYPH_OPTIONS: GlyphOptions = {
+    glyphShape: GlyphShape.DONUT,
     showIcons: true,
-    showOutlines: true,
     showLabels: true,
     showDiffs: true,
     showFire: true,
     showHatching: true,
     isFireAnimated: true,
     showCollapsedNodeIndicators: true,
+    showDiagnosticIndicators: true,
     showContours: true,
     codePizza: false,
-    sizingMode: "linear"
-}
+    sizingMode: SizingMode.LINEAR,
+};
 
 export interface CodePizzaOptions {
     isEnabled: boolean;
@@ -59,9 +117,8 @@ export interface CodePizzaOptions {
 export const DEFAULT_CODE_PIZZA_OPTIONS: CodePizzaOptions = {
     isEnabled: false,
     crustWidth: 20,
-    sauceWidth: 40
+    sauceWidth: 40,
 };
-
 
 export enum NodeColorSchemaPreset {
     Universal = "Universal",
@@ -69,7 +126,6 @@ export enum NodeColorSchemaPreset {
     VS = "VS",
     Custom = "Custom",
 }
-
 
 export interface AppearanceOptions {
     glyph: GlyphOptions;
@@ -92,8 +148,8 @@ export interface TidyTreeOptions {
 }
 
 export const DEFAULT_TIDY_TREE_OPTIONS: Readonly<TidyTreeOptions> = {
-    relation: null
-}
+    relation: null,
+};
 
 export interface LayoutOptions {
     forceAtlas2: ForceAtlas2Options;
@@ -102,19 +158,21 @@ export interface LayoutOptions {
 
 export const DEFAULT_LAYOUT_OPTIONS: Readonly<LayoutOptions> = {
     forceAtlas2: DEFAULT_FORCE_ATLAS2_OPTIONS,
-    tidyTree: DEFAULT_TIDY_TREE_OPTIONS
+    tidyTree: DEFAULT_TIDY_TREE_OPTIONS,
 };
 
 export interface DataOptions {
     selectedRelations: string[];
     selectedKinds: string[];
     expandedDepth?: number;
+    shouldKeepVisible: boolean;
 }
 
 export const DEFAULT_DATA_OPTIONS: Readonly<DataOptions> = {
     selectedRelations: [],
     selectedKinds: [],
-}
+    shouldKeepVisible: true,
+};
 
 export interface ExplorerOptions {
     layout: LayoutOptions;
@@ -129,9 +187,8 @@ export const DEFAULT_HELVEG_OPTIONS: Readonly<ExplorerOptions> = {
     data: DEFAULT_DATA_OPTIONS,
     appearance: DEFAULT_APPEARANCE_OPTIONS,
     export: DEFAULT_EXPORT_OPTIONS,
-    tool: DEFAULT_TOOL_OPTIONS
+    tool: DEFAULT_TOOL_OPTIONS,
 };
-
 
 export const STORAGE_KEY_PREFIX = "helveg.options.";
 

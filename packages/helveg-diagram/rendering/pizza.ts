@@ -1,11 +1,16 @@
-import { Attributes } from "graphology-types";
-import { Sigma, AbstractNodeProgram, NodeDisplayData, RenderParams, getPixelRatio, NodeHoverDrawingFunction, NodeLabelDrawingFunction } from "../deps/sigma.ts";
-import { HelvegNodeProgramType } from "../diagram/initializers.ts";
+import { AbstractNodeProgram, NodeDisplayData, RenderParams, getPixelRatio } from "../deps/sigma.ts";
 import { ILogger } from "../model/logger.ts";
 import { EMPTY_ICON_ATLAS, IconAtlas } from "./iconAtlas.ts";
 import { PizzaDoughProgram } from "./node.pizzaDough.ts";
 import { PizzaSauceProgram } from "./node.pizzaSauce.ts";
 import { PizzaToppingProgram } from "./node.pizzaTopping.ts";
+import {
+    HelvegAbstractNodeProgram,
+    HelvegNodeHoverDrawingFunction,
+    HelvegNodeLabelDrawingFunction,
+    HelvegNodeProgramType,
+    HelvegSigma,
+} from "../model/graph.ts";
 
 /*
  1 [x] basil
@@ -52,19 +57,18 @@ export const DEFAULT_PIZZA_PROGRAM_OPTIONS: PizzaProgramOptions = {
     sauceWidth: 40,
     iconAtlas: EMPTY_ICON_ATLAS,
     showOnlyHighlighted: false,
-    pizzaToppings: {}
+    pizzaToppings: {},
 };
 
 export default function createPizzaProgram(options: PizzaProgramOptions): HelvegNodeProgramType {
-
     return class extends PizzaProgram {
-        constructor(gl: WebGLRenderingContext, pickingBuffer: WebGLFramebuffer, renderer: Sigma) {
+        constructor(gl: WebGLRenderingContext, pickingBuffer: WebGLFramebuffer, renderer: HelvegSigma) {
             super(gl, pickingBuffer, renderer, options);
         }
     };
 }
 
-export class PizzaProgram implements AbstractNodeProgram {
+export class PizzaProgram implements HelvegAbstractNodeProgram {
     doughProgram: AbstractNodeProgram;
     sauceProgram: AbstractNodeProgram;
     toppingProgram: AbstractNodeProgram;
@@ -74,10 +78,10 @@ export class PizzaProgram implements AbstractNodeProgram {
     constructor(
         gl: WebGLRenderingContext,
         pickingBuffer: WebGLFramebuffer,
-        private sigma: Sigma,
+        private sigma: HelvegSigma,
         private options: PizzaProgramOptions,
-        private logger?: ILogger) {
-
+        private logger?: ILogger
+    ) {
         this.doughCanvas = document.createElement("canvas");
         this.doughCanvas.classList.add("helveg-codepizza");
         this.doughCanvas.style.position = "absolute";
@@ -85,7 +89,7 @@ export class PizzaProgram implements AbstractNodeProgram {
         sigma.getContainer().prepend(this.doughCanvas);
         this.doughContext = this.doughCanvas.getContext("webgl2", {
             preserveDrawingBuffer: false,
-            antialias: false
+            antialias: false,
         })!;
         if (!this.doughContext) {
             throw new Error("WebGL2 is not supported");
@@ -123,15 +127,15 @@ export class PizzaProgram implements AbstractNodeProgram {
         this.toppingProgram.render(params);
     }
 
-    drawLabel: NodeLabelDrawingFunction<Attributes, Attributes, Attributes> | undefined = undefined;
-    drawHover: NodeHoverDrawingFunction<Attributes, Attributes, Attributes> | undefined = undefined;
+    drawLabel: HelvegNodeLabelDrawingFunction | undefined = undefined;
+    drawHover: HelvegNodeHoverDrawingFunction | undefined = undefined;
 
     kill(): void {
         this.doughProgram.kill();
         this.sauceProgram.kill();
         this.toppingProgram.kill();
     }
-    
+
     private onSigmaResize() {
         let width = this.sigma.getContainer().offsetWidth;
         let height = this.sigma.getContainer().offsetHeight;

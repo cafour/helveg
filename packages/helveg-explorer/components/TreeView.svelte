@@ -10,20 +10,9 @@
     import { AppPanels } from "../const";
     import Panel from "./Panel.svelte";
     import type { IExplorerState } from "../explorer-state";
-    import {
-        FALLBACK_NODE_ICON,
-        getForest,
-        getForestItems,
-        type HelvegForestItem,
-    } from "../deps/helveg-diagram.ts";
+    import { getForest, getForestItems, type HelvegForestItem } from "../deps/helveg-diagram.ts";
     import Icon from "./Icon.svelte";
-    import {
-        get,
-        readable,
-        writable,
-        type Readable,
-        type Writable,
-    } from "svelte/store";
+    import { get, writable } from "svelte/store";
     import TreeViewEntry from "./TreeViewEntry.svelte";
 
     const state = getContext<IExplorerState>("state");
@@ -33,19 +22,15 @@
     let additionalClass: string | undefined = undefined;
     export { additionalClass as class };
 
+    export let style: string | undefined = undefined;
+
     let items: TreeViewItem[];
     const expanded = writable(new Set<string>());
     $: {
         items = getForestItems(
-            getForest(
-                $graph,
-                $layoutOptions.tidyTree.relation ?? "declares",
-                state.diagram.options.nodeKindOrder,
-            ),
+            getForest($graph, $layoutOptions.tidyTree.relation ?? "declares", state.diagram.options.nodeKindOrder),
         ) as TreeViewItem[];
-        items
-            .filter((i) => i.depth == 0)
-            .forEach((i) => get(expanded).add(i.id));
+        items.filter((i) => i.depth == 0).forEach((i) => get(expanded).add(i.id));
     }
 
     let isOpen = false;
@@ -88,21 +73,14 @@
     }
 </script>
 
-<div class="tree-view {additionalClass} flex flex-row" class:open={isOpen}>
-    <Panel
-        id={AppPanels.TreeView}
-        name="Tree View"
-        class="flex flex-col flex-grow-1"
-        indent={false}
-    >
+<div class="tree-view {additionalClass} flex flex-row" class:open={isOpen} {style}>
+    <Panel id={AppPanels.TreeView} class="flex flex-col flex-grow-1" indent={false}>
         {#if items.length > 0}
             {#each items as item (item.id)}
                 <TreeViewEntry
                     isSelected={item.id === selectedNode}
                     isExpanded={$expanded.has(item.id)}
-                    isParentExpanded={item.depth == 0 ||
-                        (item.parent !== undefined &&
-                            $expanded.has(item.parent?.id))}
+                    isParentExpanded={item.depth == 0 || (item.parent !== undefined && $expanded.has(item.parent?.id))}
                     node={item}
                     {onNodeClicked}
                     {onNodeToggled}
@@ -110,15 +88,14 @@
             {/each}
         {:else}
             <p class="p-16">
-                The displayed graph is empty or no relation is selected. Use the
-                Layout panel to refresh the graph.
+                The displayed graph is empty or no relation is selected. Use the Layout panel to refresh the graph.
             </p>
         {/if}
     </Panel>
-    <button class="toggle" on:click={togglePanel}>
-        <Icon
-            title={isOpen ? "Close" : "Open"}
-            name={isOpen ? "vscode:chevron-left" : "vscode:chevron-right"}
-        />
+    <button class="toggle relative" on:click={togglePanel}>
+        <span class="absolute pt-16 uppercase light" style="writing-mode: sideways-rl; top: 0; left: 0.25rem;"
+            >Tree View</span
+        >
+        <Icon title={isOpen ? "Close" : "Open"} name={isOpen ? "vscode:chevron-left" : "vscode:chevron-right"} />
     </button>
 </div>

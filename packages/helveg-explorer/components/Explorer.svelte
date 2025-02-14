@@ -6,10 +6,8 @@
     import PropertiesPanel from "./PropertiesPanel.svelte";
     import AppearancePanel from "./AppearancePanel.svelte";
     import LayoutPanel from "./LayoutPanel.svelte";
-    import GuidePanel from "./GuidePanel.svelte";
     import { onMount, setContext } from "svelte";
     import Toast from "./Toast.svelte";
-    import ToolBox from "./ToolBox.svelte";
     import ToolsPanel from "./ToolsPanel.svelte";
     import { type Diagram, type ModifierKeyStateChange } from "../deps/helveg-diagram.ts";
     import { AppIcons, AppPanels, AppTools } from "../const.ts";
@@ -18,6 +16,11 @@
     import { createExplorerState } from "../explorer-state.ts";
     import ContextMenu from "./ContextMenu.svelte";
     import TreeView from "./TreeView.svelte";
+    import ToolBar from "./ToolBar.svelte";
+    import Welcome from "./Welcome.svelte";
+    import CheatSheet from "./CheatSheet.svelte";
+    import Tutorial from "./Tutorial.svelte";
+    import QuickStartPanel from "./QuickStartPanel.svelte";
 
     export let rootElement: HTMLElement;
     setContext("rootElement", rootElement);
@@ -40,113 +43,73 @@
     setContext("appearanceOptions", state.appearanceOptions);
     setContext("exportOptions", state.exportOptions);
     setContext("toolOptions", state.toolOptions);
-    const { status, stats, selectedTool, selectedNode, dataOptions } = state;
+    const { status, stats, selectedNode, dataOptions, toolOptions } = state;
 
     let dock: Dock;
-    let propertiesPanel: PropertiesPanel;
     let searchResults: string[];
 
     selectedNode.subscribe(async (nodeId) => {
-        if (!propertiesPanel || !dock) {
+        if (!dock) {
             return;
         }
 
-        if (nodeId === null) {
-            propertiesPanel.$set({
-                node: null,
-            });
-            await diagram.highlightNode(null, false, false);
-            return;
+        const highlightResult = await diagram.highlightNode(
+            nodeId,
+            get(toolOptions).showProperties.shouldHighlightSubtree,
+            get(toolOptions).showProperties.shouldHighlightNeighbors,
+        );
+        if (highlightResult.hasExpanded === true) {
+            await diagram.runLayout(false);
         }
 
-        switch ($selectedTool) {
-            case AppTools.ShowProperties:
-                propertiesPanel.$set({
-                    node: diagram.model.data?.nodes[nodeId] ?? null,
-                });
-                dock.setTab(AppPanels.Properties);
-                await diagram.highlightNode(
-                    nodeId,
-                    get(state.toolOptions).showProperties
-                        .shouldHighlightSubtree,
-                    get(state.toolOptions).showProperties
-                        .shouldHighlightNeighbors,
-                );
-                break;
+        if (nodeId != null && get(toolOptions).showProperties.shouldFocusPropertiesPanel) {
+            dock.setTab(AppPanels.Properties);
         }
     });
 
-    function onDiagramNodeClicked(nodeId: string) {
-        if (diagram.modifierKeyState.alt && !diagram.modifierKeyState.control && !diagram.modifierKeyState.shift) {{
-            diagram.remove(nodeId, get(state.toolOptions).remove);
-        }}
-        
-        if (!diagram.modifierKeyState.alt && !diagram.modifierKeyState.control && !diagram.modifierKeyState.shift) {
-            diagram.selectedNode = nodeId;
-        }
-    }
-    diagram.events.nodeClicked.subscribe(onDiagramNodeClicked);
-    
-    function onModifierKeysChanged(change: ModifierKeyStateChange) {
-        diagram.canDragNodes = change.new.shift;
-    }
-    diagram.events.modifierKeysChanged.subscribe(onModifierKeysChanged);
-
-    function onDiagramNodeDoubleClicked(nodeId: string) {
-        if (!diagram.modifierKeyState.alt && !diagram.modifierKeyState.control && !diagram.modifierKeyState.shift) {
-            diagram.toggleNode(nodeId);
-        }
-    }
-    diagram.events.nodeDoubleClicked.subscribe(onDiagramNodeDoubleClicked);
-
-    selectedTool.subscribe((tool) => {
-        diagram.canDragNodes = tool == AppTools.Move;
+    onMount(() => {
+        document.getElementById("loading")?.remove();
     });
 </script>
 
-<div
-    class="explorer-svelte flex flex-row h-100p relative pointer-events-none justify-content-between"
-    bind:this={rootElement}
->
+<div class="explorer-svelte h-100p relative pointer-events-none" bind:this={rootElement}>
     <div class="diagram-background"></div>
 
-    <LoadingScreen status={$status} on:stop={() => diagram.stopLayout()}/>
+    <LoadingScreen status={$status} on:stop={() => diagram.stopLayout()} />
 
-    <TreeView
-        class="z-2"
-        bind:selectedNode={$selectedNode}
-        on:nodeClicked={() => ($selectedTool = AppTools.ShowProperties)}
-    />
+    <TreeView class="z-2" bind:selectedNode={$selectedNode} style="grid-area: TreeView;" />
 
-    <ToolBox bind:selectedTool={$selectedTool} class="z-1" />
+    <!-- <ToolBox bind:selectedTool={$selectedTool} class="z-1" /> -->
+    <ToolBar class="z-1" style="grid-area: ToolBar;" />
 
     <!-- filler element -->
     <div class="filler flex-grow-1"></div>
-    <Toast />
+    <Toast style="grid-area: Toast;" />
 
-    <Dock
-        name="panels"
-        bind:this={dock}
-        class="z-2"
-        fallbackTab={AppPanels.Guide}
-    >
+    <Dock name="panels" bind:this={dock} class="z-2" fallbackTab={AppPanels.QuickStart} style="grid-area: Dock;">
+        <Tab name="Quick Start" value={AppPanels.QuickStart} icon={AppIcons.QuickStartPanel}>
+            <QuickStartPanel />
+        </Tab>
         <Tab name="Search" value={AppPanels.Search} icon={AppIcons.SearchPanel}>
             <SearchPanel
-                on:highlight={(e) =>
-                    (searchResults = diagram.highlight(
+                on:highlight={async (e) => {
+                    searchResults = diagram.highlight(
                         e.detail.searchText,
                         e.detail.searchMode,
                         e.detail.expandedOnly,
                         e.detail.filterBuilder,
-                    ))}
-                on:isolate={(e) =>
-                    diagram.isolate(
-                        e.detail.searchText,
-                        e.detail.searchMode,
-                        e.detail.filterBuilder,
-                    )}
+                    );
+                    if ($toolOptions.search.shouldRunLayout) {
+                        await diagram.runLayout(false);
+                    }
+                }}
+                on:isolate={async (e) => {
+                    await diagram.isolate(e.detail.searchText, e.detail.searchMode, e.detail.filterBuilder);
+                    if ($toolOptions.search.shouldRunLayout) {
+                        await diagram.runLayout(false);
+                    }
+                }}
                 on:selected={(e) => {
-                    $selectedTool = AppTools.ShowProperties;
                     diagram.selectedNode = e.detail;
                 }}
                 results={searchResults}
@@ -167,33 +130,32 @@
                 stats={$stats}
             />
         </Tab>
-        <Tab
-            name="Appearance"
-            value={AppPanels.Appearance}
-            icon={AppIcons.AppearancePanel}
-        >
+        <Tab name="Appearance" value={AppPanels.Appearance} icon={AppIcons.AppearancePanel}>
             <AppearancePanel />
         </Tab>
         <Tab name="Tools" value={AppPanels.Tools} icon={AppIcons.ToolsPanel}>
             <ToolsPanel />
         </Tab>
-        <Tab
-            name="Properties"
-            value={AppPanels.Properties}
-            icon={AppIcons.PropertiesPanel}
-        >
-            <PropertiesPanel bind:this={propertiesPanel} />
+        <Tab name="Properties" value={AppPanels.Properties} icon={AppIcons.PropertiesPanel}>
+            <PropertiesPanel bind:node={$selectedNode} />
         </Tab>
-        <Tab
-            name="Document"
-            value={AppPanels.Document}
-            icon={AppIcons.DocumentPanel}
-        >
+        <Tab name="Document" value={AppPanels.Document} icon={AppIcons.DocumentPanel}>
             <DocumentPanel on:export={(e) => diagram.save(e.detail)} />
-        </Tab>
-        <Tab name="Guide" value={AppPanels.Guide} icon={AppIcons.GuidePanel}>
-            <GuidePanel />
         </Tab>
     </Dock>
     <ContextMenu />
+    <CheatSheet buttonStyle="grid-area: CheatSheetButton;" />
+    <Welcome />
+    <Tutorial />
 </div>
+
+<style lang="scss">
+    .explorer-svelte {
+        display: grid;
+        grid-template-areas:
+            "TreeView ToolBar Toast Dock"
+            "TreeView CheatSheetButton Toast Dock";
+        grid-template-columns: auto auto 1fr auto;
+        grid-template-rows: 1fr auto;
+    }
+</style>

@@ -155,10 +155,11 @@
                 return AppIcons.MessageToast;
         }
     }
+    export let style: string | undefined = undefined;
 </script>
 
-{#if $toaster.length}
-    <div class="toast-wrapper">
+<div class="relative">
+    <div class="toast-wrapper" {style}>
         {#each readySlices as slice, i (slice.id)}
             <div
                 class="toast"
@@ -171,6 +172,7 @@
                     <span class="title">{slice.title}</span>
                     <button
                         on:click={() => toaster.popOut(slice.id)}
+                        type="button"
                         class="button-icon primary"
                     >
                         {buttonDismissLabel}
@@ -182,4 +184,4 @@
             </div>
         {/each}
     </div>
-{/if}
+</div>

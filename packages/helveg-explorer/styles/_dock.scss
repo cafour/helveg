@@ -13,35 +13,61 @@
         border: 1px solid var(--color-surface-100);
         border-right: 0px;
     }
-    
+
     .tab-list {
         background-color: var(--color-surface-50);
         border: 1px solid var(--color-surface-100);
+
+        &.row {
+            flex-direction: row;
+
+            .tab-item {
+                border-left: 1px solid var(--color-surface-100);
+
+                &.active {
+                    border-bottom: 0.25rem solid var(--color-primary-500);
+                }
+            }
+        }
+
+        &.col {
+            flex-direction: column;
+
+            .tab-item {
+                border-bottom: 1px solid var(--color-surface-100);
+
+                &.active {
+                    border-right: 0.25rem solid var(--color-primary-500);
+                }
+            }
+        }
     }
 
     .tab-item {
         padding: 0.5rem;
-        width: 3rem;
         cursor: pointer;
         user-select: none;
 
         background-color: var(--color-surface-50);
-        border-bottom: 1px solid var(--color-surface-100);
+
+        &.with-icon {
+            width: 3rem;
+        }
 
         &:hover {
             background-color: var(--color-surface-100);
         }
-        
+
         &.active {
-            border-right: 0.25rem solid var(--color-primary-500);
-            
+
             .icon svg {
                 color: var(--color-primary-500);
             }
         }
-        
+
         .icon {
             width: 2rem;
+
             svg {
                 width: 100%;
                 height: 100%;

@@ -1,7 +1,5 @@
-import { MULTIGRAPH_NODE_KEY } from "../global.ts";
 import { PizzaIcons } from "../model/const.ts";
 import { MultigraphNode } from "../model/data-model.ts";
-import { NodeStyle, FireStatus } from "../model/style.ts";
 
 export enum EntityKind {
     Solution = "Solution",
@@ -20,7 +18,7 @@ export enum EntityKind {
     Event = "Event",
     Method = "Method",
     TypeParameter = "TypeParameter",
-    Parameter = "Parameter"
+    Parameter = "Parameter",
 }
 
 export const csharpNodeKindOrder: readonly string[] = [
@@ -48,7 +46,7 @@ export const csharpNodeKindOrder: readonly string[] = [
     EntityKind.Event,
     EntityKind.Method,
 
-    EntityKind.Parameter
+    EntityKind.Parameter,
 ];
 
 export enum IconableEntities {
@@ -75,7 +73,7 @@ export enum IconableEntities {
     Property = "Property",
     Event = "Event",
     Parameter = "Parameter",
-    Fallback = "Fallback"
+    Fallback = "Fallback",
 }
 
 export enum Relations {
@@ -107,7 +105,7 @@ export enum MemberAccessibility {
     Protected = "Protected",
     Internal = "Internal",
     ProtectedOrInternal = "ProtectedOrInternal",
-    Public = "Public"
+    Public = "Public",
 }
 
 export enum TypeKind {
@@ -124,7 +122,7 @@ export enum TypeKind {
     Struct = "Struct",
     TypeParameter = "TypeParameter",
     Submission = "Submission",
-    FunctionPointer = "FunctionPointer"
+    FunctionPointer = "FunctionPointer",
 }
 
 export enum LimitedTypeKind {
@@ -155,30 +153,30 @@ export enum MethodKind {
     BuiltinOperator = "BuiltinOperator",
     DeclareMethod = "DeclareMethod",
     LocalFunction = "LocalFunction",
-    FunctionPointerSignature = "FunctionPointerSignature"
+    FunctionPointerSignature = "FunctionPointerSignature",
 }
 
 export interface NodeColor {
-    foreground: string,
-    background: string
-};
+    foreground: string;
+    background: string;
+}
 
 export interface NodeColorSchema {
-    entities: Record<EntityKind, NodeColor>,
-    types: Record<LimitedTypeKind, NodeColor>
-};
+    entities: Record<EntityKind, NodeColor>;
+    types: Record<LimitedTypeKind, NodeColor>;
+}
 
 export interface CSharpNode extends MultigraphNode {
-    kind: EntityKind,
-    typeKind?: TypeKind,
-    accessibility?: MemberAccessibility,
-    methodKind?: MethodKind,
-    isConst?: boolean,
-    isEnumItem?: boolean,
-    declaringKind?: EntityKind,
-    instanceMemberCount?: number,
-    staticMemberCount?: number,
-    isStatic?: boolean
+    kind: EntityKind;
+    typeKind?: TypeKind;
+    accessibility?: MemberAccessibility;
+    methodKind?: MethodKind;
+    isConst?: boolean;
+    isEnumItem?: boolean;
+    declaringKind?: EntityKind;
+    instanceMemberCount?: number;
+    staticMemberCount?: number;
+    isStatic?: boolean;
     isSealed?: boolean;
     isVirtual?: boolean;
     isReadOnly?: boolean;
@@ -199,9 +197,166 @@ export interface CSharpNode extends MultigraphNode {
     parameterType?: string;
     arity?: number;
     parameterCount?: number;
-    path?: string,
-    [MULTIGRAPH_NODE_KEY]: string;
+    path?: string;
+    diagnosticCount?: number;
+    hasDiagnostics?: boolean;
+    hasErrors?: boolean;
+    errorCount?: number;
+    hasWarnings?: boolean;
+    warningCount?: number;
+    hasComments?: boolean;
+    commentCount?: number;
+    descendantCount?: number;
+    treeHeight?: number;
 }
+
+export interface PropCategory {
+    name: string;
+    hint?: string;
+    properties: string[];
+}
+
+export const CSHARP_PROP_CATEGORIES: Readonly<PropCategory[]> = [
+    {
+        name: "Basic",
+        properties: ["name", "kind", "declaringKind", "containingType", "childCount", "descendantCount", "treeHeight"],
+    },
+    {
+        name: "Solution and Projects",
+        properties: ["isSolution", "isProject", "path"],
+    },
+    {
+        name: "Types",
+        properties: [
+            "isType",
+            "typeKind",
+            "baseType",
+            "arity",
+            "instanceMemberCount",
+            "staticMemberCount",
+            "isSealed",
+            "isRecord",
+            "isNested",
+            "isAnonymousType",
+            "isTupleType",
+            "isNativeIntegerType",
+            "isUnmanagedType",
+            "isRefLikeType",
+            "isImplicitClass",
+        ],
+    },
+    {
+        name: "Methods",
+        properties: [
+            "isMethod",
+            "methodKind",
+            "parameterCount",
+            "returnType",
+            "isAsync",
+            "isExtensionMethod",
+            "isInitOnly",
+        ],
+    },
+    {
+        name: "Fields",
+        properties: ["isField", "fieldType", "isEnumItem", "isConst"],
+    },
+    {
+        name: "Properties",
+        properties: ["isProperty", "propertyType", "isIndexer"],
+    },
+    {
+        name: "Events",
+        properties: ["isEvent", "eventType"],
+    },
+    {
+        name: "Parameters",
+        properties: [
+            "isParameter",
+            "parameterType",
+            "ordinal",
+            "isParams",
+            "isOptional",
+            "isThis",
+            "hasExplicitDefaultValue",
+            "isDiscard",
+        ],
+    },
+    {
+        name: "Modifiers",
+        properties: [
+            "accessibility",
+            "isAbstract",
+            "isStatic",
+            "isVirtual",
+            "isReadOnly",
+            "isWriteOnly",
+            "isVolatile",
+            "isOverride",
+            "isExtern",
+            "isPartial",
+        ],
+    },
+    {
+        name: "Diagnostics",
+        properties: ["hasDiagnostics", "diagnosticCount", "hasErrors", "errorCount", "hasWarnings", "warningCount"],
+    },
+    {
+        name: "Comments",
+        properties: ["hasComments", "commentCount"],
+    },
+    {
+        name: "Packages and Assemblies",
+        properties: ["version", "fileVersion", "cultureName", "publicKeyToken", "targetFramework"],
+    },
+];
+
+export const CSHARP_CATEGORY_TO_PROP_MAPPING: Readonly<Map<string, { props: string[]; index: number }>> = new Map(
+    CSHARP_PROP_CATEGORIES.map((c, i) => [c.name, { props: c.properties, index: i }])
+);
+
+export const CSHARP_PROP_TO_CATEGORY_MAPPING: Readonly<Map<string, { category: string; index: number }>> = new Map(
+    CSHARP_PROP_CATEGORIES.flatMap((c) => c.properties.map((p, i) => [p, { category: c.name, index: i }]))
+);
+
+export const CSHARP_FALLBACK_CATEGORY_NAME = "Miscellaneous";
+
+export function sortProps(props: string[]) {
+    const map = props.reduce((m, p) => {
+        const category = CSHARP_PROP_TO_CATEGORY_MAPPING.get(p)?.category ?? CSHARP_FALLBACK_CATEGORY_NAME;
+        if (!m.has(category)) {
+            m.set(category, []);
+        }
+
+        m.get(category)!.push(p);
+        return m;
+    }, new Map<string, string[]>());
+    map.entries().forEach(([name, props]) => {
+        const canonicalOrder = CSHARP_CATEGORY_TO_PROP_MAPPING.get(name);
+        if (canonicalOrder != null) {
+            props.sort((a, b) => canonicalOrder.props.indexOf(a) - canonicalOrder.props.indexOf(b));
+        } else {
+            props.sort((a, b) => a.localeCompare(b));
+        }
+    });
+    const result = [...map.entries()].sort(
+        (a, b) =>
+            (CSHARP_CATEGORY_TO_PROP_MAPPING.get(a[0])?.index ?? Number.MAX_SAFE_INTEGER) -
+            (CSHARP_CATEGORY_TO_PROP_MAPPING.get(b[0])?.index ?? Number.MAX_SAFE_INTEGER)
+    );
+    return result;
+}
+
+export const CSHARP_RELATION_HINTS: Record<string, string> = {
+    declares: "An entity declares another. For example: a class type declares a method.",
+    inheritsFrom: "A type inherits from another class or implements an interface.",
+    typeOf: "A property/field/event/parameter is of a certain type.",
+    returns: "A method returns a type.",
+    overrides: "A method/property override a base method/property.",
+    associatedWith: "A property is associated with its getter and setter, backing field with an auto-property, etc.",
+    dependsOn: "A project dependency on another project or an external library.",
+    references: "An assembly module references another assembly.",
+};
 
 export const DEFAULT_CSHARP_PIZZA_TOPPINGS: Record<keyof typeof IconableEntities, PizzaIcons> = {
     Solution: PizzaIcons.Bacon,
@@ -227,5 +382,5 @@ export const DEFAULT_CSHARP_PIZZA_TOPPINGS: Record<keyof typeof IconableEntities
     Property: PizzaIcons.Jalapeno,
     Event: PizzaIcons.Chilli,
     Parameter: PizzaIcons.Corn,
-    Fallback: PizzaIcons.Cookie
+    Fallback: PizzaIcons.Cookie,
 };

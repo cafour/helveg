@@ -1,0 +1,41 @@
+@use "./arrows.scss";
+
+.tutorial {
+    position: absolute;
+    pointer-events: all;
+    background-color: var(--color-surface-100);
+    border: 0.25rem solid var(--color-surface-200);
+    max-width: 30rem;
+    z-index: 90;
+    display: block;
+
+    &.hidden {
+        top: -9999px;
+        visibility: hidden;
+    }
+
+    .tutorial-header {
+        display: flex;
+        flex-direction: row;
+
+        >strong {
+            padding: 0 0.5rem;
+        }
+    }
+
+    .tutorial-body {
+        padding: 0.5rem;
+    }
+
+    .tutorial-controls {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        padding: 0.5rem;
+    }
+
+    --arrow-offset: -0.5rem;
+    --arrow-size: 1rem;
+    --arrow-color: var(--color-surface-200);
+    @include arrows.arrows;
+}

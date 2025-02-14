@@ -1,3 +1,8 @@
+// NB: While it can be tempting to have Uniform override everything it also contains a CSS reset so it's up here.
+//     It can also be tempting to @use "uniform" twice with different configs once at the top and once at the bottom...
+//     ...that also doesn't work because SCSS just doesn't work that way. :(
+@use "./uniform.config.scss";
+
 @use "./variables.scss";
 @use "./colors.scss";
 @use "./base.scss";
@@ -9,6 +14,7 @@
 @use "./diagram.scss";
 @use "./toast.scss";
 @use "./toolbox.scss";
+@use "./toolbar.scss";
 @use "./diagnostic.scss";
 @use "./diagram-background.scss";
 @use "./search.scss";
@@ -17,6 +23,26 @@
 @use "./tooltip.scss";
 @use "./tree-view.scss";
 @use "./node-inspector.scss";
+@use "./welcome.scss";
+@use "./cheatsheet.scss";
+@use "./tutorial.scss";
 
-// NB: Uniform should override the styles above so it's down here.
-@use "./uniform.config.scss";
+#helveg {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    &>#loading {
+        position: absolute;
+
+        &::before {
+            content: "Loading...";
+            width: 100%;
+            height: 100%;
+        }
+    }
+}

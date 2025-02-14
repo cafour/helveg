@@ -3,17 +3,16 @@
     import {
         type AbstractNodeProgram,
         Diagram,
-        Logger,
         type HelvegNodeAttributes,
-        type MultigraphNode,
+        type RenderParams,
     } from "../deps/helveg-diagram.ts";
     import {
-        toHelvegNodeAttributes,
         createDonutProgram,
+        createIconProgram,
         type NodeDisplayData,
     } from "../deps/helveg-diagram.ts";
 
-    export let node: MultigraphNode | null;
+    export let node: HelvegNodeAttributes | undefined = undefined;
     $: renderNode(node);
 
     let canvas: HTMLCanvasElement;
@@ -21,7 +20,8 @@
     let diagram = getContext<Diagram>("diagram");
 
     let gl: WebGLRenderingContext | null = null;
-    let program: AbstractNodeProgram;
+    let donutProgram: AbstractNodeProgram;
+    let iconProgram: AbstractNodeProgram;
 
     function resizeCanvas() {
         canvas.width = canvas.clientWidth * window.devicePixelRatio;
@@ -42,12 +42,15 @@
             throw Error("Cannot obtain a WebGL2 context.");
         }
         const pickingBuffer = gl.createFramebuffer();
-        const programType = createDonutProgram(diagram.glyphProgramOptions);
-        program = new programType(gl, null, null!);
-        program.reallocate(1);
+        const donutProgramType = createDonutProgram(diagram.glyphProgramOptions);
+        donutProgram = new donutProgramType(gl, null, null!);
+        donutProgram.reallocate(1);
+        const iconProgramType = createIconProgram(diagram.glyphProgramOptions);
+        iconProgram = new iconProgramType(gl, null!, null!);
+        iconProgram.reallocate(1);
     });
 
-    function renderNode(node: MultigraphNode | null) {
+    function renderNode(node?: HelvegNodeAttributes) {
         if (!gl || gl.drawingBufferWidth <= 1 || gl.drawingBufferHeight <= 1) {
             return;
         }
@@ -59,23 +62,16 @@
         }
 
         const nodeData: HelvegNodeAttributes & NodeDisplayData = {
+            ...node,
             x: 0,
             y: 0,
             label: null,
-            size: 0,
-            color: "#000000",
             hidden: false,
-            forceLabel: false,
-            type: "<invalid>",
-            zIndex: 0,
-            ...toHelvegNodeAttributes(
-                diagram.glyphProgramOptions,
-                diagram.nodeStylist(node),
-            ),
             highlighted: true,
+            collapsed: false,
         };
-        program.process(0, 0, nodeData);
-        program.render({
+        
+        const params: RenderParams = {
             // NB: sigma's program later multiplies width and height below with pixelRatio that's why we don't
             width: canvas.clientWidth,
             height: canvas.clientHeight,
@@ -97,7 +93,11 @@
                 ...[0, canvas.height, 0],
                 ...[0, 0, 1],
             ]),
-        });
+        };
+        donutProgram.process(0, 0, nodeData);
+        donutProgram.render(params);
+        iconProgram.process(0, 0, nodeData);
+        iconProgram.render(params);
     }
 </script>
 

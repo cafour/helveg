@@ -12,6 +12,7 @@
     } from "../deps/helveg-diagram.ts";
     import * as Options from "../options.ts";
     import { version } from "../package.json";
+    import { WELCOME_VISIBLE } from "./Welcome.svelte";
 
     $: metadataItems = [
         { key: "Name", value: $model.name },
@@ -56,6 +57,7 @@
         appearanceOptions.set(structuredClone(Options.DEFAULT_APPEARANCE_OPTIONS));
         layoutOptions.set(structuredClone(Options.DEFAULT_LAYOUT_OPTIONS));
         toolOptions.set(structuredClone(Options.DEFAULT_TOOL_OPTIONS));
+        WELCOME_VISIBLE.set(true);
         await diagram.reset();
     }
 
@@ -159,12 +161,12 @@
     <Subpanel name="Export image">
         <label>
             <input type="checkbox" bind:checked={$exportOptions.includeNodes} />
-            IncludeNodes
+            Nodes
         </label>
 
         <label>
             <input type="checkbox" bind:checked={$exportOptions.includeEdges} />
-            IncludeEdges
+            Edges
         </label>
 
         <label>
@@ -172,7 +174,7 @@
                 type="checkbox"
                 bind:checked={$exportOptions.includeLabels}
             />
-            IncludeLabels
+            Labels
         </label>
 
         <label>
@@ -180,7 +182,7 @@
                 type="checkbox"
                 bind:checked={$exportOptions.includeEffects}
             />
-            IncludeEffects
+            Effects
         </label>
 
         <label>
@@ -188,7 +190,7 @@
                 type="checkbox"
                 bind:checked={$exportOptions.includePizzaDough}
             />
-            IncludePizzaDough
+            Pizza dough
         </label>
 
         <label>
@@ -196,7 +198,7 @@
                 type="checkbox"
                 bind:checked={$exportOptions.includeHighlights}
             />
-            IncludeHighlights
+            Highlights
         </label>
 
         <label class="flex flex-row gap-8 align-items-center">
@@ -205,7 +207,7 @@
         </label>
 
         <label class="flex flex-row gap-8 align-items-center">
-            BackgroundColor
+            Background color
             <input type="color" bind:value={$exportOptions.backgroundColor} />
         </label>
 

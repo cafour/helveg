@@ -11,5 +11,6 @@
     type="checkbox"
     indeterminate={selected.length > 0 && selected.length < all.length}
     on:click={() => selected = selected.length > 0 ? [] : all}
+    on:change
     checked={selected.length > 0}
 />

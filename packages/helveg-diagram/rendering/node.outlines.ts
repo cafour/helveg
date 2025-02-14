@@ -1,9 +1,8 @@
-import { Sigma, ProgramDefinition, RenderParams, floatColor, ProgramInfo } from "../deps/sigma.ts";
-import { HelvegNodeAttributes } from "../model/graph.ts";
+import { ProgramDefinition, RenderParams, floatColor, ProgramInfo } from "../deps/sigma.ts";
+import { HelvegNodeAttributes, HelvegNodeProgram, HelvegNodeProgramType, HelvegSigma } from "../model/graph.ts";
 import { FALLBACK_NODE_STYLE, floatOutlineWidths, floatOutlineStyles } from "../model/style.ts";
 import vertSrc from "./shaders/node.outlines.vert";
 import fragSrc from "./shaders/node.outlines.frag";
-import { HelvegNodeProgram, HelvegNodeProgramType } from "../diagram/initializers.ts";
 import { provideDefaults } from "../common/object.ts";
 
 const { UNSIGNED_BYTE, FLOAT } = WebGLRenderingContext;
@@ -19,34 +18,34 @@ export interface OutlinesProgramOptions {
 export const DEFAULT_OUTLINES_PROGRAM_OPTIONS: OutlinesProgramOptions = {
     gap: 0,
     showOnlyHighlighted: false,
-    showCollapsedNodeIndicators: true
+    showCollapsedNodeIndicators: true,
 };
 
 export default function createOutlinesProgram(options?: Partial<OutlinesProgramOptions>): HelvegNodeProgramType {
     if (options === undefined) {
-        options = {...DEFAULT_OUTLINES_PROGRAM_OPTIONS};
+        options = { ...DEFAULT_OUTLINES_PROGRAM_OPTIONS };
     } else {
         provideDefaults(options, DEFAULT_OUTLINES_PROGRAM_OPTIONS);
     }
 
     return class extends OutlinesProgram {
-        constructor(gl: WebGLRenderingContext, pickingBuffer: WebGLFramebuffer, renderer: Sigma) {
+        constructor(gl: WebGLRenderingContext, pickingBuffer: WebGLFramebuffer, renderer: HelvegSigma) {
             super(gl, pickingBuffer, renderer, options as OutlinesProgramOptions);
         }
     };
 }
 
-export class OutlinesProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> {
+export class OutlinesProgram extends HelvegNodeProgram<(typeof UNIFORMS)[number]> {
     constructor(
         gl: WebGLRenderingContext,
         pickingBuffer: WebGLFramebuffer,
-        renderer: Sigma,
+        renderer: HelvegSigma,
         private options: OutlinesProgramOptions
     ) {
         super(gl, pickingBuffer, renderer);
     }
 
-    getDefinition(): ProgramDefinition<typeof UNIFORMS[number]> {
+    getDefinition(): ProgramDefinition<(typeof UNIFORMS)[number]> {
         return {
             VERTICES: 1,
             VERTEX_SHADER_SOURCE: vertSrc,
@@ -81,20 +80,20 @@ export class OutlinesProgram extends HelvegNodeProgram<typeof UNIFORMS[number]> 
     }
 
     setUniforms(params: RenderParams, programInfo: ProgramInfo): void {
-        const {gl, uniformLocations} = programInfo;
+        const { gl, uniformLocations } = programInfo;
         const { u_sizeRatio, u_pixelRatio, u_matrix, u_gap } = uniformLocations;
         gl.uniform1f(u_sizeRatio, params.sizeRatio);
         gl.uniform1f(u_pixelRatio, params.pixelRatio);
         gl.uniformMatrix3fv(u_matrix, false, params.matrix);
         gl.uniform1f(u_gap, this.options.gap);
     }
-    
+
     drawWebGL(method: number, programInfo: ProgramInfo): void {
-        const {gl} = programInfo;
+        const { gl } = programInfo;
         if (programInfo.isPicking) {
             gl.blendFunc(gl.ONE, gl.ZERO);
         } else {
-            gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+            gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         }
 
         super.drawWebGL(method, programInfo);
