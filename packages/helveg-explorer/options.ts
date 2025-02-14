@@ -86,6 +86,7 @@ export interface GlyphOptions {
     showHatching: boolean;
     isFireAnimated: boolean;
     showCollapsedNodeIndicators: boolean;
+    showDiagnosticIndicators: boolean;
     showContours: boolean;
     codePizza: boolean;
     sizingMode: SizingMode;
@@ -100,6 +101,7 @@ export const DEFAULT_GLYPH_OPTIONS: GlyphOptions = {
     showHatching: true,
     isFireAnimated: true,
     showCollapsedNodeIndicators: true,
+    showDiagnosticIndicators: true,
     showContours: true,
     codePizza: false,
     sizingMode: SizingMode.LINEAR,

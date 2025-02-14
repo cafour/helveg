@@ -146,10 +146,7 @@
                     text="The palette applied to the nodes. `Universal` is default and is usable in most situations. `TypeFocus` applies colors to type kinds, graying out most else, and lets you focus on types only. `VS` is a legacy palette based on Visual Studio. `Custom` is automatically selected when you manually change a color in the `Entity colors` panel below."
                 />
             </span>
-            <select
-                on:change={(e) => onNodeColorChanged(e.currentTarget.value)}
-                value={nodeColorPreset}
-            >
+            <select on:change={(e) => onNodeColorChanged(e.currentTarget.value)} value={nodeColorPreset}>
                 {#each Object.values(NodeColorSchemaPreset) as schemaPreset}
                     <option value={schemaPreset} disabled={schemaPreset == NodeColorSchemaPreset.Custom}
                         >{schemaPreset}</option
@@ -177,6 +174,13 @@
             <input type="checkbox" bind:checked={$appearanceOptions.glyph.showCollapsedNodeIndicators} />
             Collapsed node indicators
             <Hint text="Renders little crescent shapes beneath nodes that may be expanded." />
+        </label>
+        <label>
+            <input type="checkbox" bind:checked={$appearanceOptions.glyph.showCollapsedNodeIndicators} />
+            Diagnostic indicators
+            <Hint
+                text="An error or warning icon indicating that an error or warning is located somewhere in the node's subtree."
+            />
         </label>
         <label>
             <input type="checkbox" bind:checked={$appearanceOptions.glyph.showHatching} />
