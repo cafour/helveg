@@ -23,6 +23,19 @@
     $: updateValue(valueItem);
     $: updateValueItem(value);
     export let clearable: boolean | undefined = undefined;
+    
+    function onFocus(e: CustomEvent) {
+        const input = e.detail.target as HTMLElement;
+        const inputRect = input.getBoundingClientRect();
+        const offset = inputRect.top + inputRect.height;
+
+        let container = input;
+        while (container != null && !container.classList.contains("filter-builder-select")) {
+            container = container.parentElement as HTMLElement;
+        }
+
+        container.style.setProperty("--list-max-height", `calc(100vh - ${Math.ceil(offset)}px - 1rem)`);
+    }
 </script>
 
 <Select
@@ -31,10 +44,10 @@
     class="filter-builder-select {className}"
     placeholder="Apply a custom filter"
     floatingConfig={{
-        strategy: "fixed",
+        strategy: "absolute",
     }}
     bind:value={valueItem}
-    on:focus
+    on:focus={onFocus}
     on:change
     listAutoWidth={false}
     {clearable}

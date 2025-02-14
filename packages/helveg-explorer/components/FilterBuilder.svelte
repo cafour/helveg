@@ -66,6 +66,10 @@
     export let filterBuilder = [];
     $: filterBuilder = $entries;
 
+    function getDefault(nodeKey: string) {
+        return nodeKeyTypes[nodeKey] === "string" ? "" : nodeKeyTypes[nodeKey] === "number" ? 0 : true;
+    }
+
     let newItem: string | undefined = undefined;
     function createEntry(e: CustomEvent) {
         if (newItem) {
@@ -74,7 +78,7 @@
                 {
                     property: newItem,
                     operation: FilterBuilderOperation.Equals,
-                    value: nodeKeyTypes[newItem] === "string" ? "" : nodeKeyTypes[newItem] === "number" ? 0 : true,
+                    value: getDefault(newItem),
                 },
             ];
             newItem = undefined;
@@ -82,6 +86,8 @@
     }
 
     function onPropertyChanged(i: number) {
+        $entries[i].value = getDefault($entries[i].property);
+
         if (nodeKeyTypes[$entries[i].property] === "boolean") {
             $entries[i].operation = FilterBuilderOperation.Equals;
         }
@@ -89,20 +95,6 @@
 
     function removeEntry(index: number) {
         $entries = $entries.toSpliced(index, 1);
-    }
-
-    function onFocus(e: CustomEvent) {
-        console.log(e);
-        const input = e.detail.target as HTMLElement;
-        const inputRect = input.getBoundingClientRect();
-        const offset = inputRect.top + inputRect.height;
-
-        let container = input;
-        while (container != null && !container.classList.contains("filter-builder-select")) {
-            container = container.parentElement as HTMLElement;
-        }
-
-        container.style.setProperty("--list-max-height", `calc(100vh - ${Math.ceil(offset)}px - 1rem)`);
     }
 </script>
 
@@ -145,5 +137,5 @@
 {/each}
 
 <div>
-    <FilterBuilderSelect items={selectItems} on:focus={onFocus} bind:value={newItem} on:change={createEntry} />
+    <FilterBuilderSelect items={selectItems} bind:value={newItem} on:change={createEntry} />
 </div>
