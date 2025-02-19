@@ -27,8 +27,8 @@ export enum AppIcons {
     UnknownDiagnostic = "vscode:question",
     HiddenDiagnostic = "vscode:circle-large",
     InfoDiagnostic = "vscode:info",
-    WarningDiagnostic = "vscode:warning",
-    ErrorDiagnostic = "vscode:error",
+    WarningDiagnostic = "helveg:DiagnosticWarning",
+    ErrorDiagnostic = "helveg:DiagnosticError",
     
     Hint = "vscode:question",
 }

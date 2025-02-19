@@ -120,6 +120,7 @@
                             <Icon
                                 name={getDiagnosticIcon(diagnostic)}
                                 title={diagnostic.severity}
+                                color="currentColor"
                                 class={getDiagnosticClass(diagnostic)}
                             />
                             <strong>{diagnostic.id}</strong>
