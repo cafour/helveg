@@ -44,6 +44,16 @@
                 "typeKind": "Class",
                 "isRecord": true
             },
+            "test:023": {
+                "name": "[F]",
+                "kind": "Type",
+                "typeKind": "Enum"
+            },
+            "test:025": {
+                "name": "[F]",
+                "kind": "Type",
+                "typeKind": "TypeParameter"
+            },
             "test:013": {
                 "name": "[J]",
                 "kind": "Field" 

@@ -1,0 +1,91 @@
+{
+    "analyzer": {
+        "name": "helveg",
+        "version": "0.0.0"
+    },
+    "createdOn": "today",
+    "data": {
+        "nodes": {
+            "test:001": {
+                "name": "[A]",
+                "kind": "Type",
+                "typeKind": "Class",
+                "isRecord": true,
+                "staticMemberCount": 10,
+                "instanceMemberCount": 8
+            },
+            "test:002": {
+                "name": "[B]",
+                "kind": "Type",
+                "typeKind": "Interface",
+                "instanceMemberCount": 2
+            },
+            "test:003": {
+                "name": "[C]",
+                "kind": "Type",
+                "typeKind": "Class",
+                "staticMemberCount": 10,
+                "instanceMemberCount": 4
+            },
+            "test:004": {
+                "name": "[C]",
+                "kind": "Type",
+                "typeKind": "Struct",
+                "staticMemberCount": 2,
+                "instanceMemberCount": 10
+            },
+            "test:005": {
+                "name": "[D]",
+                "kind": "Type",
+                "typeKind": "Class",
+                "staticMemberCount": 24,
+                "instanceMemberCount": 8,
+                "isSealed": true
+            },
+            "test:006": {
+                "name": "[E]",
+                "kind": "Type",
+                "typeKind": "Class",
+                "staticMemberCount": 2,
+                "instanceMemberCount": 6
+            },
+            "test:007": {
+                "name": "[F]",
+                "kind": "Type",
+                "typeKind": "Class",
+                "isStatic": true,
+                "staticMemberCount": 10
+            },
+            "test:008": {
+                "name": "[G]",
+                "kind": "Property",
+                "isAbstract": true
+            },
+            "test:009": {
+                "name": "[H]",
+                "kind": "Field"
+            },
+            "test:010": {
+                "name": "[I]",
+                "kind": "Field",
+                "isStatic": true
+            },
+            "test:011": {
+                "name": "[J]",
+                "kind": "Method",
+                "isAbstract": true
+            },
+            "test:012": {
+                "name": "[K]",
+                "kind": "Method"
+            },
+            "test:013": {
+                "name": "[L]",
+                "kind": "Method",
+                "isStatic": true
+            }
+        },
+        "relations": {}
+    },
+    "name": "glyphs"
+}
