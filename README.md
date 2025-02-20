@@ -77,7 +77,7 @@ The visualized codebase must be able to build using `dotnet build`. Codebases re
 
 ### Prerequisites
 
-* .NET 7.0 or newer
+* .NET 9.0 or newer
 * Node 22.4.0 or newer
 * an up-to-date web browser
 * git (optional)

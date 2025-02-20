@@ -153,7 +153,9 @@ export function initializeGraph(
 
     if (mainRelation !== undefined && visibleNodes !== undefined && visibleNodes.size > 0) {
         for (const node of visibleNodes) {
-            expandPathsTo(graph, node, mainRelation);
+            if (graph.hasNode(node)) {
+                expandPathsTo(graph, node, mainRelation);
+            }
         }
     }
 

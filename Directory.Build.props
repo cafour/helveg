@@ -3,9 +3,9 @@
     <PackageOutputPath>$(MSBuildThisFileDirectory)artifacts</PackageOutputPath>
     <DebugType>embedded</DebugType>
     <EmbedAllSources>true</EmbedAllSources>
-    <DefaultExeFrameworks>net8.0</DefaultExeFrameworks>
-    <DefaultLibraryFrameworks>net8.0</DefaultLibraryFrameworks>
-    <DefaultToolFramework>net8.0</DefaultToolFramework>
+    <DefaultExeFrameworks>net9.0</DefaultExeFrameworks>
+    <DefaultLibraryFrameworks>net9.0</DefaultLibraryFrameworks>
+    <DefaultToolFramework>net9.0</DefaultToolFramework>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
     <RollForward>LatestMajor</RollForward>
