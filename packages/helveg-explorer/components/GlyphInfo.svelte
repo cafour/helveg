@@ -15,6 +15,7 @@
     import CHEATSHEET_CONTOURS from "../img/cheatsheet_contours.svg";
     import CHEATSHEET_EFFECTS from "../img/cheatsheet_effects.svg";
     import CHEATSHEET_COLLAPSED_NODE_INDICATOR from "../img/cheatsheet_collapsed_node_indicator.svg";
+    import CHEATSHEET_DIAGNOSTIC_INDICATORS from "../img/cheatsheet_diagnostic_indicators.svg";
 
     let diagram = getContext<Diagram>("diagram");
     let model = getContext<Readable<DataModel>>("model");
@@ -67,6 +68,14 @@
             <strong class="extrabold">Errors and warnings</strong>
             <span class="text-xs">Compiler diagnostics are represented by animated effects:</span>
             {@html CHEATSHEET_EFFECTS}
+        </div>
+        <div class="flex flex-col gap-8">
+            <strong class="extrabold">Diagnostic indicators</strong>
+            <span class="text-xs"
+                >While direct errors and warnings are represented by fire and smoke, when any node in the <strong>subtree</strong> of
+                a the current node contains an error or a warning, a little indicator icon in the upper left corner is shown:
+            </span>
+            {@html CHEATSHEET_DIAGNOSTIC_INDICATORS}
         </div>
     </div>
 
