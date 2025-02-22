@@ -1,0 +1,63 @@
+{
+    "analyzer": {
+        "name": "helveg",
+        "version": "0.0.0"
+    },
+    "createdOn": "today",
+    "data": {
+        "nodes": {
+            "test:001": {
+                "name": "[A]",
+                "kind": "Solution"
+            },
+            "test:002": {
+                "name": "[B]",
+                "kind": "Type",
+                "typeKind": "Class",
+                "isStatic": true,
+                "staticMemberCount": 10
+            },
+            "test:003": {
+                "name": "[C]",
+                "kind": "Type",
+                "typeKind": "Class",
+                "isStatic": false,
+                "instanceMemberCount": 7,
+                "staticMemberCount": 3,
+                "isSealed": true
+            },
+            "test:004": {
+                "name": "[D]",
+                "kind": "Property",
+                "isAbstract": true,
+                "isStatic": false
+            },
+            "test:005": {
+                "name": "[E]",
+                "kind": "Method",
+                "methodKind": "Constructor",
+                "isStatic": false,
+                "diagnostics": [
+                    {
+                        "id": "1",
+                        "severity": "error"
+                    }
+                ]
+            },
+            "test:006": {
+                "name": "[F]",
+                "kind": "Property",
+                "isStatic": true,
+                "accessibility": "Private",
+                "diagnostics": [
+                    {
+                        "id": "2",
+                        "severity": "warning"
+                    }
+                ]
+            }
+        },
+        "relations": {}
+    },
+    "name": "glyphs"
+}
