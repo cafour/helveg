@@ -42,6 +42,7 @@
     function setMessage(index: number) {
         if (index >= TUTORIAL_MESSAGES.length) {
             $TUTORIAL_VISIBLE = false;
+            $TUTORIAL_INDEX = 0;
             return;
         }
 
