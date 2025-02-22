@@ -96,7 +96,7 @@ export const DEFAULT_GLYPH_OPTIONS: GlyphOptions = {
     glyphShape: GlyphShape.DONUT,
     showIcons: true,
     showLabels: true,
-    showDiffs: true,
+    showDiffs: false,
     showFire: true,
     showHatching: true,
     isFireAnimated: true,
