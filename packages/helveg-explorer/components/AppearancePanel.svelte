@@ -109,6 +109,9 @@
     });
 
     $: hasDiffMetadata = Object.values($model.data?.nodes ?? {}).some((n) => n.diff !== undefined);
+    $: if (!hasDiffMetadata) {
+        $appearanceOptions.glyph.showDiffs = false;
+    }
 </script>
 
 <Panel name="Appearance" indent={false} id={AppPanels.Appearance}>
