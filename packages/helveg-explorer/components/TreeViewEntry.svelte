@@ -1,7 +1,7 @@
 <script lang="ts">
     import type { TreeViewItem } from "./TreeView.svelte";
     import Icon from "./Icon.svelte";
-    import { FALLBACK_NODE_ICON, FALLBACK_NODE_STYLE } from "../deps/helveg-diagram";
+    import NodeIcon from "./NodeIcon.svelte";
 
     export let node: TreeViewItem;
     export let isExpanded: boolean;
@@ -40,11 +40,7 @@
             class="flex flex-row gap-4 align-items-center flex-grow-1"
             on:click={() => onNodeClicked(node.id)}
         >
-            <Icon
-                title={node.node.kind}
-                name={node.node.icon ?? FALLBACK_NODE_ICON}
-                color={node.node.color ?? FALLBACK_NODE_STYLE.color}
-            />
+            <NodeIcon node={node.id} />
             <span>{node.node.label}</span>
         </button>
     </div>
