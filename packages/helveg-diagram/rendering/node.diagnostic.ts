@@ -1,3 +1,4 @@
+import chroma from "chroma-js";
 import { floatColor } from "../deps/sigma.ts";
 import { HelvegNodeAttributes, HelvegNodeProgramType, HelvegSigma } from "../model/graph.ts";
 import { DiagnosticIndicatorStyle, FALLBACK_NODE_ICON, FALLBACK_NODE_STYLE } from "../model/style.ts";
@@ -48,7 +49,9 @@ export class DiagnosticProgram extends IconProgram {
         array[offset++] = (data.x ?? 0) - posOffset;
         array[offset++] = (data.y ?? 0) + posOffset;
         array[offset++] = indicatorSize;
-        array[offset++] = floatColor(useColor ? data.color ?? FALLBACK_NODE_STYLE.color : "#aaaaaa");
+        array[offset++] = floatColor(useColor
+            ? chroma(data.color ?? FALLBACK_NODE_STYLE.color).darken(1).desaturate(0.5).hex()
+            : "#aaaaaa");
 
         let icon =
             data.diagnosticIndicator === DiagnosticIndicatorStyle.ERROR

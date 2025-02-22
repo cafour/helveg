@@ -8,7 +8,8 @@
         "nodes": {
             "test:001": {
                 "name": "[A]",
-                "kind": "Solution"
+                "kind": "Solution",
+                "path": ""
             },
             "test:002": {
                 "name": "[B]",
@@ -55,9 +56,44 @@
                         "severity": "warning"
                     }
                 ]
+            },
+            "test:101": {
+                "name": "?",
+                "kind": "Field",
+                "diagnostics": [
+                    {
+                        "id": "3",
+                        "severity": "error"
+                    }
+                ]
+            },
+            "test:102": {
+                "name": "?",
+                "kind": "Field",
+                "diagnostics": [
+                    {
+                        "id": "4",
+                        "severity": "warning"
+                    }
+                ]
             }
         },
-        "relations": {}
+        "relations": {
+            "declares": {
+                "edges": {
+                    "test:001;test:101": {
+                        "src": "test:001",
+                        "dst": "test:101"
+                    },
+                    "test:002;test:102": {
+                        "src": "test:002",
+                        "dst": "test:102"
+                    }
+                },
+                "isTransitive": true,
+                "name": "declares"
+            }
+        }
     },
     "name": "glyphs"
 }
