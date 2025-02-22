@@ -104,7 +104,7 @@
                     }
                 }}
                 on:isolate={async (e) => {
-                    await diagram.isolate(e.detail.searchText, e.detail.searchMode, e.detail.filterBuilder);
+                    searchResults = await diagram.isolate(e.detail.searchText, e.detail.searchMode, e.detail.filterBuilder);
                     if ($toolOptions.search.shouldRunLayout) {
                         await diagram.runLayout(false);
                     }

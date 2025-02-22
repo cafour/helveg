@@ -788,22 +788,22 @@ export class Diagram {
         searchText: string | null,
         searchMode: SearchMode,
         filterBuilder?: IFilterBuilderEntry[]
-    ): Promise<void> {
+    ): Promise<string[]> {
         if (!this._graph) {
             this._logger.warn("Cannot isolate nodes since the graph is not initialized.");
-            return;
+            return [];
         }
 
         if (!this._model.data) {
             this._logger.warn("Cannot isolate nodes since the model contains no data.");
-            return;
+            return [];
         }
 
         let changed = false;
         try {
             let filter = buildNodeFilter(searchText, searchMode, this._nodeKeys, filterBuilder);
             if (filter === null) {
-                return;
+                return [];
             }
 
             await this.refreshSupervisor(true, () => {
@@ -827,13 +827,14 @@ export class Diagram {
             });
         } catch (e: any) {
             this._logger.warn(e?.message ?? e?.toString() ?? "Something bad happened while isolating nodes.");
-            return;
+            return []
         } finally {
             this._sigma?.setGraph(this._graph);
         }
 
         this._logger.info(`Isolated ${this._graph.nodes().length} nodes.`);
         this.events.graphChanged.trigger(this._graph);
+        return this._graph.nodes();
     }
 
     public async refresh(options?: DiagramRefreshOptions): Promise<void> {
