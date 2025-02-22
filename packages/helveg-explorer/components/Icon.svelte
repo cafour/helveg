@@ -1,8 +1,8 @@
 <script lang="ts">
-    import { type IconOptions, type Icon, type Diagram } from "../deps/helveg-diagram.ts";
+    import { type IconOptions, type Icon, type Diagram, FALLBACK_ICON } from "../deps/helveg-diagram.ts";
     import { readable, type Readable } from "svelte/store";
     import { getContext } from "svelte";
-    export let name: string;
+    export let name: string | undefined;
     export let title: string | undefined = undefined;
     export let theme: string | undefined = undefined;
     let className: string | undefined = "";
@@ -21,7 +21,7 @@
 
     $: themeClass = theme != null ? `theme-${theme}` : "";
 
-    $: icon = getIconReadable(name, {
+    $: icon = getIconReadable(name ?? FALLBACK_ICON.name, {
         viewBoxOnly: true,
         removeTitle: title != null,
         viewBox: "0 0 16 16",

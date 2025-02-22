@@ -13,6 +13,20 @@
     TUTORIAL_VISIBLE.subscribe((v) => {
         setVisible(v);
     });
+
+    function setIndex(value: number): void {
+        localStorage.setItem("Tutorial.index", value.toString());
+    }
+
+    function getIndex(): number {
+        const stored = localStorage.getItem("Tutorial.index");
+        return Number.parseInt(stored ?? "0");
+    }
+
+    export const TUTORIAL_INDEX = writable(getIndex());
+    TUTORIAL_INDEX.subscribe((v) => {
+        setIndex(v);
+    });
 </script>
 
 <script lang="ts">
@@ -20,9 +34,10 @@
     import { setPopupPosition } from "../popups.ts";
     import { onMount } from "svelte";
     import ButtonIcon from "./ButtonIcon.svelte";
+    import Icon from "./Icon.svelte";
+    import Dock from "./Dock.svelte";
 
     const messages = TUTORIAL_MESSAGES;
-    let currentIndex: number = 0;
 
     function setMessage(index: number) {
         if (index >= TUTORIAL_MESSAGES.length) {
@@ -30,49 +45,60 @@
             return;
         }
 
-        currentIndex = index;
-        const position = messages[currentIndex].position;
-        if (position.elementQuery) {
-            setPopupPosition(element, document.querySelector(position.elementQuery)!);
-        } else {
-            element.style.top = position.top ?? "";
-            element.style.bottom = position.bottom ?? "";
-            element.style.left = position.left ?? "";
-            element.style.right = position.right ?? "";
-            element.classList.remove("arrow-top");
-            element.classList.remove("arrow-bottom");
+        $TUTORIAL_INDEX = index;
+        
+        if (messages[$TUTORIAL_INDEX].selectedPanel != undefined) {
+            dock.setTab(messages[$TUTORIAL_INDEX].selectedPanel ?? null);
         }
+        
+        requestAnimationFrame(() => {
+            const position = messages[$TUTORIAL_INDEX].position;
+            if (position.elementQuery) {
+                setPopupPosition(element, document.querySelector(position.elementQuery)!);
+            } else {
+                element.style.top = position.top ?? "";
+                element.style.bottom = position.bottom ?? "";
+                element.style.left = position.left ?? "";
+                element.style.right = position.right ?? "";
+                element.classList.remove("arrow-top", "arrow-bottom", "arrow-left", "arrow-right");
+            }
+        });
     }
 
     onMount(() => {
-        setMessage(0);
+        setMessage(getIndex());
     });
 
     let element: HTMLElement;
+    
+    export let dock: Dock;
 </script>
 
 <div class="tutorial" bind:this={element} class:hidden={!$TUTORIAL_VISIBLE}>
     <div class="tutorial-header">
-        {#if messages[currentIndex].header != null}
-            <strong>{messages[currentIndex].header}</strong>
+        {#if messages[$TUTORIAL_INDEX].icon != undefined}
+            <Icon name={messages[$TUTORIAL_INDEX].icon} />
+        {/if}
+        {#if messages[$TUTORIAL_INDEX].header != null}
+            <strong>{messages[$TUTORIAL_INDEX].header}</strong>
         {/if}
         <div class="flex-grow-1"></div>
         <button on:click={() => ($TUTORIAL_VISIBLE = false)} type="button" class="button-icon primary">✕</button>
     </div>
     <div class="tutorial-body">
-        <p>{messages[currentIndex].message}</p>
+        <p>{messages[$TUTORIAL_INDEX].message}</p>
     </div>
     <div class="tutorial-controls">
         <ButtonIcon
             icon="vscode:arrow-left"
             class="primary"
-            on:click={() => setMessage(currentIndex - 1)}
-            disabled={currentIndex == 0}
+            on:click={() => setMessage($TUTORIAL_INDEX - 1)}
+            disabled={$TUTORIAL_INDEX == 0}
         />
-        {#if currentIndex < messages.length - 1}
-            <ButtonIcon icon="vscode:arrow-right" on:click={() => setMessage(currentIndex + 1)} class="primary" />
+        {#if $TUTORIAL_INDEX < messages.length - 1}
+            <ButtonIcon icon="vscode:arrow-right" on:click={() => setMessage($TUTORIAL_INDEX + 1)} class="primary" />
         {:else}
-            <ButtonIcon icon="vscode:check" on:click={() => setMessage(currentIndex + 1)} class="success" />
+            <ButtonIcon icon="vscode:check" on:click={() => setMessage($TUTORIAL_INDEX + 1)} class="success" />
         {/if}
     </div>
 </div>

@@ -17,10 +17,11 @@
 <script lang="ts">
     import ButtonStretch from "./ButtonStretch.svelte";
     import { writable } from "svelte/store";
-    import { TUTORIAL_VISIBLE } from "./Tutorial.svelte";
+    import { TUTORIAL_INDEX, TUTORIAL_VISIBLE } from "./Tutorial.svelte";
 
     function startWithTutorial() {
         $WELCOME_VISIBLE = false;
+        $TUTORIAL_INDEX = 0;
         $TUTORIAL_VISIBLE = true;
     }
 

@@ -69,7 +69,7 @@
     export let style: string | undefined = undefined;
 </script>
 
-<div class="dock flex {direction} relative {className}" {style}>
+<div class="dock flex {direction} relative {className}" {style} id="dock-{name}">
     <div class="tab-list flex {tabListDirection}">
         <slot name="before-tab-list" />
         {#each $tabDescriptors as tabDescriptor}

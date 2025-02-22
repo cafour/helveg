@@ -73,7 +73,7 @@
     }
 </script>
 
-<div class="tree-view {additionalClass} flex flex-row" class:open={isOpen} {style}>
+<div class="tree-view {additionalClass} flex flex-row" class:open={isOpen} {style} id="tree-view-button">
     <Panel id={AppPanels.TreeView} class="flex flex-col flex-grow-1" indent={false}>
         {#if items.length > 0}
             {#each items as item (item.id)}

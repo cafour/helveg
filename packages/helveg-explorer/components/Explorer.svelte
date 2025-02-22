@@ -146,7 +146,7 @@
     <ContextMenu />
     <CheatSheet buttonStyle="grid-area: CheatSheetButton;" />
     <Welcome />
-    <Tutorial />
+    <Tutorial dock={dock} />
 </div>
 
 <style lang="scss">
