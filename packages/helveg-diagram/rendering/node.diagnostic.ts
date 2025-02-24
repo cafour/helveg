@@ -50,8 +50,9 @@ export class DiagnosticProgram extends IconProgram {
         array[offset++] = (data.y ?? 0) + posOffset;
         array[offset++] = indicatorSize;
         array[offset++] = floatColor(useColor
-            ? chroma(data.color ?? FALLBACK_NODE_STYLE.color).darken(1).desaturate(0.5).hex()
+            ? chroma(data.color ?? FALLBACK_NODE_STYLE.color).mix(chroma("black"), 0.25).hex()
             : "#aaaaaa");
+            
 
         let icon =
             data.diagnosticIndicator === DiagnosticIndicatorStyle.ERROR

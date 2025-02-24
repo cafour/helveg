@@ -18,6 +18,7 @@ uniform float u_hatchingWidth;
 
 const vec4 TRANSPARENT = vec4(0.0f, 0.0f, 0.0f, 0.0f);
 const vec4 WHITE = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+const vec4 BLACK = vec4(0.0f, 0.0f, 0.0f, 1.0f);
 const float PI = 3.14159f;
 const float TWO_PI = 6.28319f;
 const float EPS = 0.00001f;
@@ -114,7 +115,7 @@ void main(void) {
         float childrenIndicatorFactor = smoothcircle(radius, childrenIndicatorDist) - smoothcircle(radius + v_gap, dist);
         if (childrenIndicatorFactor > 0.0f) {
             opacity += childrenIndicatorFactor;
-            f_color = v_color;
+            f_color = mix(v_color, BLACK, 0.25f);
         }
     }
 
