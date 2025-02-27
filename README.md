@@ -20,16 +20,16 @@ A prototype of a tool and an extensible API for the visualization of C# codebase
 * **[Samples](https://helveg.net/samples/)**
 
 <a href="./screenshots/helveg_node_with_metadata.png" title="Node with metadata">
-    <img width="24%" src="./screenshots/helveg_node_with_metadata_thumb.png" />
+    <img width="24%" src="./screenshots/helveg_node_with_metadata_thumb.jpg" />
 </a>
 <a href="./screenshots/kafe_data_types.png" title="Kafe.Data types">
-    <img width="24%" src="./screenshots/kafe_data_types_thumb.png" />
+    <img width="24%" src="./screenshots/kafe_data_types_thumb.jpg" />
 </a>
 <a href="./screenshots/kafe_solution.png" title="KAFE solution">
-    <img width="24%" src="./screenshots/kafe_solution_thumb.png" />
+    <img width="24%" src="./screenshots/kafe_solution_thumb.jpg" />
 </a>
-<a href="./screenshots/kafe_with_errors.png" title="KAFE with errors">
-    <img width="24%" src="./screenshots/kafe_with_errors_thumb.png" />
+<a href="./screenshots/helveg_with_errors.png" title="Helveg with errors">
+    <img width="24%" src="./screenshots/helveg_with_errors_thumb.jpg" />
 </a>
 
 
