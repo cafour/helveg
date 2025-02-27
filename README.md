@@ -169,7 +169,6 @@ This software has many dependencies. You do not need to install these explicitly
 * [Sigma.js](https://github.com/jacomyal/sigma.js)
 * [Graphology](https://github.com/graphology/graphology)
 * [Svelte](https://svelte.dev/)
-* [Visual Studio Image Library](https://www.microsoft.com/en-us/download/details.aspx?id=35825)
 
 
 ## License
