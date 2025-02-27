@@ -1,1 +1,3 @@
 *.afdesign -text
+*.png -text
+*.jpg -text

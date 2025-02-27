@@ -68,6 +68,7 @@
 
 # images
 !*.png
+!*.jpg
 !*.afdesign
 
 # cmake
