@@ -171,6 +171,55 @@ This software has many dependencies. You do not need to install these explicitly
 * [Svelte](https://svelte.dev/)
 
 
+## Reproducing the Screenshots
+
+**Note:** It may not be possible to replicate the screenshots exactly due to the interactive nature of the visualization.
+
+To reproduce the screenshots shown above and contained in the `screenshots` directory, follow these steps:
+
+**`helveg_node_with_metadata.png`**
+
+1. Run the command-line tool in the folder with the codebase  with these parameters:
+    - Codebase: https://gitlab.com/helveg/helveg/ (this repo)
+    - Command: `helveg --preset Docs -p TargetFramework=net8.0 --out-file index.html --mode SingleFile`
+    - _The output may differ based on the visualized branch and commit._
+2. Open the `index.html` file with an up-to-date browser.
+3. In the _Appearance_ panel, disable labels.
+4. Explore the codebase (expand nodes by double clicking them).
+5. Adjust the position of the nodes manually (by holding _Shift_ and dragging them).
+6. Select the `NumericToken` node and open the _Properties_ panel.
+7. The result should look _similar_ to the screenshot.
+
+**`helveg_with_error.png`**
+
+1. Follow the same instructions as with `helveg_node_with_metadata.png`. However, delete an important type to generate a large number of errors, for example the `NumericToken` node.
+2. Open the `index.html` file with an up-to-date browser.
+3. Expand all nodes.
+4. Zoom in on the nodes with the errors.
+5. The result should look _similar_ to the screenshot.
+
+**`kafe_data_types.png`**
+
+1. Run the command-line tool in the folder with the codebase with these parameters:
+    - Codebase: https://gitlab.fi.muni.cz/legtvar/kafe
+    - Commit SHA: `52343b6f006b647886c981eb0d7abe57cfc3f0a0`
+    - Command: `helveg --preset Dev -p TargetFramework=net9.0 --out-file index.html -m SingleFile`
+    - _Please note that to visualize KAFE, you need to install .NET 9.0._
+2. Open the `index.html` file with an up-to-date browser.
+3. In the _Appearance_ panel, disable labels.
+4. In the _Quick Start_ panel, click _All types_.
+5. The result should look _similar_ to the screenshot.
+
+**`kafe_solution.png`**
+
+1. Follow the same instructions as with `kafe_data_types.png`.
+2. Open the `index.html` file with an up-to-date browser.
+3. In the _Quick Start_ panel, click _Bird's-eye view_.
+4. Close the _Quick Start_ panel by clicking on its tab again.
+5. Open the _Tree View_ on the left side of the screen.
+6. The result should look _similar_ to the screenshot.
+
+
 ## License
 
 * The source code is licensed under the [BSD 3-Clause License](./LICENSE).
