@@ -81,8 +81,15 @@ The visualized codebase must be able to build using `dotnet build`. Codebases re
 * Node 22.4.0 or newer
 * an up-to-date web browser
 * git (optional)
+* Windows 11 or Ubuntu 22.04 or newer
 
-### Steps
+
+### Using a script (on Ubuntu)
+
+To install Helveg and let it produce a visualization of itself, run the `build.sh` command in the repo's root directory. The resulting file will be named `index.html`. This script has been tested on Ubuntu 22.04.
+
+
+### Manually
 
 To build Helveg from its source code, do the following:
 
